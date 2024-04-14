@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.5] - 20240414
+### Added
+- pg 使用 docker-compose 运行，参数记录于 gogogo.yaml。实际数据映射到了宿主机。
+- 连接 pg ，创建 user 表，记录于 user.pgsql 。其中用了 database-client.com 的 vscode 插件。
+- 用 gorm-gen 工具生成数据库访问代码，记录于 makefile 中的 gorm 目标。
+- windows 下 make 的安装记录于 cmd.md。
+- 在 demo 中测试了对数据库 user 表的访问。
+    - gorm 对于 pg 的错误判断有点问题，找到了替代方案。
+
 ## [0.0.4] - 20240412 
 - 移除当前用不上的“设计点”，宁愿后续遇到问题再重新加上。
 ### Removed
