@@ -59,6 +59,7 @@ generate:
 .PHONY: all
 # generate all
 all:
+	make gorm
 	make api;
 	make config;
 	make generate;
@@ -81,3 +82,11 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+# 通过 gorm-gen 生成数据库访问代码
+gorm:
+	gentool \
+	-db postgres \
+	-dsn "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
+	-outPath ./db/dao/ \
+	-tables user
