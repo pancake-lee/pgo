@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	v1 "gogogo/api/helloworld/v1"
-	"gogogo/internal/service"
+	"gogogo/api"
+	"gogogo/internal/userService"
 	"os"
 	"time"
 
@@ -59,7 +59,7 @@ func main() {
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
-	var greeterService service.GreeterService
+	var userService userService.UserService
 
 	var grpcSrv *grpc.Server
 	{
@@ -79,7 +79,7 @@ func main() {
 				time.Duration(getConfInt("Grpc.Timeout"))))
 		}
 		grpcSrv = grpc.NewServer(opts...)
-		v1.RegisterGreeterServer(grpcSrv, &greeterService)
+		api.RegisterUserServer(grpcSrv, &userService)
 	}
 	var httpSrv *http.Server
 	{
@@ -99,7 +99,7 @@ func main() {
 				time.Duration(getConfInt("Http.Timeout"))))
 		}
 		httpSrv = http.NewServer(opts...)
-		v1.RegisterGreeterHTTPServer(httpSrv, &greeterService)
+		api.RegisterUserHTTPServer(httpSrv, &userService)
 	}
 	app := newApp(logger, grpcSrv, httpSrv)
 

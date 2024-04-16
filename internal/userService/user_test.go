@@ -1,0 +1,69 @@
+package userService
+
+import (
+	"context"
+	"gogogo/api"
+	"testing"
+)
+
+func TestUserService(t *testing.T) {
+
+	ctx := context.Background()
+
+	var userSvr UserService
+
+	var userId int32
+	{
+		var req api.LoginRequest
+		req.UserName = "pancake"
+		resp, err := userSvr.Login(ctx, &req)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if resp.User.Id == 0 ||
+			resp.User.UserName != "pancake" {
+			t.Fatal("user info is error : ", resp.User)
+		}
+		userId = resp.User.Id
+	}
+	{
+		resp, err := userSvr.GetUserList(ctx, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(resp.UserList) == 0 {
+			t.Fatal("user list is empty")
+		}
+		isFound := false
+		for _, user := range resp.UserList {
+			if user.UserName == "pancake" {
+				if user.Id != userId {
+					t.Fatal("user id is error")
+				}
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			t.Fatal("user pancake is not found")
+		}
+	}
+	{
+		var req api.EditUserNameRequest
+		req.Id = userId
+		req.UserName = "pancake2"
+		_, err := userSvr.EditUserName(ctx, &req)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	{
+		var req api.DelUserRequest
+		req.Id = userId
+		_, err := userSvr.DelUser(ctx, &req)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
