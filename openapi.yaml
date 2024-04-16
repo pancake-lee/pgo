@@ -3,21 +3,31 @@
 
 openapi: 3.0.3
 info:
-    title: Greeter API
-    description: The greeting service definition.
+    title: User API
+    description: 用户服务模块
     version: 0.0.1
 paths:
-    /helloworld/{name}:
+    /user:
         get:
             tags:
-                - Greeter
-                - subgroup
-            description: Sends a greeting
-            operationId: Greeter_SayHello
+                - User
+            description: 获取用户列表
+            operationId: User_GetUserList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserListResponse'
+        post:
+            tags:
+                - User
+            description: 登录或注册
+            operationId: User_Login
             parameters:
-                - name: name
-                  in: path
-                  required: true
+                - name: userName
+                  in: query
                   schema:
                     type: string
             responses:
@@ -26,14 +36,72 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
+                                $ref: '#/components/schemas/api.LoginResponse'
+        delete:
+            tags:
+                - User
+            description: 删除用户
+            operationId: User_DelUser
+            parameters:
+                - name: id
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - User
+            description: 修改用户名
+            operationId: User_EditUserName
+            parameters:
+                - name: id
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: userName
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
 components:
     schemas:
-        helloworld.v1.HelloReply:
+        api.Empty:
+            type: object
+            properties: {}
+        api.GetUserListResponse:
             type: object
             properties:
-                message:
+                userList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserInfo'
+        api.LoginResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
+        api.UserInfo:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                userName:
                     type: string
-            description: The response message containing the greetings
+            description: 用户信息，该结构体和数据库表对应
 tags:
-    - name: Greeter
+    - name: User

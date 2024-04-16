@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+
+option go_package = "gogogo/api;api";
+
+// 用户服务模块
+service User {
+    // 登录或注册
+    rpc Login (LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/user"
+        };
+    }
+    // 获取用户列表
+    rpc GetUserList (Empty) returns (GetUserListResponse) {
+        option (google.api.http) = {
+            get: "/user"
+        };
+    }
+    // 删除用户
+    rpc DelUser (DelUserRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user"
+        };
+    }
+    // 修改用户名
+    rpc EditUserName (EditUserNameRequest) returns (Empty) {
+        option (google.api.http) = {
+            patch: "/user"
+        };
+    }
+}
+
+message Empty {}
+
+// 用户信息，该结构体和数据库表对应
+message UserInfo {
+    int32 id = 1;
+    string userName = 2;
+}
+
+message LoginRequest {
+    string userName = 1;
+}
+
+message LoginResponse {
+    UserInfo user = 1;
+}
+
+message GetUserListResponse {
+    repeated UserInfo userList = 1;
+}
+
+message DelUserRequest {
+    int32 id = 1;
+}
+
+message EditUserNameRequest {
+    int32 id = 1;
+    string userName = 2;
+}
