@@ -40,7 +40,7 @@ gorm:
 	gentool \
 	-db postgres \
 	-dsn "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
-	-outPath ./db/dao/ \
+	-outPath ./pkg/db/dao/ \
 	-tables user
 
 .PHONY: build

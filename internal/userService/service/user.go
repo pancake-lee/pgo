@@ -1,26 +1,11 @@
-package userService
+package service
 
 import (
 	"context"
 
-	"gogogo/api"
-	"gogogo/db/dao/query"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"gogogo/internal/userService/data"
+	"gogogo/pkg/api"
 )
-
-var db *gorm.DB
-
-func init() {
-	dsn := "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-
-	_db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
-	if err != nil {
-		panic(err)
-	}
-	db = _db
-}
 
 type UserService struct {
 	api.UnimplementedUserServer
@@ -32,11 +17,8 @@ func (s *UserService) Login(
 	if req.UserName == "" {
 		return nil, api.ErrorInvalidArgument("user name is empty")
 	}
-	q := query.Use(db).User
-	userData, err := q.WithContext(ctx).
-		Where(q.UserName.Eq(req.UserName)).
-		Attrs(q.UserName.Value(req.UserName)).
-		FirstOrCreate()
+	userData, err := data.UserDAO.GetOrAdd(ctx,
+		&data.UserDO{UserName: req.UserName})
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +31,8 @@ func (s *UserService) Login(
 func (s *UserService) GetUserList(
 	ctx context.Context, req *api.Empty,
 ) (resp *api.GetUserListResponse, err error) {
-	q := query.Use(db).User
-	userDataList, err := q.WithContext(ctx).Find()
+
+	userDataList, err := data.UserDAO.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +52,7 @@ func (s *UserService) DelUser(
 	if req.Id == 0 {
 		return nil, api.ErrorInvalidArgument("user id is zero")
 	}
-	q := query.Use(db).User
-	_, err = q.WithContext(ctx).
-		Where(q.ID.Eq(req.Id)).
-		Delete()
+	err = data.UserDAO.Del(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +64,8 @@ func (s *UserService) EditUserName(
 	if req.Id == 0 || req.UserName == "" {
 		return nil, api.ErrorInvalidArgument("argument invalid")
 	}
-	q := query.Use(db).User
-	_, err = q.WithContext(ctx).
-		Where(q.ID.Eq(req.Id)).
-		UpdateSimple(q.UserName.Value(req.UserName))
+
+	err = data.UserDAO.EditUserName(ctx, req.Id, req.UserName)
 	if err != nil {
 		return nil, err
 	}

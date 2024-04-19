@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"gogogo/api"
-	"gogogo/internal/userService"
+	"gogogo/internal/userService/service"
+	"gogogo/pkg/api"
 	"os"
 	"time"
 
@@ -50,16 +50,7 @@ func main() {
 
 	loadConf()
 
-	logger := log.With(log.NewStdLogger(os.Stdout),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", Name,
-		"service.version", Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
-	var userService userService.UserService
+	var userService service.UserService
 
 	var grpcSrv *grpc.Server
 	{
@@ -101,6 +92,16 @@ func main() {
 		httpSrv = http.NewServer(opts...)
 		api.RegisterUserHTTPServer(httpSrv, &userService)
 	}
+
+	logger := log.With(log.NewStdLogger(os.Stdout),
+		"ts", log.DefaultTimestamp,
+		"caller", log.DefaultCaller,
+		"service.id", id,
+		"service.name", Name,
+		"service.version", Version,
+		"trace.id", tracing.TraceID(),
+		"span.id", tracing.SpanID(),
+	)
 	app := newApp(logger, grpcSrv, httpSrv)
 
 	// start and wait for stop signal
