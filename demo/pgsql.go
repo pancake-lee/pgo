@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gogogo/db/dao/model"
-	"gogogo/db/dao/query"
-	"gogogo/db/pgerrcode"
+	"gogogo/pkg/db/dao/model"
+	"gogogo/pkg/db/dao/query"
+	"gogogo/pkg/db/pgerrcode"
 
 	"github.com/jackc/pgconn"
 	"gorm.io/driver/postgres"

@@ -1,8 +1,8 @@
-package userService
+package service
 
 import (
 	"context"
-	"gogogo/api"
+	"gogogo/pkg/api"
 	"testing"
 )
 
