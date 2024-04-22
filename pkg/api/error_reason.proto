@@ -6,7 +6,6 @@ import "errors/errors.proto";
 
 option go_package = "gogogo/api;api";
 
-//go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
 enum ErrorReason {
   // 设置缺省错误码
   option (errors.default_code) = 500;
