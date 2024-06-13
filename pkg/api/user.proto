@@ -12,6 +12,7 @@ service User {
     rpc Login (LoginRequest) returns (LoginResponse) {
         option (google.api.http) = {
             post: "/user"
+            body: "*"
         };
     }
     // 获取用户列表
@@ -30,6 +31,7 @@ service User {
     rpc EditUserName (EditUserNameRequest) returns (Empty) {
         option (google.api.http) = {
             patch: "/user"
+            body: "*"
         };
     }
 }
@@ -61,4 +63,63 @@ message DelUserRequest {
 message EditUserNameRequest {
     int32 id = 1;
     string userName = 2;
+}
+
+
+
+// 用户职位服务模块
+service UserJob {
+    // 添加用户职位
+    rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
+        option (google.api.http) = {
+            post: "/user/job"
+            body: "*"
+        };
+    }
+    // 获取用户职位列表
+    rpc GetUserJobList (Empty) returns (GetUserJobListResponse) {
+        option (google.api.http) = {
+            get: "/user/job"
+        };
+    }
+    // 删除用户职位
+    rpc DelUserJob (DelUserJobRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user/job"
+        };
+    }
+    // 修改用户职位名
+    rpc EditUserJobName (EditUserJobNameRequest) returns (Empty) {
+        option (google.api.http) = {
+            patch: "/user/job"
+            body: "*"
+        };
+    }
+}
+
+// 用户职位信息，该结构体和数据库表对应
+message UserJobInfo {
+    int32 id = 1;
+    string userJobName = 2;
+}
+
+message AddUserJobRequest {
+    string userJobName = 1;
+}
+
+message AddUserJobResponse {
+    UserJobInfo userJob = 1;
+}
+
+message GetUserJobListResponse {
+    repeated UserJobInfo userJobList = 1;
+}
+
+message DelUserJobRequest {
+    int32 id = 1;
+}
+
+message EditUserJobNameRequest {
+    int32 id = 1;
+    string userJobName = 2;
 }

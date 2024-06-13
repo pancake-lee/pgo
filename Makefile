@@ -8,9 +8,9 @@ ifeq ($(GOHOSTOS), windows)
 	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
 	#Git_Bash= $(subst cmd\,bin\bash.exe,$(dir $(shell where git)))
 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
-	API_PROTO_FILES=$(shell $(Git_Bash) -c "find api -name *.proto")
+	API_PROTO_FILES=$(shell $(Git_Bash) -c "find pkg/api -name *.proto")
 else
-	API_PROTO_FILES=$(shell find api -name *.proto)
+	API_PROTO_FILES=$(shell find pkg/api -name *.proto)
 endif
 
 .PHONY: init
@@ -26,12 +26,12 @@ init:
 .PHONY: api
 # generate api proto
 api:
-	protoc --proto_path=./api \
+	protoc --proto_path=./pkg/api/ \
 	       --proto_path=./third_party \
- 	       --go_out=paths=source_relative:./api \
- 	       --go-http_out=paths=source_relative:./api \
- 	       --go-grpc_out=paths=source_relative:./api \
-           --go-errors_out=paths=source_relative:./api \
+ 	       --go_out=paths=source_relative:./pkg/api/ \
+ 	       --go-http_out=paths=source_relative:./pkg/api/ \
+ 	       --go-grpc_out=paths=source_relative:./pkg/api/ \
+           --go-errors_out=paths=source_relative:./pkg/api/ \
 	       --openapi_out=fq_schema_naming=true,default_response=false:. \
 	       $(API_PROTO_FILES)
 
@@ -40,9 +40,9 @@ api:
 gorm:
 	gentool \
 	-db postgres \
-	-dsn "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
-	-outPath ./pkg/db/dao/ \
-	-tables user
+	-c ./configs/gentool.yaml \
+	-outPath ./pkg/db/dao/query \
+	-modelPkgName "pkg/db/dao/model"
 
 .PHONY: build
 # build

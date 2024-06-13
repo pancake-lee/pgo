@@ -1,0 +1,3 @@
+version: "0.1"
+database:
+  dsn : "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable"
