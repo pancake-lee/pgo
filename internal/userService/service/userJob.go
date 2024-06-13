@@ -1,0 +1,74 @@
+package service
+
+import (
+	"context"
+
+	"gogogo/internal/userService/data"
+	"gogogo/pkg/api"
+)
+
+type UserJobService struct {
+	api.UnimplementedUserServer
+}
+
+func (s *UserJobService) AddUserJob(
+	ctx context.Context, req *api.AddUserJobRequest,
+) (resp *api.AddUserJobResponse, err error) {
+	if req.UserJobName == "" {
+		return nil, api.ErrorInvalidArgument("user job name is empty")
+	}
+	var userJob data.UserJobDO
+	userJob.JobName = req.UserJobName
+	err = data.UserJobDAO.Add(ctx, &userJob)
+	if err != nil {
+		return nil, err
+	}
+	resp = new(api.AddUserJobResponse)
+	resp.UserJob = new(api.UserJobInfo)
+	resp.UserJob.Id = userJob.ID
+	resp.UserJob.UserJobName = userJob.JobName
+	return resp, nil
+}
+func (s *UserJobService) GetUserJobList(
+	ctx context.Context, req *api.Empty,
+) (resp *api.GetUserJobListResponse, err error) {
+
+	userJobDataList, err := data.UserJobDAO.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp = new(api.GetUserJobListResponse)
+	resp.UserJobList = make([]*api.UserJobInfo, 0, len(userJobDataList))
+	for _, userJobData := range userJobDataList {
+		resp.UserJobList = append(resp.UserJobList, &api.UserJobInfo{
+			Id:          userJobData.ID,
+			UserJobName: userJobData.JobName,
+		})
+	}
+	return resp, nil
+}
+func (s *UserJobService) DelUserJob(
+	ctx context.Context, req *api.DelUserJobRequest,
+) (resp *api.Empty, err error) {
+	if req.Id == 0 {
+		return nil, api.ErrorInvalidArgument("user job id is zero")
+	}
+	err = data.UserJobDAO.Del(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+func (s *UserJobService) EditUserJobName(
+	ctx context.Context, req *api.EditUserJobNameRequest,
+) (resp *api.Empty, err error) {
+	if req.Id == 0 || req.UserJobName == "" {
+		return nil, api.ErrorInvalidArgument("argument invalid")
+	}
+
+	err = data.UserJobDAO.EditJobName(ctx, req.Id, req.UserJobName)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}

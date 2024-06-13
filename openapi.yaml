@@ -3,8 +3,7 @@
 
 openapi: 3.0.3
 info:
-    title: User API
-    description: 用户服务模块
+    title: ""
     version: 0.0.1
 paths:
     /user:
@@ -25,11 +24,12 @@ paths:
                 - User
             description: 登录或注册
             operationId: User_Login
-            parameters:
-                - name: userName
-                  in: query
-                  schema:
-                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.LoginRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -60,16 +60,79 @@ paths:
                 - User
             description: 修改用户名
             operationId: User_EditUserName
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.EditUserNameRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+    /user/job:
+        get:
+            tags:
+                - UserJob
+            description: 获取用户职位列表
+            operationId: UserJob_GetUserJobList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserJobListResponse'
+        post:
+            tags:
+                - UserJob
+            description: 添加用户职位
+            operationId: UserJob_AddUserJob
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserJobRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserJobResponse'
+        delete:
+            tags:
+                - UserJob
+            description: 删除用户职位
+            operationId: UserJob_DelUserJob
             parameters:
                 - name: id
                   in: query
                   schema:
                     type: integer
                     format: int32
-                - name: userName
-                  in: query
-                  schema:
-                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserJob
+            description: 修改用户职位名
+            operationId: UserJob_EditUserJobName
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.EditUserJobNameRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -79,9 +142,42 @@ paths:
                                 $ref: '#/components/schemas/api.Empty'
 components:
     schemas:
+        api.AddUserJobRequest:
+            type: object
+            properties:
+                userJobName:
+                    type: string
+        api.AddUserJobResponse:
+            type: object
+            properties:
+                userJob:
+                    $ref: '#/components/schemas/api.UserJobInfo'
+        api.EditUserJobNameRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                userJobName:
+                    type: string
+        api.EditUserNameRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                userName:
+                    type: string
         api.Empty:
             type: object
             properties: {}
+        api.GetUserJobListResponse:
+            type: object
+            properties:
+                userJobList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserJobInfo'
         api.GetUserListResponse:
             type: object
             properties:
@@ -89,6 +185,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserInfo'
+        api.LoginRequest:
+            type: object
+            properties:
+                userName:
+                    type: string
         api.LoginResponse:
             type: object
             properties:
@@ -103,5 +204,17 @@ components:
                 userName:
                     type: string
             description: 用户信息，该结构体和数据库表对应
+        api.UserJobInfo:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                userJobName:
+                    type: string
+            description: 用户职位信息，该结构体和数据库表对应
 tags:
     - name: User
+      description: 用户服务模块
+    - name: UserJob
+      description: 用户职位服务模块
