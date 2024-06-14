@@ -18,6 +18,7 @@ import (
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:            db,
+		AbandonCode:   newAbandonCode(db, opts...),
 		User:          newUser(db, opts...),
 		UserDept:      newUserDept(db, opts...),
 		UserDeptAssoc: newUserDeptAssoc(db, opts...),
@@ -28,6 +29,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	AbandonCode   abandonCode
 	User          user
 	UserDept      userDept
 	UserDeptAssoc userDeptAssoc
@@ -39,6 +41,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
+		AbandonCode:   q.AbandonCode.clone(db),
 		User:          q.User.clone(db),
 		UserDept:      q.UserDept.clone(db),
 		UserDeptAssoc: q.UserDeptAssoc.clone(db),
@@ -57,6 +60,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
+		AbandonCode:   q.AbandonCode.replaceDB(db),
 		User:          q.User.replaceDB(db),
 		UserDept:      q.UserDept.replaceDB(db),
 		UserDeptAssoc: q.UserDeptAssoc.replaceDB(db),
@@ -65,6 +69,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	AbandonCode   *abandonCodeDo
 	User          *userDo
 	UserDept      *userDeptDo
 	UserDeptAssoc *userDeptAssocDo
@@ -73,6 +78,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		AbandonCode:   q.AbandonCode.WithContext(ctx),
 		User:          q.User.WithContext(ctx),
 		UserDept:      q.UserDept.WithContext(ctx),
 		UserDeptAssoc: q.UserDeptAssoc.WithContext(ctx),
