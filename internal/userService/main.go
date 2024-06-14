@@ -4,6 +4,7 @@ import (
 	"flag"
 	"gogogo/internal/userService/service"
 	"gogogo/pkg/api"
+	"gogogo/pkg/config"
 	"os"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/pelletier/go-toml"
 
 	_ "go.uber.org/automaxprocs"
 )
@@ -24,8 +24,8 @@ var (
 	Name string
 	// Version is the version of the compiled software.
 	Version string
-	// flagconf is the config flag.
-	flagconf string
+	// confPath is the config flag.
+	confPath string
 
 	id, _ = os.Hostname()
 )
@@ -45,10 +45,10 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 }
 
 func main() {
-	flag.StringVar(&flagconf, "conf", "../../configs/config.ini", "config path, eg: -conf config.yaml")
+	flag.StringVar(&confPath, "conf", "configs/config.ini", "config path, eg: -conf config.yaml")
 	flag.Parse()
 
-	loadConf()
+	config.LoadConf(confPath)
 
 	var userService service.UserService
 
@@ -59,15 +59,15 @@ func main() {
 				recovery.Recovery(),
 			),
 		}
-		if getConfStr("Grpc.Network") != "" {
-			opts = append(opts, grpc.Network(getConfStr("/Grpc/Network")))
+		if config.GetConfStr("Grpc.Network") != "" {
+			opts = append(opts, grpc.Network(config.GetConfStr("/Grpc/Network")))
 		}
-		if getConfStr("Grpc.Addr") != "" {
-			opts = append(opts, grpc.Address(getConfStr("Grpc.Addr")))
+		if config.GetConfStr("Grpc.Addr") != "" {
+			opts = append(opts, grpc.Address(config.GetConfStr("Grpc.Addr")))
 		}
-		if getConfInt("Grpc.Timeout") != 0 {
+		if config.GetConfInt("Grpc.Timeout") != 0 {
 			opts = append(opts, grpc.Timeout(time.Millisecond*
-				time.Duration(getConfInt("Grpc.Timeout"))))
+				time.Duration(config.GetConfInt("Grpc.Timeout"))))
 		}
 		grpcSrv = grpc.NewServer(opts...)
 		api.RegisterUserServer(grpcSrv, &userService)
@@ -79,15 +79,15 @@ func main() {
 				recovery.Recovery(),
 			),
 		}
-		if getConfStr("Http.Network") != "" {
-			opts = append(opts, http.Network(getConfStr("Http.Network")))
+		if config.GetConfStr("Http.Network") != "" {
+			opts = append(opts, http.Network(config.GetConfStr("Http.Network")))
 		}
-		if getConfStr("Http.Addr") != "" {
-			opts = append(opts, http.Address(getConfStr("Http.Addr")))
+		if config.GetConfStr("Http.Addr") != "" {
+			opts = append(opts, http.Address(config.GetConfStr("Http.Addr")))
 		}
-		if getConfInt("Http.Timeout") != 0 {
+		if config.GetConfInt("Http.Timeout") != 0 {
 			opts = append(opts, http.Timeout(time.Millisecond*
-				time.Duration(getConfInt("Http.Timeout"))))
+				time.Duration(config.GetConfInt("Http.Timeout"))))
 		}
 		httpSrv = http.NewServer(opts...)
 		api.RegisterUserHTTPServer(httpSrv, &userService)
@@ -108,31 +108,4 @@ func main() {
 	if err := app.Run(); err != nil {
 		panic(err)
 	}
-}
-
-// 临时简单实现配置的读取，后续肯定是要优化的
-var config *toml.Tree
-
-func loadConf() {
-	c, err := toml.LoadFile(flagconf)
-	if err != nil {
-		panic(err)
-	}
-	config = c
-}
-
-func getConfStr(confKey string) string {
-	if v, ok := config.Get(confKey).(string); ok {
-		log.Debugf("config key: %s, value: %s", confKey, v)
-		return v
-	}
-	return ""
-}
-
-func getConfInt(confKey string) int {
-	if v, ok := config.Get(confKey).(int); ok {
-		log.Debugf("config key: %s, value: %d", confKey, v)
-		return v
-	}
-	return 0
 }
