@@ -2,87 +2,151 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"gogogo/pkg/config"
-	"gogogo/pkg/db"
+	"gogogo/pkg/db/dao/model"
 	"log"
+	"os"
+	"reflect"
+	"strings"
+	"unicode"
 )
 
-type Column struct {
-	Name string
-	Type string
+type dbModel interface {
+	TableName() string
 }
+
 type Table struct {
 	ServiceName string
-	Name        string
-	Columns     []*Column
+	Model       dbModel
+
+	//生成代码需要的值
+	LowerCamelName string // 驼峰命名，首字母小写
+	UpperCamelName string // 驼峰命名，首字母大写
+
+	IdxColName  string // 索引列名，model字段名
+	IdxColType  string // 索引列类型，model字段类型
+	IdxParmName string // 索引列名，读写值的参数名
+
+}
+
+func (t *Table) String() string {
+	return "ServiceName[" + t.ServiceName + "]" +
+		" Model[" + t.Model.TableName() + "]" +
+		" LowerCamelName[" + t.LowerCamelName + "]" +
+		" UpperCamelName[" + t.UpperCamelName + "]" +
+		" IdxColName[" + t.IdxColName + "]" +
+		" IdxColType[" + t.IdxColType + "]" +
+		" IdxParmName[" + t.IdxParmName + "]"
+}
+
+var tblToSvrMap = make(map[string]*Table)
+
+func addTable(m dbModel, svrName string) {
+	tblToSvrMap[m.TableName()] = &Table{
+		ServiceName: svrName,
+		Model:       m,
+	}
 }
 
 func main() {
+	var err error
+
 	var confPath string
 	flag.StringVar(&confPath, "conf", "configs/config.ini", "config path, eg: -conf config.yaml")
 	flag.Parse()
 
 	config.LoadConf(confPath)
 
-	var err error
-
-	tblToSvrMap := make(map[string]*Table)
-	tblToSvrMap["user"] =
-		&Table{ServiceName: "userService", Name: "user"}
-	tblToSvrMap["user_dept"] =
-		&Table{ServiceName: "userService", Name: "user_dept"}
-	tblToSvrMap["user_dept_assoc"] =
-		&Table{ServiceName: "userService", Name: "user_dept_assoc"}
-	tblToSvrMap["user_job"] =
-		&Table{ServiceName: "userService", Name: "user_job"}
+	addTable(&model.User{}, "userService")
+	addTable(&model.UserDept{}, "userService")
+	addTable(&model.UserDeptAssoc{}, "userService")
+	addTable(&model.UserJob{}, "userService")
 
 	//1: 读取数据库表结构
-	// tables, _ := db.GetTables()
-	// for _, tableName := range tables {
-	for _, table := range tblToSvrMap {
-		table.Columns, err = getTableColumns(table.Name)
-		if err != nil {
-			log.Fatal("get tbl col err : ", err)
+	for _, tbl := range tblToSvrMap {
+		log.Printf("table: %v", tbl.Model.TableName())
+		tblName := tbl.Model.TableName()
+		tbl.UpperCamelName = toCamelCase(tblName)
+		tbl.LowerCamelName = firstToLower(tbl.UpperCamelName)
+
+		val := reflect.ValueOf(tbl.Model).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			field := val.Type().Field(i)
+			// log.Printf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
+			if tbl.IdxColName == "" &&
+				strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
+				tbl.IdxColName = field.Name
+				tbl.IdxColType = field.Type.String()
+				tbl.IdxParmName = firstToLower(idToLower(tbl.IdxColName))
+			}
 		}
-		for _, col := range table.Columns {
-			log.Printf("table[%v] col[%v] type[%v]\n", table.Name, col.Name, col.Type)
-		}
+		log.Println("tbl info : ", tbl)
 	}
 
 	//2: 读取模板文件
+	daoTplBytes, err := os.ReadFile("tools/genCURD/AbandonCode.go")
+	if err != nil {
+		log.Fatalf("read tpl file failed, err: %v", err)
+	}
+
+	daoIdxTplBytes, err := os.ReadFile("tools/genCURD/AbandonCodeIdx.go")
+	if err != nil {
+		log.Fatalf("read tpl file failed, err: %v", err)
+	}
+
+	tplTable := Table{
+		ServiceName:    "",
+		Model:          &model.AbandonCode{},
+		LowerCamelName: "abandonCode",
+		UpperCamelName: "AbandonCode",
+		IdxColName:     "Idx1",
+		IdxColType:     "int32",
+		IdxParmName:    "idx1",
+	}
 
 	//3: 生成代码
-	//3.1: 调用 gorm-gen 生成 model query 代码
-	//3.2: 生成 curd 的 dao 代码
-	//3.3: 生成 curd 的 proto 定义，包括数据结构和接口定义
-	//3.4: 调用 protoc 生成 go 代码
-	//3.5: 生成 curd 的 service 代码，包括 DO 和 DTO 的转换代码，基础 curd 的实现
+	daoOutputPath := "./tools/genCURD/gen/"
+	os.MkdirAll(daoOutputPath, 0755)
+	for _, tbl := range tblToSvrMap {
+		//3.1: 生成 curd 的 dao 代码
+		daoCodeStr := string(daoTplBytes)
+		if tbl.IdxColName != "" {
+			daoIdxCodeStr := string(daoIdxTplBytes)
+			i := strings.Index(daoIdxCodeStr, "ignore above this line")
+			ii := strings.Index(daoIdxCodeStr[i:], "\n")
+			daoIdxCodeStr = daoIdxCodeStr[i+ii+1:]
+			daoCodeStr += daoIdxCodeStr
+		}
+		daoCodeStr = strings.ReplaceAll(daoCodeStr, tplTable.LowerCamelName, tbl.LowerCamelName)
+		daoCodeStr = strings.ReplaceAll(daoCodeStr, tplTable.UpperCamelName, tbl.UpperCamelName)
+		daoCodeStr = strings.ReplaceAll(daoCodeStr, tplTable.IdxColName, tbl.IdxColName)
+		daoCodeStr = strings.ReplaceAll(daoCodeStr, tplTable.IdxColType, tbl.IdxColType)
+		daoCodeStr = strings.ReplaceAll(daoCodeStr, tplTable.IdxParmName, tbl.IdxParmName)
+		err = os.WriteFile(daoOutputPath+tbl.UpperCamelName+".gen.go", []byte(daoCodeStr), 0644)
+		if err != nil {
+			log.Fatalf("write dao code failed, err: %v", err)
+		}
+		//3.2: 生成 curd 的 proto 定义，包括数据结构和接口定义
+		//3.3: 调用 protoc 生成 go 代码
+		//3.4: 生成 curd 的 service 代码，包括 DO 和 DTO 的转换代码，基础 curd 的实现
+	}
 }
 
-func getTableColumns(t string) ([]*Column, error) {
-	db, _ := db.GetDB()
-	rows, err := db.Query(fmt.Sprintf(
-		`SELECT column_name, data_type FROM information_schema.columns 
-		WHERE table_name = '%v'`, t))
-	if err != nil {
-		return nil, err
+func toCamelCase(str string) string {
+	split := strings.Split(str, "_")
+	for i := 0; i < len(split); i++ {
+		split[i] = firstToUpper(split[i])
 	}
-	defer rows.Close()
-	var cols []*Column
-	for rows.Next() {
-		var columnName, dataType string
-		if err := rows.Scan(&columnName, &dataType); err != nil {
-			return nil, err
-		}
-		var col Column
-		col.Name = columnName
-		col.Type = dataType
-		cols = append(cols, &col)
-	}
+	camel := strings.Join(split, "")
+	return camel
+}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return cols, nil
+func idToLower(str string) string {
+	return strings.ReplaceAll(str, "ID", "id")
+}
+func firstToUpper(str string) string {
+	return string(unicode.ToUpper(rune(str[0]))) + str[1:]
+}
+func firstToLower(str string) string {
+	return string(unicode.ToLower(rune(str[0]))) + str[1:]
 }
