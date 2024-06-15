@@ -53,7 +53,7 @@ func (s *UserJobService) DelUserJob(
 	if req.Id == 0 {
 		return nil, api.ErrorInvalidArgument("user job id is zero")
 	}
-	err = data.UserJobDAO.Del(ctx, req.Id)
+	err = data.UserJobDAO.DelById(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
