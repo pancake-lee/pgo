@@ -20,6 +20,19 @@ func (*abandonCodeDAO) DelById(ctx context.Context, idx1 int32) error {
 	return err
 }
 
+func (*abandonCodeDAO) DelByIds(ctx context.Context, idx1s []int32) error {
+	if len(idx1s) == 0 {
+		return nil
+	}
+	q := db.GetPG().AbandonCode
+	_, err := q.WithContext(ctx).
+		Where(q.Idx1.In(idx1s...)).Delete()
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (*abandonCodeDAO) GetById(ctx context.Context, idx1 int32,
 ) (abandonCode *AbandonCodeDO, err error) {
 	if idx1 == 0 {
@@ -33,4 +46,23 @@ func (*abandonCodeDAO) GetById(ctx context.Context, idx1 int32,
 		return nil, err
 	}
 	return abandonCode, nil
+}
+
+func (*abandonCodeDAO) GetByIds(ctx context.Context, idx1s []int32,
+) (abandonCodeMap map[int32]*AbandonCodeDO, err error) {
+	if len(idx1s) == 0 {
+		return nil, nil
+	}
+
+	q := db.GetPG().AbandonCode
+	l, err := q.WithContext(ctx).
+		Where(q.Idx1.In(idx1s...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	abandonCodeMap = make(map[int32]*AbandonCodeDO)
+	for _, i := range l {
+		abandonCodeMap[i.Idx1] = i
+	}
+	return abandonCodeMap, nil
 }

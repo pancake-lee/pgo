@@ -52,7 +52,7 @@ func (s *UserService) DelUser(
 	if req.Id == 0 {
 		return nil, api.ErrorInvalidArgument("user id is zero")
 	}
-	err = data.UserDAO.Del(ctx, req.Id)
+	err = data.UserDAO.DelById(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
