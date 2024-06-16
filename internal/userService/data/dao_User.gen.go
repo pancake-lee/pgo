@@ -37,7 +37,7 @@ func (*userDAO) GetAll(ctx context.Context,
 	return userList, nil
 }
 
-func (*userDAO) DelById(ctx context.Context, iD int32) error {
+func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return errors.New("param is invalid")
 	}
@@ -49,20 +49,20 @@ func (*userDAO) DelById(ctx context.Context, iD int32) error {
 	return err
 }
 
-func (*userDAO) DelByIds(ctx context.Context, iDs []int32) error {
-	if len(iDs) == 0 {
+func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+	if len(iDList) == 0 {
 		return nil
 	}
 	q := db.GetPG().User
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(iDs...)).Delete()
+		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*userDAO) GetById(ctx context.Context, iD int32,
+func (*userDAO) GetByID(ctx context.Context, iD int32,
 ) (user *UserDO, err error) {
 	if iD == 0 {
 		return user, errors.New("param is invalid")
@@ -77,15 +77,15 @@ func (*userDAO) GetById(ctx context.Context, iD int32,
 	return user, nil
 }
 
-func (*userDAO) GetByIds(ctx context.Context, iDs []int32,
+func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
 ) (userMap map[int32]*UserDO, err error) {
-	if len(iDs) == 0 {
+	if len(iDList) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetPG().User
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(iDs...)).Find()
+		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
 		return nil, err
 	}

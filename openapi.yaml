@@ -9,8 +9,8 @@ paths:
     /abandon-code:
         get:
             tags:
-                - AbandonCode
-            operationId: AbandonCode_GetAbandonCodeList
+                - AbandonCodeCURD
+            operationId: AbandonCodeCURD_GetAbandonCodeList
             parameters:
                 - name: idx1List
                   in: query
@@ -29,8 +29,8 @@ paths:
                                 $ref: '#/components/schemas/api.GetAbandonCodeListResponse'
         post:
             tags:
-                - AbandonCode
-            operationId: AbandonCode_AddAbandonCode
+                - AbandonCodeCURD
+            operationId: AbandonCodeCURD_AddAbandonCode
             requestBody:
                 content:
                     application/json:
@@ -46,9 +46,9 @@ paths:
                                 $ref: '#/components/schemas/api.AddAbandonCodeResponse'
         delete:
             tags:
-                - AbandonCode
+                - AbandonCodeCURD
             description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: AbandonCode_DelAbandonCodeByIds
+            operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
             parameters:
                 - name: idx1List
                   in: query
@@ -68,8 +68,8 @@ paths:
     /user:
         get:
             tags:
-                - User
-            operationId: User_GetUserList
+                - UserCURD
+            operationId: UserCURD_GetUserList
             parameters:
                 - name: iDList
                   in: query
@@ -87,8 +87,8 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserListResponse'
         post:
             tags:
-                - User
-            operationId: User_AddUser
+                - UserCURD
+            operationId: UserCURD_AddUser
             requestBody:
                 content:
                     application/json:
@@ -104,9 +104,9 @@ paths:
                                 $ref: '#/components/schemas/api.AddUserResponse'
         delete:
             tags:
-                - User
+                - UserCURD
             description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: User_DelUserByIds
+            operationId: UserCURD_DelUserByIDList
             parameters:
                 - name: iDList
                   in: query
@@ -122,11 +122,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - User
+            description: 修改用户名
+            operationId: User_EditUserName
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.EditUserNameRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
     /user-dept:
         get:
             tags:
-                - UserDept
-            operationId: UserDept_GetUserDeptList
+                - UserDeptCURD
+            operationId: UserDeptCURD_GetUserDeptList
             parameters:
                 - name: iDList
                   in: query
@@ -144,8 +162,8 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserDeptListResponse'
         post:
             tags:
-                - UserDept
-            operationId: UserDept_AddUserDept
+                - UserDeptCURD
+            operationId: UserDeptCURD_AddUserDept
             requestBody:
                 content:
                     application/json:
@@ -161,9 +179,9 @@ paths:
                                 $ref: '#/components/schemas/api.AddUserDeptResponse'
         delete:
             tags:
-                - UserDept
+                - UserDeptCURD
             description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: UserDept_DelUserDeptByIds
+            operationId: UserDeptCURD_DelUserDeptByIDList
             parameters:
                 - name: iDList
                   in: query
@@ -182,8 +200,8 @@ paths:
     /user-dept-assoc:
         get:
             tags:
-                - UserDeptAssoc
-            operationId: UserDeptAssoc_GetUserDeptAssocList
+                - UserDeptAssocCURD
+            operationId: UserDeptAssocCURD_GetUserDeptAssocList
             responses:
                 "200":
                     description: OK
@@ -193,8 +211,8 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserDeptAssocListResponse'
         post:
             tags:
-                - UserDeptAssoc
-            operationId: UserDeptAssoc_AddUserDeptAssoc
+                - UserDeptAssocCURD
+            operationId: UserDeptAssocCURD_AddUserDeptAssoc
             requestBody:
                 content:
                     application/json:
@@ -211,8 +229,8 @@ paths:
     /user-job:
         get:
             tags:
-                - UserJob
-            operationId: UserJob_GetUserJobList
+                - UserJobCURD
+            operationId: UserJobCURD_GetUserJobList
             parameters:
                 - name: iDList
                   in: query
@@ -230,8 +248,8 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserJobListResponse'
         post:
             tags:
-                - UserJob
-            operationId: UserJob_AddUserJob
+                - UserJobCURD
+            operationId: UserJobCURD_AddUserJob
             requestBody:
                 content:
                     application/json:
@@ -247,9 +265,9 @@ paths:
                                 $ref: '#/components/schemas/api.AddUserJobResponse'
         delete:
             tags:
-                - UserJob
+                - UserJobCURD
             description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: UserJob_DelUserJobByIds
+            operationId: UserJobCURD_DelUserJobByIDList
             parameters:
                 - name: iDList
                   in: query
@@ -265,6 +283,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+    /user/token:
+        post:
+            tags:
+                - User
+            description: 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
+            operationId: User_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.LoginResponse'
 components:
     schemas:
         api.AbandonCodeInfo:
@@ -326,6 +363,14 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+        api.EditUserNameRequest:
+            type: object
+            properties:
+                ID:
+                    type: integer
+                    format: int32
+                userName:
+                    type: string
         api.Empty:
             type: object
             properties: {}
@@ -364,6 +409,16 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserInfo'
+        api.LoginRequest:
+            type: object
+            properties:
+                userName:
+                    type: string
+        api.LoginResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
         api.UserDeptAssocInfo:
             type: object
             properties:
@@ -403,23 +458,25 @@ components:
                 jobName:
                     type: string
 tags:
-    - name: AbandonCode
+    - name: AbandonCodeCURD
       description: |-
         --------------------------------------------------
          tbl : abandon_code
     - name: User
+      description: 用户服务模块
+    - name: UserCURD
       description: |-
         --------------------------------------------------
          tbl : user
-    - name: UserDept
-      description: |-
-        --------------------------------------------------
-         tbl : user_dept
-    - name: UserDeptAssoc
+    - name: UserDeptAssocCURD
       description: |-
         --------------------------------------------------
          tbl : user_dept_assoc
-    - name: UserJob
+    - name: UserDeptCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept
+    - name: UserJobCURD
       description: |-
         --------------------------------------------------
          tbl : user_job

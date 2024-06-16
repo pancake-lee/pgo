@@ -19,165 +19,165 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AbandonCode_AddAbandonCode_FullMethodName      = "/api.AbandonCode/AddAbandonCode"
-	AbandonCode_GetAbandonCodeList_FullMethodName  = "/api.AbandonCode/GetAbandonCodeList"
-	AbandonCode_DelAbandonCodeByIds_FullMethodName = "/api.AbandonCode/DelAbandonCodeByIds"
+	AbandonCodeCURD_AddAbandonCode_FullMethodName           = "/api.AbandonCodeCURD/AddAbandonCode"
+	AbandonCodeCURD_GetAbandonCodeList_FullMethodName       = "/api.AbandonCodeCURD/GetAbandonCodeList"
+	AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName = "/api.AbandonCodeCURD/DelAbandonCodeByIdx1List"
 )
 
-// AbandonCodeClient is the client API for AbandonCode service.
+// AbandonCodeCURDClient is the client API for AbandonCodeCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AbandonCodeClient interface {
+type AbandonCodeCURDClient interface {
 	AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelAbandonCodeByIds(ctx context.Context, in *DelAbandonCodeByIdsRequest, opts ...grpc.CallOption) (*Empty, error)
+	DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type abandonCodeClient struct {
+type abandonCodeCURDClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAbandonCodeClient(cc grpc.ClientConnInterface) AbandonCodeClient {
-	return &abandonCodeClient{cc}
+func NewAbandonCodeCURDClient(cc grpc.ClientConnInterface) AbandonCodeCURDClient {
+	return &abandonCodeCURDClient{cc}
 }
 
-func (c *abandonCodeClient) AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error) {
+func (c *abandonCodeCURDClient) AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error) {
 	out := new(AddAbandonCodeResponse)
-	err := c.cc.Invoke(ctx, AbandonCode_AddAbandonCode_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, AbandonCodeCURD_AddAbandonCode_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *abandonCodeClient) GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error) {
+func (c *abandonCodeCURDClient) GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error) {
 	out := new(GetAbandonCodeListResponse)
-	err := c.cc.Invoke(ctx, AbandonCode_GetAbandonCodeList_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, AbandonCodeCURD_GetAbandonCodeList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *abandonCodeClient) DelAbandonCodeByIds(ctx context.Context, in *DelAbandonCodeByIdsRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *abandonCodeCURDClient) DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, AbandonCode_DelAbandonCodeByIds_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AbandonCodeServer is the server API for AbandonCode service.
-// All implementations must embed UnimplementedAbandonCodeServer
+// AbandonCodeCURDServer is the server API for AbandonCodeCURD service.
+// All implementations must embed UnimplementedAbandonCodeCURDServer
 // for forward compatibility
-type AbandonCodeServer interface {
+type AbandonCodeCURDServer interface {
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelAbandonCodeByIds(context.Context, *DelAbandonCodeByIdsRequest) (*Empty, error)
-	mustEmbedUnimplementedAbandonCodeServer()
+	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
+	mustEmbedUnimplementedAbandonCodeCURDServer()
 }
 
-// UnimplementedAbandonCodeServer must be embedded to have forward compatible implementations.
-type UnimplementedAbandonCodeServer struct {
+// UnimplementedAbandonCodeCURDServer must be embedded to have forward compatible implementations.
+type UnimplementedAbandonCodeCURDServer struct {
 }
 
-func (UnimplementedAbandonCodeServer) AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error) {
+func (UnimplementedAbandonCodeCURDServer) AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAbandonCode not implemented")
 }
-func (UnimplementedAbandonCodeServer) GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error) {
+func (UnimplementedAbandonCodeCURDServer) GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAbandonCodeList not implemented")
 }
-func (UnimplementedAbandonCodeServer) DelAbandonCodeByIds(context.Context, *DelAbandonCodeByIdsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DelAbandonCodeByIds not implemented")
+func (UnimplementedAbandonCodeCURDServer) DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelAbandonCodeByIdx1List not implemented")
 }
-func (UnimplementedAbandonCodeServer) mustEmbedUnimplementedAbandonCodeServer() {}
+func (UnimplementedAbandonCodeCURDServer) mustEmbedUnimplementedAbandonCodeCURDServer() {}
 
-// UnsafeAbandonCodeServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AbandonCodeServer will
+// UnsafeAbandonCodeCURDServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AbandonCodeCURDServer will
 // result in compilation errors.
-type UnsafeAbandonCodeServer interface {
-	mustEmbedUnimplementedAbandonCodeServer()
+type UnsafeAbandonCodeCURDServer interface {
+	mustEmbedUnimplementedAbandonCodeCURDServer()
 }
 
-func RegisterAbandonCodeServer(s grpc.ServiceRegistrar, srv AbandonCodeServer) {
-	s.RegisterService(&AbandonCode_ServiceDesc, srv)
+func RegisterAbandonCodeCURDServer(s grpc.ServiceRegistrar, srv AbandonCodeCURDServer) {
+	s.RegisterService(&AbandonCodeCURD_ServiceDesc, srv)
 }
 
-func _AbandonCode_AddAbandonCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AbandonCodeCURD_AddAbandonCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddAbandonCodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AbandonCodeServer).AddAbandonCode(ctx, in)
+		return srv.(AbandonCodeCURDServer).AddAbandonCode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AbandonCode_AddAbandonCode_FullMethodName,
+		FullMethod: AbandonCodeCURD_AddAbandonCode_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AbandonCodeServer).AddAbandonCode(ctx, req.(*AddAbandonCodeRequest))
+		return srv.(AbandonCodeCURDServer).AddAbandonCode(ctx, req.(*AddAbandonCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AbandonCode_GetAbandonCodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AbandonCodeCURD_GetAbandonCodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAbandonCodeListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AbandonCodeServer).GetAbandonCodeList(ctx, in)
+		return srv.(AbandonCodeCURDServer).GetAbandonCodeList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AbandonCode_GetAbandonCodeList_FullMethodName,
+		FullMethod: AbandonCodeCURD_GetAbandonCodeList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AbandonCodeServer).GetAbandonCodeList(ctx, req.(*GetAbandonCodeListRequest))
+		return srv.(AbandonCodeCURDServer).GetAbandonCodeList(ctx, req.(*GetAbandonCodeListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AbandonCode_DelAbandonCodeByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DelAbandonCodeByIdsRequest)
+func _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelAbandonCodeByIdx1ListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AbandonCodeServer).DelAbandonCodeByIds(ctx, in)
+		return srv.(AbandonCodeCURDServer).DelAbandonCodeByIdx1List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AbandonCode_DelAbandonCodeByIds_FullMethodName,
+		FullMethod: AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AbandonCodeServer).DelAbandonCodeByIds(ctx, req.(*DelAbandonCodeByIdsRequest))
+		return srv.(AbandonCodeCURDServer).DelAbandonCodeByIdx1List(ctx, req.(*DelAbandonCodeByIdx1ListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AbandonCode_ServiceDesc is the grpc.ServiceDesc for AbandonCode service.
+// AbandonCodeCURD_ServiceDesc is the grpc.ServiceDesc for AbandonCodeCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AbandonCode_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.AbandonCode",
-	HandlerType: (*AbandonCodeServer)(nil),
+var AbandonCodeCURD_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.AbandonCodeCURD",
+	HandlerType: (*AbandonCodeCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddAbandonCode",
-			Handler:    _AbandonCode_AddAbandonCode_Handler,
+			Handler:    _AbandonCodeCURD_AddAbandonCode_Handler,
 		},
 		{
 			MethodName: "GetAbandonCodeList",
-			Handler:    _AbandonCode_GetAbandonCodeList_Handler,
+			Handler:    _AbandonCodeCURD_GetAbandonCodeList_Handler,
 		},
 		{
-			MethodName: "DelAbandonCodeByIds",
-			Handler:    _AbandonCode_DelAbandonCodeByIds_Handler,
+			MethodName: "DelAbandonCodeByIdx1List",
+			Handler:    _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

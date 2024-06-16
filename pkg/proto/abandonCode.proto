@@ -8,7 +8,7 @@ option go_package = "gogogo/api;api";
 
 // --------------------------------------------------
 // tbl : abandon_code
-service AbandonCode {
+service AbandonCodeCURD {
     rpc AddAbandonCode (AddAbandonCodeRequest) returns (AddAbandonCodeResponse) {
         option (google.api.http) = {
             post: "/abandon-code"
@@ -21,7 +21,7 @@ service AbandonCode {
         };
     }
     // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelAbandonCodeByIds (DelAbandonCodeByIdsRequest) returns (Empty) {
+    rpc DelAbandonCodeByIdx1List (DelAbandonCodeByIdx1ListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/abandon-code"
         };
@@ -54,7 +54,7 @@ message GetAbandonCodeListResponse {
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-message DelAbandonCodeByIdsRequest {
+message DelAbandonCodeByIdx1ListRequest {
     // MARK 4 START 替换内容，索引字段
     repeated int32 idx1List = 1;
     // MARK 4 END

@@ -37,7 +37,7 @@ func (*userJobDAO) GetAll(ctx context.Context,
 	return userJobList, nil
 }
 
-func (*userJobDAO) DelById(ctx context.Context, iD int32) error {
+func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return errors.New("param is invalid")
 	}
@@ -49,20 +49,20 @@ func (*userJobDAO) DelById(ctx context.Context, iD int32) error {
 	return err
 }
 
-func (*userJobDAO) DelByIds(ctx context.Context, iDs []int32) error {
-	if len(iDs) == 0 {
+func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+	if len(iDList) == 0 {
 		return nil
 	}
 	q := db.GetPG().UserJob
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(iDs...)).Delete()
+		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*userJobDAO) GetById(ctx context.Context, iD int32,
+func (*userJobDAO) GetByID(ctx context.Context, iD int32,
 ) (userJob *UserJobDO, err error) {
 	if iD == 0 {
 		return userJob, errors.New("param is invalid")
@@ -77,15 +77,15 @@ func (*userJobDAO) GetById(ctx context.Context, iD int32,
 	return userJob, nil
 }
 
-func (*userJobDAO) GetByIds(ctx context.Context, iDs []int32,
+func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 ) (userJobMap map[int32]*UserJobDO, err error) {
-	if len(iDs) == 0 {
+	if len(iDList) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetPG().UserJob
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(iDs...)).Find()
+		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
 		return nil, err
 	}

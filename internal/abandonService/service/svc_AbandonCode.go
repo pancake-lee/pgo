@@ -6,8 +6,8 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type AbandonCodeServer struct {
-	api.UnimplementedAbandonCodeServer
+type AbandonCodeCURDServer struct {
+	api.UnimplementedAbandonCodeCURDServer
 }
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
@@ -33,7 +33,7 @@ func DTO2DO_AbandonCode(dto *api.AbandonCodeInfo) *data.AbandonCodeDO {
 	}
 }
 
-func (s *AbandonCodeServer) AddAbandonCode(
+func (s *AbandonCodeCURDServer) AddAbandonCode(
 	ctx context.Context, req *api.AddAbandonCodeRequest,
 ) (resp *api.AddAbandonCodeResponse, err error) {
 	if req.AbandonCode == nil {
@@ -51,7 +51,7 @@ func (s *AbandonCodeServer) AddAbandonCode(
 	return resp, nil
 }
 
-func (s *AbandonCodeServer) GetAbandonCodeList(
+func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 	ctx context.Context, req *api.GetAbandonCodeListRequest,
 ) (resp *api.GetAbandonCodeListResponse, err error) {
 
@@ -59,7 +59,7 @@ func (s *AbandonCodeServer) GetAbandonCodeList(
 
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.Idx1List) != 0 {
-		dataMap, err := data.AbandonCodeDAO.GetByIds(ctx, req.Idx1List)
+		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
 			return nil, err
 		}
@@ -87,13 +87,13 @@ func (s *AbandonCodeServer) GetAbandonCodeList(
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-func (s *AbandonCodeServer) DelAbandonCodeByIds(
-	ctx context.Context, req *api.DelAbandonCodeByIdsRequest,
+func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
+	ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.Idx1List) == 0 {
 		return nil, nil
 	}
-	err = data.AbandonCodeDAO.DelByIds(ctx, req.Idx1List)
+	err = data.AbandonCodeDAO.DelByIdx1List(ctx, req.Idx1List)
 	if err != nil {
 		return nil, err
 	}

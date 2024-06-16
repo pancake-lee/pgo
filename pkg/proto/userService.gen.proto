@@ -9,7 +9,7 @@ option go_package = "gogogo/api;api";
 
 // --------------------------------------------------
 // tbl : user
-service User {
+service UserCURD {
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
         option (google.api.http) = {
             post: "/user"
@@ -22,7 +22,7 @@ service User {
         };
     }
     // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelUserByIds (DelUserByIdsRequest) returns (Empty) {
+    rpc DelUserByIDList (DelUserByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user"
         };
@@ -51,14 +51,14 @@ message GetUserListResponse {
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-message DelUserByIdsRequest {
+message DelUserByIDListRequest {
     repeated int32 iDList = 1;
 }
 // MARK 5 END
 
 // --------------------------------------------------
 // tbl : user_dept
-service UserDept {
+service UserDeptCURD {
     rpc AddUserDept (AddUserDeptRequest) returns (AddUserDeptResponse) {
         option (google.api.http) = {
             post: "/user-dept"
@@ -71,7 +71,7 @@ service UserDept {
         };
     }
     // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelUserDeptByIds (DelUserDeptByIdsRequest) returns (Empty) {
+    rpc DelUserDeptByIDList (DelUserDeptByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-dept"
         };
@@ -101,14 +101,14 @@ message GetUserDeptListResponse {
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-message DelUserDeptByIdsRequest {
+message DelUserDeptByIDListRequest {
     repeated int32 iDList = 1;
 }
 // MARK 5 END
 
 // --------------------------------------------------
 // tbl : user_dept_assoc
-service UserDeptAssoc {
+service UserDeptAssocCURD {
     rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
         option (google.api.http) = {
             post: "/user-dept-assoc"
@@ -145,7 +145,7 @@ message GetUserDeptAssocListResponse {
 
 // --------------------------------------------------
 // tbl : user_job
-service UserJob {
+service UserJobCURD {
     rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
         option (google.api.http) = {
             post: "/user-job"
@@ -158,7 +158,7 @@ service UserJob {
         };
     }
     // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelUserJobByIds (DelUserJobByIdsRequest) returns (Empty) {
+    rpc DelUserJobByIDList (DelUserJobByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-job"
         };
@@ -187,7 +187,7 @@ message GetUserJobListResponse {
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-message DelUserJobByIdsRequest {
+message DelUserJobByIDListRequest {
     repeated int32 iDList = 1;
 }
 // MARK 5 END

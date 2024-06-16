@@ -8,7 +8,7 @@ import (
 
 // MARK 1 标记删除此标记以上的内容，再拼接到dao_abandonCodeIdx.go最后
 
-func (*abandonCodeDAO) DelById(ctx context.Context, idx1 int32) error {
+func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {
 		return errors.New("param is invalid")
 	}
@@ -20,20 +20,20 @@ func (*abandonCodeDAO) DelById(ctx context.Context, idx1 int32) error {
 	return err
 }
 
-func (*abandonCodeDAO) DelByIds(ctx context.Context, idx1s []int32) error {
-	if len(idx1s) == 0 {
+func (*abandonCodeDAO) DelByIdx1List(ctx context.Context, idx1List []int32) error {
+	if len(idx1List) == 0 {
 		return nil
 	}
 	q := db.GetPG().AbandonCode
 	_, err := q.WithContext(ctx).
-		Where(q.Idx1.In(idx1s...)).Delete()
+		Where(q.Idx1.In(idx1List...)).Delete()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*abandonCodeDAO) GetById(ctx context.Context, idx1 int32,
+func (*abandonCodeDAO) GetByIdx1(ctx context.Context, idx1 int32,
 ) (abandonCode *AbandonCodeDO, err error) {
 	if idx1 == 0 {
 		return abandonCode, errors.New("param is invalid")
@@ -48,15 +48,15 @@ func (*abandonCodeDAO) GetById(ctx context.Context, idx1 int32,
 	return abandonCode, nil
 }
 
-func (*abandonCodeDAO) GetByIds(ctx context.Context, idx1s []int32,
+func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
 ) (abandonCodeMap map[int32]*AbandonCodeDO, err error) {
-	if len(idx1s) == 0 {
+	if len(idx1List) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetPG().AbandonCode
 	l, err := q.WithContext(ctx).
-		Where(q.Idx1.In(idx1s...)).Find()
+		Where(q.Idx1.In(idx1List...)).Find()
 	if err != nil {
 		return nil, err
 	}

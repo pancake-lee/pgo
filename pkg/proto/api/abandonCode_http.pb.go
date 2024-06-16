@@ -19,25 +19,25 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationAbandonCodeAddAbandonCode = "/api.AbandonCode/AddAbandonCode"
-const OperationAbandonCodeDelAbandonCodeByIds = "/api.AbandonCode/DelAbandonCodeByIds"
-const OperationAbandonCodeGetAbandonCodeList = "/api.AbandonCode/GetAbandonCodeList"
+const OperationAbandonCodeCURDAddAbandonCode = "/api.AbandonCodeCURD/AddAbandonCode"
+const OperationAbandonCodeCURDDelAbandonCodeByIdx1List = "/api.AbandonCodeCURD/DelAbandonCodeByIdx1List"
+const OperationAbandonCodeCURDGetAbandonCodeList = "/api.AbandonCodeCURD/GetAbandonCodeList"
 
-type AbandonCodeHTTPServer interface {
+type AbandonCodeCURDHTTPServer interface {
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
-	// DelAbandonCodeByIds MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelAbandonCodeByIds(context.Context, *DelAbandonCodeByIdsRequest) (*Empty, error)
+	// DelAbandonCodeByIdx1List MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
 }
 
-func RegisterAbandonCodeHTTPServer(s *http.Server, srv AbandonCodeHTTPServer) {
+func RegisterAbandonCodeCURDHTTPServer(s *http.Server, srv AbandonCodeCURDHTTPServer) {
 	r := s.Route("/")
-	r.POST("/abandon-code", _AbandonCode_AddAbandonCode0_HTTP_Handler(srv))
-	r.GET("/abandon-code", _AbandonCode_GetAbandonCodeList0_HTTP_Handler(srv))
-	r.DELETE("/abandon-code", _AbandonCode_DelAbandonCodeByIds0_HTTP_Handler(srv))
+	r.POST("/abandon-code", _AbandonCodeCURD_AddAbandonCode0_HTTP_Handler(srv))
+	r.GET("/abandon-code", _AbandonCodeCURD_GetAbandonCodeList0_HTTP_Handler(srv))
+	r.DELETE("/abandon-code", _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv))
 }
 
-func _AbandonCode_AddAbandonCode0_HTTP_Handler(srv AbandonCodeHTTPServer) func(ctx http.Context) error {
+func _AbandonCodeCURD_AddAbandonCode0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddAbandonCodeRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -46,7 +46,7 @@ func _AbandonCode_AddAbandonCode0_HTTP_Handler(srv AbandonCodeHTTPServer) func(c
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAbandonCodeAddAbandonCode)
+		http.SetOperation(ctx, OperationAbandonCodeCURDAddAbandonCode)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.AddAbandonCode(ctx, req.(*AddAbandonCodeRequest))
 		})
@@ -59,13 +59,13 @@ func _AbandonCode_AddAbandonCode0_HTTP_Handler(srv AbandonCodeHTTPServer) func(c
 	}
 }
 
-func _AbandonCode_GetAbandonCodeList0_HTTP_Handler(srv AbandonCodeHTTPServer) func(ctx http.Context) error {
+func _AbandonCodeCURD_GetAbandonCodeList0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetAbandonCodeListRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAbandonCodeGetAbandonCodeList)
+		http.SetOperation(ctx, OperationAbandonCodeCURDGetAbandonCodeList)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetAbandonCodeList(ctx, req.(*GetAbandonCodeListRequest))
 		})
@@ -78,15 +78,15 @@ func _AbandonCode_GetAbandonCodeList0_HTTP_Handler(srv AbandonCodeHTTPServer) fu
 	}
 }
 
-func _AbandonCode_DelAbandonCodeByIds0_HTTP_Handler(srv AbandonCodeHTTPServer) func(ctx http.Context) error {
+func _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in DelAbandonCodeByIdsRequest
+		var in DelAbandonCodeByIdx1ListRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAbandonCodeDelAbandonCodeByIds)
+		http.SetOperation(ctx, OperationAbandonCodeCURDDelAbandonCodeByIdx1List)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DelAbandonCodeByIds(ctx, req.(*DelAbandonCodeByIdsRequest))
+			return srv.DelAbandonCodeByIdx1List(ctx, req.(*DelAbandonCodeByIdx1ListRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -97,25 +97,25 @@ func _AbandonCode_DelAbandonCodeByIds0_HTTP_Handler(srv AbandonCodeHTTPServer) f
 	}
 }
 
-type AbandonCodeHTTPClient interface {
+type AbandonCodeCURDHTTPClient interface {
 	AddAbandonCode(ctx context.Context, req *AddAbandonCodeRequest, opts ...http.CallOption) (rsp *AddAbandonCodeResponse, err error)
-	DelAbandonCodeByIds(ctx context.Context, req *DelAbandonCodeByIdsRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	DelAbandonCodeByIdx1List(ctx context.Context, req *DelAbandonCodeByIdx1ListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	GetAbandonCodeList(ctx context.Context, req *GetAbandonCodeListRequest, opts ...http.CallOption) (rsp *GetAbandonCodeListResponse, err error)
 }
 
-type AbandonCodeHTTPClientImpl struct {
+type AbandonCodeCURDHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewAbandonCodeHTTPClient(client *http.Client) AbandonCodeHTTPClient {
-	return &AbandonCodeHTTPClientImpl{client}
+func NewAbandonCodeCURDHTTPClient(client *http.Client) AbandonCodeCURDHTTPClient {
+	return &AbandonCodeCURDHTTPClientImpl{client}
 }
 
-func (c *AbandonCodeHTTPClientImpl) AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...http.CallOption) (*AddAbandonCodeResponse, error) {
+func (c *AbandonCodeCURDHTTPClientImpl) AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...http.CallOption) (*AddAbandonCodeResponse, error) {
 	var out AddAbandonCodeResponse
 	pattern := "/abandon-code"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationAbandonCodeAddAbandonCode))
+	opts = append(opts, http.Operation(OperationAbandonCodeCURDAddAbandonCode))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -124,11 +124,11 @@ func (c *AbandonCodeHTTPClientImpl) AddAbandonCode(ctx context.Context, in *AddA
 	return &out, err
 }
 
-func (c *AbandonCodeHTTPClientImpl) DelAbandonCodeByIds(ctx context.Context, in *DelAbandonCodeByIdsRequest, opts ...http.CallOption) (*Empty, error) {
+func (c *AbandonCodeCURDHTTPClientImpl) DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
 	pattern := "/abandon-code"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAbandonCodeDelAbandonCodeByIds))
+	opts = append(opts, http.Operation(OperationAbandonCodeCURDDelAbandonCodeByIdx1List))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -137,11 +137,11 @@ func (c *AbandonCodeHTTPClientImpl) DelAbandonCodeByIds(ctx context.Context, in 
 	return &out, err
 }
 
-func (c *AbandonCodeHTTPClientImpl) GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...http.CallOption) (*GetAbandonCodeListResponse, error) {
+func (c *AbandonCodeCURDHTTPClientImpl) GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...http.CallOption) (*GetAbandonCodeListResponse, error) {
 	var out GetAbandonCodeListResponse
 	pattern := "/abandon-code"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAbandonCodeGetAbandonCodeList))
+	opts = append(opts, http.Operation(OperationAbandonCodeCURDGetAbandonCodeList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
