@@ -8,8 +8,8 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserServer struct {
-	api.UnimplementedUserServer
+type UserCURDServer struct {
+	api.UnimplementedUserCURDServer
 }
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
@@ -31,7 +31,7 @@ func DTO2DO_User(dto *api.UserInfo) *data.UserDO {
 	}
 }
 
-func (s *UserServer) AddUser(
+func (s *UserCURDServer) AddUser(
 	ctx context.Context, req *api.AddUserRequest,
 ) (resp *api.AddUserResponse, err error) {
 	if req.User == nil {
@@ -49,7 +49,7 @@ func (s *UserServer) AddUser(
 	return resp, nil
 }
 
-func (s *UserServer) GetUserList(
+func (s *UserCURDServer) GetUserList(
 	ctx context.Context, req *api.GetUserListRequest,
 ) (resp *api.GetUserListResponse, err error) {
 
@@ -57,7 +57,7 @@ func (s *UserServer) GetUserList(
 
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
-		dataMap, err := data.UserDAO.GetByIds(ctx, req.IDList)
+		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
 		}
@@ -85,13 +85,13 @@ func (s *UserServer) GetUserList(
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-func (s *UserServer) DelUserByIds(
-	ctx context.Context, req *api.DelUserByIdsRequest,
+func (s *UserCURDServer) DelUserByIDList(
+	ctx context.Context, req *api.DelUserByIDListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
-	err = data.UserDAO.DelByIds(ctx, req.IDList)
+	err = data.UserDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
 		return nil, err
 	}

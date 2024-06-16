@@ -8,8 +8,8 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserDeptServer struct {
-	api.UnimplementedUserDeptServer
+type UserDeptCURDServer struct {
+	api.UnimplementedUserDeptCURDServer
 }
 
 func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {
@@ -33,7 +33,7 @@ func DTO2DO_UserDept(dto *api.UserDeptInfo) *data.UserDeptDO {
 	}
 }
 
-func (s *UserDeptServer) AddUserDept(
+func (s *UserDeptCURDServer) AddUserDept(
 	ctx context.Context, req *api.AddUserDeptRequest,
 ) (resp *api.AddUserDeptResponse, err error) {
 	if req.UserDept == nil {
@@ -51,7 +51,7 @@ func (s *UserDeptServer) AddUserDept(
 	return resp, nil
 }
 
-func (s *UserDeptServer) GetUserDeptList(
+func (s *UserDeptCURDServer) GetUserDeptList(
 	ctx context.Context, req *api.GetUserDeptListRequest,
 ) (resp *api.GetUserDeptListResponse, err error) {
 
@@ -59,7 +59,7 @@ func (s *UserDeptServer) GetUserDeptList(
 
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
-		dataMap, err := data.UserDeptDAO.GetByIds(ctx, req.IDList)
+		dataMap, err := data.UserDeptDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
 		}
@@ -87,13 +87,13 @@ func (s *UserDeptServer) GetUserDeptList(
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-func (s *UserDeptServer) DelUserDeptByIds(
-	ctx context.Context, req *api.DelUserDeptByIdsRequest,
+func (s *UserDeptCURDServer) DelUserDeptByIDList(
+	ctx context.Context, req *api.DelUserDeptByIDListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
-	err = data.UserDeptDAO.DelByIds(ctx, req.IDList)
+	err = data.UserDeptDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
 		return nil, err
 	}

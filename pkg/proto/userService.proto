@@ -1,0 +1,38 @@
+syntax = "proto3";
+package api;
+import "common.proto";
+import "userService.gen.proto";
+import "google/api/annotations.proto";
+option go_package = "gogogo/api;api";
+
+// 用户服务模块
+service User {
+    // 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
+    rpc Login (LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/user/token"
+            body: "*"
+        };
+    }
+
+    // 修改用户名
+    rpc EditUserName (EditUserNameRequest) returns (Empty) {
+        option (google.api.http) = {
+            patch: "/user"
+            body: "*"
+        };
+    }
+}
+
+message LoginRequest {
+    string userName = 1;
+}
+
+message LoginResponse {
+    UserInfo user = 1;
+}
+
+message EditUserNameRequest {
+    int32 ID = 1;
+    string userName = 2;
+}

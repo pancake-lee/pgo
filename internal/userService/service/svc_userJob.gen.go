@@ -8,8 +8,8 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserJobServer struct {
-	api.UnimplementedUserJobServer
+type UserJobCURDServer struct {
+	api.UnimplementedUserJobCURDServer
 }
 
 func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {
@@ -31,7 +31,7 @@ func DTO2DO_UserJob(dto *api.UserJobInfo) *data.UserJobDO {
 	}
 }
 
-func (s *UserJobServer) AddUserJob(
+func (s *UserJobCURDServer) AddUserJob(
 	ctx context.Context, req *api.AddUserJobRequest,
 ) (resp *api.AddUserJobResponse, err error) {
 	if req.UserJob == nil {
@@ -49,7 +49,7 @@ func (s *UserJobServer) AddUserJob(
 	return resp, nil
 }
 
-func (s *UserJobServer) GetUserJobList(
+func (s *UserJobCURDServer) GetUserJobList(
 	ctx context.Context, req *api.GetUserJobListRequest,
 ) (resp *api.GetUserJobListResponse, err error) {
 
@@ -57,7 +57,7 @@ func (s *UserJobServer) GetUserJobList(
 
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
-		dataMap, err := data.UserJobDAO.GetByIds(ctx, req.IDList)
+		dataMap, err := data.UserJobDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
 		}
@@ -85,13 +85,13 @@ func (s *UserJobServer) GetUserJobList(
 }
 
 // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-func (s *UserJobServer) DelUserJobByIds(
-	ctx context.Context, req *api.DelUserJobByIdsRequest,
+func (s *UserJobCURDServer) DelUserJobByIDList(
+	ctx context.Context, req *api.DelUserJobByIDListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
-	err = data.UserJobDAO.DelByIds(ctx, req.IDList)
+	err = data.UserJobDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
 		return nil, err
 	}

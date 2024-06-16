@@ -50,6 +50,7 @@ func main() {
 
 	config.LoadConf(confPath)
 
+	var userCURDServer service.UserCURDServer
 	var userServer service.UserServer
 
 	var grpcSrv *grpc.Server
@@ -70,6 +71,7 @@ func main() {
 				time.Duration(config.GetConfInt("Grpc.Timeout"))))
 		}
 		grpcSrv = grpc.NewServer(opts...)
+		api.RegisterUserCURDServer(grpcSrv, &userCURDServer)
 		api.RegisterUserServer(grpcSrv, &userServer)
 	}
 	var httpSrv *http.Server
@@ -90,6 +92,7 @@ func main() {
 				time.Duration(config.GetConfInt("Http.Timeout"))))
 		}
 		httpSrv = http.NewServer(opts...)
+		api.RegisterUserCURDHTTPServer(httpSrv, &userCURDServer)
 		api.RegisterUserHTTPServer(httpSrv, &userServer)
 	}
 

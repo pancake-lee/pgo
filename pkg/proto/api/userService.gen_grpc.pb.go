@@ -21,165 +21,165 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	User_AddUser_FullMethodName      = "/api.User/AddUser"
-	User_GetUserList_FullMethodName  = "/api.User/GetUserList"
-	User_DelUserByIds_FullMethodName = "/api.User/DelUserByIds"
+	UserCURD_AddUser_FullMethodName         = "/api.UserCURD/AddUser"
+	UserCURD_GetUserList_FullMethodName     = "/api.UserCURD/GetUserList"
+	UserCURD_DelUserByIDList_FullMethodName = "/api.UserCURD/DelUserByIDList"
 )
 
-// UserClient is the client API for User service.
+// UserCURDClient is the client API for UserCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserClient interface {
+type UserCURDClient interface {
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserByIds(ctx context.Context, in *DelUserByIdsRequest, opts ...grpc.CallOption) (*Empty, error)
+	DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type userClient struct {
+type userCURDClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserClient(cc grpc.ClientConnInterface) UserClient {
-	return &userClient{cc}
+func NewUserCURDClient(cc grpc.ClientConnInterface) UserCURDClient {
+	return &userCURDClient{cc}
 }
 
-func (c *userClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error) {
+func (c *userCURDClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error) {
 	out := new(AddUserResponse)
-	err := c.cc.Invoke(ctx, User_AddUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserCURD_AddUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userClient) GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error) {
+func (c *userCURDClient) GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error) {
 	out := new(GetUserListResponse)
-	err := c.cc.Invoke(ctx, User_GetUserList_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userClient) DelUserByIds(ctx context.Context, in *DelUserByIdsRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *userCURDClient) DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, User_DelUserByIds_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserCURD_DelUserByIDList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserServer is the server API for User service.
-// All implementations must embed UnimplementedUserServer
+// UserCURDServer is the server API for UserCURD service.
+// All implementations must embed UnimplementedUserCURDServer
 // for forward compatibility
-type UserServer interface {
+type UserCURDServer interface {
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserByIds(context.Context, *DelUserByIdsRequest) (*Empty, error)
-	mustEmbedUnimplementedUserServer()
+	DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error)
+	mustEmbedUnimplementedUserCURDServer()
 }
 
-// UnimplementedUserServer must be embedded to have forward compatible implementations.
-type UnimplementedUserServer struct {
+// UnimplementedUserCURDServer must be embedded to have forward compatible implementations.
+type UnimplementedUserCURDServer struct {
 }
 
-func (UnimplementedUserServer) AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error) {
+func (UnimplementedUserCURDServer) AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
 }
-func (UnimplementedUserServer) GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error) {
+func (UnimplementedUserCURDServer) GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserList not implemented")
 }
-func (UnimplementedUserServer) DelUserByIds(context.Context, *DelUserByIdsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DelUserByIds not implemented")
+func (UnimplementedUserCURDServer) DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelUserByIDList not implemented")
 }
-func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
+func (UnimplementedUserCURDServer) mustEmbedUnimplementedUserCURDServer() {}
 
-// UnsafeUserServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserServer will
+// UnsafeUserCURDServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserCURDServer will
 // result in compilation errors.
-type UnsafeUserServer interface {
-	mustEmbedUnimplementedUserServer()
+type UnsafeUserCURDServer interface {
+	mustEmbedUnimplementedUserCURDServer()
 }
 
-func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
-	s.RegisterService(&User_ServiceDesc, srv)
+func RegisterUserCURDServer(s grpc.ServiceRegistrar, srv UserCURDServer) {
+	s.RegisterService(&UserCURD_ServiceDesc, srv)
 }
 
-func _User_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserCURD_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).AddUser(ctx, in)
+		return srv.(UserCURDServer).AddUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_AddUser_FullMethodName,
+		FullMethod: UserCURD_AddUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).AddUser(ctx, req.(*AddUserRequest))
+		return srv.(UserCURDServer).AddUser(ctx, req.(*AddUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_GetUserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserCURD_GetUserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).GetUserList(ctx, in)
+		return srv.(UserCURDServer).GetUserList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_GetUserList_FullMethodName,
+		FullMethod: UserCURD_GetUserList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetUserList(ctx, req.(*GetUserListRequest))
+		return srv.(UserCURDServer).GetUserList(ctx, req.(*GetUserListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_DelUserByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DelUserByIdsRequest)
+func _UserCURD_DelUserByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelUserByIDListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).DelUserByIds(ctx, in)
+		return srv.(UserCURDServer).DelUserByIDList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_DelUserByIds_FullMethodName,
+		FullMethod: UserCURD_DelUserByIDList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).DelUserByIds(ctx, req.(*DelUserByIdsRequest))
+		return srv.(UserCURDServer).DelUserByIDList(ctx, req.(*DelUserByIDListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// User_ServiceDesc is the grpc.ServiceDesc for User service.
+// UserCURD_ServiceDesc is the grpc.ServiceDesc for UserCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var User_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.User",
-	HandlerType: (*UserServer)(nil),
+var UserCURD_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.UserCURD",
+	HandlerType: (*UserCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddUser",
-			Handler:    _User_AddUser_Handler,
+			Handler:    _UserCURD_AddUser_Handler,
 		},
 		{
 			MethodName: "GetUserList",
-			Handler:    _User_GetUserList_Handler,
+			Handler:    _UserCURD_GetUserList_Handler,
 		},
 		{
-			MethodName: "DelUserByIds",
-			Handler:    _User_DelUserByIds_Handler,
+			MethodName: "DelUserByIDList",
+			Handler:    _UserCURD_DelUserByIDList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -187,165 +187,165 @@ var User_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	UserDept_AddUserDept_FullMethodName      = "/api.UserDept/AddUserDept"
-	UserDept_GetUserDeptList_FullMethodName  = "/api.UserDept/GetUserDeptList"
-	UserDept_DelUserDeptByIds_FullMethodName = "/api.UserDept/DelUserDeptByIds"
+	UserDeptCURD_AddUserDept_FullMethodName         = "/api.UserDeptCURD/AddUserDept"
+	UserDeptCURD_GetUserDeptList_FullMethodName     = "/api.UserDeptCURD/GetUserDeptList"
+	UserDeptCURD_DelUserDeptByIDList_FullMethodName = "/api.UserDeptCURD/DelUserDeptByIDList"
 )
 
-// UserDeptClient is the client API for UserDept service.
+// UserDeptCURDClient is the client API for UserDeptCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserDeptClient interface {
+type UserDeptCURDClient interface {
 	AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error)
 	GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserDeptByIds(ctx context.Context, in *DelUserDeptByIdsRequest, opts ...grpc.CallOption) (*Empty, error)
+	DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type userDeptClient struct {
+type userDeptCURDClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserDeptClient(cc grpc.ClientConnInterface) UserDeptClient {
-	return &userDeptClient{cc}
+func NewUserDeptCURDClient(cc grpc.ClientConnInterface) UserDeptCURDClient {
+	return &userDeptCURDClient{cc}
 }
 
-func (c *userDeptClient) AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error) {
+func (c *userDeptCURDClient) AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error) {
 	out := new(AddUserDeptResponse)
-	err := c.cc.Invoke(ctx, UserDept_AddUserDept_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserDeptCURD_AddUserDept_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userDeptClient) GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error) {
+func (c *userDeptCURDClient) GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error) {
 	out := new(GetUserDeptListResponse)
-	err := c.cc.Invoke(ctx, UserDept_GetUserDeptList_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserDeptCURD_GetUserDeptList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userDeptClient) DelUserDeptByIds(ctx context.Context, in *DelUserDeptByIdsRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *userDeptCURDClient) DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, UserDept_DelUserDeptByIds_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserDeptCURD_DelUserDeptByIDList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserDeptServer is the server API for UserDept service.
-// All implementations must embed UnimplementedUserDeptServer
+// UserDeptCURDServer is the server API for UserDeptCURD service.
+// All implementations must embed UnimplementedUserDeptCURDServer
 // for forward compatibility
-type UserDeptServer interface {
+type UserDeptCURDServer interface {
 	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserDeptByIds(context.Context, *DelUserDeptByIdsRequest) (*Empty, error)
-	mustEmbedUnimplementedUserDeptServer()
+	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
+	mustEmbedUnimplementedUserDeptCURDServer()
 }
 
-// UnimplementedUserDeptServer must be embedded to have forward compatible implementations.
-type UnimplementedUserDeptServer struct {
+// UnimplementedUserDeptCURDServer must be embedded to have forward compatible implementations.
+type UnimplementedUserDeptCURDServer struct {
 }
 
-func (UnimplementedUserDeptServer) AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error) {
+func (UnimplementedUserDeptCURDServer) AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUserDept not implemented")
 }
-func (UnimplementedUserDeptServer) GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error) {
+func (UnimplementedUserDeptCURDServer) GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserDeptList not implemented")
 }
-func (UnimplementedUserDeptServer) DelUserDeptByIds(context.Context, *DelUserDeptByIdsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DelUserDeptByIds not implemented")
+func (UnimplementedUserDeptCURDServer) DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelUserDeptByIDList not implemented")
 }
-func (UnimplementedUserDeptServer) mustEmbedUnimplementedUserDeptServer() {}
+func (UnimplementedUserDeptCURDServer) mustEmbedUnimplementedUserDeptCURDServer() {}
 
-// UnsafeUserDeptServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserDeptServer will
+// UnsafeUserDeptCURDServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserDeptCURDServer will
 // result in compilation errors.
-type UnsafeUserDeptServer interface {
-	mustEmbedUnimplementedUserDeptServer()
+type UnsafeUserDeptCURDServer interface {
+	mustEmbedUnimplementedUserDeptCURDServer()
 }
 
-func RegisterUserDeptServer(s grpc.ServiceRegistrar, srv UserDeptServer) {
-	s.RegisterService(&UserDept_ServiceDesc, srv)
+func RegisterUserDeptCURDServer(s grpc.ServiceRegistrar, srv UserDeptCURDServer) {
+	s.RegisterService(&UserDeptCURD_ServiceDesc, srv)
 }
 
-func _UserDept_AddUserDept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserDeptCURD_AddUserDept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserDeptRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserDeptServer).AddUserDept(ctx, in)
+		return srv.(UserDeptCURDServer).AddUserDept(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserDept_AddUserDept_FullMethodName,
+		FullMethod: UserDeptCURD_AddUserDept_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDeptServer).AddUserDept(ctx, req.(*AddUserDeptRequest))
+		return srv.(UserDeptCURDServer).AddUserDept(ctx, req.(*AddUserDeptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserDept_GetUserDeptList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserDeptCURD_GetUserDeptList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserDeptListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserDeptServer).GetUserDeptList(ctx, in)
+		return srv.(UserDeptCURDServer).GetUserDeptList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserDept_GetUserDeptList_FullMethodName,
+		FullMethod: UserDeptCURD_GetUserDeptList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDeptServer).GetUserDeptList(ctx, req.(*GetUserDeptListRequest))
+		return srv.(UserDeptCURDServer).GetUserDeptList(ctx, req.(*GetUserDeptListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserDept_DelUserDeptByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DelUserDeptByIdsRequest)
+func _UserDeptCURD_DelUserDeptByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelUserDeptByIDListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserDeptServer).DelUserDeptByIds(ctx, in)
+		return srv.(UserDeptCURDServer).DelUserDeptByIDList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserDept_DelUserDeptByIds_FullMethodName,
+		FullMethod: UserDeptCURD_DelUserDeptByIDList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDeptServer).DelUserDeptByIds(ctx, req.(*DelUserDeptByIdsRequest))
+		return srv.(UserDeptCURDServer).DelUserDeptByIDList(ctx, req.(*DelUserDeptByIDListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserDept_ServiceDesc is the grpc.ServiceDesc for UserDept service.
+// UserDeptCURD_ServiceDesc is the grpc.ServiceDesc for UserDeptCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserDept_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.UserDept",
-	HandlerType: (*UserDeptServer)(nil),
+var UserDeptCURD_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.UserDeptCURD",
+	HandlerType: (*UserDeptCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddUserDept",
-			Handler:    _UserDept_AddUserDept_Handler,
+			Handler:    _UserDeptCURD_AddUserDept_Handler,
 		},
 		{
 			MethodName: "GetUserDeptList",
-			Handler:    _UserDept_GetUserDeptList_Handler,
+			Handler:    _UserDeptCURD_GetUserDeptList_Handler,
 		},
 		{
-			MethodName: "DelUserDeptByIds",
-			Handler:    _UserDept_DelUserDeptByIds_Handler,
+			MethodName: "DelUserDeptByIDList",
+			Handler:    _UserDeptCURD_DelUserDeptByIDList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -353,126 +353,126 @@ var UserDept_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	UserDeptAssoc_AddUserDeptAssoc_FullMethodName     = "/api.UserDeptAssoc/AddUserDeptAssoc"
-	UserDeptAssoc_GetUserDeptAssocList_FullMethodName = "/api.UserDeptAssoc/GetUserDeptAssocList"
+	UserDeptAssocCURD_AddUserDeptAssoc_FullMethodName     = "/api.UserDeptAssocCURD/AddUserDeptAssoc"
+	UserDeptAssocCURD_GetUserDeptAssocList_FullMethodName = "/api.UserDeptAssocCURD/GetUserDeptAssocList"
 )
 
-// UserDeptAssocClient is the client API for UserDeptAssoc service.
+// UserDeptAssocCURDClient is the client API for UserDeptAssocCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserDeptAssocClient interface {
+type UserDeptAssocCURDClient interface {
 	AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...grpc.CallOption) (*GetUserDeptAssocListResponse, error)
 }
 
-type userDeptAssocClient struct {
+type userDeptAssocCURDClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserDeptAssocClient(cc grpc.ClientConnInterface) UserDeptAssocClient {
-	return &userDeptAssocClient{cc}
+func NewUserDeptAssocCURDClient(cc grpc.ClientConnInterface) UserDeptAssocCURDClient {
+	return &userDeptAssocCURDClient{cc}
 }
 
-func (c *userDeptAssocClient) AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error) {
+func (c *userDeptAssocCURDClient) AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error) {
 	out := new(AddUserDeptAssocResponse)
-	err := c.cc.Invoke(ctx, UserDeptAssoc_AddUserDeptAssoc_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserDeptAssocCURD_AddUserDeptAssoc_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userDeptAssocClient) GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...grpc.CallOption) (*GetUserDeptAssocListResponse, error) {
+func (c *userDeptAssocCURDClient) GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...grpc.CallOption) (*GetUserDeptAssocListResponse, error) {
 	out := new(GetUserDeptAssocListResponse)
-	err := c.cc.Invoke(ctx, UserDeptAssoc_GetUserDeptAssocList_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserDeptAssocCURD_GetUserDeptAssocList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserDeptAssocServer is the server API for UserDeptAssoc service.
-// All implementations must embed UnimplementedUserDeptAssocServer
+// UserDeptAssocCURDServer is the server API for UserDeptAssocCURD service.
+// All implementations must embed UnimplementedUserDeptAssocCURDServer
 // for forward compatibility
-type UserDeptAssocServer interface {
+type UserDeptAssocCURDServer interface {
 	AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
-	mustEmbedUnimplementedUserDeptAssocServer()
+	mustEmbedUnimplementedUserDeptAssocCURDServer()
 }
 
-// UnimplementedUserDeptAssocServer must be embedded to have forward compatible implementations.
-type UnimplementedUserDeptAssocServer struct {
+// UnimplementedUserDeptAssocCURDServer must be embedded to have forward compatible implementations.
+type UnimplementedUserDeptAssocCURDServer struct {
 }
 
-func (UnimplementedUserDeptAssocServer) AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error) {
+func (UnimplementedUserDeptAssocCURDServer) AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUserDeptAssoc not implemented")
 }
-func (UnimplementedUserDeptAssocServer) GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error) {
+func (UnimplementedUserDeptAssocCURDServer) GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserDeptAssocList not implemented")
 }
-func (UnimplementedUserDeptAssocServer) mustEmbedUnimplementedUserDeptAssocServer() {}
+func (UnimplementedUserDeptAssocCURDServer) mustEmbedUnimplementedUserDeptAssocCURDServer() {}
 
-// UnsafeUserDeptAssocServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserDeptAssocServer will
+// UnsafeUserDeptAssocCURDServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserDeptAssocCURDServer will
 // result in compilation errors.
-type UnsafeUserDeptAssocServer interface {
-	mustEmbedUnimplementedUserDeptAssocServer()
+type UnsafeUserDeptAssocCURDServer interface {
+	mustEmbedUnimplementedUserDeptAssocCURDServer()
 }
 
-func RegisterUserDeptAssocServer(s grpc.ServiceRegistrar, srv UserDeptAssocServer) {
-	s.RegisterService(&UserDeptAssoc_ServiceDesc, srv)
+func RegisterUserDeptAssocCURDServer(s grpc.ServiceRegistrar, srv UserDeptAssocCURDServer) {
+	s.RegisterService(&UserDeptAssocCURD_ServiceDesc, srv)
 }
 
-func _UserDeptAssoc_AddUserDeptAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserDeptAssocCURD_AddUserDeptAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserDeptAssocRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserDeptAssocServer).AddUserDeptAssoc(ctx, in)
+		return srv.(UserDeptAssocCURDServer).AddUserDeptAssoc(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserDeptAssoc_AddUserDeptAssoc_FullMethodName,
+		FullMethod: UserDeptAssocCURD_AddUserDeptAssoc_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDeptAssocServer).AddUserDeptAssoc(ctx, req.(*AddUserDeptAssocRequest))
+		return srv.(UserDeptAssocCURDServer).AddUserDeptAssoc(ctx, req.(*AddUserDeptAssocRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserDeptAssoc_GetUserDeptAssocList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserDeptAssocCURD_GetUserDeptAssocList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserDeptAssocListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserDeptAssocServer).GetUserDeptAssocList(ctx, in)
+		return srv.(UserDeptAssocCURDServer).GetUserDeptAssocList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserDeptAssoc_GetUserDeptAssocList_FullMethodName,
+		FullMethod: UserDeptAssocCURD_GetUserDeptAssocList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDeptAssocServer).GetUserDeptAssocList(ctx, req.(*GetUserDeptAssocListRequest))
+		return srv.(UserDeptAssocCURDServer).GetUserDeptAssocList(ctx, req.(*GetUserDeptAssocListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserDeptAssoc_ServiceDesc is the grpc.ServiceDesc for UserDeptAssoc service.
+// UserDeptAssocCURD_ServiceDesc is the grpc.ServiceDesc for UserDeptAssocCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserDeptAssoc_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.UserDeptAssoc",
-	HandlerType: (*UserDeptAssocServer)(nil),
+var UserDeptAssocCURD_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.UserDeptAssocCURD",
+	HandlerType: (*UserDeptAssocCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddUserDeptAssoc",
-			Handler:    _UserDeptAssoc_AddUserDeptAssoc_Handler,
+			Handler:    _UserDeptAssocCURD_AddUserDeptAssoc_Handler,
 		},
 		{
 			MethodName: "GetUserDeptAssocList",
-			Handler:    _UserDeptAssoc_GetUserDeptAssocList_Handler,
+			Handler:    _UserDeptAssocCURD_GetUserDeptAssocList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -480,165 +480,165 @@ var UserDeptAssoc_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	UserJob_AddUserJob_FullMethodName      = "/api.UserJob/AddUserJob"
-	UserJob_GetUserJobList_FullMethodName  = "/api.UserJob/GetUserJobList"
-	UserJob_DelUserJobByIds_FullMethodName = "/api.UserJob/DelUserJobByIds"
+	UserJobCURD_AddUserJob_FullMethodName         = "/api.UserJobCURD/AddUserJob"
+	UserJobCURD_GetUserJobList_FullMethodName     = "/api.UserJobCURD/GetUserJobList"
+	UserJobCURD_DelUserJobByIDList_FullMethodName = "/api.UserJobCURD/DelUserJobByIDList"
 )
 
-// UserJobClient is the client API for UserJob service.
+// UserJobCURDClient is the client API for UserJobCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserJobClient interface {
+type UserJobCURDClient interface {
 	AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error)
 	GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserJobByIds(ctx context.Context, in *DelUserJobByIdsRequest, opts ...grpc.CallOption) (*Empty, error)
+	DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type userJobClient struct {
+type userJobCURDClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserJobClient(cc grpc.ClientConnInterface) UserJobClient {
-	return &userJobClient{cc}
+func NewUserJobCURDClient(cc grpc.ClientConnInterface) UserJobCURDClient {
+	return &userJobCURDClient{cc}
 }
 
-func (c *userJobClient) AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error) {
+func (c *userJobCURDClient) AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error) {
 	out := new(AddUserJobResponse)
-	err := c.cc.Invoke(ctx, UserJob_AddUserJob_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserJobCURD_AddUserJob_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userJobClient) GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error) {
+func (c *userJobCURDClient) GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error) {
 	out := new(GetUserJobListResponse)
-	err := c.cc.Invoke(ctx, UserJob_GetUserJobList_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserJobCURD_GetUserJobList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userJobClient) DelUserJobByIds(ctx context.Context, in *DelUserJobByIdsRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *userJobCURDClient) DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, UserJob_DelUserJobByIds_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, UserJobCURD_DelUserJobByIDList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserJobServer is the server API for UserJob service.
-// All implementations must embed UnimplementedUserJobServer
+// UserJobCURDServer is the server API for UserJobCURD service.
+// All implementations must embed UnimplementedUserJobCURDServer
 // for forward compatibility
-type UserJobServer interface {
+type UserJobCURDServer interface {
 	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
 	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserJobByIds(context.Context, *DelUserJobByIdsRequest) (*Empty, error)
-	mustEmbedUnimplementedUserJobServer()
+	DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error)
+	mustEmbedUnimplementedUserJobCURDServer()
 }
 
-// UnimplementedUserJobServer must be embedded to have forward compatible implementations.
-type UnimplementedUserJobServer struct {
+// UnimplementedUserJobCURDServer must be embedded to have forward compatible implementations.
+type UnimplementedUserJobCURDServer struct {
 }
 
-func (UnimplementedUserJobServer) AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error) {
+func (UnimplementedUserJobCURDServer) AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUserJob not implemented")
 }
-func (UnimplementedUserJobServer) GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error) {
+func (UnimplementedUserJobCURDServer) GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserJobList not implemented")
 }
-func (UnimplementedUserJobServer) DelUserJobByIds(context.Context, *DelUserJobByIdsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DelUserJobByIds not implemented")
+func (UnimplementedUserJobCURDServer) DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelUserJobByIDList not implemented")
 }
-func (UnimplementedUserJobServer) mustEmbedUnimplementedUserJobServer() {}
+func (UnimplementedUserJobCURDServer) mustEmbedUnimplementedUserJobCURDServer() {}
 
-// UnsafeUserJobServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserJobServer will
+// UnsafeUserJobCURDServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserJobCURDServer will
 // result in compilation errors.
-type UnsafeUserJobServer interface {
-	mustEmbedUnimplementedUserJobServer()
+type UnsafeUserJobCURDServer interface {
+	mustEmbedUnimplementedUserJobCURDServer()
 }
 
-func RegisterUserJobServer(s grpc.ServiceRegistrar, srv UserJobServer) {
-	s.RegisterService(&UserJob_ServiceDesc, srv)
+func RegisterUserJobCURDServer(s grpc.ServiceRegistrar, srv UserJobCURDServer) {
+	s.RegisterService(&UserJobCURD_ServiceDesc, srv)
 }
 
-func _UserJob_AddUserJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserJobCURD_AddUserJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserJobRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserJobServer).AddUserJob(ctx, in)
+		return srv.(UserJobCURDServer).AddUserJob(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserJob_AddUserJob_FullMethodName,
+		FullMethod: UserJobCURD_AddUserJob_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserJobServer).AddUserJob(ctx, req.(*AddUserJobRequest))
+		return srv.(UserJobCURDServer).AddUserJob(ctx, req.(*AddUserJobRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserJob_GetUserJobList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserJobCURD_GetUserJobList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserJobListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserJobServer).GetUserJobList(ctx, in)
+		return srv.(UserJobCURDServer).GetUserJobList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserJob_GetUserJobList_FullMethodName,
+		FullMethod: UserJobCURD_GetUserJobList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserJobServer).GetUserJobList(ctx, req.(*GetUserJobListRequest))
+		return srv.(UserJobCURDServer).GetUserJobList(ctx, req.(*GetUserJobListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserJob_DelUserJobByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DelUserJobByIdsRequest)
+func _UserJobCURD_DelUserJobByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelUserJobByIDListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserJobServer).DelUserJobByIds(ctx, in)
+		return srv.(UserJobCURDServer).DelUserJobByIDList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserJob_DelUserJobByIds_FullMethodName,
+		FullMethod: UserJobCURD_DelUserJobByIDList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserJobServer).DelUserJobByIds(ctx, req.(*DelUserJobByIdsRequest))
+		return srv.(UserJobCURDServer).DelUserJobByIDList(ctx, req.(*DelUserJobByIDListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserJob_ServiceDesc is the grpc.ServiceDesc for UserJob service.
+// UserJobCURD_ServiceDesc is the grpc.ServiceDesc for UserJobCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserJob_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.UserJob",
-	HandlerType: (*UserJobServer)(nil),
+var UserJobCURD_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.UserJobCURD",
+	HandlerType: (*UserJobCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddUserJob",
-			Handler:    _UserJob_AddUserJob_Handler,
+			Handler:    _UserJobCURD_AddUserJob_Handler,
 		},
 		{
 			MethodName: "GetUserJobList",
-			Handler:    _UserJob_GetUserJobList_Handler,
+			Handler:    _UserJobCURD_GetUserJobList_Handler,
 		},
 		{
-			MethodName: "DelUserJobByIds",
-			Handler:    _UserJob_DelUserJobByIds_Handler,
+			MethodName: "DelUserJobByIDList",
+			Handler:    _UserJobCURD_DelUserJobByIDList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

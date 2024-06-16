@@ -10,6 +10,7 @@ func TestUserService(t *testing.T) {
 
 	ctx := context.Background()
 
+	var userCURDSvr UserCURDServer
 	var userSvr UserServer
 
 	var userId int32
@@ -21,14 +22,14 @@ func TestUserService(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if resp.User.Id == 0 ||
+		if resp.User.ID == 0 ||
 			resp.User.UserName != "pancake" {
 			t.Fatal("user info is error : ", resp.User)
 		}
-		userId = resp.User.Id
+		userId = resp.User.ID
 	}
 	{
-		resp, err := userSvr.GetUserList(ctx, nil)
+		resp, err := userCURDSvr.GetUserList(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -38,7 +39,7 @@ func TestUserService(t *testing.T) {
 		isFound := false
 		for _, user := range resp.UserList {
 			if user.UserName == "pancake" {
-				if user.Id != userId {
+				if user.ID != userId {
 					t.Fatal("user id is error")
 				}
 				isFound = true
@@ -51,7 +52,7 @@ func TestUserService(t *testing.T) {
 	}
 	{
 		var req api.EditUserNameRequest
-		req.Id = userId
+		req.ID = userId
 		req.UserName = "pancake2"
 		_, err := userSvr.EditUserName(ctx, &req)
 		if err != nil {
@@ -59,9 +60,9 @@ func TestUserService(t *testing.T) {
 		}
 	}
 	{
-		var req api.DelUserRequest
-		req.Id = userId
-		_, err := userSvr.DelUser(ctx, &req)
+		var req api.DelUserByIDListRequest
+		req.IDList = append(req.IDList, userId)
+		_, err := userCURDSvr.DelUserByIDList(ctx, &req)
 		if err != nil {
 			t.Fatal(err)
 		}
