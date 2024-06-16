@@ -8,9 +8,9 @@ ifeq ($(GOHOSTOS), windows)
 	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
 	#Git_Bash= $(subst cmd\,bin\bash.exe,$(dir $(shell where git)))
 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
-	API_PROTO_FILES=$(shell $(Git_Bash) -c "find pkg/api -name *.proto")
+	API_PROTO_FILES=$(shell $(Git_Bash) -c "find pkg/proto -name *.proto")
 else
-	API_PROTO_FILES=$(shell find pkg/api -name *.proto)
+	API_PROTO_FILES=$(shell find pkg/proto -name *.proto)
 endif
 
 .PHONY: init
@@ -26,12 +26,12 @@ init:
 .PHONY: api
 # generate api proto
 api:
-	protoc --proto_path=./pkg/api/ \
+	protoc --proto_path=./pkg/proto/ \
 	       --proto_path=./third_party \
- 	       --go_out=paths=source_relative:./pkg/api/ \
- 	       --go-http_out=paths=source_relative:./pkg/api/ \
- 	       --go-grpc_out=paths=source_relative:./pkg/api/ \
-           --go-errors_out=paths=source_relative:./pkg/api/ \
+ 	       --go_out=paths=source_relative:./pkg/proto/api/ \
+ 	       --go-http_out=paths=source_relative:./pkg/proto/api/ \
+ 	       --go-grpc_out=paths=source_relative:./pkg/proto/api/ \
+           --go-errors_out=paths=source_relative:./pkg/proto/api/ \
 	       --openapi_out=fq_schema_naming=true,default_response=false:. \
 	       $(API_PROTO_FILES)
 

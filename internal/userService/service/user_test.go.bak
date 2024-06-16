@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"gogogo/pkg/api"
+	"gogogo/pkg/proto/api"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestUserService(t *testing.T) {
 
 	ctx := context.Background()
 
-	var userSvr UserService
+	var userSvr UserServer
 
 	var userId int32
 	{

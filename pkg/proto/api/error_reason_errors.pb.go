@@ -29,10 +29,10 @@ func IsInvalidArgument(err error) bool {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == ErrorReason_InvalidArgument.String() && e.Code == 404
+	return e.Reason == ErrorReason_InvalidArgument.String() && e.Code == 400
 }
 
 // 请求参数错误
 func ErrorInvalidArgument(format string, args ...interface{}) *errors.Error {
-	return errors.New(404, ErrorReason_InvalidArgument.String(), fmt.Sprintf(format, args...))
+	return errors.New(400, ErrorReason_InvalidArgument.String(), fmt.Sprintf(format, args...))
 }

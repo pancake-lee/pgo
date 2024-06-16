@@ -1,9 +1,7 @@
 syntax = "proto3";
-
 package api;
-
+import "common.proto";
 import "google/api/annotations.proto";
-
 option go_package = "gogogo/api;api";
 
 // 用户服务模块
