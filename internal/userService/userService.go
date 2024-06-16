@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"gogogo/internal/userService/service"
-	"gogogo/pkg/api"
 	"gogogo/pkg/config"
+	"gogogo/pkg/proto/api"
 	"os"
 	"time"
 
@@ -50,7 +50,7 @@ func main() {
 
 	config.LoadConf(confPath)
 
-	var userService service.UserService
+	var userServer service.UserServer
 
 	var grpcSrv *grpc.Server
 	{
@@ -70,7 +70,7 @@ func main() {
 				time.Duration(config.GetConfInt("Grpc.Timeout"))))
 		}
 		grpcSrv = grpc.NewServer(opts...)
-		api.RegisterUserServer(grpcSrv, &userService)
+		api.RegisterUserServer(grpcSrv, &userServer)
 	}
 	var httpSrv *http.Server
 	{
@@ -90,7 +90,7 @@ func main() {
 				time.Duration(config.GetConfInt("Http.Timeout"))))
 		}
 		httpSrv = http.NewServer(opts...)
-		api.RegisterUserHTTPServer(httpSrv, &userService)
+		api.RegisterUserHTTPServer(httpSrv, &userServer)
 	}
 
 	logger := log.With(log.NewStdLogger(os.Stdout),

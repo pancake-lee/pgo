@@ -1,0 +1,62 @@
+syntax = "proto3";
+package api;
+import "google/api/annotations.proto";
+import "common.proto";
+option go_package = "gogogo/api;api";
+
+// MARK 2 标记分离上下内容，下面的内容每个表都生成一份
+
+// --------------------------------------------------
+// tbl : abandon_code
+service AbandonCode {
+    rpc AddAbandonCode (AddAbandonCodeRequest) returns (AddAbandonCodeResponse) {
+        option (google.api.http) = {
+            post: "/abandon-code"
+            body: "*"
+        };
+    }
+    rpc GetAbandonCodeList (GetAbandonCodeListRequest) returns (GetAbandonCodeListResponse) {
+        option (google.api.http) = {
+            get: "/abandon-code"
+        };
+    }
+    // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+    rpc DelAbandonCodeByIds (DelAbandonCodeByIdsRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/abandon-code"
+        };
+    }
+    // MARK 5 END
+}
+
+message AbandonCodeInfo {
+    // MARK 3 START 替换内容，所有字段
+    int32 idx1 = 1;
+    string col1 = 2;
+    // MARK 3 END
+}
+
+message AddAbandonCodeRequest {
+    AbandonCodeInfo abandonCode = 1;
+}
+
+message AddAbandonCodeResponse {
+    AbandonCodeInfo abandonCode = 1;
+}
+
+message GetAbandonCodeListRequest {
+    // MARK 4 START 替换内容，索引字段
+    repeated int32 idx1List = 1;
+    // MARK 4 END
+}
+message GetAbandonCodeListResponse {
+    repeated AbandonCodeInfo abandonCodeList = 1;
+}
+
+// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+message DelAbandonCodeByIdsRequest {
+    // MARK 4 START 替换内容，索引字段
+    repeated int32 idx1List = 1;
+    // MARK 4 END
+}
+// MARK 5 END

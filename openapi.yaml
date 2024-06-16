@@ -6,12 +6,78 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /abandon-code:
+        get:
+            tags:
+                - AbandonCode
+            operationId: AbandonCode_GetAbandonCodeList
+            parameters:
+                - name: idx1List
+                  in: query
+                  description: MARK 4 START 替换内容，索引字段
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetAbandonCodeListResponse'
+        post:
+            tags:
+                - AbandonCode
+            operationId: AbandonCode_AddAbandonCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddAbandonCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddAbandonCodeResponse'
+        delete:
+            tags:
+                - AbandonCode
+            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+            operationId: AbandonCode_DelAbandonCodeByIds
+            parameters:
+                - name: idx1List
+                  in: query
+                  description: MARK 4 START 替换内容，索引字段
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
     /user:
         get:
             tags:
                 - User
-            description: 获取用户列表
             operationId: User_GetUserList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -22,13 +88,12 @@ paths:
         post:
             tags:
                 - User
-            description: 登录或注册
-            operationId: User_Login
+            operationId: User_AddUser
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.LoginRequest'
+                            $ref: '#/components/schemas/api.AddUserRequest'
                 required: true
             responses:
                 "200":
@@ -36,18 +101,20 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.LoginResponse'
+                                $ref: '#/components/schemas/api.AddUserResponse'
         delete:
             tags:
                 - User
-            description: 删除用户
-            operationId: User_DelUser
+            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+            operationId: User_DelUserByIds
             parameters:
-                - name: id
+                - name: iDList
                   in: query
                   schema:
-                    type: integer
-                    format: int32
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -55,16 +122,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
-        patch:
+    /user-dept:
+        get:
             tags:
-                - User
-            description: 修改用户名
-            operationId: User_EditUserName
+                - UserDept
+            operationId: UserDept_GetUserDeptList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserDeptListResponse'
+        post:
+            tags:
+                - UserDept
+            operationId: UserDept_AddUserDept
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.EditUserNameRequest'
+                            $ref: '#/components/schemas/api.AddUserDeptRequest'
                 required: true
             responses:
                 "200":
@@ -72,13 +158,69 @@ paths:
                     content:
                         application/json:
                             schema:
+                                $ref: '#/components/schemas/api.AddUserDeptResponse'
+        delete:
+            tags:
+                - UserDept
+            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+            operationId: UserDept_DelUserDeptByIds
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
                                 $ref: '#/components/schemas/api.Empty'
-    /user/job:
+    /user-dept-assoc:
+        get:
+            tags:
+                - UserDeptAssoc
+            operationId: UserDeptAssoc_GetUserDeptAssocList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserDeptAssocListResponse'
+        post:
+            tags:
+                - UserDeptAssoc
+            operationId: UserDeptAssoc_AddUserDeptAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserDeptAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserDeptAssocResponse'
+    /user-job:
         get:
             tags:
                 - UserJob
-            description: 获取用户职位列表
             operationId: UserJob_GetUserJobList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -89,7 +231,6 @@ paths:
         post:
             tags:
                 - UserJob
-            description: 添加用户职位
             operationId: UserJob_AddUserJob
             requestBody:
                 content:
@@ -107,32 +248,16 @@ paths:
         delete:
             tags:
                 - UserJob
-            description: 删除用户职位
-            operationId: UserJob_DelUserJob
+            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+            operationId: UserJob_DelUserJobByIds
             parameters:
-                - name: id
+                - name: iDList
                   in: query
                   schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.Empty'
-        patch:
-            tags:
-                - UserJob
-            description: 修改用户职位名
-            operationId: UserJob_EditUserJobName
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.EditUserJobNameRequest'
-                required: true
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -142,35 +267,89 @@ paths:
                                 $ref: '#/components/schemas/api.Empty'
 components:
     schemas:
+        api.AbandonCodeInfo:
+            type: object
+            properties:
+                idx1:
+                    type: integer
+                    description: MARK 3 START 替换内容，所有字段
+                    format: int32
+                col1:
+                    type: string
+        api.AddAbandonCodeRequest:
+            type: object
+            properties:
+                abandonCode:
+                    $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.AddAbandonCodeResponse:
+            type: object
+            properties:
+                abandonCode:
+                    $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.AddUserDeptAssocRequest:
+            type: object
+            properties:
+                userDeptAssoc:
+                    $ref: '#/components/schemas/api.UserDeptAssocInfo'
+        api.AddUserDeptAssocResponse:
+            type: object
+            properties:
+                userDeptAssoc:
+                    $ref: '#/components/schemas/api.UserDeptAssocInfo'
+        api.AddUserDeptRequest:
+            type: object
+            properties:
+                userDept:
+                    $ref: '#/components/schemas/api.UserDeptInfo'
+        api.AddUserDeptResponse:
+            type: object
+            properties:
+                userDept:
+                    $ref: '#/components/schemas/api.UserDeptInfo'
         api.AddUserJobRequest:
             type: object
             properties:
-                userJobName:
-                    type: string
+                userJob:
+                    $ref: '#/components/schemas/api.UserJobInfo'
         api.AddUserJobResponse:
             type: object
             properties:
                 userJob:
                     $ref: '#/components/schemas/api.UserJobInfo'
-        api.EditUserJobNameRequest:
+        api.AddUserRequest:
             type: object
             properties:
-                id:
-                    type: integer
-                    format: int32
-                userJobName:
-                    type: string
-        api.EditUserNameRequest:
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
+        api.AddUserResponse:
             type: object
             properties:
-                id:
-                    type: integer
-                    format: int32
-                userName:
-                    type: string
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
         api.Empty:
             type: object
             properties: {}
+        api.GetAbandonCodeListResponse:
+            type: object
+            properties:
+                abandonCodeList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.GetUserDeptAssocListResponse:
+            type: object
+            properties:
+                userDeptAssocList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserDeptAssocInfo'
+        api.GetUserDeptListResponse:
+            type: object
+            properties:
+                userDeptList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserDeptInfo'
         api.GetUserJobListResponse:
             type: object
             properties:
@@ -185,36 +364,62 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserInfo'
-        api.LoginRequest:
+        api.UserDeptAssocInfo:
             type: object
             properties:
-                userName:
+                userID:
+                    type: integer
+                    format: int32
+                deptID:
+                    type: integer
+                    format: int32
+                jobID:
+                    type: integer
+                    format: int32
+        api.UserDeptInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                deptPath:
                     type: string
-        api.LoginResponse:
-            type: object
-            properties:
-                user:
-                    $ref: '#/components/schemas/api.UserInfo'
+                deptName:
+                    type: string
         api.UserInfo:
             type: object
             properties:
-                id:
+                iD:
                     type: integer
                     format: int32
                 userName:
                     type: string
-            description: 用户信息，该结构体和数据库表对应
         api.UserJobInfo:
             type: object
             properties:
-                id:
+                iD:
                     type: integer
                     format: int32
-                userJobName:
+                jobName:
                     type: string
-            description: 用户职位信息，该结构体和数据库表对应
 tags:
+    - name: AbandonCode
+      description: |-
+        --------------------------------------------------
+         tbl : abandon_code
     - name: User
-      description: 用户服务模块
+      description: |-
+        --------------------------------------------------
+         tbl : user
+    - name: UserDept
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept
+    - name: UserDeptAssoc
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept_assoc
     - name: UserJob
-      description: 用户职位服务模块
+      description: |-
+        --------------------------------------------------
+         tbl : user_job

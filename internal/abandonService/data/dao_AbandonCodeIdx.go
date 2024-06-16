@@ -1,4 +1,4 @@
-package main
+package data
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"gogogo/pkg/db"
 )
 
-// ignore above this line
+// MARK 1 标记删除此标记以上的内容，再拼接到dao_abandonCodeIdx.go最后
 
 func (*abandonCodeDAO) DelById(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {

@@ -37,55 +37,55 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	return userDeptList, nil
 }
 
-func (*userDeptDAO) DelById(ctx context.Context, id int32) error {
-	if id == 0 {
+func (*userDeptDAO) DelById(ctx context.Context, iD int32) error {
+	if iD == 0 {
 		return errors.New("param is invalid")
 	}
 	q := db.GetPG().UserDept
-	_, err := q.WithContext(ctx).Where(q.ID.Eq(id)).Delete()
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*userDeptDAO) DelByIds(ctx context.Context, ids []int32) error {
-	if len(ids) == 0 {
+func (*userDeptDAO) DelByIds(ctx context.Context, iDs []int32) error {
+	if len(iDs) == 0 {
 		return nil
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(ids...)).Delete()
+		Where(q.ID.In(iDs...)).Delete()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*userDeptDAO) GetById(ctx context.Context, id int32,
+func (*userDeptDAO) GetById(ctx context.Context, iD int32,
 ) (userDept *UserDeptDO, err error) {
-	if id == 0 {
+	if iD == 0 {
 		return userDept, errors.New("param is invalid")
 	}
 
 	q := db.GetPG().UserDept
 	userDept, err = q.WithContext(ctx).
-		Where(q.ID.Eq(id)).First()
+		Where(q.ID.Eq(iD)).First()
 	if err != nil {
 		return nil, err
 	}
 	return userDept, nil
 }
 
-func (*userDeptDAO) GetByIds(ctx context.Context, ids []int32,
+func (*userDeptDAO) GetByIds(ctx context.Context, iDs []int32,
 ) (userDeptMap map[int32]*UserDeptDO, err error) {
-	if len(ids) == 0 {
+	if len(iDs) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetPG().UserDept
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(ids...)).Find()
+		Where(q.ID.In(iDs...)).Find()
 	if err != nil {
 		return nil, err
 	}

@@ -11,5 +11,5 @@ enum ErrorReason {
   option (errors.default_code) = 500;
 
   Unknow = 0;
-  InvalidArgument = 1 [(errors.code) = 404]; // 请求参数错误
+  InvalidArgument = 1 [(errors.code) = 400]; // 请求参数错误
 }
