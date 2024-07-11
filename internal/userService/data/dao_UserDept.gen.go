@@ -37,6 +37,7 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	return userDeptList, nil
 }
 
+
 func (*userDeptDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return errors.New("param is invalid")
@@ -95,3 +96,4 @@ func (*userDeptDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userDeptMap, nil
 }
+

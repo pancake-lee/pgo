@@ -55,7 +55,6 @@ func (s *UserJobCURDServer) GetUserJobList(
 
 	var dataList []*data.UserJobDO
 
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
 		dataMap, err := data.UserJobDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
@@ -65,16 +64,13 @@ func (s *UserJobCURDServer) GetUserJobList(
 			dataList = append(dataList, d)
 		}
 	} else {
-		// MARK 5 END
 
 		dataList, err = data.UserJobDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	}
-	// MARK 5 END
 
 	resp = new(api.GetUserJobListResponse)
 	resp.UserJobList = make([]*api.UserJobInfo, 0, len(dataList))
@@ -84,7 +80,6 @@ func (s *UserJobCURDServer) GetUserJobList(
 	return resp, nil
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 func (s *UserJobCURDServer) DelUserJobByIDList(
 	ctx context.Context, req *api.DelUserJobByIDListRequest,
 ) (resp *api.Empty, err error) {
@@ -98,4 +93,3 @@ func (s *UserJobCURDServer) DelUserJobByIDList(
 	return nil, nil
 }
 
-// MARK 5 END

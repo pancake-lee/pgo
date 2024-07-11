@@ -57,7 +57,6 @@ func (s *UserDeptCURDServer) GetUserDeptList(
 
 	var dataList []*data.UserDeptDO
 
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
 		dataMap, err := data.UserDeptDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
@@ -67,16 +66,13 @@ func (s *UserDeptCURDServer) GetUserDeptList(
 			dataList = append(dataList, d)
 		}
 	} else {
-		// MARK 5 END
 
 		dataList, err = data.UserDeptDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	}
-	// MARK 5 END
 
 	resp = new(api.GetUserDeptListResponse)
 	resp.UserDeptList = make([]*api.UserDeptInfo, 0, len(dataList))
@@ -86,7 +82,6 @@ func (s *UserDeptCURDServer) GetUserDeptList(
 	return resp, nil
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 func (s *UserDeptCURDServer) DelUserDeptByIDList(
 	ctx context.Context, req *api.DelUserDeptByIDListRequest,
 ) (resp *api.Empty, err error) {
@@ -100,4 +95,3 @@ func (s *UserDeptCURDServer) DelUserDeptByIDList(
 	return nil, nil
 }
 
-// MARK 5 END

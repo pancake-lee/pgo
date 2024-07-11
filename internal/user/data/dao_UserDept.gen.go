@@ -9,17 +9,17 @@ import (
 	"gogogo/pkg/db/dao/model"
 )
 
-type UserDO = model.User
+type UserDeptDO = model.UserDept
 
 type userDAO struct{}
 
-var UserDAO userDAO
+var UserDeptDAO userDAO
 
-func (*userDAO) Add(ctx context.Context, user *UserDO) error {
+func (*userDAO) Add(ctx context.Context, user *UserDeptDO) error {
 	if user == nil {
 		return errors.New("param is invalid")
 	}
-	q := db.GetPG().User
+	q := db.GetPG().UserDept
 	err := q.WithContext(ctx).Create(user)
 	if err != nil {
 		return err
@@ -28,8 +28,8 @@ func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 }
 
 func (*userDAO) GetAll(ctx context.Context,
-) (userList []*UserDO, err error) {
-	q := db.GetPG().User
+) (userList []*UserDeptDO, err error) {
+	q := db.GetPG().UserDept
 	userList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return errors.New("param is invalid")
 	}
-	q := db.GetPG().User
+	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().User
+	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -64,12 +64,12 @@ func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 }
 
 func (*userDAO) GetByID(ctx context.Context, iD int32,
-) (user *UserDO, err error) {
+) (user *UserDeptDO, err error) {
 	if iD == 0 {
 		return user, errors.New("param is invalid")
 	}
 
-	q := db.GetPG().User
+	q := db.GetPG().UserDept
 	user, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -79,18 +79,18 @@ func (*userDAO) GetByID(ctx context.Context, iD int32,
 }
 
 func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
-) (userMap map[int32]*UserDO, err error) {
+) (userMap map[int32]*UserDeptDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
 	}
 
-	q := db.GetPG().User
+	q := db.GetPG().UserDept
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
 		return nil, err
 	}
-	userMap = make(map[int32]*UserDO)
+	userMap = make(map[int32]*UserDeptDO)
 	for _, i := range l {
 		userMap[i.ID] = i
 	}

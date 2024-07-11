@@ -11,34 +11,34 @@ import (
 
 type UserJobDO = model.UserJob
 
-type userJobDAO struct{}
+type userDAO struct{}
 
-var UserJobDAO userJobDAO
+var UserJobDAO userDAO
 
-func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
-	if userJob == nil {
+func (*userDAO) Add(ctx context.Context, user *UserJobDO) error {
+	if user == nil {
 		return errors.New("param is invalid")
 	}
 	q := db.GetPG().UserJob
-	err := q.WithContext(ctx).Create(userJob)
+	err := q.WithContext(ctx).Create(user)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (*userJobDAO) GetAll(ctx context.Context,
-) (userJobList []*UserJobDO, err error) {
+func (*userDAO) GetAll(ctx context.Context,
+) (userList []*UserJobDO, err error) {
 	q := db.GetPG().UserJob
-	userJobList, err = q.WithContext(ctx).Find()
+	userList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, err
 	}
-	return userJobList, nil
+	return userList, nil
 }
 
 
-func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return errors.New("param is invalid")
 	}
@@ -50,7 +50,7 @@ func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	return err
 }
 
-func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -63,23 +63,23 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	return err
 }
 
-func (*userJobDAO) GetByID(ctx context.Context, iD int32,
-) (userJob *UserJobDO, err error) {
+func (*userDAO) GetByID(ctx context.Context, iD int32,
+) (user *UserJobDO, err error) {
 	if iD == 0 {
-		return userJob, errors.New("param is invalid")
+		return user, errors.New("param is invalid")
 	}
 
 	q := db.GetPG().UserJob
-	userJob, err = q.WithContext(ctx).
+	user, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
 		return nil, err
 	}
-	return userJob, nil
+	return user, nil
 }
 
-func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
-) (userJobMap map[int32]*UserJobDO, err error) {
+func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
+) (userMap map[int32]*UserJobDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
 	}
@@ -90,10 +90,10 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 	if err != nil {
 		return nil, err
 	}
-	userJobMap = make(map[int32]*UserJobDO)
+	userMap = make(map[int32]*UserJobDO)
 	for _, i := range l {
-		userJobMap[i.ID] = i
+		userMap[i.ID] = i
 	}
-	return userJobMap, nil
+	return userMap, nil
 }
 

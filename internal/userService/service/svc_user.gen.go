@@ -55,7 +55,6 @@ func (s *UserCURDServer) GetUserList(
 
 	var dataList []*data.UserDO
 
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.IDList) != 0 {
 		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
@@ -65,16 +64,13 @@ func (s *UserCURDServer) GetUserList(
 			dataList = append(dataList, d)
 		}
 	} else {
-		// MARK 5 END
 
 		dataList, err = data.UserDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 	}
-	// MARK 5 END
 
 	resp = new(api.GetUserListResponse)
 	resp.UserList = make([]*api.UserInfo, 0, len(dataList))
@@ -84,7 +80,6 @@ func (s *UserCURDServer) GetUserList(
 	return resp, nil
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 func (s *UserCURDServer) DelUserByIDList(
 	ctx context.Context, req *api.DelUserByIDListRequest,
 ) (resp *api.Empty, err error) {
@@ -98,4 +93,3 @@ func (s *UserCURDServer) DelUserByIDList(
 	return nil, nil
 }
 
-// MARK 5 END
