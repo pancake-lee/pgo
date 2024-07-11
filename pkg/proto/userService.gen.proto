@@ -6,10 +6,9 @@ import "google/api/annotations.proto";
 import "common.proto";
 option go_package = "gogogo/api;api";
 
-
 // --------------------------------------------------
-// tbl : user
-service UserCURD {
+service userCURD {
+    // tbl : user
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
         option (google.api.http) = {
             post: "/user"
@@ -21,15 +20,60 @@ service UserCURD {
             get: "/user"
         };
     }
-    // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
     rpc DelUserByIDList (DelUserByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user"
         };
     }
-    // MARK 5 END
+    // tbl : user_dept
+    rpc AddUserDept (AddUserDeptRequest) returns (AddUserDeptResponse) {
+        option (google.api.http) = {
+            post: "/user-dept"
+            body: "*"
+        };
+    }
+    rpc GetUserDeptList (GetUserDeptListRequest) returns (GetUserDeptListResponse) {
+        option (google.api.http) = {
+            get: "/user-dept"
+        };
+    }
+    rpc DelUserDeptByIDList (DelUserDeptByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-dept"
+        };
+    }
+    // tbl : user_dept_assoc
+    rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
+        option (google.api.http) = {
+            post: "/user-dept-assoc"
+            body: "*"
+        };
+    }
+    rpc GetUserDeptAssocList (GetUserDeptAssocListRequest) returns (GetUserDeptAssocListResponse) {
+        option (google.api.http) = {
+            get: "/user-dept-assoc"
+        };
+    }
+    // tbl : user_job
+    rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
+        option (google.api.http) = {
+            post: "/user-job"
+            body: "*"
+        };
+    }
+    rpc GetUserJobList (GetUserJobListRequest) returns (GetUserJobListResponse) {
+        option (google.api.http) = {
+            get: "/user-job"
+        };
+    }
+    rpc DelUserJobByIDList (DelUserJobByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-job"
+        };
+    }
 }
 
+// tbl : user
 message UserInfo {
     int32 iD = 1;
     string userName = 2;
@@ -50,35 +94,10 @@ message GetUserListResponse {
     repeated UserInfo userList = 1;
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 message DelUserByIDListRequest {
     repeated int32 iDList = 1;
 }
-// MARK 5 END
-
-// --------------------------------------------------
 // tbl : user_dept
-service UserDeptCURD {
-    rpc AddUserDept (AddUserDeptRequest) returns (AddUserDeptResponse) {
-        option (google.api.http) = {
-            post: "/user-dept"
-            body: "*"
-        };
-    }
-    rpc GetUserDeptList (GetUserDeptListRequest) returns (GetUserDeptListResponse) {
-        option (google.api.http) = {
-            get: "/user-dept"
-        };
-    }
-    // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelUserDeptByIDList (DelUserDeptByIDListRequest) returns (Empty) {
-        option (google.api.http) = {
-            delete: "/user-dept"
-        };
-    }
-    // MARK 5 END
-}
-
 message UserDeptInfo {
     int32 iD = 1;
     string deptPath = 2;
@@ -86,42 +105,24 @@ message UserDeptInfo {
 }
 
 message AddUserDeptRequest {
-    UserDeptInfo userDept = 1;
+    UserDeptInfo user = 1;
 }
 
 message AddUserDeptResponse {
-    UserDeptInfo userDept = 1;
+    UserDeptInfo user = 1;
 }
 
 message GetUserDeptListRequest {
     repeated int32 iDList = 1;
 }
 message GetUserDeptListResponse {
-    repeated UserDeptInfo userDeptList = 1;
+    repeated UserDeptInfo userList = 1;
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 message DelUserDeptByIDListRequest {
     repeated int32 iDList = 1;
 }
-// MARK 5 END
-
-// --------------------------------------------------
 // tbl : user_dept_assoc
-service UserDeptAssocCURD {
-    rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
-        option (google.api.http) = {
-            post: "/user-dept-assoc"
-            body: "*"
-        };
-    }
-    rpc GetUserDeptAssocList (GetUserDeptAssocListRequest) returns (GetUserDeptAssocListResponse) {
-        option (google.api.http) = {
-            get: "/user-dept-assoc"
-        };
-    }
-}
-
 message UserDeptAssocInfo {
     int32 userID = 1;
     int32 deptID = 2;
@@ -129,65 +130,40 @@ message UserDeptAssocInfo {
 }
 
 message AddUserDeptAssocRequest {
-    UserDeptAssocInfo userDeptAssoc = 1;
+    UserDeptAssocInfo user = 1;
 }
 
 message AddUserDeptAssocResponse {
-    UserDeptAssocInfo userDeptAssoc = 1;
+    UserDeptAssocInfo user = 1;
 }
 
 message GetUserDeptAssocListRequest {
 }
 message GetUserDeptAssocListResponse {
-    repeated UserDeptAssocInfo userDeptAssocList = 1;
+    repeated UserDeptAssocInfo userList = 1;
 }
 
-
-// --------------------------------------------------
 // tbl : user_job
-service UserJobCURD {
-    rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
-        option (google.api.http) = {
-            post: "/user-job"
-            body: "*"
-        };
-    }
-    rpc GetUserJobList (GetUserJobListRequest) returns (GetUserJobListResponse) {
-        option (google.api.http) = {
-            get: "/user-job"
-        };
-    }
-    // MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-    rpc DelUserJobByIDList (DelUserJobByIDListRequest) returns (Empty) {
-        option (google.api.http) = {
-            delete: "/user-job"
-        };
-    }
-    // MARK 5 END
-}
-
 message UserJobInfo {
     int32 iD = 1;
     string jobName = 2;
 }
 
 message AddUserJobRequest {
-    UserJobInfo userJob = 1;
+    UserJobInfo user = 1;
 }
 
 message AddUserJobResponse {
-    UserJobInfo userJob = 1;
+    UserJobInfo user = 1;
 }
 
 message GetUserJobListRequest {
     repeated int32 iDList = 1;
 }
 message GetUserJobListResponse {
-    repeated UserJobInfo userJobList = 1;
+    repeated UserJobInfo userList = 1;
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
 message DelUserJobByIDListRequest {
     repeated int32 iDList = 1;
 }
-// MARK 5 END

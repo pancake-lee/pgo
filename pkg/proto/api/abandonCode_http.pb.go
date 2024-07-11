@@ -19,13 +19,15 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationAbandonCodeCURDAddAbandonCode = "/api.AbandonCodeCURD/AddAbandonCode"
-const OperationAbandonCodeCURDDelAbandonCodeByIdx1List = "/api.AbandonCodeCURD/DelAbandonCodeByIdx1List"
-const OperationAbandonCodeCURDGetAbandonCodeList = "/api.AbandonCodeCURD/GetAbandonCodeList"
+const OperationAbandonCodeCURDAddAbandonCode = "/api.abandonCodeCURD/AddAbandonCode"
+const OperationAbandonCodeCURDDelAbandonCodeByIdx1List = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
+const OperationAbandonCodeCURDGetAbandonCodeList = "/api.abandonCodeCURD/GetAbandonCodeList"
 
 type AbandonCodeCURDHTTPServer interface {
+	// AddAbandonCode MARK REPEAT API START
+	// tbl : abandon_code
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
-	// DelAbandonCodeByIdx1List MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	// DelAbandonCodeByIdx1List MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
 }

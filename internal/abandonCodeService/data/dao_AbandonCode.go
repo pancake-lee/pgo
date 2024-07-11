@@ -4,9 +4,38 @@ import (
 	"context"
 	"errors"
 	"gogogo/pkg/db"
+	"gogogo/pkg/db/dao/model"
 )
 
-// MARK 1 标记删除此标记以上的内容，再拼接到dao_abandonCodeIdx.go最后
+type AbandonCodeDO = model.AbandonCode
+
+type abandonCodeDAO struct{}
+
+var AbandonCodeDAO abandonCodeDAO
+
+func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) error {
+	if abandonCode == nil {
+		return errors.New("param is invalid")
+	}
+	q := db.GetPG().AbandonCode
+	err := q.WithContext(ctx).Create(abandonCode)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (*abandonCodeDAO) GetAll(ctx context.Context,
+) (abandonCodeList []*AbandonCodeDO, err error) {
+	q := db.GetPG().AbandonCode
+	abandonCodeList, err = q.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+	return abandonCodeList, nil
+}
+
+// MARK REPLACE IDX START
 
 func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {
@@ -66,3 +95,5 @@ func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
 	}
 	return abandonCodeMap, nil
 }
+
+// MARK REPLACE IDX END

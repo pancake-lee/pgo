@@ -14,7 +14,7 @@ paths:
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK 4 START 替换内容，索引字段
+                  description: MARK REPLACE PB IDX START 替换内容，索引字段
                   schema:
                     type: array
                     items:
@@ -30,6 +30,9 @@ paths:
         post:
             tags:
                 - AbandonCodeCURD
+            description: |-
+                MARK REPEAT API START
+                 tbl : abandon_code
             operationId: AbandonCodeCURD_AddAbandonCode
             requestBody:
                 content:
@@ -47,12 +50,12 @@ paths:
         delete:
             tags:
                 - AbandonCodeCURD
-            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+            description: MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
             operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK 4 START 替换内容，索引字段
+                  description: MARK REPLACE PB IDX START 替换内容，索引字段
                   schema:
                     type: array
                     items:
@@ -88,6 +91,7 @@ paths:
         post:
             tags:
                 - UserCURD
+            description: 'tbl : user'
             operationId: UserCURD_AddUser
             requestBody:
                 content:
@@ -105,7 +109,6 @@ paths:
         delete:
             tags:
                 - UserCURD
-            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
             operationId: UserCURD_DelUserByIDList
             parameters:
                 - name: iDList
@@ -143,8 +146,8 @@ paths:
     /user-dept:
         get:
             tags:
-                - UserDeptCURD
-            operationId: UserDeptCURD_GetUserDeptList
+                - UserCURD
+            operationId: UserCURD_GetUserDeptList
             parameters:
                 - name: iDList
                   in: query
@@ -162,8 +165,9 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserDeptListResponse'
         post:
             tags:
-                - UserDeptCURD
-            operationId: UserDeptCURD_AddUserDept
+                - UserCURD
+            description: 'tbl : user_dept'
+            operationId: UserCURD_AddUserDept
             requestBody:
                 content:
                     application/json:
@@ -179,9 +183,8 @@ paths:
                                 $ref: '#/components/schemas/api.AddUserDeptResponse'
         delete:
             tags:
-                - UserDeptCURD
-            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: UserDeptCURD_DelUserDeptByIDList
+                - UserCURD
+            operationId: UserCURD_DelUserDeptByIDList
             parameters:
                 - name: iDList
                   in: query
@@ -200,8 +203,8 @@ paths:
     /user-dept-assoc:
         get:
             tags:
-                - UserDeptAssocCURD
-            operationId: UserDeptAssocCURD_GetUserDeptAssocList
+                - UserCURD
+            operationId: UserCURD_GetUserDeptAssocList
             responses:
                 "200":
                     description: OK
@@ -211,8 +214,9 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserDeptAssocListResponse'
         post:
             tags:
-                - UserDeptAssocCURD
-            operationId: UserDeptAssocCURD_AddUserDeptAssoc
+                - UserCURD
+            description: 'tbl : user_dept_assoc'
+            operationId: UserCURD_AddUserDeptAssoc
             requestBody:
                 content:
                     application/json:
@@ -229,8 +233,8 @@ paths:
     /user-job:
         get:
             tags:
-                - UserJobCURD
-            operationId: UserJobCURD_GetUserJobList
+                - UserCURD
+            operationId: UserCURD_GetUserJobList
             parameters:
                 - name: iDList
                   in: query
@@ -248,8 +252,9 @@ paths:
                                 $ref: '#/components/schemas/api.GetUserJobListResponse'
         post:
             tags:
-                - UserJobCURD
-            operationId: UserJobCURD_AddUserJob
+                - UserCURD
+            description: 'tbl : user_job'
+            operationId: UserCURD_AddUserJob
             requestBody:
                 content:
                     application/json:
@@ -265,9 +270,8 @@ paths:
                                 $ref: '#/components/schemas/api.AddUserJobResponse'
         delete:
             tags:
-                - UserJobCURD
-            description: MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-            operationId: UserJobCURD_DelUserJobByIDList
+                - UserCURD
+            operationId: UserCURD_DelUserJobByIDList
             parameters:
                 - name: iDList
                   in: query
@@ -309,10 +313,13 @@ components:
             properties:
                 idx1:
                     type: integer
-                    description: MARK 3 START 替换内容，所有字段
+                    description: MARK REPLACE PB COL START 替换内容，所有字段
                     format: int32
                 col1:
                     type: string
+            description: |-
+                MARK REPEAT MSG START
+                 tbl : abandon_code
         api.AddAbandonCodeRequest:
             type: object
             properties:
@@ -326,32 +333,32 @@ components:
         api.AddUserDeptAssocRequest:
             type: object
             properties:
-                userDeptAssoc:
+                user:
                     $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.AddUserDeptAssocResponse:
             type: object
             properties:
-                userDeptAssoc:
+                user:
                     $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.AddUserDeptRequest:
             type: object
             properties:
-                userDept:
+                user:
                     $ref: '#/components/schemas/api.UserDeptInfo'
         api.AddUserDeptResponse:
             type: object
             properties:
-                userDept:
+                user:
                     $ref: '#/components/schemas/api.UserDeptInfo'
         api.AddUserJobRequest:
             type: object
             properties:
-                userJob:
+                user:
                     $ref: '#/components/schemas/api.UserJobInfo'
         api.AddUserJobResponse:
             type: object
             properties:
-                userJob:
+                user:
                     $ref: '#/components/schemas/api.UserJobInfo'
         api.AddUserRequest:
             type: object
@@ -384,21 +391,21 @@ components:
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
-                userDeptAssocList:
+                userList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.GetUserDeptListResponse:
             type: object
             properties:
-                userDeptList:
+                userList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptInfo'
         api.GetUserJobListResponse:
             type: object
             properties:
-                userJobList:
+                userList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserJobInfo'
@@ -431,6 +438,7 @@ components:
                 jobID:
                     type: integer
                     format: int32
+            description: 'tbl : user_dept_assoc'
         api.UserDeptInfo:
             type: object
             properties:
@@ -441,6 +449,7 @@ components:
                     type: string
                 deptName:
                     type: string
+            description: 'tbl : user_dept'
         api.UserInfo:
             type: object
             properties:
@@ -449,6 +458,7 @@ components:
                     format: int32
                 userName:
                     type: string
+            description: 'tbl : user'
         api.UserJobInfo:
             type: object
             properties:
@@ -457,26 +467,11 @@ components:
                     format: int32
                 jobName:
                     type: string
+            description: 'tbl : user_job'
 tags:
     - name: AbandonCodeCURD
-      description: |-
-        --------------------------------------------------
-         tbl : abandon_code
+      description: '--------------------------------------------------'
     - name: User
       description: 用户服务模块
     - name: UserCURD
-      description: |-
-        --------------------------------------------------
-         tbl : user
-    - name: UserDeptAssocCURD
-      description: |-
-        --------------------------------------------------
-         tbl : user_dept_assoc
-    - name: UserDeptCURD
-      description: |-
-        --------------------------------------------------
-         tbl : user_dept
-    - name: UserJobCURD
-      description: |-
-        --------------------------------------------------
-         tbl : user_job
+      description: '--------------------------------------------------'

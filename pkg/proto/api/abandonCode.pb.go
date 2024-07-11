@@ -21,14 +21,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// MARK REPEAT MSG START
+// tbl : abandon_code
 type AbandonCodeInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// MARK 3 START 替换内容，所有字段
+	// MARK REPLACE PB COL START 替换内容，所有字段
 	Idx1 int32  `protobuf:"varint,1,opt,name=idx1,proto3" json:"idx1,omitempty"`
-	Col1 string `protobuf:"bytes,2,opt,name=col1,proto3" json:"col1,omitempty"` // MARK 3 END
+	Col1 string `protobuf:"bytes,2,opt,name=col1,proto3" json:"col1,omitempty"` // MARK REPLACE PB COL END
 }
 
 func (x *AbandonCodeInfo) Reset() {
@@ -176,8 +178,8 @@ type GetAbandonCodeListRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// MARK 4 START 替换内容，索引字段
-	Idx1List []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK 4 END
+	// MARK REPLACE PB IDX START 替换内容，索引字段
+	Idx1List []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK REPLACE PB IDX END
 }
 
 func (x *GetAbandonCodeListRequest) Reset() {
@@ -266,14 +268,14 @@ func (x *GetAbandonCodeListResponse) GetAbandonCodeList() []*AbandonCodeInfo {
 	return nil
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 type DelAbandonCodeByIdx1ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// MARK 4 START 替换内容，索引字段
-	Idx1List []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK 4 END
+	// MARK REPLACE PB IDX START 替换内容，索引字段
+	Idx1List []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK REPLACE PB IDX END
 }
 
 func (x *DelAbandonCodeByIdx1ListRequest) Reset() {
@@ -349,7 +351,7 @@ var file_abandonCode_proto_rawDesc = []byte{
 	0x41, 0x62, 0x61, 0x6e, 0x64, 0x6f, 0x6e, 0x43, 0x6f, 0x64, 0x65, 0x42, 0x79, 0x49, 0x64, 0x78,
 	0x31, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08,
 	0x69, 0x64, 0x78, 0x31, 0x4c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x05, 0x52, 0x08,
-	0x69, 0x64, 0x78, 0x31, 0x4c, 0x69, 0x73, 0x74, 0x32, 0xc9, 0x02, 0x0a, 0x0f, 0x41, 0x62, 0x61,
+	0x69, 0x64, 0x78, 0x31, 0x4c, 0x69, 0x73, 0x74, 0x32, 0xc9, 0x02, 0x0a, 0x0f, 0x61, 0x62, 0x61,
 	0x6e, 0x64, 0x6f, 0x6e, 0x43, 0x6f, 0x64, 0x65, 0x43, 0x55, 0x52, 0x44, 0x12, 0x63, 0x0a, 0x0e,
 	0x41, 0x64, 0x64, 0x41, 0x62, 0x61, 0x6e, 0x64, 0x6f, 0x6e, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x1a,
 	0x2e, 0x61, 0x70, 0x69, 0x2e, 0x41, 0x64, 0x64, 0x41, 0x62, 0x61, 0x6e, 0x64, 0x6f, 0x6e, 0x43,
@@ -400,12 +402,12 @@ var file_abandonCode_proto_depIdxs = []int32{
 	0, // 0: api.AddAbandonCodeRequest.abandonCode:type_name -> api.AbandonCodeInfo
 	0, // 1: api.AddAbandonCodeResponse.abandonCode:type_name -> api.AbandonCodeInfo
 	0, // 2: api.GetAbandonCodeListResponse.abandonCodeList:type_name -> api.AbandonCodeInfo
-	1, // 3: api.AbandonCodeCURD.AddAbandonCode:input_type -> api.AddAbandonCodeRequest
-	3, // 4: api.AbandonCodeCURD.GetAbandonCodeList:input_type -> api.GetAbandonCodeListRequest
-	5, // 5: api.AbandonCodeCURD.DelAbandonCodeByIdx1List:input_type -> api.DelAbandonCodeByIdx1ListRequest
-	2, // 6: api.AbandonCodeCURD.AddAbandonCode:output_type -> api.AddAbandonCodeResponse
-	4, // 7: api.AbandonCodeCURD.GetAbandonCodeList:output_type -> api.GetAbandonCodeListResponse
-	6, // 8: api.AbandonCodeCURD.DelAbandonCodeByIdx1List:output_type -> api.Empty
+	1, // 3: api.abandonCodeCURD.AddAbandonCode:input_type -> api.AddAbandonCodeRequest
+	3, // 4: api.abandonCodeCURD.GetAbandonCodeList:input_type -> api.GetAbandonCodeListRequest
+	5, // 5: api.abandonCodeCURD.DelAbandonCodeByIdx1List:input_type -> api.DelAbandonCodeByIdx1ListRequest
+	2, // 6: api.abandonCodeCURD.AddAbandonCode:output_type -> api.AddAbandonCodeResponse
+	4, // 7: api.abandonCodeCURD.GetAbandonCodeList:output_type -> api.GetAbandonCodeListResponse
+	6, // 8: api.abandonCodeCURD.DelAbandonCodeByIdx1List:output_type -> api.Empty
 	6, // [6:9] is the sub-list for method output_type
 	3, // [3:6] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name

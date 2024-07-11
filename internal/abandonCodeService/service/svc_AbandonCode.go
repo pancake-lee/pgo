@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"gogogo/internal/abandonService/data"
+	"gogogo/internal/abandonCodeService/data"
 	"gogogo/pkg/proto/api"
 )
 
@@ -15,10 +15,10 @@ func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
 		return nil
 	}
 	return &api.AbandonCodeInfo{
-		// MARK 6 START 替换内容，所有字段DO2DTO
+		// MARK REPLACE DO2DTO START 替换内容，所有字段DO2DTO
 		Idx1: do.Idx1,
 		Col1: do.Col1,
-		// MARK 6 END
+		// MARK REPLACE DO2DTO END
 	}
 }
 func DTO2DO_AbandonCode(dto *api.AbandonCodeInfo) *data.AbandonCodeDO {
@@ -26,10 +26,10 @@ func DTO2DO_AbandonCode(dto *api.AbandonCodeInfo) *data.AbandonCodeDO {
 		return nil
 	}
 	return &data.AbandonCodeDO{
-		// MARK 7 START 替换内容，所有字段DTO2DO
+		// MARK REPLACE DTO2DO START 替换内容，所有字段DTO2DO
 		Idx1: dto.Idx1,
 		Col1: dto.Col1,
-		// MARK 7 END
+		// MARK REPLACE DTO2DO END
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 	var dataList []*data.AbandonCodeDO
 
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 	if len(req.Idx1List) != 0 {
 		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
@@ -67,16 +67,16 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 			dataList = append(dataList, d)
 		}
 	} else {
-		// MARK 5 END
+		// MARK REPLACE IDX END
 
 		dataList, err = data.AbandonCodeDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+		// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 	}
-	// MARK 5 END
+	// MARK REPLACE IDX END
 
 	resp = new(api.GetAbandonCodeListResponse)
 	resp.AbandonCodeList = make([]*api.AbandonCodeInfo, 0, len(dataList))
@@ -86,7 +86,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 	return resp, nil
 }
 
-// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
 ) (resp *api.Empty, err error) {
@@ -100,4 +100,4 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	return nil, nil
 }
 
-// MARK 5 END
+// MARK REPLACE IDX END

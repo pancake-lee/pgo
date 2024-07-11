@@ -19,14 +19,33 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationUserCURDAddUser = "/api.UserCURD/AddUser"
-const OperationUserCURDDelUserByIDList = "/api.UserCURD/DelUserByIDList"
-const OperationUserCURDGetUserList = "/api.UserCURD/GetUserList"
+const OperationUserCURDAddUser = "/api.userCURD/AddUser"
+const OperationUserCURDAddUserDept = "/api.userCURD/AddUserDept"
+const OperationUserCURDAddUserDeptAssoc = "/api.userCURD/AddUserDeptAssoc"
+const OperationUserCURDAddUserJob = "/api.userCURD/AddUserJob"
+const OperationUserCURDDelUserByIDList = "/api.userCURD/DelUserByIDList"
+const OperationUserCURDDelUserDeptByIDList = "/api.userCURD/DelUserDeptByIDList"
+const OperationUserCURDDelUserJobByIDList = "/api.userCURD/DelUserJobByIDList"
+const OperationUserCURDGetUserDeptAssocList = "/api.userCURD/GetUserDeptAssocList"
+const OperationUserCURDGetUserDeptList = "/api.userCURD/GetUserDeptList"
+const OperationUserCURDGetUserJobList = "/api.userCURD/GetUserJobList"
+const OperationUserCURDGetUserList = "/api.userCURD/GetUserList"
 
 type UserCURDHTTPServer interface {
+	// AddUser tbl : user
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
-	// DelUserByIDList MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	// AddUserDept tbl : user_dept
+	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
+	// AddUserDeptAssoc tbl : user_dept_assoc
+	AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error)
+	// AddUserJob tbl : user_job
+	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
 	DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error)
+	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
+	DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error)
+	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
+	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
+	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
 }
 
@@ -35,6 +54,14 @@ func RegisterUserCURDHTTPServer(s *http.Server, srv UserCURDHTTPServer) {
 	r.POST("/user", _UserCURD_AddUser0_HTTP_Handler(srv))
 	r.GET("/user", _UserCURD_GetUserList0_HTTP_Handler(srv))
 	r.DELETE("/user", _UserCURD_DelUserByIDList0_HTTP_Handler(srv))
+	r.POST("/user-dept", _UserCURD_AddUserDept0_HTTP_Handler(srv))
+	r.GET("/user-dept", _UserCURD_GetUserDeptList0_HTTP_Handler(srv))
+	r.DELETE("/user-dept", _UserCURD_DelUserDeptByIDList0_HTTP_Handler(srv))
+	r.POST("/user-dept-assoc", _UserCURD_AddUserDeptAssoc0_HTTP_Handler(srv))
+	r.GET("/user-dept-assoc", _UserCURD_GetUserDeptAssocList0_HTTP_Handler(srv))
+	r.POST("/user-job", _UserCURD_AddUserJob0_HTTP_Handler(srv))
+	r.GET("/user-job", _UserCURD_GetUserJobList0_HTTP_Handler(srv))
+	r.DELETE("/user-job", _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv))
 }
 
 func _UserCURD_AddUser0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
@@ -97,9 +124,178 @@ func _UserCURD_DelUserByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx ht
 	}
 }
 
+func _UserCURD_AddUserDept0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AddUserDeptRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDAddUserDept)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AddUserDept(ctx, req.(*AddUserDeptRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AddUserDeptResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserDeptList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserDeptListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserDeptList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserDeptList(ctx, req.(*GetUserDeptListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserDeptListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_DelUserDeptByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DelUserDeptByIDListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDDelUserDeptByIDList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DelUserDeptByIDList(ctx, req.(*DelUserDeptByIDListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_AddUserDeptAssoc0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AddUserDeptAssocRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDAddUserDeptAssoc)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AddUserDeptAssoc(ctx, req.(*AddUserDeptAssocRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AddUserDeptAssocResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserDeptAssocList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserDeptAssocListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserDeptAssocList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserDeptAssocList(ctx, req.(*GetUserDeptAssocListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserDeptAssocListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_AddUserJob0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AddUserJobRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDAddUserJob)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AddUserJob(ctx, req.(*AddUserJobRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AddUserJobResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserJobList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserJobListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserJobList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserJobList(ctx, req.(*GetUserJobListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserJobListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DelUserJobByIDListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDDelUserJobByIDList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DelUserJobByIDList(ctx, req.(*DelUserJobByIDListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserCURDHTTPClient interface {
 	AddUser(ctx context.Context, req *AddUserRequest, opts ...http.CallOption) (rsp *AddUserResponse, err error)
+	AddUserDept(ctx context.Context, req *AddUserDeptRequest, opts ...http.CallOption) (rsp *AddUserDeptResponse, err error)
+	AddUserDeptAssoc(ctx context.Context, req *AddUserDeptAssocRequest, opts ...http.CallOption) (rsp *AddUserDeptAssocResponse, err error)
+	AddUserJob(ctx context.Context, req *AddUserJobRequest, opts ...http.CallOption) (rsp *AddUserJobResponse, err error)
 	DelUserByIDList(ctx context.Context, req *DelUserByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	DelUserDeptByIDList(ctx context.Context, req *DelUserDeptByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	DelUserJobByIDList(ctx context.Context, req *DelUserJobByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	GetUserDeptAssocList(ctx context.Context, req *GetUserDeptAssocListRequest, opts ...http.CallOption) (rsp *GetUserDeptAssocListResponse, err error)
+	GetUserDeptList(ctx context.Context, req *GetUserDeptListRequest, opts ...http.CallOption) (rsp *GetUserDeptListResponse, err error)
+	GetUserJobList(ctx context.Context, req *GetUserJobListRequest, opts ...http.CallOption) (rsp *GetUserJobListResponse, err error)
 	GetUserList(ctx context.Context, req *GetUserListRequest, opts ...http.CallOption) (rsp *GetUserListResponse, err error)
 }
 
@@ -124,6 +320,45 @@ func (c *UserCURDHTTPClientImpl) AddUser(ctx context.Context, in *AddUserRequest
 	return &out, err
 }
 
+func (c *UserCURDHTTPClientImpl) AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...http.CallOption) (*AddUserDeptResponse, error) {
+	var out AddUserDeptResponse
+	pattern := "/user-dept"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDAddUserDept))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...http.CallOption) (*AddUserDeptAssocResponse, error) {
+	var out AddUserDeptAssocResponse
+	pattern := "/user-dept-assoc"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDAddUserDeptAssoc))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...http.CallOption) (*AddUserJobResponse, error) {
+	var out AddUserJobResponse
+	pattern := "/user-job"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDAddUserJob))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *UserCURDHTTPClientImpl) DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
 	pattern := "/user"
@@ -137,367 +372,76 @@ func (c *UserCURDHTTPClientImpl) DelUserByIDList(ctx context.Context, in *DelUse
 	return &out, err
 }
 
+func (c *UserCURDHTTPClientImpl) DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user-dept"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDDelUserDeptByIDList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user-job"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDDelUserJobByIDList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...http.CallOption) (*GetUserDeptAssocListResponse, error) {
+	var out GetUserDeptAssocListResponse
+	pattern := "/user-dept-assoc"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserDeptAssocList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...http.CallOption) (*GetUserDeptListResponse, error) {
+	var out GetUserDeptListResponse
+	pattern := "/user-dept"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserDeptList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...http.CallOption) (*GetUserJobListResponse, error) {
+	var out GetUserJobListResponse
+	pattern := "/user-job"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserJobList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *UserCURDHTTPClientImpl) GetUserList(ctx context.Context, in *GetUserListRequest, opts ...http.CallOption) (*GetUserListResponse, error) {
 	var out GetUserListResponse
 	pattern := "/user"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserCURDGetUserList))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-const OperationUserDeptCURDAddUserDept = "/api.UserDeptCURD/AddUserDept"
-const OperationUserDeptCURDDelUserDeptByIDList = "/api.UserDeptCURD/DelUserDeptByIDList"
-const OperationUserDeptCURDGetUserDeptList = "/api.UserDeptCURD/GetUserDeptList"
-
-type UserDeptCURDHTTPServer interface {
-	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
-	// DelUserDeptByIDList MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
-	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
-}
-
-func RegisterUserDeptCURDHTTPServer(s *http.Server, srv UserDeptCURDHTTPServer) {
-	r := s.Route("/")
-	r.POST("/user-dept", _UserDeptCURD_AddUserDept0_HTTP_Handler(srv))
-	r.GET("/user-dept", _UserDeptCURD_GetUserDeptList0_HTTP_Handler(srv))
-	r.DELETE("/user-dept", _UserDeptCURD_DelUserDeptByIDList0_HTTP_Handler(srv))
-}
-
-func _UserDeptCURD_AddUserDept0_HTTP_Handler(srv UserDeptCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AddUserDeptRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserDeptCURDAddUserDept)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AddUserDept(ctx, req.(*AddUserDeptRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AddUserDeptResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _UserDeptCURD_GetUserDeptList0_HTTP_Handler(srv UserDeptCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetUserDeptListRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserDeptCURDGetUserDeptList)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetUserDeptList(ctx, req.(*GetUserDeptListRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetUserDeptListResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _UserDeptCURD_DelUserDeptByIDList0_HTTP_Handler(srv UserDeptCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DelUserDeptByIDListRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserDeptCURDDelUserDeptByIDList)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DelUserDeptByIDList(ctx, req.(*DelUserDeptByIDListRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*Empty)
-		return ctx.Result(200, reply)
-	}
-}
-
-type UserDeptCURDHTTPClient interface {
-	AddUserDept(ctx context.Context, req *AddUserDeptRequest, opts ...http.CallOption) (rsp *AddUserDeptResponse, err error)
-	DelUserDeptByIDList(ctx context.Context, req *DelUserDeptByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
-	GetUserDeptList(ctx context.Context, req *GetUserDeptListRequest, opts ...http.CallOption) (rsp *GetUserDeptListResponse, err error)
-}
-
-type UserDeptCURDHTTPClientImpl struct {
-	cc *http.Client
-}
-
-func NewUserDeptCURDHTTPClient(client *http.Client) UserDeptCURDHTTPClient {
-	return &UserDeptCURDHTTPClientImpl{client}
-}
-
-func (c *UserDeptCURDHTTPClientImpl) AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...http.CallOption) (*AddUserDeptResponse, error) {
-	var out AddUserDeptResponse
-	pattern := "/user-dept"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationUserDeptCURDAddUserDept))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *UserDeptCURDHTTPClientImpl) DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...http.CallOption) (*Empty, error) {
-	var out Empty
-	pattern := "/user-dept"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserDeptCURDDelUserDeptByIDList))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *UserDeptCURDHTTPClientImpl) GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...http.CallOption) (*GetUserDeptListResponse, error) {
-	var out GetUserDeptListResponse
-	pattern := "/user-dept"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserDeptCURDGetUserDeptList))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-const OperationUserDeptAssocCURDAddUserDeptAssoc = "/api.UserDeptAssocCURD/AddUserDeptAssoc"
-const OperationUserDeptAssocCURDGetUserDeptAssocList = "/api.UserDeptAssocCURD/GetUserDeptAssocList"
-
-type UserDeptAssocCURDHTTPServer interface {
-	AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error)
-	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
-}
-
-func RegisterUserDeptAssocCURDHTTPServer(s *http.Server, srv UserDeptAssocCURDHTTPServer) {
-	r := s.Route("/")
-	r.POST("/user-dept-assoc", _UserDeptAssocCURD_AddUserDeptAssoc0_HTTP_Handler(srv))
-	r.GET("/user-dept-assoc", _UserDeptAssocCURD_GetUserDeptAssocList0_HTTP_Handler(srv))
-}
-
-func _UserDeptAssocCURD_AddUserDeptAssoc0_HTTP_Handler(srv UserDeptAssocCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AddUserDeptAssocRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserDeptAssocCURDAddUserDeptAssoc)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AddUserDeptAssoc(ctx, req.(*AddUserDeptAssocRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AddUserDeptAssocResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _UserDeptAssocCURD_GetUserDeptAssocList0_HTTP_Handler(srv UserDeptAssocCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetUserDeptAssocListRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserDeptAssocCURDGetUserDeptAssocList)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetUserDeptAssocList(ctx, req.(*GetUserDeptAssocListRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetUserDeptAssocListResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-type UserDeptAssocCURDHTTPClient interface {
-	AddUserDeptAssoc(ctx context.Context, req *AddUserDeptAssocRequest, opts ...http.CallOption) (rsp *AddUserDeptAssocResponse, err error)
-	GetUserDeptAssocList(ctx context.Context, req *GetUserDeptAssocListRequest, opts ...http.CallOption) (rsp *GetUserDeptAssocListResponse, err error)
-}
-
-type UserDeptAssocCURDHTTPClientImpl struct {
-	cc *http.Client
-}
-
-func NewUserDeptAssocCURDHTTPClient(client *http.Client) UserDeptAssocCURDHTTPClient {
-	return &UserDeptAssocCURDHTTPClientImpl{client}
-}
-
-func (c *UserDeptAssocCURDHTTPClientImpl) AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...http.CallOption) (*AddUserDeptAssocResponse, error) {
-	var out AddUserDeptAssocResponse
-	pattern := "/user-dept-assoc"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationUserDeptAssocCURDAddUserDeptAssoc))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *UserDeptAssocCURDHTTPClientImpl) GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...http.CallOption) (*GetUserDeptAssocListResponse, error) {
-	var out GetUserDeptAssocListResponse
-	pattern := "/user-dept-assoc"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserDeptAssocCURDGetUserDeptAssocList))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-const OperationUserJobCURDAddUserJob = "/api.UserJobCURD/AddUserJob"
-const OperationUserJobCURDDelUserJobByIDList = "/api.UserJobCURD/DelUserJobByIDList"
-const OperationUserJobCURDGetUserJobList = "/api.UserJobCURD/GetUserJobList"
-
-type UserJobCURDHTTPServer interface {
-	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
-	// DelUserJobByIDList MARK 5 START 替换内容，没有索引的表，以替换的形式删除
-	DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error)
-	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
-}
-
-func RegisterUserJobCURDHTTPServer(s *http.Server, srv UserJobCURDHTTPServer) {
-	r := s.Route("/")
-	r.POST("/user-job", _UserJobCURD_AddUserJob0_HTTP_Handler(srv))
-	r.GET("/user-job", _UserJobCURD_GetUserJobList0_HTTP_Handler(srv))
-	r.DELETE("/user-job", _UserJobCURD_DelUserJobByIDList0_HTTP_Handler(srv))
-}
-
-func _UserJobCURD_AddUserJob0_HTTP_Handler(srv UserJobCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AddUserJobRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserJobCURDAddUserJob)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AddUserJob(ctx, req.(*AddUserJobRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AddUserJobResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _UserJobCURD_GetUserJobList0_HTTP_Handler(srv UserJobCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetUserJobListRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserJobCURDGetUserJobList)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetUserJobList(ctx, req.(*GetUserJobListRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetUserJobListResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _UserJobCURD_DelUserJobByIDList0_HTTP_Handler(srv UserJobCURDHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DelUserJobByIDListRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationUserJobCURDDelUserJobByIDList)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DelUserJobByIDList(ctx, req.(*DelUserJobByIDListRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*Empty)
-		return ctx.Result(200, reply)
-	}
-}
-
-type UserJobCURDHTTPClient interface {
-	AddUserJob(ctx context.Context, req *AddUserJobRequest, opts ...http.CallOption) (rsp *AddUserJobResponse, err error)
-	DelUserJobByIDList(ctx context.Context, req *DelUserJobByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
-	GetUserJobList(ctx context.Context, req *GetUserJobListRequest, opts ...http.CallOption) (rsp *GetUserJobListResponse, err error)
-}
-
-type UserJobCURDHTTPClientImpl struct {
-	cc *http.Client
-}
-
-func NewUserJobCURDHTTPClient(client *http.Client) UserJobCURDHTTPClient {
-	return &UserJobCURDHTTPClientImpl{client}
-}
-
-func (c *UserJobCURDHTTPClientImpl) AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...http.CallOption) (*AddUserJobResponse, error) {
-	var out AddUserJobResponse
-	pattern := "/user-job"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationUserJobCURDAddUserJob))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *UserJobCURDHTTPClientImpl) DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...http.CallOption) (*Empty, error) {
-	var out Empty
-	pattern := "/user-job"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserJobCURDDelUserJobByIDList))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *UserJobCURDHTTPClientImpl) GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...http.CallOption) (*GetUserJobListResponse, error) {
-	var out GetUserJobListResponse
-	pattern := "/user-job"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserJobCURDGetUserJobList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

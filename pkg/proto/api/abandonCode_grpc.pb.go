@@ -19,18 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AbandonCodeCURD_AddAbandonCode_FullMethodName           = "/api.AbandonCodeCURD/AddAbandonCode"
-	AbandonCodeCURD_GetAbandonCodeList_FullMethodName       = "/api.AbandonCodeCURD/GetAbandonCodeList"
-	AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName = "/api.AbandonCodeCURD/DelAbandonCodeByIdx1List"
+	AbandonCodeCURD_AddAbandonCode_FullMethodName           = "/api.abandonCodeCURD/AddAbandonCode"
+	AbandonCodeCURD_GetAbandonCodeList_FullMethodName       = "/api.abandonCodeCURD/GetAbandonCodeList"
+	AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
 )
 
 // AbandonCodeCURDClient is the client API for AbandonCodeCURD service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AbandonCodeCURDClient interface {
+	// MARK REPEAT API START
+	// tbl : abandon_code
 	AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error)
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 	DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -73,9 +75,11 @@ func (c *abandonCodeCURDClient) DelAbandonCodeByIdx1List(ctx context.Context, in
 // All implementations must embed UnimplementedAbandonCodeCURDServer
 // for forward compatibility
 type AbandonCodeCURDServer interface {
+	// MARK REPEAT API START
+	// tbl : abandon_code
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
-	// MARK 5 START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	mustEmbedUnimplementedAbandonCodeCURDServer()
 }
@@ -164,7 +168,7 @@ func _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler(srv interface{}, ctx cont
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AbandonCodeCURD_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.AbandonCodeCURD",
+	ServiceName: "api.abandonCodeCURD",
 	HandlerType: (*AbandonCodeCURDServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
