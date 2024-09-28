@@ -8,9 +8,6 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserJobCURDServer struct {
-	api.UnimplementedUserJobCURDServer
-}
 
 func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {
 	if do == nil {
@@ -31,7 +28,7 @@ func DTO2DO_UserJob(dto *api.UserJobInfo) *data.UserJobDO {
 	}
 }
 
-func (s *UserJobCURDServer) AddUserJob(
+func (s *UserCURDServer) AddUserJob(
 	ctx context.Context, req *api.AddUserJobRequest,
 ) (resp *api.AddUserJobResponse, err error) {
 	if req.UserJob == nil {
@@ -49,7 +46,7 @@ func (s *UserJobCURDServer) AddUserJob(
 	return resp, nil
 }
 
-func (s *UserJobCURDServer) GetUserJobList(
+func (s *UserCURDServer) GetUserJobList(
 	ctx context.Context, req *api.GetUserJobListRequest,
 ) (resp *api.GetUserJobListResponse, err error) {
 
@@ -80,7 +77,7 @@ func (s *UserJobCURDServer) GetUserJobList(
 	return resp, nil
 }
 
-func (s *UserJobCURDServer) DelUserJobByIDList(
+func (s *UserCURDServer) DelUserJobByIDList(
 	ctx context.Context, req *api.DelUserJobByIDListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.IDList) == 0 {

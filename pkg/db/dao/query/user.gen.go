@@ -38,9 +38,13 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL      field.Asterisk
-	ID       field.Int32  // The primary key of the table
-	UserName field.String // The name of the user
+	ALL field.Asterisk
+	ID  field.Int32 // The primary key of the table
+	/*
+		The name of
+		 the user
+	*/
+	UserName field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -70,6 +74,8 @@ func (u *user) WithContext(ctx context.Context) *userDo { return u.userDo.WithCo
 func (u user) TableName() string { return u.userDo.TableName() }
 
 func (u user) Alias() string { return u.userDo.Alias() }
+
+func (u user) Columns(cols ...field.Expr) gen.Columns { return u.userDo.Columns(cols...) }
 
 func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := u.fieldMap[fieldName]
@@ -140,10 +146,6 @@ func (u userDo) Select(conds ...field.Expr) *userDo {
 
 func (u userDo) Where(conds ...gen.Condition) *userDo {
 	return u.withDO(u.DO.Where(conds...))
-}
-
-func (u userDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *userDo {
-	return u.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (u userDo) Order(conds ...field.Expr) *userDo {

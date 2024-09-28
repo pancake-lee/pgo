@@ -8,9 +8,12 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
+// MARK REPLACE SvrDefine START
 type UserCURDServer struct {
 	api.UnimplementedUserCURDServer
 }
+
+// MARK REPLACE SvrDefine END
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
 	if do == nil {

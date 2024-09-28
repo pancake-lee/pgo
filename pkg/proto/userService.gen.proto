@@ -105,18 +105,18 @@ message UserDeptInfo {
 }
 
 message AddUserDeptRequest {
-    UserDeptInfo user = 1;
+    UserDeptInfo userDept = 1;
 }
 
 message AddUserDeptResponse {
-    UserDeptInfo user = 1;
+    UserDeptInfo userDept = 1;
 }
 
 message GetUserDeptListRequest {
     repeated int32 iDList = 1;
 }
 message GetUserDeptListResponse {
-    repeated UserDeptInfo userList = 1;
+    repeated UserDeptInfo userDeptList = 1;
 }
 
 message DelUserDeptByIDListRequest {
@@ -130,17 +130,17 @@ message UserDeptAssocInfo {
 }
 
 message AddUserDeptAssocRequest {
-    UserDeptAssocInfo user = 1;
+    UserDeptAssocInfo userDeptAssoc = 1;
 }
 
 message AddUserDeptAssocResponse {
-    UserDeptAssocInfo user = 1;
+    UserDeptAssocInfo userDeptAssoc = 1;
 }
 
 message GetUserDeptAssocListRequest {
 }
 message GetUserDeptAssocListResponse {
-    repeated UserDeptAssocInfo userList = 1;
+    repeated UserDeptAssocInfo userDeptAssocList = 1;
 }
 
 // tbl : user_job
@@ -150,18 +150,18 @@ message UserJobInfo {
 }
 
 message AddUserJobRequest {
-    UserJobInfo user = 1;
+    UserJobInfo userJob = 1;
 }
 
 message AddUserJobResponse {
-    UserJobInfo user = 1;
+    UserJobInfo userJob = 1;
 }
 
 message GetUserJobListRequest {
     repeated int32 iDList = 1;
 }
 message GetUserJobListResponse {
-    repeated UserJobInfo userList = 1;
+    repeated UserJobInfo userJobList = 1;
 }
 
 message DelUserJobByIDListRequest {

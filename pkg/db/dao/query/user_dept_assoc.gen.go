@@ -76,6 +76,10 @@ func (u userDeptAssoc) TableName() string { return u.userDeptAssocDo.TableName()
 
 func (u userDeptAssoc) Alias() string { return u.userDeptAssocDo.Alias() }
 
+func (u userDeptAssoc) Columns(cols ...field.Expr) gen.Columns {
+	return u.userDeptAssocDo.Columns(cols...)
+}
+
 func (u *userDeptAssoc) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := u.fieldMap[fieldName]
 	if !ok || _f == nil {
@@ -146,10 +150,6 @@ func (u userDeptAssocDo) Select(conds ...field.Expr) *userDeptAssocDo {
 
 func (u userDeptAssocDo) Where(conds ...gen.Condition) *userDeptAssocDo {
 	return u.withDO(u.DO.Where(conds...))
-}
-
-func (u userDeptAssocDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *userDeptAssocDo {
-	return u.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (u userDeptAssocDo) Order(conds ...field.Expr) *userDeptAssocDo {

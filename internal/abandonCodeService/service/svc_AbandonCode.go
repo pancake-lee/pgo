@@ -6,9 +6,12 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
+// MARK REPLACE SvrDefine START
 type AbandonCodeCURDServer struct {
 	api.UnimplementedAbandonCodeCURDServer
 }
+
+// MARK REPLACE SvrDefine END
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
 	if do == nil {

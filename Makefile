@@ -1,7 +1,9 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
+# 取git commit的8位编号
 VERSION=$(shell git describe --tags --always)
 
+# 遍历所有proto文件
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
 	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
@@ -16,12 +18,16 @@ endif
 .PHONY: init
 # init env
 init:
+# wget https://github.com/protocolbuffers/protobuf/releases/download/v28.1/protoc-28.1-linux-x86_64.zip
+# unzip protoc-28.1-linux-x86_64.zip -d /usr/local
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
+	go install gorm.io/gen/tools/gentool@latest
+
 
 .PHONY: api
 # generate api proto
@@ -40,9 +46,14 @@ api:
 gorm:
 	gentool \
 	-db postgres \
-	-c ./configs/gentool.yaml \
+	-dsn "host=192.168.3.111 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
 	-outPath ./pkg/db/dao/query \
 	-modelPkgName "pkg/db/dao/model"
+
+# -dsn "host=192.168.101.8 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
+
+curd:
+	go run ./tools/genCURD/
 
 .PHONY: build
 # build
@@ -51,7 +62,7 @@ build:
 
 .PHONY: all
 # generate all
-all: gorm api build
+all: init gorm curd api build
 
 # show help
 help:
