@@ -8,9 +8,6 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserDeptAssocCURDServer struct {
-	api.UnimplementedUserDeptAssocCURDServer
-}
 
 func DO2DTO_UserDeptAssoc(do *data.UserDeptAssocDO) *api.UserDeptAssocInfo {
 	if do == nil {
@@ -33,7 +30,7 @@ func DTO2DO_UserDeptAssoc(dto *api.UserDeptAssocInfo) *data.UserDeptAssocDO {
 	}
 }
 
-func (s *UserDeptAssocCURDServer) AddUserDeptAssoc(
+func (s *UserCURDServer) AddUserDeptAssoc(
 	ctx context.Context, req *api.AddUserDeptAssocRequest,
 ) (resp *api.AddUserDeptAssocResponse, err error) {
 	if req.UserDeptAssoc == nil {
@@ -51,7 +48,7 @@ func (s *UserDeptAssocCURDServer) AddUserDeptAssoc(
 	return resp, nil
 }
 
-func (s *UserDeptAssocCURDServer) GetUserDeptAssocList(
+func (s *UserCURDServer) GetUserDeptAssocList(
 	ctx context.Context, req *api.GetUserDeptAssocListRequest,
 ) (resp *api.GetUserDeptAssocListResponse, err error) {
 

@@ -2,8 +2,7 @@
 # chmod +x docker-compose-linux-x86_64 
 # ln -s /home/gogogo/docker/docker-compose-linux-x86_64 /usr/local/bin/docker-compose
 
-version: "3"
-
+name: gogogo
 services:
   postgres:
     container_name: go-pg
@@ -17,7 +16,7 @@ services:
     networks:
       - go-net
     volumes:
-      - /home/gogogo/docker/data/postgresql/data:/var/lib/postgresql/data
+      - D:\nycko\docker\gogogo/postgresql/data:/var/lib/postgresql/data
 
 networks:
   go-net:

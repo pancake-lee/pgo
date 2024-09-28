@@ -333,32 +333,32 @@ components:
         api.AddUserDeptAssocRequest:
             type: object
             properties:
-                user:
+                userDeptAssoc:
                     $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.AddUserDeptAssocResponse:
             type: object
             properties:
-                user:
+                userDeptAssoc:
                     $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.AddUserDeptRequest:
             type: object
             properties:
-                user:
+                userDept:
                     $ref: '#/components/schemas/api.UserDeptInfo'
         api.AddUserDeptResponse:
             type: object
             properties:
-                user:
+                userDept:
                     $ref: '#/components/schemas/api.UserDeptInfo'
         api.AddUserJobRequest:
             type: object
             properties:
-                user:
+                userJob:
                     $ref: '#/components/schemas/api.UserJobInfo'
         api.AddUserJobResponse:
             type: object
             properties:
-                user:
+                userJob:
                     $ref: '#/components/schemas/api.UserJobInfo'
         api.AddUserRequest:
             type: object
@@ -391,21 +391,21 @@ components:
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
-                userList:
+                userDeptAssocList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.GetUserDeptListResponse:
             type: object
             properties:
-                userList:
+                userDeptList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptInfo'
         api.GetUserJobListResponse:
             type: object
             properties:
-                userList:
+                userJobList:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserJobInfo'

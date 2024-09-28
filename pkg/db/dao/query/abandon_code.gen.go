@@ -73,6 +73,8 @@ func (a abandonCode) TableName() string { return a.abandonCodeDo.TableName() }
 
 func (a abandonCode) Alias() string { return a.abandonCodeDo.Alias() }
 
+func (a abandonCode) Columns(cols ...field.Expr) gen.Columns { return a.abandonCodeDo.Columns(cols...) }
+
 func (a *abandonCode) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := a.fieldMap[fieldName]
 	if !ok || _f == nil {
@@ -142,10 +144,6 @@ func (a abandonCodeDo) Select(conds ...field.Expr) *abandonCodeDo {
 
 func (a abandonCodeDo) Where(conds ...gen.Condition) *abandonCodeDo {
 	return a.withDO(a.DO.Where(conds...))
-}
-
-func (a abandonCodeDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *abandonCodeDo {
-	return a.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (a abandonCodeDo) Order(conds ...field.Expr) *abandonCodeDo {

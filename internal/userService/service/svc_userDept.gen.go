@@ -8,9 +8,6 @@ import (
 	"gogogo/pkg/proto/api"
 )
 
-type UserDeptCURDServer struct {
-	api.UnimplementedUserDeptCURDServer
-}
 
 func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {
 	if do == nil {
@@ -33,7 +30,7 @@ func DTO2DO_UserDept(dto *api.UserDeptInfo) *data.UserDeptDO {
 	}
 }
 
-func (s *UserDeptCURDServer) AddUserDept(
+func (s *UserCURDServer) AddUserDept(
 	ctx context.Context, req *api.AddUserDeptRequest,
 ) (resp *api.AddUserDeptResponse, err error) {
 	if req.UserDept == nil {
@@ -51,7 +48,7 @@ func (s *UserDeptCURDServer) AddUserDept(
 	return resp, nil
 }
 
-func (s *UserDeptCURDServer) GetUserDeptList(
+func (s *UserCURDServer) GetUserDeptList(
 	ctx context.Context, req *api.GetUserDeptListRequest,
 ) (resp *api.GetUserDeptListResponse, err error) {
 
@@ -82,7 +79,7 @@ func (s *UserDeptCURDServer) GetUserDeptList(
 	return resp, nil
 }
 
-func (s *UserDeptCURDServer) DelUserDeptByIDList(
+func (s *UserCURDServer) DelUserDeptByIDList(
 	ctx context.Context, req *api.DelUserDeptByIDListRequest,
 ) (resp *api.Empty, err error) {
 	if len(req.IDList) == 0 {
