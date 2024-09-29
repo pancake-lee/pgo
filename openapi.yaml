@@ -230,6 +230,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.AddUserDeptAssocResponse'
+        delete:
+            tags:
+                - User
+            description: 从部门中移除用户
+            operationId: User_DelUserDeptAssoc
+            parameters:
+                - name: userID
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: deptID
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
     /user-job:
         get:
             tags:

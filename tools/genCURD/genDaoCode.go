@@ -19,6 +19,7 @@ func genDaoCode(
 	}
 
 	for _, tbl := range tblToSvrMap {
+		log.Printf("gen dao code for tbl[%v]", tbl.Model.TableName())
 
 		daoTplCode := string(daoTplBytes)
 

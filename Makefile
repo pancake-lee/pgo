@@ -2,6 +2,8 @@ GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 # 取git commit的8位编号
 VERSION=$(shell git describe --tags --always)
+dbIP=192.168.101.8
+# dbIP=192.168.3.111 
 
 # 遍历所有proto文件
 ifeq ($(GOHOSTOS), windows)
@@ -44,13 +46,26 @@ api:
 .PHONY: gorm
 # 通过 gorm-gen 生成数据库访问代码
 gorm:
+# export PGPASSWORD="gogogo"; \
+# psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo_build;"
+	for file in pkg/db/*.sql; do \
+		export PGPASSWORD="gogogo"; \
+        psql -h $(dbIP) -U gogogo -d gogogo_build -f $$file; \
+    done
+
 	gentool \
 	-db postgres \
-	-dsn "host=192.168.3.111 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
+	-dsn "host=$(dbIP) user=gogogo password=gogogo dbname=gogogo_build port=5432 sslmode=disable" \
 	-outPath ./pkg/db/dao/query \
 	-modelPkgName "pkg/db/dao/model"
 
-# -dsn "host=192.168.101.8 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable" \
+# 慎重，这是重置数据库的操作，交互输入密码
+initDB:
+# psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo;"
+	for file in pkg/db/*.sql; do \
+		export PGPASSWORD="gogogo"; \
+		psql -h $(dbIP) -U gogogo -d gogogo -f $$file; \
+	done
 
 curd:
 	go run ./tools/genCURD/
@@ -62,7 +77,7 @@ build:
 
 .PHONY: all
 # generate all
-all: init gorm curd api build
+all: gorm curd build
 
 # show help
 help:

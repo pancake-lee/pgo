@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gogogo/pkg/db/dao/model"
 	"gogogo/pkg/util"
 	"log"
@@ -13,6 +14,13 @@ type dbModel interface {
 	TableName() string
 }
 
+// 处理复合键、多个索引的情况，可能要重构了，只是字符串替换的话，不太好处理
+// type IndexField struct {
+// 	IdxColName  string // 索引列名，model字段名
+// 	IdxColType  string // 索引列类型，model字段类型
+// 	IdxParmName string // 索引列名，读写值的参数名
+// }
+
 type Table struct {
 	ServiceName string
 	Model       dbModel
@@ -22,6 +30,7 @@ type Table struct {
 	LowerCamelName string // 驼峰命名，首字母小写
 	UpperCamelName string // 驼峰命名，首字母大写
 
+	// IdxMap      map[string][]*IndexField // 用map是为了以后只要是唯一索引都可以生成代码
 	IdxColName  string // 索引列名，model字段名
 	IdxColType  string // 索引列类型，model字段类型
 	IdxParmName string // 索引列名，读写值的参数名
@@ -30,14 +39,12 @@ type Table struct {
 }
 
 func (t *Table) String() string {
-	return "ServiceName[" + t.ServiceName + "]" +
-		" Model[" + t.Model.TableName() + "]" +
-		" HyphenName[" + t.HyphenName + "]" +
-		" LowerCamelName[" + t.LowerCamelName + "]" +
-		" UpperCamelName[" + t.UpperCamelName + "]" +
-		" IdxColName[" + t.IdxColName + "]" +
-		" IdxColType[" + t.IdxColType + "]" +
-		" IdxParmName[" + t.IdxParmName + "]"
+	return fmt.Sprintf("tbl[%v] ServiceName[%v] "+
+		"HyphenName[%v] LowerCamelName[%v] UpperCamelName[%v] "+
+		"IdxColName[%v] IdxColType[%v] IdxParmName[%v]",
+		t.Model.TableName(), t.ServiceName,
+		t.HyphenName, t.LowerCamelName, t.UpperCamelName,
+		t.IdxColName, t.IdxColType, t.IdxParmName)
 }
 
 var tblToSvrMap = make(map[string]*Table)
@@ -58,6 +65,7 @@ func newTable(m dbModel, svcName string) *Table {
 }
 
 func main() {
+	log.SetFlags(log.Lshortfile | log.Ltime)
 
 	addTable(&model.User{}, "user")
 	addTable(&model.UserDept{}, "user")
@@ -66,20 +74,27 @@ func main() {
 
 	//读取数据库表结构
 	for _, tbl := range tblToSvrMap {
-		log.Printf("table: %v", tbl.Model.TableName())
 
+		isMultiKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			tbl.FieldList = append(tbl.FieldList, &field)
 
-			// log.Printf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
-			if tbl.IdxColName == "" &&
-				strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
+			log.Printf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
+			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
+				if tbl.IdxColName != "" {
+					isMultiKey = true
+				}
 				tbl.IdxColName = field.Name
 				tbl.IdxColType = field.Type.String()
 				tbl.IdxParmName = util.StrFirstToLower(util.StrIdToLower(tbl.IdxColName))
 			}
+		}
+		if isMultiKey {
+			tbl.IdxColName = ""
+			tbl.IdxColType = ""
+			tbl.IdxParmName = ""
 		}
 		log.Println("tbl info : ", tbl)
 	}
@@ -179,7 +194,6 @@ func codeReplace(
 	} else {
 		codeStr = removeMarkAll("MARK REPLACE IDX", codeStr)
 	}
-	log.Printf("tplTable.ServiceName[%v] tbl.ServiceName[%v]", tplTable.ServiceName, tbl.ServiceName)
 
 	codeStr = strings.ReplaceAll(codeStr,
 		util.StrToCamelCase(tplTable.ServiceName)+"CURDServer",
@@ -188,7 +202,6 @@ func codeReplace(
 	codeStr = strings.ReplaceAll(codeStr, tplTable.ServiceName+"Service", tbl.ServiceName+"Service")
 
 	codeStr = strings.ReplaceAll(codeStr, tplTable.Model.TableName(), tbl.Model.TableName())
-	// codeStr = strings.ReplaceAll(codeStr, tplTable.ServiceName, tbl.ServiceName)
 	codeStr = strings.ReplaceAll(codeStr, tplTable.HyphenName, tbl.HyphenName)
 	codeStr = strings.ReplaceAll(codeStr, tplTable.LowerCamelName, tbl.LowerCamelName)
 	codeStr = strings.ReplaceAll(codeStr, tplTable.UpperCamelName, tbl.UpperCamelName)

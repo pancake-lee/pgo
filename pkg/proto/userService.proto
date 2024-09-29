@@ -22,6 +22,13 @@ service User {
             body: "*"
         };
     }
+
+    // 从部门中移除用户
+    rpc DelUserDeptAssoc (DelUserDeptAssocRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-dept-assoc"
+        };
+    }
 }
 
 message LoginRequest {
@@ -35,4 +42,9 @@ message LoginResponse {
 message EditUserNameRequest {
     int32 ID = 1;
     string userName = 2;
+}
+
+message DelUserDeptAssocRequest {
+    int32 userID = 1;
+    int32 deptID = 2;
 }
