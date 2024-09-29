@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	User_Login_FullMethodName        = "/api.User/Login"
-	User_EditUserName_FullMethodName = "/api.User/EditUserName"
+	User_Login_FullMethodName            = "/api.User/Login"
+	User_EditUserName_FullMethodName     = "/api.User/EditUserName"
+	User_DelUserDeptAssoc_FullMethodName = "/api.User/DelUserDeptAssoc"
 )
 
 // UserClient is the client API for User service.
@@ -33,6 +34,8 @@ type UserClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	// 修改用户名
 	EditUserName(ctx context.Context, in *EditUserNameRequest, opts ...grpc.CallOption) (*Empty, error)
+	// 从部门中移除用户
+	DelUserDeptAssoc(ctx context.Context, in *DelUserDeptAssocRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type userClient struct {
@@ -63,6 +66,16 @@ func (c *userClient) EditUserName(ctx context.Context, in *EditUserNameRequest, 
 	return out, nil
 }
 
+func (c *userClient) DelUserDeptAssoc(ctx context.Context, in *DelUserDeptAssocRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_DelUserDeptAssoc_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type UserServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	// 修改用户名
 	EditUserName(context.Context, *EditUserNameRequest) (*Empty, error)
+	// 从部门中移除用户
+	DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedUserServer) Login(context.Context, *LoginRequest) (*LoginResp
 }
 func (UnimplementedUserServer) EditUserName(context.Context, *EditUserNameRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditUserName not implemented")
+}
+func (UnimplementedUserServer) DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelUserDeptAssoc not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -146,6 +164,24 @@ func _User_EditUserName_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_DelUserDeptAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelUserDeptAssocRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).DelUserDeptAssoc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_DelUserDeptAssoc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).DelUserDeptAssoc(ctx, req.(*DelUserDeptAssocRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EditUserName",
 			Handler:    _User_EditUserName_Handler,
+		},
+		{
+			MethodName: "DelUserDeptAssoc",
+			Handler:    _User_DelUserDeptAssoc_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

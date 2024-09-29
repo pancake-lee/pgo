@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"gogogo/pkg/db/dao/query"
 
 	"gorm.io/driver/postgres"
@@ -11,7 +12,11 @@ import (
 var gDB *gorm.DB
 
 func initPG() {
-	dsn := "host=192.168.3.18 user=gogogo password=gogogo dbname=gogogo port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	host := "192.168.101.8"
+	// host := "192.168.3.111"
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v",
+		host, "gogogo", "gogogo", "gogogo", 5432)
+	dsn += " sslmode=disable TimeZone=Asia/Shanghai"
 
 	_db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {

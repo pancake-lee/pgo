@@ -37,5 +37,6 @@ DROP TABLE IF EXISTS "user_dept_assoc";
 CREATE TABLE "user_dept_assoc" (
   "user_id" int NOT NULL,
   "dept_id" int NOT NULL,
-  "job_id" int NOT NULL
+  "job_id" int NOT NULL,
+  PRIMARY KEY (user_id, dept_id)
 );

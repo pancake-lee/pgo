@@ -40,6 +40,8 @@ func genProto(
 			return tblList[i].Model.TableName() < tblList[j].Model.TableName()
 		})
 		for _, tbl := range tblList {
+			log.Printf("gen pb code for tbl[%v]", tbl.Model.TableName())
+
 			pbApiCodeForOneTbl := codeReplace(pbTplApiForOneTbl, tplTable, tbl)
 			pbCodeApi += pbApiCodeForOneTbl
 

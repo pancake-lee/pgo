@@ -19,10 +19,13 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationUserDelUserDeptAssoc = "/api.User/DelUserDeptAssoc"
 const OperationUserEditUserName = "/api.User/EditUserName"
 const OperationUserLogin = "/api.User/Login"
 
 type UserHTTPServer interface {
+	// DelUserDeptAssoc 从部门中移除用户
+	DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error)
 	// EditUserName 修改用户名
 	EditUserName(context.Context, *EditUserNameRequest) (*Empty, error)
 	// Login 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
@@ -33,6 +36,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r := s.Route("/")
 	r.POST("/user/token", _User_Login0_HTTP_Handler(srv))
 	r.PATCH("/user", _User_EditUserName0_HTTP_Handler(srv))
+	r.DELETE("/user-dept-assoc", _User_DelUserDeptAssoc0_HTTP_Handler(srv))
 }
 
 func _User_Login0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -79,7 +83,27 @@ func _User_EditUserName0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context)
 	}
 }
 
+func _User_DelUserDeptAssoc0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DelUserDeptAssocRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserDelUserDeptAssoc)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DelUserDeptAssoc(ctx, req.(*DelUserDeptAssocRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
+	DelUserDeptAssoc(ctx context.Context, req *DelUserDeptAssocRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	EditUserName(ctx context.Context, req *EditUserNameRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 }
@@ -90,6 +114,19 @@ type UserHTTPClientImpl struct {
 
 func NewUserHTTPClient(client *http.Client) UserHTTPClient {
 	return &UserHTTPClientImpl{client}
+}
+
+func (c *UserHTTPClientImpl) DelUserDeptAssoc(ctx context.Context, in *DelUserDeptAssocRequest, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user-dept-assoc"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserDelUserDeptAssoc))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *UserHTTPClientImpl) EditUserName(ctx context.Context, in *EditUserNameRequest, opts ...http.CallOption) (*Empty, error) {

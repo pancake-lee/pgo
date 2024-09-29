@@ -8,8 +8,8 @@ const TableNameUserDeptAssoc = "user_dept_assoc"
 
 // UserDeptAssoc mapped from table <user_dept_assoc>
 type UserDeptAssoc struct {
-	UserID int32 `gorm:"column:user_id;not null" json:"user_id"`
-	DeptID int32 `gorm:"column:dept_id;not null" json:"dept_id"`
+	UserID int32 `gorm:"column:user_id;primaryKey" json:"user_id"`
+	DeptID int32 `gorm:"column:dept_id;primaryKey" json:"dept_id"`
 	JobID  int32 `gorm:"column:job_id;not null" json:"job_id"`
 }
 

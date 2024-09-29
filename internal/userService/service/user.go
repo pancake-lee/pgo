@@ -41,3 +41,17 @@ func (s *UserServer) EditUserName(
 	}
 	return nil, nil
 }
+
+func (s *UserServer) DelUserDeptAssoc(
+	ctx context.Context, req *api.DelUserDeptAssocRequest,
+) (resp *api.Empty, err error) {
+	if req.UserID == 0 || req.DeptID == 0 {
+		return nil, api.ErrorInvalidArgument("argument invalid")
+	}
+
+	err = data.UserDeptAssocDAO.DelByPrimaryKey(ctx, req.UserID, req.DeptID)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
