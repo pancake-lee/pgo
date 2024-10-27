@@ -4,6 +4,18 @@
 
 name: gogogo
 services:
+  
+  sponge:
+    image: zhufuyi/sponge:latest
+    container_name: sponge
+    restart: always
+    # web网页从浏览器访问服务器的地址
+    command: ["-a","http://localhost:24631"]
+    ports:
+      - "24631:24631"
+    networks:
+      - go-net
+      
   postgres:
     container_name: go-pg
     image: postgres:16
