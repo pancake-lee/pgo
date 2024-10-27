@@ -95,7 +95,7 @@ func Test_userDeptAssocDao_UpdateByID(t *testing.T) {
 	// zero id error
 	err = d.IDao.(UserDeptAssocDao).UpdateByID(d.Ctx, &model.UserDeptAssoc{})
 	assert.Error(t, err)
-	
+
 }
 
 func Test_userDeptAssocDao_GetByID(t *testing.T) {
@@ -146,9 +146,9 @@ func Test_userDeptAssocDao_GetByColumns(t *testing.T) {
 	d.SQLMock.ExpectQuery("SELECT .*").WillReturnRows(rows)
 
 	_, _, err := d.IDao.(UserDeptAssocDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
-		Sort: "ignore count", // ignore test count(*)
+		Sort:  "ignore count", // ignore test count(*)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -161,7 +161,7 @@ func Test_userDeptAssocDao_GetByColumns(t *testing.T) {
 
 	// err test
 	_, _, err = d.IDao.(UserDeptAssocDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
 		Columns: []query.Column{
 			{

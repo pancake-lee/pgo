@@ -95,7 +95,7 @@ func Test_userDao_UpdateByID(t *testing.T) {
 	// zero id error
 	err = d.IDao.(UserDao).UpdateByID(d.Ctx, &model.User{})
 	assert.Error(t, err)
-	
+
 }
 
 func Test_userDao_GetByID(t *testing.T) {
@@ -146,9 +146,9 @@ func Test_userDao_GetByColumns(t *testing.T) {
 	d.SQLMock.ExpectQuery("SELECT .*").WillReturnRows(rows)
 
 	_, _, err := d.IDao.(UserDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
-		Sort: "ignore count", // ignore test count(*)
+		Sort:  "ignore count", // ignore test count(*)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -161,7 +161,7 @@ func Test_userDao_GetByColumns(t *testing.T) {
 
 	// err test
 	_, _, err = d.IDao.(UserDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
 		Columns: []query.Column{
 			{

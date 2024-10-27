@@ -10,26 +10,24 @@ var _ time.Time
 
 // Tip: suggested filling in the binding rules https://github.com/go-playground/validator in request struct fields tag.
 
-
 // CreateUserRequest request params
 type CreateUserRequest struct {
-	UserName  string `json:"userName" binding:""` // The name of the user
+	UserName string `json:"userName" binding:""` // The name of the user
 }
 
 // UpdateUserByIDRequest request params
 type UpdateUserByIDRequest struct {
 	ID uint64 `json:"id" binding:""` // uint64 id
 
-	UserName  string `json:"userName" binding:""` // The name of the user
+	UserName string `json:"userName" binding:""` // The name of the user
 }
 
 // UserObjDetail detail
 type UserObjDetail struct {
 	ID uint64 `json:"id"` // convert to uint64 id
 
-	UserName  string `json:"userName"` // The name of the user
+	UserName string `json:"userName"` // The name of the user
 }
-
 
 // CreateUserReply only for api docs
 type CreateUserReply struct {

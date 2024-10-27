@@ -11,5 +11,3 @@ type UserDeptAssoc struct {
 func (m *UserDeptAssoc) TableName() string {
 	return "user_dept_assoc"
 }
-
-

@@ -40,7 +40,7 @@ type UserDeptDao interface {
 type userDeptDao struct {
 	db    *gorm.DB
 	cache cache.UserDeptCache // if nil, the cache is not used.
-	sfg   *singleflight.Group    // if cache is nil, the sfg is not used.
+	sfg   *singleflight.Group // if cache is nil, the sfg is not used.
 }
 
 // NewUserDeptDao creating the dao interface
@@ -96,14 +96,13 @@ func (d *userDeptDao) updateDataByID(ctx context.Context, db *gorm.DB, table *mo
 	}
 
 	update := map[string]interface{}{}
-	
-	if table.DeptPath!= "" {
+
+	if table.DeptPath != "" {
 		update["dept_path"] = table.DeptPath
 	}
-	if table.DeptName!= "" {
+	if table.DeptName != "" {
 		update["dept_name"] = table.DeptName
 	}
-	
 
 	return db.WithContext(ctx).Model(table).Updates(update).Error
 }
