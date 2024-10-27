@@ -86,5 +86,3 @@ func NewHTTPServer(addr string, opts ...HTTPOption) app.IServer {
 		instance:  o.instance,
 	}
 }
-
-

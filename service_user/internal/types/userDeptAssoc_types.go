@@ -10,11 +10,10 @@ var _ time.Time
 
 // Tip: suggested filling in the binding rules https://github.com/go-playground/validator in request struct fields tag.
 
-
 // CreateUserDeptAssocRequest request params
 type CreateUserDeptAssocRequest struct {
-	UserID  int `json:"userID" binding:""`
-	DeptID  int `json:"deptID" binding:""`
+	UserID int `json:"userID" binding:""`
+	DeptID int `json:"deptID" binding:""`
 	JobID  int `json:"jobID" binding:""`
 }
 
@@ -22,8 +21,8 @@ type CreateUserDeptAssocRequest struct {
 type UpdateUserDeptAssocByIDRequest struct {
 	ID uint64 `json:"id" binding:""` // uint64 id
 
-	UserID  int `json:"userID" binding:""`
-	DeptID  int `json:"deptID" binding:""`
+	UserID int `json:"userID" binding:""`
+	DeptID int `json:"deptID" binding:""`
 	JobID  int `json:"jobID" binding:""`
 }
 
@@ -31,11 +30,10 @@ type UpdateUserDeptAssocByIDRequest struct {
 type UserDeptAssocObjDetail struct {
 	ID uint64 `json:"id"` // convert to uint64 id
 
-	UserID  int `json:"userID"`
-	DeptID  int `json:"deptID"`
+	UserID int `json:"userID"`
+	DeptID int `json:"deptID"`
 	JobID  int `json:"jobID"`
 }
-
 
 // CreateUserDeptAssocReply only for api docs
 type CreateUserDeptAssocReply struct {
