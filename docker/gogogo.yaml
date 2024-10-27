@@ -18,6 +18,22 @@ services:
     volumes:
       - D:\nycko\docker\gogogo/postgresql/data:/var/lib/postgresql/data
 
+  # 以为sponse只支持mysql，其实都支持
+  # mysql:
+  #   container_name: go-mysql
+  #   image: mysql:8.0
+  #   restart: always
+  #   ports:
+  #     - 3306:3306
+  #   networks:
+  #     - go-net
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_MAX_CONNECTIONS: 10240
+  #     TZ: Asia/Shanghai
+  #   volumes:
+  #     - D:\nycko\docker\gogogo/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+  #     - D:\nycko\docker\gogogo/mysql/data:/var/lib/mysql
 networks:
   go-net:
 
