@@ -55,135 +55,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user/condition": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get user by condition",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user by condition",
-                "parameters": [
-                    {
-                        "description": "query condition",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Conditions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserByConditionReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user/delete/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete users by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "delete users",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUsersByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUsersByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/user/list": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of users by last id and limit",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "list of users by last id and limit",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "last id, default is MaxInt32",
-                        "name": "lastID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "number per page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "-id",
-                        "description": "sort by column name of table, and the ",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUsersReply"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -208,7 +80,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.Params"
+                            "$ref": "#/definitions/github_com_zhufuyi_sponge_internal_types.Params"
                         }
                     }
                 ],
@@ -217,45 +89,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/types.ListUsersReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user/list/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of users by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "list of users by batch id",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUsersByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUsersByIDsReply"
                         }
                     }
                 }
@@ -377,131 +210,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/userDept": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "submit information to create userDept",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "create userDept",
-                "parameters": [
-                    {
-                        "description": "userDept information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserDeptRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserDeptReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDept/condition": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userDept by condition",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "get userDept by condition",
-                "parameters": [
-                    {
-                        "description": "query condition",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Conditions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserDeptByConditionReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDept/delete/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userDepts by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "delete userDepts",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDept/list": {
+        "/codes": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDepts by last id and limit",
+                "description": "list error codes info",
                 "consumes": [
                     "application/json"
                 ],
@@ -509,127 +220,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "userDept"
+                    "system"
                 ],
-                "summary": "list of userDepts by last id and limit",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "last id, default is MaxInt32",
-                        "name": "lastID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "number per page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "-id",
-                        "description": "sort by column name of table, and the ",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptsReply"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDepts by paging and conditions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "list of userDepts by query parameters",
-                "parameters": [
-                    {
-                        "description": "query parameters",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Params"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptsReply"
-                        }
-                    }
-                }
+                "summary": "list error codes info",
+                "responses": {}
             }
         },
-        "/api/v1/userDept/list/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDepts by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "list of userDepts by batch id",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDept/{id}": {
+        "/config": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userDept detail by id",
+                "description": "show config info",
                 "consumes": [
                     "application/json"
                 ],
@@ -637,232 +236,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "userDept"
+                    "system"
                 ],
-                "summary": "get userDept detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserDeptByIDReply"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "update userDept information by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "update userDept",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "userDept information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserDeptByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserDeptByIDReply"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userDept by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDept"
-                ],
-                "summary": "delete userDept",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptByIDReply"
-                        }
-                    }
-                }
+                "summary": "show config info",
+                "responses": {}
             }
         },
-        "/api/v1/userDeptAssoc": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "submit information to create userDeptAssoc",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "create userDeptAssoc",
-                "parameters": [
-                    {
-                        "description": "userDeptAssoc information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserDeptAssocRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserDeptAssocReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDeptAssoc/condition": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userDeptAssoc by condition",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "get userDeptAssoc by condition",
-                "parameters": [
-                    {
-                        "description": "query condition",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Conditions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserDeptAssocByConditionReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDeptAssoc/delete/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userDeptAssocs by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "delete userDeptAssocs",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptAssocsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptAssocsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDeptAssoc/list": {
+        "/health": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDeptAssocs by last id and limit",
+                "description": "check health",
                 "consumes": [
                     "application/json"
                 ],
@@ -870,127 +252,22 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "userDeptAssoc"
+                    "system"
                 ],
-                "summary": "list of userDeptAssocs by last id and limit",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "last id, default is MaxInt32",
-                        "name": "lastID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "number per page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "-id",
-                        "description": "sort by column name of table, and the ",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
+                "summary": "check health",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptAssocsReply"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDeptAssocs by paging and conditions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "list of userDeptAssocs by query parameters",
-                "parameters": [
-                    {
-                        "description": "query parameters",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Params"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptAssocsReply"
+                            "$ref": "#/definitions/handlerfunc.CheckHealthReply"
                         }
                     }
                 }
             }
         },
-        "/api/v1/userDeptAssoc/list/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userDeptAssocs by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "list of userDeptAssocs by batch id",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptAssocsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserDeptAssocsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userDeptAssoc/{id}": {
+        "/ping": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userDeptAssoc detail by id",
+                "description": "ping",
                 "consumes": [
                     "application/json"
                 ],
@@ -998,471 +275,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "userDeptAssoc"
+                    "system"
                 ],
-                "summary": "get userDeptAssoc detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserDeptAssocByIDReply"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "update userDeptAssoc information by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "update userDeptAssoc",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "userDeptAssoc information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserDeptAssocByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserDeptAssocByIDReply"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userDeptAssoc by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userDeptAssoc"
-                ],
-                "summary": "delete userDeptAssoc",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserDeptAssocByIDReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "submit information to create userJob",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "create userJob",
-                "parameters": [
-                    {
-                        "description": "userJob information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserJobRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.CreateUserJobReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob/condition": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userJob by condition",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "get userJob by condition",
-                "parameters": [
-                    {
-                        "description": "query condition",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Conditions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserJobByConditionReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob/delete/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userJobs by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "delete userJobs",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserJobsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserJobsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob/list": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userJobs by last id and limit",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "list of userJobs by last id and limit",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "last id, default is MaxInt32",
-                        "name": "lastID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "number per page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "-id",
-                        "description": "sort by column name of table, and the ",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserJobsReply"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userJobs by paging and conditions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "list of userJobs by query parameters",
-                "parameters": [
-                    {
-                        "description": "query parameters",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.Params"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserJobsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob/list/ids": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list of userJobs by batch id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "list of userJobs by batch id",
-                "parameters": [
-                    {
-                        "description": "id array",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserJobsByIDsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ListUserJobsByIDsReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/userJob/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "get userJob detail by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "get userJob detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetUserJobByIDReply"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "update userJob information by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "update userJob",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "userJob information",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserJobByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.UpdateUserJobByIDReply"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "delete userJob by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userJob"
-                ],
-                "summary": "delete userJob",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteUserJobByIDReply"
-                        }
-                    }
-                }
+                "summary": "ping",
+                "responses": {}
             }
         }
     },
     "definitions": {
-        "types.Column": {
+        "github_com_zhufuyi_sponge_internal_types.Column": {
             "type": "object",
             "properties": {
                 "exp": {
@@ -1482,116 +303,37 @@ const docTemplate = `{
                 }
             }
         },
-        "types.Conditions": {
+        "github_com_zhufuyi_sponge_internal_types.Params": {
             "type": "object",
             "properties": {
                 "columns": {
-                    "description": "columns info",
+                    "description": "query conditions",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.Column"
-                    }
-                }
-            }
-        },
-        "types.CreateUserDeptAssocReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "description": "id",
-                            "type": "integer"
-                        }
+                        "$ref": "#/definitions/github_com_zhufuyi_sponge_internal_types.Column"
                     }
                 },
-                "msg": {
-                    "description": "return information description",
+                "limit": {
+                    "description": "lines per page",
+                    "type": "integer"
+                },
+                "page": {
+                    "description": "page number, starting from page 0",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "sorted fields, multi-column sorting separated by commas",
                     "type": "string"
                 }
             }
         },
-        "types.CreateUserDeptAssocRequest": {
+        "handlerfunc.CheckHealthReply": {
             "type": "object",
             "properties": {
-                "deptID": {
-                    "type": "integer"
-                },
-                "jobID": {
-                    "type": "integer"
-                },
-                "userID": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.CreateUserDeptReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "description": "id",
-                            "type": "integer"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.CreateUserDeptRequest": {
-            "type": "object",
-            "properties": {
-                "deptName": {
+                "hostname": {
                     "type": "string"
                 },
-                "deptPath": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.CreateUserJobReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "description": "id",
-                            "type": "integer"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.CreateUserJobRequest": {
-            "type": "object",
-            "properties": {
-                "jobName": {
+                "status": {
                     "type": "string"
                 }
             }
@@ -1622,8 +364,36 @@ const docTemplate = `{
         "types.CreateUserRequest": {
             "type": "object",
             "properties": {
-                "userName": {
-                    "description": "The name of the user",
+                "age": {
+                    "description": "age",
+                    "type": "integer"
+                },
+                "avatar": {
+                    "description": "avatar",
+                    "type": "string",
+                    "minLength": 5
+                },
+                "email": {
+                    "description": "email",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "gender, 1:Male, 2:Female, other values:unknown",
+                    "type": "integer",
+                    "maximum": 2,
+                    "minimum": 0
+                },
+                "name": {
+                    "description": "username",
+                    "type": "string",
+                    "minLength": 2
+                },
+                "password": {
+                    "description": "password",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "phone number, e164 rules, e.g. +8612345678901",
                     "type": "string"
                 }
             }
@@ -1637,192 +407,6 @@ const docTemplate = `{
                 },
                 "data": {
                     "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserDeptAssocByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserDeptAssocsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserDeptAssocsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.DeleteUserDeptByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserDeptsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserDeptsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.DeleteUserJobByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserJobsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUserJobsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.DeleteUsersByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.DeleteUsersByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.GetUserByConditionReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "user": {
-                            "$ref": "#/definitions/types.UserObjDetail"
-                        }
-                    }
                 },
                 "msg": {
                     "description": "return information description",
@@ -1852,365 +436,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GetUserDeptAssocByConditionReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDeptAssoc": {
-                            "$ref": "#/definitions/types.UserDeptAssocObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.GetUserDeptAssocByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDeptAssoc": {
-                            "$ref": "#/definitions/types.UserDeptAssocObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.GetUserDeptByConditionReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDept": {
-                            "$ref": "#/definitions/types.UserDeptObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.GetUserDeptByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDept": {
-                            "$ref": "#/definitions/types.UserDeptObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.GetUserJobByConditionReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userJob": {
-                            "$ref": "#/definitions/types.UserJobObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.GetUserJobByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userJob": {
-                            "$ref": "#/definitions/types.UserJobObjDetail"
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserDeptAssocsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDeptAssocs": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserDeptAssocObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserDeptAssocsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.ListUserDeptAssocsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDeptAssocs": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserDeptAssocObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserDeptsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDepts": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserDeptObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserDeptsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.ListUserDeptsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userDepts": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserDeptObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserJobsByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userJobs": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserJobObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUserJobsByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "types.ListUserJobsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "userJobs": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserJobObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUsersByIDsReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data",
-                    "type": "object",
-                    "properties": {
-                        "users": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.UserObjDetail"
-                            }
-                        }
-                    }
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ListUsersByIDsRequest": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "description": "id list",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "types.ListUsersReply": {
             "type": "object",
             "properties": {
@@ -2236,30 +461,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.Params": {
-            "type": "object",
-            "properties": {
-                "columns": {
-                    "description": "query conditions",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Column"
-                    }
-                },
-                "limit": {
-                    "description": "lines per page",
-                    "type": "integer"
-                },
-                "page": {
-                    "description": "page number, starting from page 0",
-                    "type": "integer"
-                },
-                "sort": {
-                    "description": "sorted fields, multi-column sorting separated by commas",
-                    "type": "string"
-                }
-            }
-        },
         "types.UpdateUserByIDReply": {
             "type": "object",
             "properties": {
@@ -2279,150 +480,36 @@ const docTemplate = `{
         "types.UpdateUserByIDRequest": {
             "type": "object",
             "properties": {
-                "id": {
-                    "description": "uint64 id",
+                "age": {
+                    "description": "age",
                     "type": "integer"
                 },
-                "userName": {
-                    "description": "The name of the user",
+                "avatar": {
+                    "description": "avatar",
                     "type": "string"
-                }
-            }
-        },
-        "types.UpdateUserDeptAssocByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
                 },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
+                "email": {
+                    "description": "email",
                     "type": "string"
-                }
-            }
-        },
-        "types.UpdateUserDeptAssocByIDRequest": {
-            "type": "object",
-            "properties": {
-                "deptID": {
+                },
+                "gender": {
+                    "description": "gender, 1:Male, 2:Female, other values:unknown",
                     "type": "integer"
                 },
                 "id": {
-                    "description": "uint64 id",
+                    "description": "id",
                     "type": "integer"
                 },
-                "jobID": {
-                    "type": "integer"
-                },
-                "userID": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.UpdateUserDeptByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.UpdateUserDeptByIDRequest": {
-            "type": "object",
-            "properties": {
-                "deptName": {
+                "name": {
+                    "description": "username",
                     "type": "string"
                 },
-                "deptPath": {
+                "password": {
+                    "description": "password",
                     "type": "string"
                 },
-                "id": {
-                    "description": "uint64 id",
-                    "type": "integer"
-                }
-            }
-        },
-        "types.UpdateUserJobByIDReply": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "return code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "return data"
-                },
-                "msg": {
-                    "description": "return information description",
-                    "type": "string"
-                }
-            }
-        },
-        "types.UpdateUserJobByIDRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "uint64 id",
-                    "type": "integer"
-                },
-                "jobName": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.UserDeptAssocObjDetail": {
-            "type": "object",
-            "properties": {
-                "deptID": {
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "convert to uint64 id",
-                    "type": "integer"
-                },
-                "jobID": {
-                    "type": "integer"
-                },
-                "userID": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.UserDeptObjDetail": {
-            "type": "object",
-            "properties": {
-                "deptName": {
-                    "type": "string"
-                },
-                "deptPath": {
-                    "type": "string"
-                },
-                "id": {
-                    "description": "convert to uint64 id",
-                    "type": "integer"
-                }
-            }
-        },
-        "types.UserJobObjDetail": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "convert to uint64 id",
-                    "type": "integer"
-                },
-                "jobName": {
+                "phone": {
+                    "description": "phone number",
                     "type": "string"
                 }
             }
@@ -2430,12 +517,48 @@ const docTemplate = `{
         "types.UserObjDetail": {
             "type": "object",
             "properties": {
-                "id": {
-                    "description": "convert to uint64 id",
+                "age": {
+                    "description": "age",
                     "type": "integer"
                 },
-                "userName": {
-                    "description": "The name of the user",
+                "avatar": {
+                    "description": "avatar",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "create time",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "email",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "gender, 1:Male, 2:Female, other values:unknown",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "loginAt": {
+                    "description": "login timestamp",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "username",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "phone number",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "account status, 1:inactive, 2:activated, 3:blocked",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "update time",
                     "type": "string"
                 }
             }
@@ -2454,7 +577,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "2.0",
-	Host:             "localhost:7060",
+	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{"http", "https"},
 	Title:            "service_user api docs",

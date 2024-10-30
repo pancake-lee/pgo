@@ -149,6 +149,7 @@ func InitPostgresql() {
 	}
 }
 
+
 // GetDB get db
 func GetDB() *gorm.DB {
 	if db == nil {

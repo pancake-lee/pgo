@@ -39,8 +39,8 @@ type UserDao interface {
 
 type userDao struct {
 	db    *gorm.DB
-	cache cache.UserCache     // if nil, the cache is not used.
-	sfg   *singleflight.Group // if cache is nil, the sfg is not used.
+	cache cache.UserCache // if nil, the cache is not used.
+	sfg   *singleflight.Group    // if cache is nil, the sfg is not used.
 }
 
 // NewUserDao creating the dao interface
@@ -96,10 +96,11 @@ func (d *userDao) updateDataByID(ctx context.Context, db *gorm.DB, table *model.
 	}
 
 	update := map[string]interface{}{}
-
-	if table.UserName != "" {
+	
+	if table.UserName!= "" {
 		update["user_name"] = table.UserName
 	}
+	
 
 	return db.WithContext(ctx).Model(table).Updates(update).Error
 }

@@ -237,7 +237,7 @@ func (h *userJobHandler) List(c *gin.Context) {
 
 	response.Success(c, gin.H{
 		"userJobs": data,
-		"total":    total,
+		"total":        total,
 	})
 }
 

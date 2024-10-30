@@ -7,7 +7,7 @@ import (
 // userDept business-level http error codes.
 // the userDeptNO value range is 1~100, if the same error code is used, it will cause panic.
 var (
-	userDeptNO       = 1
+	userDeptNO       = 78
 	userDeptName     = "userDept"
 	userDeptBaseCode = errcode.HCode(userDeptNO)
 

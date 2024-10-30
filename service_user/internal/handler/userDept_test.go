@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/zhufuyi/sponge/pkg/ggorm/query"
-	"github.com/zhufuyi/sponge/pkg/gotest"
 	"github.com/zhufuyi/sponge/pkg/httpcli"
+	"github.com/zhufuyi/sponge/pkg/gotest"
 	"github.com/zhufuyi/sponge/pkg/utils"
 
 	"gogogo/service_user/internal/cache"
@@ -126,7 +126,7 @@ func Test_userDeptHandler_Create(t *testing.T) {
 	}
 
 	t.Logf("%+v", result)
-
+	
 }
 
 func Test_userDeptHandler_DeleteByID(t *testing.T) {
@@ -134,6 +134,7 @@ func Test_userDeptHandler_DeleteByID(t *testing.T) {
 	defer h.Close()
 	testData := h.TestData.(*model.UserDept)
 	expectedSQLForDeletion := "DELETE .*"
+	
 
 	h.MockDao.SQLMock.ExpectBegin()
 	h.MockDao.SQLMock.ExpectExec(expectedSQLForDeletion).
@@ -233,9 +234,9 @@ func Test_userDeptHandler_List(t *testing.T) {
 
 	result := &httpcli.StdResult{}
 	err := httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserDeptsRequest{query.Params{
-		Page:  0,
+		Page: 0,
 		Limit: 10,
-		Sort:  "ignore count", // ignore test count
+		Sort: "ignore count", // ignore test count
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -250,9 +251,9 @@ func Test_userDeptHandler_List(t *testing.T) {
 
 	// get error test
 	err = httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserDeptsRequest{query.Params{
-		Page:  0,
+		Page: 0,
 		Limit: 10,
-		Sort:  "unknown-column",
+		Sort: "unknown-column",
 	}})
 	assert.Error(t, err)
 }
