@@ -34,10 +34,8 @@ ALTER SEQUENCE user_dept_id_seq RESTART WITH 10;
 
 DROP TABLE IF EXISTS "user_dept_assoc";
 CREATE TABLE "user_dept_assoc" (
-  "id" serial NOT NULL,
   "user_id" int NOT NULL,
   "dept_id" int NOT NULL,
   "job_id" int NOT NULL,
   PRIMARY KEY (user_id, dept_id)
 );
-ALTER SEQUENCE user_dept_assoc_id_seq RESTART WITH 10;

@@ -10,24 +10,26 @@ var _ time.Time
 
 // Tip: suggested filling in the binding rules https://github.com/go-playground/validator in request struct fields tag.
 
+
 // CreateUserJobRequest request params
 type CreateUserJobRequest struct {
-	JobName string `json:"jobName" binding:""`
+	JobName  string `json:"jobName" binding:""`
 }
 
 // UpdateUserJobByIDRequest request params
 type UpdateUserJobByIDRequest struct {
 	ID uint64 `json:"id" binding:""` // uint64 id
 
-	JobName string `json:"jobName" binding:""`
+	JobName  string `json:"jobName" binding:""`
 }
 
 // UserJobObjDetail detail
 type UserJobObjDetail struct {
 	ID uint64 `json:"id"` // convert to uint64 id
 
-	JobName string `json:"jobName"`
+	JobName  string `json:"jobName"`
 }
+
 
 // CreateUserJobReply only for api docs
 type CreateUserJobReply struct {

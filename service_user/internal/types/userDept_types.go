@@ -10,27 +10,29 @@ var _ time.Time
 
 // Tip: suggested filling in the binding rules https://github.com/go-playground/validator in request struct fields tag.
 
+
 // CreateUserDeptRequest request params
 type CreateUserDeptRequest struct {
-	DeptPath string `json:"deptPath" binding:""`
-	DeptName string `json:"deptName" binding:""`
+	DeptPath  string `json:"deptPath" binding:""`
+	DeptName  string `json:"deptName" binding:""`
 }
 
 // UpdateUserDeptByIDRequest request params
 type UpdateUserDeptByIDRequest struct {
 	ID uint64 `json:"id" binding:""` // uint64 id
 
-	DeptPath string `json:"deptPath" binding:""`
-	DeptName string `json:"deptName" binding:""`
+	DeptPath  string `json:"deptPath" binding:""`
+	DeptName  string `json:"deptName" binding:""`
 }
 
 // UserDeptObjDetail detail
 type UserDeptObjDetail struct {
 	ID uint64 `json:"id"` // convert to uint64 id
 
-	DeptPath string `json:"deptPath"`
-	DeptName string `json:"deptName"`
+	DeptPath  string `json:"deptPath"`
+	DeptName  string `json:"deptName"`
 }
+
 
 // CreateUserDeptReply only for api docs
 type CreateUserDeptReply struct {

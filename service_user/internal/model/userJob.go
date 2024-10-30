@@ -9,3 +9,5 @@ type UserJob struct {
 func (m *UserJob) TableName() string {
 	return "user_job"
 }
+
+
