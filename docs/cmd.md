@@ -17,7 +17,7 @@
 
 - make api 
     - 这个命令运行没问题，因为加了 --proto_path=./third_party
-    - vscode 提示错误，需要在配置中添加
+    - vscode 提示错误，需要在配置.vscode/settings.json中添加
     ```json
     "protoc": {
         "options": [

@@ -12,5 +12,10 @@
             "program": "${fileDirname}",
             "args": ["-port=8080"]
         }
-    ]
+    ],
+    "protoc": {
+        "options": [
+            "--proto_path=./third_party",
+        ]
+    }
 }
