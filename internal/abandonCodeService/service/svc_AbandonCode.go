@@ -60,7 +60,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 	var dataList []*data.AbandonCodeDO
 
-	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REMOVE IF NO PRIMARY KEY START 1
 	if len(req.Idx1List) != 0 {
 		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
@@ -70,16 +70,16 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 			dataList = append(dataList, d)
 		}
 	} else {
-		// MARK REPLACE IDX END
+		// MARK REMOVE IF NO PRIMARY KEY END 1
 
 		dataList, err = data.AbandonCodeDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+		// MARK REMOVE IF NO PRIMARY KEY START 2
 	}
-	// MARK REPLACE IDX END
+	// MARK REMOVE IF NO PRIMARY KEY END 2
 
 	resp = new(api.GetAbandonCodeListResponse)
 	resp.AbandonCodeList = make([]*api.AbandonCodeInfo, 0, len(dataList))
@@ -89,7 +89,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 	return resp, nil
 }
 
-// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+// MARK REMOVE IF NO PRIMARY KEY START 3
 func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
 ) (resp *api.Empty, err error) {
@@ -103,4 +103,4 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	return nil, nil
 }
 
-// MARK REPLACE IDX END
+// MARK REMOVE IF NO PRIMARY KEY END 3

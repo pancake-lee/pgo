@@ -7,7 +7,8 @@ import "common.proto";
 option go_package = "gogogo/api;api";
 
 // --------------------------------------------------
-service userCURD {
+service userCURD { // 该命名应该全文唯一
+    // --------------------------------------------------
     // tbl : user
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
         option (google.api.http) = {
@@ -25,6 +26,7 @@ service userCURD {
             delete: "/user"
         };
     }
+    // --------------------------------------------------
     // tbl : user_dept
     rpc AddUserDept (AddUserDeptRequest) returns (AddUserDeptResponse) {
         option (google.api.http) = {
@@ -42,6 +44,7 @@ service userCURD {
             delete: "/user-dept"
         };
     }
+    // --------------------------------------------------
     // tbl : user_dept_assoc
     rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
         option (google.api.http) = {
@@ -54,6 +57,7 @@ service userCURD {
             get: "/user-dept-assoc"
         };
     }
+    // --------------------------------------------------
     // tbl : user_job
     rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
         option (google.api.http) = {
@@ -73,6 +77,8 @@ service userCURD {
     }
 }
 
+
+// --------------------------------------------------
 // tbl : user
 message UserInfo {
     int32 iD = 1;
@@ -97,6 +103,9 @@ message GetUserListResponse {
 message DelUserByIDListRequest {
     repeated int32 iDList = 1;
 }
+
+
+// --------------------------------------------------
 // tbl : user_dept
 message UserDeptInfo {
     int32 iD = 1;
@@ -122,6 +131,9 @@ message GetUserDeptListResponse {
 message DelUserDeptByIDListRequest {
     repeated int32 iDList = 1;
 }
+
+
+// --------------------------------------------------
 // tbl : user_dept_assoc
 message UserDeptAssocInfo {
     int32 userID = 1;
@@ -143,6 +155,9 @@ message GetUserDeptAssocListResponse {
     repeated UserDeptAssocInfo userDeptAssocList = 1;
 }
 
+
+
+// --------------------------------------------------
 // tbl : user_job
 message UserJobInfo {
     int32 iD = 1;
@@ -167,3 +182,4 @@ message GetUserJobListResponse {
 message DelUserJobByIDListRequest {
     repeated int32 iDList = 1;
 }
+

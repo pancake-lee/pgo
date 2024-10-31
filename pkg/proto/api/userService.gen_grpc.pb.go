@@ -40,17 +40,21 @@ const (
 //
 // --------------------------------------------------
 type UserCURDClient interface {
+	// --------------------------------------------------
 	// tbl : user
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
 	DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error)
 	GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error)
 	DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	// --------------------------------------------------
 	// tbl : user_dept_assoc
 	AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...grpc.CallOption) (*GetUserDeptAssocListResponse, error)
+	// --------------------------------------------------
 	// tbl : user_job
 	AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error)
 	GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error)
@@ -181,17 +185,21 @@ func (c *userCURDClient) DelUserJobByIDList(ctx context.Context, in *DelUserJobB
 //
 // --------------------------------------------------
 type UserCURDServer interface {
+	// --------------------------------------------------
 	// tbl : user
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
 	DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error)
+	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
 	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
+	// --------------------------------------------------
 	// tbl : user_dept_assoc
 	AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
+	// --------------------------------------------------
 	// tbl : user_job
 	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)

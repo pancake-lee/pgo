@@ -35,7 +35,7 @@ func (*abandonCodeDAO) GetAll(ctx context.Context,
 	return abandonCodeList, nil
 }
 
-// MARK REPLACE IDX START
+// MARK REMOVE IF NO PRIMARY KEY START
 
 func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {
@@ -96,4 +96,4 @@ func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
 	return abandonCodeMap, nil
 }
 
-// MARK REPLACE IDX END
+// MARK REMOVE IF NO PRIMARY KEY END
