@@ -30,11 +30,12 @@ const (
 //
 // --------------------------------------------------
 type AbandonCodeCURDClient interface {
-	// MARK REPEAT API START
+	// MARK REPEAT API START 一个表的接口定义
+	// --------------------------------------------------
 	// tbl : abandon_code
 	AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error)
-	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REMOVE IF NO PRIMARY KEY START
 	DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -82,11 +83,12 @@ func (c *abandonCodeCURDClient) DelAbandonCodeByIdx1List(ctx context.Context, in
 //
 // --------------------------------------------------
 type AbandonCodeCURDServer interface {
-	// MARK REPEAT API START
+	// MARK REPEAT API START 一个表的接口定义
+	// --------------------------------------------------
 	// tbl : abandon_code
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
-	// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+	// MARK REMOVE IF NO PRIMARY KEY START
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	mustEmbedUnimplementedAbandonCodeCURDServer()
 }

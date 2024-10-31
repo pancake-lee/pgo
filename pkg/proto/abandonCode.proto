@@ -5,8 +5,9 @@ import "common.proto";
 option go_package = "gogogo/api;api";
 
 // --------------------------------------------------
-service abandonCodeCURD {
-    // MARK REPEAT API START
+service abandonCodeCURD { // 该命名应该全文唯一
+// MARK REPEAT API START 一个表的接口定义
+    // --------------------------------------------------
     // tbl : abandon_code
     rpc AddAbandonCode (AddAbandonCodeRequest) returns (AddAbandonCodeResponse) {
         option (google.api.http) = {
@@ -19,17 +20,19 @@ service abandonCodeCURD {
             get: "/abandon-code"
         };
     }
-    // MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+    // MARK REMOVE IF NO PRIMARY KEY START
     rpc DelAbandonCodeByIdx1List (DelAbandonCodeByIdx1ListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/abandon-code"
         };
     }
-    // MARK REPLACE IDX END
-    // MARK REPEAT API END
+    // MARK REMOVE IF NO PRIMARY KEY END
+// MARK REPEAT API END
 }
 
-// MARK REPEAT MSG START
+// MARK REPEAT MSG START 一个表的数据定义
+
+// --------------------------------------------------
 // tbl : abandon_code
 message AbandonCodeInfo {
     // MARK REPLACE PB COL START 替换内容，所有字段
@@ -47,19 +50,20 @@ message AddAbandonCodeResponse {
 }
 
 message GetAbandonCodeListRequest {
-    // MARK REPLACE PB IDX START 替换内容，索引字段
+    // MARK REPLACE REQUEST IDX START 替换内容，索引字段
     repeated int32 idx1List = 1;
-    // MARK REPLACE PB IDX END
+    // MARK REPLACE REQUEST IDX END
 }
 message GetAbandonCodeListResponse {
     repeated AbandonCodeInfo abandonCodeList = 1;
 }
 
-// MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+// MARK REMOVE IF NO PRIMARY KEY START
 message DelAbandonCodeByIdx1ListRequest {
-    // MARK REPLACE PB IDX START 替换内容，索引字段
+    // MARK REPLACE REQUEST IDX START 替换内容，索引字段
     repeated int32 idx1List = 1;
-    // MARK REPLACE PB IDX END
+    // MARK REPLACE REQUEST IDX END
 }
-// MARK REPLACE IDX END
+// MARK REMOVE IF NO PRIMARY KEY END
+
 // MARK REPEAT MSG END

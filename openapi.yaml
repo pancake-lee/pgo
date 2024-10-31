@@ -14,7 +14,7 @@ paths:
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK REPLACE PB IDX START 替换内容，索引字段
+                  description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
                   schema:
                     type: array
                     items:
@@ -31,7 +31,8 @@ paths:
             tags:
                 - AbandonCodeCURD
             description: |-
-                MARK REPEAT API START
+                MARK REPEAT API START 一个表的接口定义
+                 --------------------------------------------------
                  tbl : abandon_code
             operationId: AbandonCodeCURD_AddAbandonCode
             requestBody:
@@ -50,12 +51,12 @@ paths:
         delete:
             tags:
                 - AbandonCodeCURD
-            description: MARK REPLACE IDX START 替换内容，没有索引的表，以替换的形式删除
+            description: MARK REMOVE IF NO PRIMARY KEY START
             operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK REPLACE PB IDX START 替换内容，索引字段
+                  description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
                   schema:
                     type: array
                     items:
@@ -91,7 +92,9 @@ paths:
         post:
             tags:
                 - UserCURD
-            description: 'tbl : user'
+            description: |-
+                --------------------------------------------------
+                 tbl : user
             operationId: UserCURD_AddUser
             requestBody:
                 content:
@@ -166,7 +169,9 @@ paths:
         post:
             tags:
                 - UserCURD
-            description: 'tbl : user_dept'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_dept
             operationId: UserCURD_AddUserDept
             requestBody:
                 content:
@@ -215,7 +220,9 @@ paths:
         post:
             tags:
                 - UserCURD
-            description: 'tbl : user_dept_assoc'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_dept_assoc
             operationId: UserCURD_AddUserDeptAssoc
             requestBody:
                 content:
@@ -276,7 +283,9 @@ paths:
         post:
             tags:
                 - UserCURD
-            description: 'tbl : user_job'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_job
             operationId: UserCURD_AddUserJob
             requestBody:
                 content:
@@ -341,7 +350,7 @@ components:
                 col1:
                     type: string
             description: |-
-                MARK REPEAT MSG START
+                --------------------------------------------------
                  tbl : abandon_code
         api.AddAbandonCodeRequest:
             type: object
@@ -461,7 +470,9 @@ components:
                 jobID:
                     type: integer
                     format: int32
-            description: 'tbl : user_dept_assoc'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_dept_assoc
         api.UserDeptInfo:
             type: object
             properties:
@@ -472,7 +483,9 @@ components:
                     type: string
                 deptName:
                     type: string
-            description: 'tbl : user_dept'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_dept
         api.UserInfo:
             type: object
             properties:
@@ -481,7 +494,9 @@ components:
                     format: int32
                 userName:
                     type: string
-            description: 'tbl : user'
+            description: |-
+                --------------------------------------------------
+                 tbl : user
         api.UserJobInfo:
             type: object
             properties:
@@ -490,7 +505,9 @@ components:
                     format: int32
                 jobName:
                     type: string
-            description: 'tbl : user_job'
+            description: |-
+                --------------------------------------------------
+                 tbl : user_job
 tags:
     - name: AbandonCodeCURD
       description: '--------------------------------------------------'

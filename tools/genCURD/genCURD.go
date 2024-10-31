@@ -26,6 +26,7 @@ type Table struct {
 	Model       dbModel
 
 	//生成代码需要的值
+
 	HyphenName     string // 中横线[-]命名
 	LowerCamelName string // 驼峰命名，首字母小写
 	UpperCamelName string // 驼峰命名，首字母大写
@@ -91,7 +92,7 @@ func main() {
 				tbl.IdxParmName = util.StrFirstToLower(util.StrIdToLower(tbl.IdxColName))
 			}
 		}
-		if isMultiKey {
+		if isMultiKey { //TODO
 			tbl.IdxColName = ""
 			tbl.IdxColType = ""
 			tbl.IdxParmName = ""
@@ -117,98 +118,6 @@ func main() {
 	genServiceCode(tblToSvrMap, tplTable)
 }
 
-func getLastLineEndOfMark(fileStr, mark string) int {
-	i := strings.Index(fileStr, mark)
-	if i == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
-		return -1
-	}
-	return strings.LastIndex(fileStr[:i], "\n") + 1
-}
-
-func getNextLineStartOfMark(fileStr, mark string) int {
-	i := strings.Index(fileStr, mark)
-	if i == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
-		return -1
-	}
-	return i + strings.Index(fileStr[i:], "\n") + 1
-}
-
-// 获取标记的内容
-func getMarkContent(fileStr string, mark string) string {
-	nextOfStart := getNextLineStartOfMark(fileStr, mark+" START")
-	lastOfEnd := getLastLineEndOfMark(fileStr, mark+" END")
-	if nextOfStart == -1 || lastOfEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
-		return ""
-	}
-	return fileStr[nextOfStart:lastOfEnd]
-}
-
-// 替换标记的内容
-func replaceMarkAll(mark, fileStr, replaceStr string) string {
-	for strings.Contains(fileStr, mark) {
-		fileStr = replaceMarkOnce(mark, fileStr, replaceStr)
-	}
-	return fileStr
-}
-
-func replaceMarkOnce(mark, fileStr, replaceStr string) string {
-	iStart := getLastLineEndOfMark(fileStr, mark+" START")
-	iEnd := getNextLineStartOfMark(fileStr, mark+" END")
-	if iStart == -1 || iEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
-		return fileStr
-	}
-	return fileStr[:iStart] + replaceStr + fileStr[iEnd:]
-}
-
-// 标记无需操作，删掉标记注释本身
-func removeMarkAll(mark, fileStr string) string {
-	for strings.Contains(fileStr, mark) {
-		fileStr = removeMarkOnce(mark, fileStr)
-	}
-	return fileStr
-}
-func removeMarkOnce(mark, fileStr string) string {
-	lastOfStart := getLastLineEndOfMark(fileStr, mark+" START")
-	nextOfStart := getNextLineStartOfMark(fileStr, mark+" START")
-	lastOfEnd := getLastLineEndOfMark(fileStr, mark+" END")
-	nextOfEnd := getNextLineStartOfMark(fileStr, mark+" END")
-	if lastOfStart == -1 || nextOfStart == -1 || lastOfEnd == -1 || nextOfEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
-		return fileStr
-	}
-	return fileStr[:lastOfStart] + fileStr[nextOfStart:lastOfEnd] + fileStr[nextOfEnd:]
-}
-
-func codeReplace(
-	tplCode string, tplTable *Table, tbl *Table,
-) string {
-
-	codeStr := tplCode
-
-	if tbl.IdxColName == "" {
-		codeStr = replaceMarkAll("MARK REPLACE IDX", codeStr, "")
-	} else {
-		codeStr = removeMarkAll("MARK REPLACE IDX", codeStr)
-	}
-
-	codeStr = strings.ReplaceAll(codeStr,
-		util.StrToCamelCase(tplTable.ServiceName)+"CURDServer",
-		util.StrToCamelCase(tbl.ServiceName)+"CURDServer")
-
-	codeStr = strings.ReplaceAll(codeStr, tplTable.ServiceName+"Service", tbl.ServiceName+"Service")
-
-	codeStr = strings.ReplaceAll(codeStr, tplTable.Model.TableName(), tbl.Model.TableName())
-	codeStr = strings.ReplaceAll(codeStr, tplTable.HyphenName, tbl.HyphenName)
-	codeStr = strings.ReplaceAll(codeStr, tplTable.LowerCamelName, tbl.LowerCamelName)
-	codeStr = strings.ReplaceAll(codeStr, tplTable.UpperCamelName, tbl.UpperCamelName)
-
-	codeStr = strings.ReplaceAll(codeStr, tplTable.IdxColName, util.StrIdToLower(tbl.IdxColName))
-	codeStr = strings.ReplaceAll(codeStr, tplTable.IdxColType, tbl.IdxColType)
-	codeStr = strings.ReplaceAll(codeStr, tplTable.IdxParmName, tbl.IdxParmName)
-
-	return codeStr
+func DO2DTO_FieldName(f string) string {
+	return util.StrFirstToLower(util.StrIdToLower(f))
 }
