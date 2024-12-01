@@ -38,13 +38,9 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL field.Asterisk
-	ID  field.Int32 // The primary key of the table
-	/*
-		The name of
-		 the user
-	*/
-	UserName field.String
+	ALL      field.Asterisk
+	ID       field.Int32  // The primary key of the table
+	UserName field.String // The name of the user
 
 	fieldMap map[string]field.Expr
 }
