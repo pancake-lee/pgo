@@ -69,6 +69,65 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+    /course-swap-request:
+        get:
+            tags:
+                - SchoolCURD
+            operationId: SchoolCURD_GetCourseSwapRequestList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetCourseSwapRequestListResponse'
+        post:
+            tags:
+                - SchoolCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : course_swap_request
+            operationId: SchoolCURD_AddCourseSwapRequest
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddCourseSwapRequestRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddCourseSwapRequestResponse'
+        delete:
+            tags:
+                - SchoolCURD
+            operationId: SchoolCURD_DelCourseSwapRequestByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
     /user:
         get:
             tags:
@@ -362,6 +421,16 @@ components:
             properties:
                 abandonCode:
                     $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.AddCourseSwapRequestRequest:
+            type: object
+            properties:
+                courseSwapRequest:
+                    $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.AddCourseSwapRequestResponse:
+            type: object
+            properties:
+                courseSwapRequest:
+                    $ref: '#/components/schemas/api.CourseSwapRequestInfo'
         api.AddUserDeptAssocRequest:
             type: object
             properties:
@@ -402,6 +471,42 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+        api.CourseSwapRequestInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                srcTeacher:
+                    type: string
+                srcDate:
+                    type: string
+                srcCourseNum:
+                    type: integer
+                    format: int32
+                srcCourse:
+                    type: string
+                srcClass:
+                    type: string
+                dstTeacher:
+                    type: string
+                dstDate:
+                    type: string
+                dstCourseNum:
+                    type: integer
+                    format: int32
+                dstCourse:
+                    type: string
+                dstClass:
+                    type: string
+                createTime:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: |-
+                --------------------------------------------------
+                 tbl : course_swap_request
         api.EditUserNameRequest:
             type: object
             properties:
@@ -420,6 +525,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.GetCourseSwapRequestListResponse:
+            type: object
+            properties:
+                courseSwapRequestList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.CourseSwapRequestInfo'
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
@@ -510,6 +622,8 @@ components:
                  tbl : user_job
 tags:
     - name: AbandonCodeCURD
+      description: '--------------------------------------------------'
+    - name: SchoolCURD
       description: '--------------------------------------------------'
     - name: User
       description: 用户服务模块

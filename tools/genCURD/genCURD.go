@@ -5,7 +5,9 @@ import (
 	"gogogo/pkg/db/dao/model"
 	"gogogo/pkg/util"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -68,10 +70,13 @@ func newTable(m dbModel, svcName string) *Table {
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ltime)
 
+	rmAllGenFile()
+
 	addTable(&model.User{}, "user")
 	addTable(&model.UserDept{}, "user")
 	addTable(&model.UserDeptAssoc{}, "user")
 	addTable(&model.UserJob{}, "user")
+	addTable(&model.CourseSwapRequest{}, "school")
 
 	//读取数据库表结构
 	for _, tbl := range tblToSvrMap {
@@ -120,4 +125,18 @@ func main() {
 
 func DO2DTO_FieldName(f string) string {
 	return util.StrFirstToLower(util.StrIdToLower(f))
+}
+
+func rmAllGenFile() {
+	filepath.Walk("internal",
+		func(path string, info os.FileInfo, err error) error {
+			if strings.Contains(path, "gen.go") {
+				log.Println("rm file: ", path)
+				err := os.Remove(path)
+				if err != nil {
+					log.Println("rm file failed: ", err)
+				}
+			}
+			return nil
+		})
 }

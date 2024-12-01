@@ -46,8 +46,11 @@ api:
 .PHONY: gorm
 # 通过 gorm-gen 生成数据库访问代码
 gorm:
-# export PGPASSWORD="gogogo"; \
-# psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo_build;"
+	rm -rf ./pkg/db/dao/
+	export PGPASSWORD="gogogo"; \
+	psql -h $(dbIP) -U gogogo -d postgres -c "DROP DATABASE gogogo_build;"
+	export PGPASSWORD="gogogo"; \
+	psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo_build;"
 	for file in pkg/db/*.sql; do \
 		export PGPASSWORD="gogogo"; \
         psql -h $(dbIP) -U gogogo -d gogogo_build -f $$file; \

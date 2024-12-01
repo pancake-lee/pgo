@@ -16,3 +16,15 @@ func SliceIndex(x any, f func(i int) bool) int {
 	}
 	return -1
 }
+
+func StrListUnique(x []string) []string {
+	set := make(map[string]bool)
+	for _, v := range x {
+		set[v] = true
+	}
+	var ret []string
+	for k := range set {
+		ret = append(ret, k)
+	}
+	return ret
+}
