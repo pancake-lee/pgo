@@ -8,7 +8,7 @@
     * go build
     * .\gogogo.exe
 
-- make
+- make on windows
     - https://gnuwin32.sourceforge.net/packages/make.htm
     - 下载：Complete package, except sources
     - 安装
@@ -24,4 +24,19 @@
             "--proto_path=./third_party",
         ]
     }
+    ```
+
+- git
+    ```shell
+    git config --global credential.helper store
+    git config --global user.name xxx
+    git config --global user.email xxx
+
+    # 哪些分支还没有完全合并到release分支
+    git branch -r --no-merged=release
+
+    # b中有哪些提交未合并到a
+    git cherry -v a b
+
+    git commit --amend
     ```
