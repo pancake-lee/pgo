@@ -2,7 +2,7 @@ GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 # 取git commit的8位编号
 VERSION=$(shell git describe --tags --always)
-dbIP=192.168.101.8
+dbIP=go-pg
 # dbIP=192.168.3.111 
 
 # 遍历所有proto文件
@@ -22,6 +22,7 @@ endif
 init:
 # wget https://github.com/protocolbuffers/protobuf/releases/download/v28.1/protoc-28.1-linux-x86_64.zip
 # unzip protoc-28.1-linux-x86_64.zip -d /usr/local
+	go env -w GOPROXY=https://goproxy.cn,direct
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/go-kratos/kratos/cmd/kratos/v2@latest

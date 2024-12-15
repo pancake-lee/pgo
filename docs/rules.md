@@ -2,6 +2,7 @@
 
 ## GIT
 - 提交信息
+    - update: 更新某些文件
     - feat: 新增功能
     - fix: 修复 bug
     - docs: 仅仅修改了文档，比如 README, CHANGELOG, CONTRIBUTE 等等
