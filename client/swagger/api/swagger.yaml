@@ -1,0 +1,801 @@
+openapi: 3.0.3
+info:
+  title: ""
+  version: 0.0.1
+servers:
+- url: /
+tags:
+- name: AbandonCodeCURD
+  description: '--------------------------------------------------'
+- name: SchoolCURD
+  description: '--------------------------------------------------'
+- name: User
+  description: 用户服务模块
+- name: UserCURD
+  description: '--------------------------------------------------'
+paths:
+  /abandon-code:
+    get:
+      tags:
+      - AbandonCodeCURD
+      operationId: AbandonCodeCURD_GetAbandonCodeList
+      parameters:
+      - name: idx1List
+        in: query
+        description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetAbandonCodeListResponse'
+    post:
+      tags:
+      - AbandonCodeCURD
+      description: |-
+        MARK REPEAT API START 一个表的接口定义
+         --------------------------------------------------
+         tbl : abandon_code
+      operationId: AbandonCodeCURD_AddAbandonCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddAbandonCodeRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddAbandonCodeResponse'
+    delete:
+      tags:
+      - AbandonCodeCURD
+      description: MARK REMOVE IF NO PRIMARY KEY START
+      operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
+      parameters:
+      - name: idx1List
+        in: query
+        description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /course-swap-request:
+    get:
+      tags:
+      - SchoolCURD
+      operationId: SchoolCURD_GetCourseSwapRequestList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetCourseSwapRequestListResponse'
+    post:
+      tags:
+      - SchoolCURD
+      description: |-
+        --------------------------------------------------
+         tbl : course_swap_request
+      operationId: SchoolCURD_AddCourseSwapRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddCourseSwapRequestRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddCourseSwapRequestResponse'
+    delete:
+      tags:
+      - SchoolCURD
+      operationId: SchoolCURD_DelCourseSwapRequestByIDList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /user:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetUserListResponse'
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user
+      operationId: UserCURD_AddUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddUserRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddUserResponse'
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserByIDList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+    patch:
+      tags:
+      - User
+      description: 修改用户名
+      operationId: User_EditUserName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.EditUserNameRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /user-dept:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserDeptList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetUserDeptListResponse'
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept
+      operationId: UserCURD_AddUserDept
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddUserDeptRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddUserDeptResponse'
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserDeptByIDList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /user-dept-assoc:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserDeptAssocList
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetUserDeptAssocListResponse'
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept_assoc
+      operationId: UserCURD_AddUserDeptAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddUserDeptAssocRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddUserDeptAssocResponse'
+    delete:
+      tags:
+      - User
+      description: 从部门中移除用户
+      operationId: User_DelUserDeptAssoc
+      parameters:
+      - name: userID
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: deptID
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /user-job:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserJobList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.GetUserJobListResponse'
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_job
+      operationId: UserCURD_AddUserJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.AddUserJobRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.AddUserJobResponse'
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserJobByIDList
+      parameters:
+      - name: iDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.Empty'
+  /user/token:
+    post:
+      tags:
+      - User
+      description: 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
+      operationId: User_Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.LoginRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.LoginResponse'
+components:
+  schemas:
+    api.AbandonCodeInfo:
+      type: object
+      properties:
+        idx1:
+          type: integer
+          description: MARK REPLACE PB COL START 替换内容，所有字段
+          format: int32
+        col1:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : abandon_code
+      example:
+        idx1: 0
+        col1: col1
+    api.AddAbandonCodeRequest:
+      type: object
+      properties:
+        abandonCode:
+          $ref: '#/components/schemas/api.AbandonCodeInfo'
+    api.AddAbandonCodeResponse:
+      type: object
+      properties:
+        abandonCode:
+          $ref: '#/components/schemas/api.AbandonCodeInfo'
+      example:
+        abandonCode:
+          idx1: 0
+          col1: col1
+    api.AddCourseSwapRequestRequest:
+      type: object
+      properties:
+        courseSwapRequest:
+          $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+    api.AddCourseSwapRequestResponse:
+      type: object
+      properties:
+        courseSwapRequest:
+          $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+      example:
+        courseSwapRequest:
+          dstClass: dstClass
+          srcTeacher: srcTeacher
+          srcCourse: srcCourse
+          srcClass: srcClass
+          createTime: createTime
+          srcDate: srcDate
+          iD: 0
+          srcCourseNum: 6
+          dstDate: dstDate
+          dstTeacher: dstTeacher
+          dstCourse: dstCourse
+          dstCourseNum: 1
+          status: 5
+    api.AddUserDeptAssocRequest:
+      type: object
+      properties:
+        userDeptAssoc:
+          $ref: '#/components/schemas/api.UserDeptAssocInfo'
+    api.AddUserDeptAssocResponse:
+      type: object
+      properties:
+        userDeptAssoc:
+          $ref: '#/components/schemas/api.UserDeptAssocInfo'
+      example:
+        userDeptAssoc:
+          jobID: 1
+          deptID: 6
+          userID: 0
+    api.AddUserDeptRequest:
+      type: object
+      properties:
+        userDept:
+          $ref: '#/components/schemas/api.UserDeptInfo'
+    api.AddUserDeptResponse:
+      type: object
+      properties:
+        userDept:
+          $ref: '#/components/schemas/api.UserDeptInfo'
+      example:
+        userDept:
+          deptName: deptName
+          deptPath: deptPath
+          iD: 0
+    api.AddUserJobRequest:
+      type: object
+      properties:
+        userJob:
+          $ref: '#/components/schemas/api.UserJobInfo'
+    api.AddUserJobResponse:
+      type: object
+      properties:
+        userJob:
+          $ref: '#/components/schemas/api.UserJobInfo'
+      example:
+        userJob:
+          jobName: jobName
+          iD: 0
+    api.AddUserRequest:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/api.UserInfo'
+    api.AddUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/api.UserInfo'
+      example:
+        user:
+          iD: 0
+          userName: userName
+    api.CourseSwapRequestInfo:
+      type: object
+      properties:
+        iD:
+          type: integer
+          format: int32
+        srcTeacher:
+          type: string
+        srcDate:
+          type: string
+        srcCourseNum:
+          type: integer
+          format: int32
+        srcCourse:
+          type: string
+        srcClass:
+          type: string
+        dstTeacher:
+          type: string
+        dstDate:
+          type: string
+        dstCourseNum:
+          type: integer
+          format: int32
+        dstCourse:
+          type: string
+        dstClass:
+          type: string
+        createTime:
+          type: string
+        status:
+          type: integer
+          format: int32
+      description: |-
+        --------------------------------------------------
+         tbl : course_swap_request
+      example:
+        dstClass: dstClass
+        srcTeacher: srcTeacher
+        srcCourse: srcCourse
+        srcClass: srcClass
+        createTime: createTime
+        srcDate: srcDate
+        iD: 0
+        srcCourseNum: 6
+        dstDate: dstDate
+        dstTeacher: dstTeacher
+        dstCourse: dstCourse
+        dstCourseNum: 1
+        status: 5
+    api.EditUserNameRequest:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        userName:
+          type: string
+    api.Empty:
+      type: object
+      properties: {}
+      example: {}
+    api.GetAbandonCodeListResponse:
+      type: object
+      properties:
+        abandonCodeList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.AbandonCodeInfo'
+      example:
+        abandonCodeList:
+        - idx1: 0
+          col1: col1
+        - idx1: 0
+          col1: col1
+    api.GetCourseSwapRequestListResponse:
+      type: object
+      properties:
+        courseSwapRequestList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+      example:
+        courseSwapRequestList:
+        - dstClass: dstClass
+          srcTeacher: srcTeacher
+          srcCourse: srcCourse
+          srcClass: srcClass
+          createTime: createTime
+          srcDate: srcDate
+          iD: 0
+          srcCourseNum: 6
+          dstDate: dstDate
+          dstTeacher: dstTeacher
+          dstCourse: dstCourse
+          dstCourseNum: 1
+          status: 5
+        - dstClass: dstClass
+          srcTeacher: srcTeacher
+          srcCourse: srcCourse
+          srcClass: srcClass
+          createTime: createTime
+          srcDate: srcDate
+          iD: 0
+          srcCourseNum: 6
+          dstDate: dstDate
+          dstTeacher: dstTeacher
+          dstCourse: dstCourse
+          dstCourseNum: 1
+          status: 5
+    api.GetUserDeptAssocListResponse:
+      type: object
+      properties:
+        userDeptAssocList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.UserDeptAssocInfo'
+      example:
+        userDeptAssocList:
+        - jobID: 1
+          deptID: 6
+          userID: 0
+        - jobID: 1
+          deptID: 6
+          userID: 0
+    api.GetUserDeptListResponse:
+      type: object
+      properties:
+        userDeptList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.UserDeptInfo'
+      example:
+        userDeptList:
+        - deptName: deptName
+          deptPath: deptPath
+          iD: 0
+        - deptName: deptName
+          deptPath: deptPath
+          iD: 0
+    api.GetUserJobListResponse:
+      type: object
+      properties:
+        userJobList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.UserJobInfo'
+      example:
+        userJobList:
+        - jobName: jobName
+          iD: 0
+        - jobName: jobName
+          iD: 0
+    api.GetUserListResponse:
+      type: object
+      properties:
+        userList:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.UserInfo'
+      example:
+        userList:
+        - iD: 0
+          userName: userName
+        - iD: 0
+          userName: userName
+    api.LoginRequest:
+      type: object
+      properties:
+        userName:
+          type: string
+    api.LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/api.UserInfo'
+      example:
+        user:
+          iD: 0
+          userName: userName
+    api.UserDeptAssocInfo:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: int32
+        deptID:
+          type: integer
+          format: int32
+        jobID:
+          type: integer
+          format: int32
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept_assoc
+      example:
+        jobID: 1
+        deptID: 6
+        userID: 0
+    api.UserDeptInfo:
+      type: object
+      properties:
+        iD:
+          type: integer
+          format: int32
+        deptPath:
+          type: string
+        deptName:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : user_dept
+      example:
+        deptName: deptName
+        deptPath: deptPath
+        iD: 0
+    api.UserInfo:
+      type: object
+      properties:
+        iD:
+          type: integer
+          format: int32
+        userName:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : user
+      example:
+        iD: 0
+        userName: userName
+    api.UserJobInfo:
+      type: object
+      properties:
+        iD:
+          type: integer
+          format: int32
+        jobName:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : user_job
+      example:
+        jobName: jobName
+        iD: 0

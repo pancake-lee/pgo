@@ -1,4 +1,4 @@
-package service
+package main
 
 import (
 	"strings"
@@ -7,11 +7,17 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func parseCourseExcel(path string,
-) (ret map[string]*teacherInfo, err error) {
-	ret = make(map[string]*teacherInfo)
+type courseParser struct {
+	path           string
+	teacherInfoMap map[string]*teacherInfo
+}
 
-	f, err := excelize.OpenFile(path)
+func NewCourseParser(path string) *courseParser {
+	return &courseParser{path: path, teacherInfoMap: make(map[string]*teacherInfo)}
+}
+
+func (parser *courseParser) ParseCourseExcel() (map[string]*teacherInfo, error) {
+	f, err := excelize.OpenFile(parser.path)
 	if err != nil {
 		return nil, err
 	}
@@ -23,28 +29,27 @@ func parseCourseExcel(path string,
 		if err != nil {
 			return nil, err
 		}
-		parseCourseSheet(rowList, ret)
+		parser.parseCourseSheet(rowList)
 	}
-	return
+	return parser.teacherInfoMap, nil
 }
-func parseCourseSheet(rowList [][]string, ret map[string]*teacherInfo,
-) (err error) {
 
+func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
 	for row, colList := range rowList {
 		// log.Print("row[", row, "] col size : ", len(rowList))
 		for col, cellStr := range colList {
-			if !isTecherInfoStart(cellStr) {
+			if !parser.isTecherInfoStart(cellStr) {
 				continue
 			}
 			//找到了一个老师的课表位置
-			tInfo := getTecherInfo(row, col, rowList)
-			_, ok := ret[tInfo.teacher]
+			tInfo := parser.getTecherInfo(row, col, rowList)
+			_, ok := parser.teacherInfoMap[tInfo.teacher]
 			if !ok {
-				ret[tInfo.teacher] = &tInfo
+				parser.teacherInfoMap[tInfo.teacher] = &tInfo
 			}
 			// 同一个老师课表分开写了，要合并
-			ret[tInfo.teacher].classList =
-				append(ret[tInfo.teacher].classList,
+			parser.teacherInfoMap[tInfo.teacher].classList =
+				append(parser.teacherInfoMap[tInfo.teacher].classList,
 					tInfo.classList...)
 		}
 	}
@@ -64,12 +69,14 @@ type teacherInfo struct {
 	classList []classInfo
 }
 
-func isTecherInfoStart(cellStr string) bool {
+func (parser *courseParser) isTecherInfoStart(cellStr string) bool {
 	return cellStr == "节次"
 }
 
 // 老老实实的硬编码，根据excel的格式而定
-func getTecherInfo(rowStart int, colStart int, rowList [][]string) (ret teacherInfo) {
+func (parser *courseParser) getTecherInfo(rowStart int, colStart int,
+	rowList [][]string) (ret teacherInfo) {
+
 	nameCell := rowList[rowStart-1][colStart]
 	nameTmp := strings.Split(nameCell, " ")
 	var tInfo teacherInfo
