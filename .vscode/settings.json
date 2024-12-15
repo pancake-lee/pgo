@@ -3,5 +3,7 @@
         "options": [
             "--proto_path=./third_party",
         ]
-    }
+    },
+    "go.testFlags":["-v", "-count=1"],
+    "go.testTimeout": "300s",
 }

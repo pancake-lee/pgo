@@ -3,9 +3,11 @@ module gogogo
 go 1.21
 
 require (
+	github.com/antihax/optional v1.0.0
 	github.com/go-kratos/kratos/v2 v2.7.2
 	github.com/xuri/excelize/v2 v2.9.0
 	go.uber.org/automaxprocs v1.5.1
+	golang.org/x/oauth2 v0.18.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.2
@@ -18,6 +20,7 @@ require (
 require (
 	github.com/go-playground/assert/v2 v2.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.6.0 // indirect
@@ -35,6 +38,7 @@ require (
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	gorm.io/datatypes v1.1.1-0.20230130040222-c43177d3cf8c // indirect
 	gorm.io/driver/mysql v1.5.2 // indirect
 	gorm.io/driver/sqlite v1.5.4 // indirect

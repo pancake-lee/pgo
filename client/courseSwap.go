@@ -1,12 +1,16 @@
-package service
+package main
 
 import (
+	"context"
 	"fmt"
+	"gogogo/client/swagger"
 	"gogogo/pkg/util"
 	"log"
+	"net/http"
 	"sort"
-	"testing"
 	"time"
+
+	"github.com/antihax/optional"
 )
 
 // 实在词穷，courseInfo表示课程安排，如20240101一年1班的第1节课
@@ -19,8 +23,12 @@ type courseInfo struct {
 	teacher       string
 }
 
-func TestCourseSwap(t *testing.T) {
+func CourseSwap() {
 	courseNumMax := 7
+
+	log.Print("请输入需要导入的课程表文件(excel)，以回车结束")
+	var path string = `/root/workspace/class_schedule.xlsx`
+	_, _ = fmt.Scanln(&path)
 
 	log.Print("请输入老师名字，不要输入空格等额外内容，以回车结束")
 	var srcTecher string
@@ -35,21 +43,20 @@ func TestCourseSwap(t *testing.T) {
 	_, _ = fmt.Scanln(&srcCourseNum)
 
 	if srcTecher == "" || srcDateStr == "" || srcCourseNum == 0 {
-		t.Error("input error")
+		log.Println("input error")
 		return
 	}
 
 	srcDate, err := time.Parse("20060102", srcDateStr)
 	if err != nil {
-		t.Error("time.Parse failed: ", err)
+		log.Println("time.Parse failed: ", err)
 		return
 	}
 
-	// 1：从excel读取课程表
-	fPath := `/root/workspace/class_schedule.xlsx`
-	courseMap, err := parseCourseExcel(fPath)
+	// 从excel读取课程表
+	courseMap, err := NewCourseParser(path).ParseCourseExcel()
 	if err != nil {
-		t.Error("parseCourseExcel failed: ", err)
+		log.Println("parseCourseExcel failed: ", err)
 		return
 	}
 
@@ -57,13 +64,12 @@ func TestCourseSwap(t *testing.T) {
 	wDiff := tNow.Weekday() - time.Monday
 	endTime := tNow.AddDate(0, 0, 21-int(wDiff))
 
+	// 用课程表，计算未来3周内的课程安排
 	var allCourseList []*courseInfo
-
 	for _, techerInfo := range courseMap {
 		for _, classInfo := range techerInfo.classList {
-			// 用课程表的一节课，计算未来3周内的课程安排
+			// 一节课向后推3周
 			date := tNow.AddDate(0, 0, int(classInfo.weekDay-tNow.Weekday()))
-
 			for date.Before(endTime) {
 				if date.Before(tNow) {
 					continue
@@ -81,15 +87,36 @@ func TestCourseSwap(t *testing.T) {
 			}
 		}
 	}
+
+	// TODO 查询当前换课记录，结合换课记录来计算
+	// GetCourseSwapRequestList
+	cfg := swagger.NewConfiguration()
+	cfg.Host = "http://localhost:8080"
+	cli := swagger.NewAPIClient(cfg)
+	resp, httpResp, err := cli.SchoolCURDApi.SchoolCURDGetCourseSwapRequestList(context.Background(),
+		&swagger.SchoolCURDApiSchoolCURDGetCourseSwapRequestListOpts{
+			IDList: optional.NewInterface([]int64{}),
+		})
+	if err != nil {
+		log.Println("GetCourseSwapRequestList failed: ", err)
+		return
+	}
+	if httpResp.StatusCode != http.StatusOK {
+		log.Println("GetCourseSwapRequestList failed: ", httpResp.Status)
+		return
+	}
+	for _, courseSwapRequest := range resp.CourseSwapRequestList {
+		// TODO
+	}
+
 	sort.Slice(allCourseList, func(i, j int) bool {
 		return allCourseList[i].date.Before(allCourseList[j].date)
 	})
 
-	// 3：获取当前需要调课的课程，则某老师某天的某节课
-	srcCourse := getCourse(allCourseList,
-		srcTecher, srcDate, srcCourseNum)
+	// 获取当前需要调课的课程，则某老师某天的某节课
+	srcCourse := getCourse(allCourseList, srcTecher, srcDate, srcCourseNum)
 	if srcCourse == nil {
-		t.Error("srcCourse not found")
+		log.Println("srcCourse not found")
 		return
 	} else {
 		logCourse(srcCourse)
@@ -117,10 +144,7 @@ func TestCourseSwap(t *testing.T) {
 				continue
 			}
 			dstFreeCourseList = append(dstFreeCourseList,
-				&courseInfo{
-					date:     date,
-					classNum: courseNum,
-				})
+				&courseInfo{date: date, classNum: courseNum})
 		}
 	}
 
@@ -138,9 +162,6 @@ func TestCourseSwap(t *testing.T) {
 	}
 
 	logCourseList(dstCourseList)
-
-	// TODO 查询当前换课记录，结合换课记录来计算
-	// GetCourseSwapRequestList
 
 	// TODO 写入换课记录到DB
 	// AddCourseSwapRequest
