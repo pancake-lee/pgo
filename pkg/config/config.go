@@ -26,9 +26,9 @@ func GetConfStr(confKey string) string {
 }
 
 func GetConfInt(confKey string) int {
-	if v, ok := config.Get(confKey).(int); ok {
+	if v, ok := config.Get(confKey).(int64); ok {
 		log.Printf("config key: %s, value: %d", confKey, v)
-		return v
+		return int(v)
 	}
 	return 0
 }

@@ -22,6 +22,8 @@ RUN echo 'alias ll="ls -la"' >> /etc/bashrc \
     && git config --global credential.helper store \
     && tar zxvf /root/go1.23.4.linux-amd64.tar.gz -C /usr/local/ \
     && rm -f /root/go1.23.4.linux-amd64.tar.gz \
+    && unzip /root/protoc-28.1-linux-x86_64.zip -d /usr/local \
+    && rm -f /root/protoc-28.1-linux-x86_64.zip \
     && echo "------------------------------------------------------------" \
     && echo 'setup sshd' \
     && ssh-keygen -A \
