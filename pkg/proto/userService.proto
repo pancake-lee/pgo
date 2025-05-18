@@ -3,7 +3,7 @@ package api;
 import "common.proto";
 import "userService.gen.proto";
 import "google/api/annotations.proto";
-option go_package = "gogogo/api;api";
+option go_package = "pgo/api;api";
 
 // 用户服务模块
 service User {

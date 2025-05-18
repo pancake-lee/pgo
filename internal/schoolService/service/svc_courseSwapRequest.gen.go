@@ -4,8 +4,8 @@ package service
 
 import (
 	"context"
-	"gogogo/internal/schoolService/data"
-	"gogogo/pkg/proto/api"
+	"pgo/internal/schoolService/data"
+	"pgo/pkg/proto/api"
 )
 
 

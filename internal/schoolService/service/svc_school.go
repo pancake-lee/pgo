@@ -1,7 +1,7 @@
 package service
 
 import (
-	"gogogo/pkg/proto/api"
+	"pgo/pkg/proto/api"
 )
 
 type SchoolCURDServer struct {

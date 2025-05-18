@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 	"errors"
-	"gogogo/pkg/db"
+	"pgo/pkg/db"
 )
 
 func (*userJobDAO) EditJobName(ctx context.Context,

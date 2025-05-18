@@ -1,5 +1,5 @@
 syntax = "proto3";
 package api;
-option go_package = "gogogo/api;api";
+option go_package = "pgo/api;api";
 
 message Empty {}

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gogogo/pkg/db/dao/model"
-	"gogogo/pkg/util"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"pgo/pkg/db/dao/model"
+	"pgo/pkg/util"
 	"reflect"
 	"strings"
 )

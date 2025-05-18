@@ -3,8 +3,8 @@ package data
 import (
 	"context"
 	"errors"
-	"gogogo/pkg/db"
-	"gogogo/pkg/db/dao/model"
+	"pgo/pkg/db"
+	"pgo/pkg/db/dao/model"
 )
 
 type AbandonCodeDO = model.AbandonCode
