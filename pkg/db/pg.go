@@ -3,7 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"gogogo/pkg/db/dao/query"
+	"pgo/pkg/db/dao/query"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

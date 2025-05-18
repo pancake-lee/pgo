@@ -1,0 +1,11 @@
+Http:
+  Addr: "0.0.0.0:8000"
+  Timeout: 1
+
+Grpc:
+  Addr: "0.0.0.0:9000"
+  Timeout: 1
+
+Pg:
+  Host: "go-pg"
+  Port: 5432

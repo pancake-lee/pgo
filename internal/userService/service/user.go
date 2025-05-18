@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"gogogo/internal/userService/data"
-	"gogogo/pkg/proto/api"
+	"pgo/internal/userService/data"
+	"pgo/pkg/proto/api"
 )
 
 type UserServer struct {

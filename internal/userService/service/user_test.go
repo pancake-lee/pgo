@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"gogogo/pkg/proto/api"
-	"gogogo/pkg/util"
+	"pgo/pkg/proto/api"
+	"pgo/pkg/util"
 	"testing"
 	"time"
 )

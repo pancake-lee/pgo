@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"gogogo/internal/abandonCodeService/data"
-	"gogogo/pkg/proto/api"
+	"pgo/internal/abandonCodeService/data"
+	"pgo/pkg/proto/api"
 )
 
 // MARK REPLACE SvrDefine START

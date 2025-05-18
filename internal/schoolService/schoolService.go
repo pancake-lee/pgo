@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"gogogo/internal/schoolService/service"
-	"gogogo/pkg/config"
-	"gogogo/pkg/proto/api"
 	"os"
+	"pgo/internal/schoolService/service"
+	"pgo/pkg/config"
+	"pgo/pkg/proto/api"
 	"time"
 
 	"github.com/go-kratos/kratos/v2"
