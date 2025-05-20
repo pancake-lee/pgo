@@ -5,10 +5,22 @@ import (
 
 	"pgo/internal/userService/data"
 	"pgo/pkg/proto/api"
+
+	"github.com/go-kratos/kratos/v2/transport/grpc"
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 type UserServer struct {
 	api.UnimplementedUserServer
+}
+
+func (s *UserServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {
+	if grpcSrv != nil {
+		api.RegisterUserServer(grpcSrv, s)
+	}
+	if httpSrv != nil {
+		api.RegisterUserHTTPServer(httpSrv, s)
+	}
 }
 
 func (s *UserServer) Login(

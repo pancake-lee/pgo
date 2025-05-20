@@ -1,8 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"pgo/internal/abandonCodeService/service"
+	"pgo/pkg/app"
+	"pgo/pkg/config"
+)
 
 func main() {
-	fmt.Println("this is a template file/code/service for genCURD")
-	fmt.Println("please replace it with your own code, go go go!!")
+	c := flag.String("c", "./configs/",
+		"config folder, should have common.yaml and ${execName}.yaml")
+	flag.Parse()
+
+	config.MustInitConfig(*c)
+
+	var s service.AbandonCodeCURDServer
+
+	app.RunKratosApp(&s)
 }

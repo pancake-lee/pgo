@@ -6,4 +6,7 @@
     },
     "go.testFlags":["-v", "-count=1"],
     "go.testTimeout": "300s",
+    "cSpell.words": [
+        "Kratos"
+    ],
 }

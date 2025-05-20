@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"pgo/pkg/util"
 	"reflect"
@@ -10,50 +11,65 @@ import (
 
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
-	"github.com/pelletier/go-toml"
 )
 
-// 临时简单实现配置的读取，后续肯定是要优化的
-var conf *toml.Tree
+var c config.Config
 
-func LoadConf(confPath string) {
-	c, err := toml.LoadFile(confPath)
+func MustInitConfig(confFolder string) {
+	err := InitConfig(confFolder)
 	if err != nil {
 		panic(err)
 	}
-	conf = c
 }
 
-func GetConfStr(confKey string) string {
-	if v, ok := conf.Get(confKey).(string); ok {
-		log.Printf("config key: %s, value: %s", confKey, v)
-		return v
+func InitConfig(confPath string) (err error) {
+	if confPath == "" {
+		confPath = filepath.Join(util.GetExecFolder(), "configs")
 	}
-	return ""
-}
 
-func GetConfInt(confKey string) int {
-	if v, ok := conf.Get(confKey).(int64); ok {
-		log.Printf("config key: %s, value: %d", confKey, v)
-		return int(v)
+	f, err := os.Stat(confPath)
+	if err != nil || !f.IsDir() {
+		c = config.New(config.WithSource(
+			file.NewSource(confPath),
+		),
+		)
+	} else {
+		execName := util.GetExecName()
+		c = config.New(config.WithSource(
+			file.NewSource(filepath.Join(confPath, "common.yaml")),
+			file.NewSource(filepath.Join(confPath, execName+".yaml")),
+		),
+		)
 	}
-	return 0
+
+	err = c.Load()
+	if err != nil {
+		// 从框架上来说，配置文件不是必须的
+		return err
+	}
+
+	return nil
 }
 
-// --------------------------------------------------
-type httpConfig struct {
-	Addr    string
-	Timeout int `default:"10"` // seconds
+func MustGetConfig() config.Config {
+	if c == nil {
+		log.Fatalf("config Uninitialized, please call InitConfig first")
+		return nil
+	}
+	return c
 }
 
-type grpcConfig struct {
-	Addr    string
-	Timeout int `default:"10"` // seconds
-}
-
-type ServiceConfig struct {
-	Http httpConfig
-	Grpc grpcConfig
+// 支持定义结构体来解析配置
+func Scan(v any) (err error) {
+	err = SetDefaults(v)
+	if err != nil {
+		return err
+	}
+	err = MustGetConfig().Scan(v)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // --------------------------------------------------
@@ -119,90 +135,4 @@ func setFieldValue(field reflect.Value, value string) error {
 		return fmt.Errorf("unsupported field type: %s", field.Kind())
 	}
 	return nil
-}
-
-// --------------------------------------------------
-
-var c config.Config
-
-func InitConfig(confFolder string) (err error) {
-	if confFolder == "" {
-		confFolder = filepath.Join(util.GetExecFolder(), "configs")
-	}
-	execName := util.GetExecName()
-	c = config.New(
-		config.WithSource(
-			file.NewSource(filepath.Join(confFolder, "common.yaml")),
-			file.NewSource(filepath.Join(confFolder, execName+".yaml")),
-		),
-	)
-
-	err = c.Load()
-	if err != nil {
-		// 从框架上来说，配置文件不是必须的
-		return err
-	}
-
-	return nil
-}
-
-func GetConfig() config.Config {
-	if c == nil {
-		log.Fatalf("config Uninitialized, please call InitConfig first")
-		return nil
-	}
-	return c
-}
-
-// --------------------------------------------------
-// 支持定义结构体来解析配置
-func Scan(v any) (err error) {
-	err = GetConfig().Scan(v)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// --------------------------------------------------
-// 支持动态获取配置，包括error/default/must模式
-func GetInt64D(key string, defaultVal int64) int64 {
-	v, err := GetConfig().Value(key).Int()
-	if err != nil {
-		return defaultVal
-	}
-	return v
-}
-
-func GetInt64E(key string) (int64, error) {
-	return GetConfig().Value(key).Int()
-}
-
-func GetInt64M(key string) int64 {
-	v, err := GetConfig().Value(key).Int()
-	if err != nil {
-		panic(fmt.Errorf("must get config value[%v] error: %v", key, err))
-	}
-	return v
-}
-
-// --------------------------------------------------
-func GetStringD(key string, defaultVal string) string {
-	v, err := GetConfig().Value(key).String()
-	if err != nil {
-		return defaultVal
-	}
-	return v
-}
-
-func GetStringE(key string) (string, error) {
-	return GetConfig().Value(key).String()
-}
-
-func GetStringM(key string) string {
-	v, err := GetConfig().Value(key).String()
-	if err != nil {
-		panic(fmt.Errorf("must get config value[%v] error: %v", key, err))
-	}
-	return v
 }

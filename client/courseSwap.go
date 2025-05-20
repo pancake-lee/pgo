@@ -91,11 +91,11 @@ func CourseSwap() {
 	var srcCourseNum int
 
 	if useConfig {
-		config.LoadConf(configPath)
-		path = config.GetConfStr("filePath")
-		srcTeacher = config.GetConfStr("teacher")
-		srcDateStr = config.GetConfStr("date")
-		srcCourseNum = config.GetConfInt("courseNum")
+		config.MustInitConfig(configPath)
+		path = config.GetStringD("filePath", "")
+		srcTeacher = config.GetStringD("teacher", "")
+		srcDateStr = config.GetStringD("date", "")
+		srcCourseNum = int(config.GetInt64D("courseNum", 0))
 	}
 	inputStrIfEmpty(&path, "请输入需要导入的课程表文件(excel)，以回车结束")
 	inputStrIfEmpty(&srcTeacher, "请输入老师名字，不要输入空格等额外内容，以回车结束")
