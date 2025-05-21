@@ -8,7 +8,6 @@ import (
 	"pgo/pkg/proto/api"
 )
 
-
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {
 	if do == nil {
 		return nil

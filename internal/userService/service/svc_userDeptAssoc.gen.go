@@ -8,7 +8,6 @@ import (
 	"pgo/pkg/proto/api"
 )
 
-
 func DO2DTO_UserDeptAssoc(do *data.UserDeptAssocDO) *api.UserDeptAssocInfo {
 	if do == nil {
 		return nil
