@@ -6,27 +6,7 @@ import (
 	"context"
 	"pgo/internal/userService/data"
 	"pgo/pkg/proto/api"
-	
-	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-kratos/kratos/v2/transport/http"
 )
-
-// MARK REPLACE SvrDefine START
-type UserCURDServer struct {
-	api.UnimplementedUserCURDServer
-}
-
-func (s *UserCURDServer) Reg(grpcSrv *grpc.Server,httpSrv *http.Server) {
-	if grpcSrv != nil {
-		api.RegisterUserCURDServer(grpcSrv, s)
-	}
-	if httpSrv != nil {
-		api.RegisterUserCURDHTTPServer(httpSrv, s)
-	}
-}
-
-
-// MARK REPLACE SvrDefine END
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
 	if do == nil {

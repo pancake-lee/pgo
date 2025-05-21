@@ -50,10 +50,10 @@ func (t *Table) String() string {
 		t.IdxColName, t.IdxColType, t.IdxParmName)
 }
 
-var tblToSvrMap = make(map[string]*Table)
+var tblMap = make(map[string]*Table)
 
 func addTable(m dbModel, svcName string) {
-	tblToSvrMap[m.TableName()] = newTable(m, svcName)
+	tblMap[m.TableName()] = newTable(m, svcName)
 }
 func newTable(m dbModel, svcName string) *Table {
 	tbl := Table{
@@ -79,8 +79,7 @@ func main() {
 	addTable(&model.CourseSwapRequest{}, "school")
 
 	//读取数据库表结构
-	for _, tbl := range tblToSvrMap {
-
+	for _, tbl := range tblMap {
 		isMultiKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {
@@ -110,8 +109,8 @@ func main() {
 	tplTable.IdxColType = "int32"
 	tplTable.IdxParmName = "idx1"
 
-	genDaoCode(tblToSvrMap, tplTable)
-	genProto(tblToSvrMap, tplTable)
+	genDaoCode(tblMap, tplTable)
+	genProto(tblMap, tplTable)
 
 	// 调用 protoc 生成 go 代码
 	cmd := exec.Command("make", "api")
@@ -120,7 +119,7 @@ func main() {
 		log.Fatalf("make proto failed, err: %v, out: \n%v", err, string(out))
 	}
 
-	genServiceCode(tblToSvrMap, tplTable)
+	genServiceCode(tblMap, tplTable)
 }
 
 func DO2DTO_FieldName(f string) string {
