@@ -2,7 +2,9 @@ GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 # 取git commit的8位编号
 VERSION=$(shell git describe --tags --always)
-dbIP=go-pg
+
+dbIP=127.0.0.1
+# dbIP=go-pg
 # dbIP=192.168.3.111 
 
 # 遍历所有proto文件
@@ -53,27 +55,27 @@ api:
 # 通过 gorm-gen 生成数据库访问代码
 gorm:
 	rm -rf ./pkg/db/dao/
-	export PGPASSWORD="gogogo"; \
-	psql -h $(dbIP) -U gogogo -d postgres -c "DROP DATABASE gogogo_build;"
-	export PGPASSWORD="gogogo"; \
-	psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo_build;"
+	export PGPASSWORD="pgo"; \
+	psql -h $(dbIP) -U pgo -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
+	export PGPASSWORD="pgo"; \
+	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo_build;"
 	for file in pkg/db/*.sql; do \
-		export PGPASSWORD="gogogo"; \
-		psql -h $(dbIP) -U gogogo -d gogogo_build -f $$file; \
+		export PGPASSWORD="pgo"; \
+		psql -h $(dbIP) -U pgo -d pgo_build -f $$file; \
 	done
 
 	gentool \
 	-db postgres \
-	-dsn "host=$(dbIP) user=gogogo password=gogogo dbname=gogogo_build port=5432 sslmode=disable" \
+	-dsn "host=$(dbIP) user=pgo password=pgo dbname=pgo_build port=5432 sslmode=disable" \
 	-outPath ./pkg/db/dao/query \
-	-modelPkgName "pkg/db/dao/model"
+	-modelPkgName "model"
 
 # 慎重，这是重置数据库的操作，交互输入密码
 initDB:
-# psql -h $(dbIP) -U gogogo -d postgres -c "CREATE DATABASE gogogo;"
+# psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo;"
 	for file in pkg/db/*.sql; do \
-		export PGPASSWORD="gogogo"; \
-		psql -h $(dbIP) -U gogogo -d gogogo -f $$file; \
+		export PGPASSWORD="pgo"; \
+		psql -h $(dbIP) -U pgo -d pgo -f $$file; \
 	done
 
 curd:

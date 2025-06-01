@@ -128,6 +128,65 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+    /task:
+        get:
+            tags:
+                - TaskCURD
+            operationId: TaskCURD_GetTaskList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetTaskListResponse'
+        post:
+            tags:
+                - TaskCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : task
+            operationId: TaskCURD_AddTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddTaskResponse'
+        delete:
+            tags:
+                - TaskCURD
+            operationId: TaskCURD_DelTaskByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
     /user:
         get:
             tags:
@@ -431,6 +490,16 @@ components:
             properties:
                 courseSwapRequest:
                     $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.AddTaskRequest:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/api.TaskInfo'
+        api.AddTaskResponse:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/api.TaskInfo'
         api.AddUserDeptAssocRequest:
             type: object
             properties:
@@ -532,6 +601,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.GetTaskListResponse:
+            type: object
+            properties:
+                taskList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.TaskInfo'
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
@@ -570,6 +646,36 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+        api.TaskInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                parentID:
+                    type: integer
+                    format: int32
+                task:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                estimate:
+                    type: integer
+                    format: int32
+                start:
+                    type: string
+                end:
+                    type: string
+                desc:
+                    type: string
+                metadata:
+                    type: string
+                createTime:
+                    type: string
+            description: |-
+                --------------------------------------------------
+                 tbl : task
         api.UserDeptAssocInfo:
             type: object
             properties:
@@ -624,6 +730,8 @@ tags:
     - name: AbandonCodeCURD
       description: '--------------------------------------------------'
     - name: SchoolCURD
+      description: '--------------------------------------------------'
+    - name: TaskCURD
       description: '--------------------------------------------------'
     - name: User
       description: 用户服务模块

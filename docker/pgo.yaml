@@ -1,0 +1,40 @@
+# wget https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64
+# chmod +x docker-compose-linux-x86_64 
+# mv ./docker-compose-linux-x86_64 /usr/local/bin/docker-compose
+
+name: pgo
+services:
+#  rocky9:
+#     container_name: dr9
+#     image: dr9:latest
+#     restart: always
+#     command: /docker-dev.sh
+#     ports:
+#       - 7022:22
+#       - 7050-7060:7050-7060
+#     environment:
+#       TZ: Asia/Shanghai
+#     networks:
+#       - pgo-net
+#     volumes:
+#       # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
+#       - D:\nycko\code\:/root/workspace/
+#       - D:\nycko\docker\docker-dev.sh:/docker-dev.sh
+      
+  postgres:
+    container_name: pgo-pg
+    image: postgres:16
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: pgo
+      POSTGRES_PASSWORD: pgo
+    networks:
+      - pgo-net
+    volumes:
+      - D:\nycko\docker\pgo/postgresql/data:/var/lib/postgresql/data
+
+networks:
+  pgo-net:
+

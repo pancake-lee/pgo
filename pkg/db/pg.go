@@ -12,10 +12,9 @@ import (
 var gDB *gorm.DB
 
 func initPG() {
-	host := "192.168.101.8"
-	// host := "192.168.3.111"
+	host := "127.0.0.1"
 	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v",
-		host, "gogogo", "gogogo", "gogogo", 5432)
+		host, "pgo", "pgo", "pgo", 5432)
 	dsn += " sslmode=disable TimeZone=Asia/Shanghai"
 
 	_db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})

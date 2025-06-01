@@ -77,6 +77,7 @@ func main() {
 	addTable(&model.UserDeptAssoc{}, "user")
 	addTable(&model.UserJob{}, "user")
 	addTable(&model.CourseSwapRequest{}, "school")
+	addTable(&model.Task{}, "task")
 
 	//读取数据库表结构
 	for _, tbl := range tblMap {

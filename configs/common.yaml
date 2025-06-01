@@ -10,5 +10,5 @@ Grpc:
   Timeout: 1
 
 Pg:
-  Host: "go-pg"
+  Host: "127.0.0.1"
   Port: 5432

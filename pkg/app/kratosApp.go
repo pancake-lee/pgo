@@ -61,7 +61,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			),
 		}
 		if conf.Grpc.Addr != "" {
-			opts = append(opts, grpc.Network(conf.Grpc.Addr))
+			opts = append(opts, grpc.Address(conf.Grpc.Addr))
 		}
 		if conf.Grpc.Timeout != 0 {
 			opts = append(opts, grpc.Timeout(time.Millisecond*
@@ -78,7 +78,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			),
 		}
 		if conf.Http.Addr != "" {
-			opts = append(opts, http.Network(conf.Http.Addr))
+			opts = append(opts, http.Address(conf.Http.Addr))
 		}
 		if conf.Http.Timeout != 0 {
 			opts = append(opts, http.Timeout(time.Millisecond*

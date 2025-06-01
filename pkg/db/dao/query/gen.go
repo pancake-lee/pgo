@@ -20,6 +20,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		db:                db,
 		AbandonCode:       newAbandonCode(db, opts...),
 		CourseSwapRequest: newCourseSwapRequest(db, opts...),
+		Task:              newTask(db, opts...),
 		User:              newUser(db, opts...),
 		UserDept:          newUserDept(db, opts...),
 		UserDeptAssoc:     newUserDeptAssoc(db, opts...),
@@ -32,6 +33,7 @@ type Query struct {
 
 	AbandonCode       abandonCode
 	CourseSwapRequest courseSwapRequest
+	Task              task
 	User              user
 	UserDept          userDept
 	UserDeptAssoc     userDeptAssoc
@@ -45,6 +47,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		db:                db,
 		AbandonCode:       q.AbandonCode.clone(db),
 		CourseSwapRequest: q.CourseSwapRequest.clone(db),
+		Task:              q.Task.clone(db),
 		User:              q.User.clone(db),
 		UserDept:          q.UserDept.clone(db),
 		UserDeptAssoc:     q.UserDeptAssoc.clone(db),
@@ -65,6 +68,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		db:                db,
 		AbandonCode:       q.AbandonCode.replaceDB(db),
 		CourseSwapRequest: q.CourseSwapRequest.replaceDB(db),
+		Task:              q.Task.replaceDB(db),
 		User:              q.User.replaceDB(db),
 		UserDept:          q.UserDept.replaceDB(db),
 		UserDeptAssoc:     q.UserDeptAssoc.replaceDB(db),
@@ -75,6 +79,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 type queryCtx struct {
 	AbandonCode       *abandonCodeDo
 	CourseSwapRequest *courseSwapRequestDo
+	Task              *taskDo
 	User              *userDo
 	UserDept          *userDeptDo
 	UserDeptAssoc     *userDeptAssocDo
@@ -85,6 +90,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		AbandonCode:       q.AbandonCode.WithContext(ctx),
 		CourseSwapRequest: q.CourseSwapRequest.WithContext(ctx),
+		Task:              q.Task.WithContext(ctx),
 		User:              q.User.WithContext(ctx),
 		UserDept:          q.UserDept.WithContext(ctx),
 		UserDeptAssoc:     q.UserDeptAssoc.WithContext(ctx),

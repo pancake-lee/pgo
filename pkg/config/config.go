@@ -45,7 +45,7 @@ func InitConfig(confPath string) (err error) {
 	err = c.Load()
 	if err != nil {
 		// 从框架上来说，配置文件不是必须的
-		return err
+		// return err
 	}
 
 	return nil
