@@ -43,13 +43,13 @@ init:
 # generate api proto
 api:
 	protoc --proto_path=./pkg/proto/ \
-		   --proto_path=./third_party \
+			--proto_path=./third_party \
 			--go_out=paths=source_relative:./pkg/proto/api/ \
 			--go-http_out=paths=source_relative:./pkg/proto/api/ \
 			--go-grpc_out=paths=source_relative:./pkg/proto/api/ \
-		   --go-errors_out=paths=source_relative:./pkg/proto/api/ \
-		   --openapi_out=fq_schema_naming=true,default_response=false:. \
-		   $(API_PROTO_FILES)
+			--go-errors_out=paths=source_relative:./pkg/proto/api/ \
+			--openapi_out=fq_schema_naming=true,default_response=false:. \
+			$(API_PROTO_FILES)
 	echo servers: >> ./openapi.yaml
 	echo     - description: IN Gen2 Open API >> ./openapi.yaml
 	echo       url: http://127.0.0.1:8080 >> ./openapi.yaml
@@ -62,7 +62,7 @@ gorm:
 	psql -h $(dbIP) -U pgo -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
 	export PGPASSWORD="pgo"; \
 	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo_build;"
-	for file in pkg/db/*.sql; do \
+	for file in pkg/db/*.sql; d o \
 		export PGPASSWORD="pgo"; \
 		psql -h $(dbIP) -U pgo -d pgo_build -f $$file; \
 	done

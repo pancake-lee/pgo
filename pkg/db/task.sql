@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS "task";
 CREATE TABLE task (
     "id" SERIAL NOT NULL,
     "parent_id" int NOT NULL, 
+    "prev_id" int NOT NULL, 
 
     "task" varchar(100) NOT NULL,
     "status" int NOT NULL, 

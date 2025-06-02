@@ -29,6 +29,7 @@ func newTask(db *gorm.DB, opts ...gen.DOOption) task {
 	_task.ALL = field.NewAsterisk(tableName)
 	_task.ID = field.NewInt32(tableName, "id")
 	_task.ParentID = field.NewInt32(tableName, "parent_id")
+	_task.PrevID = field.NewInt32(tableName, "prev_id")
 	_task.Task = field.NewString(tableName, "task")
 	_task.Status = field.NewInt32(tableName, "status")
 	_task.Estimate = field.NewInt32(tableName, "estimate")
@@ -49,6 +50,7 @@ type task struct {
 	ALL        field.Asterisk
 	ID         field.Int32
 	ParentID   field.Int32
+	PrevID     field.Int32
 	Task       field.String
 	Status     field.Int32
 	Estimate   field.Int32
@@ -75,6 +77,7 @@ func (t *task) updateTableName(table string) *task {
 	t.ALL = field.NewAsterisk(table)
 	t.ID = field.NewInt32(table, "id")
 	t.ParentID = field.NewInt32(table, "parent_id")
+	t.PrevID = field.NewInt32(table, "prev_id")
 	t.Task = field.NewString(table, "task")
 	t.Status = field.NewInt32(table, "status")
 	t.Estimate = field.NewInt32(table, "estimate")
@@ -107,9 +110,10 @@ func (t *task) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *task) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 10)
+	t.fieldMap = make(map[string]field.Expr, 11)
 	t.fieldMap["id"] = t.ID
 	t.fieldMap["parent_id"] = t.ParentID
+	t.fieldMap["prev_id"] = t.PrevID
 	t.fieldMap["task"] = t.Task
 	t.fieldMap["status"] = t.Status
 	t.fieldMap["estimate"] = t.Estimate

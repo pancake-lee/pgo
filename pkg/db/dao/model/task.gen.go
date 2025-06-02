@@ -14,6 +14,7 @@ const TableNameTask = "task"
 type Task struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	ParentID   int32     `gorm:"column:parent_id;not null" json:"parent_id"`
+	PrevID     int32     `gorm:"column:prev_id;not null" json:"prev_id"`
 	Task       string    `gorm:"column:task;not null" json:"task"`
 	Status     int32     `gorm:"column:status;not null" json:"status"`
 	Estimate   int32     `gorm:"column:estimate;not null" json:"estimate"`

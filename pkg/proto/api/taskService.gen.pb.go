@@ -30,14 +30,15 @@ type TaskInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
 	ParentID      int32                  `protobuf:"varint,2,opt,name=parentID,proto3" json:"parentID,omitempty"`
-	Task          string                 `protobuf:"bytes,3,opt,name=task,proto3" json:"task,omitempty"`
-	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`
-	Estimate      int32                  `protobuf:"varint,5,opt,name=estimate,proto3" json:"estimate,omitempty"`
-	Start         int64                  `protobuf:"varint,6,opt,name=start,proto3" json:"start,omitempty"`
-	End           int64                  `protobuf:"varint,7,opt,name=end,proto3" json:"end,omitempty"`
-	Desc          string                 `protobuf:"bytes,8,opt,name=desc,proto3" json:"desc,omitempty"`
-	Metadata      string                 `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	CreateTime    int64                  `protobuf:"varint,10,opt,name=createTime,proto3" json:"createTime,omitempty"`
+	PrevID        int32                  `protobuf:"varint,3,opt,name=prevID,proto3" json:"prevID,omitempty"`
+	Task          string                 `protobuf:"bytes,4,opt,name=task,proto3" json:"task,omitempty"`
+	Status        int32                  `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`
+	Estimate      int32                  `protobuf:"varint,6,opt,name=estimate,proto3" json:"estimate,omitempty"`
+	Start         int64                  `protobuf:"varint,7,opt,name=start,proto3" json:"start,omitempty"`
+	End           int64                  `protobuf:"varint,8,opt,name=end,proto3" json:"end,omitempty"`
+	Desc          string                 `protobuf:"bytes,9,opt,name=desc,proto3" json:"desc,omitempty"`
+	Metadata      string                 `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreateTime    int64                  `protobuf:"varint,11,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -82,6 +83,13 @@ func (x *TaskInfo) GetID() int32 {
 func (x *TaskInfo) GetParentID() int32 {
 	if x != nil {
 		return x.ParentID
+	}
+	return 0
+}
+
+func (x *TaskInfo) GetPrevID() int32 {
+	if x != nil {
+		return x.PrevID
 	}
 	return 0
 }
@@ -454,20 +462,21 @@ var File_taskService_gen_proto protoreflect.FileDescriptor
 
 const file_taskService_gen_proto_rawDesc = "" +
 	"\n" +
-	"\x15taskService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\xf6\x01\n" +
+	"\x15taskService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\x8e\x02\n" +
 	"\bTaskInfo\x12\x0e\n" +
 	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1a\n" +
-	"\bparentID\x18\x02 \x01(\x05R\bparentID\x12\x12\n" +
-	"\x04task\x18\x03 \x01(\tR\x04task\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1a\n" +
-	"\bestimate\x18\x05 \x01(\x05R\bestimate\x12\x14\n" +
-	"\x05start\x18\x06 \x01(\x03R\x05start\x12\x10\n" +
-	"\x03end\x18\a \x01(\x03R\x03end\x12\x12\n" +
-	"\x04desc\x18\b \x01(\tR\x04desc\x12\x1a\n" +
-	"\bmetadata\x18\t \x01(\tR\bmetadata\x12\x1e\n" +
+	"\bparentID\x18\x02 \x01(\x05R\bparentID\x12\x16\n" +
+	"\x06prevID\x18\x03 \x01(\x05R\x06prevID\x12\x12\n" +
+	"\x04task\x18\x04 \x01(\tR\x04task\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\x05R\x06status\x12\x1a\n" +
+	"\bestimate\x18\x06 \x01(\x05R\bestimate\x12\x14\n" +
+	"\x05start\x18\a \x01(\x03R\x05start\x12\x10\n" +
+	"\x03end\x18\b \x01(\x03R\x03end\x12\x12\n" +
+	"\x04desc\x18\t \x01(\tR\x04desc\x12\x1a\n" +
+	"\bmetadata\x18\n" +
+	" \x01(\tR\bmetadata\x12\x1e\n" +
 	"\n" +
-	"createTime\x18\n" +
-	" \x01(\x03R\n" +
+	"createTime\x18\v \x01(\x03R\n" +
 	"createTime\"3\n" +
 	"\x0eAddTaskRequest\x12!\n" +
 	"\x04task\x18\x01 \x01(\v2\r.api.TaskInfoR\x04task\"4\n" +

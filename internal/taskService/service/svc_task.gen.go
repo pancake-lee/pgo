@@ -2,12 +2,12 @@
 
 package service
 
+import "time"
+
 import (
 	"context"
 	"pgo/internal/taskService/data"
-	"pgo/pkg/logger"
 	"pgo/pkg/proto/api"
-	"time"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
@@ -17,6 +17,7 @@ func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
 	return &api.TaskInfo{
         ID: do.ID,
         ParentID: do.ParentID,
+        PrevID: do.PrevID,
         Task: do.Task,
         Status: do.Status,
         Estimate: do.Estimate,
@@ -34,6 +35,7 @@ func DTO2DO_Task(dto *api.TaskInfo) *data.TaskDO {
 	return &data.TaskDO{
         ID: dto.ID,
         ParentID: dto.ParentID,
+        PrevID: dto.PrevID,
         Task: dto.Task,
         Status: dto.Status,
         Estimate: dto.Estimate,
@@ -99,25 +101,21 @@ func (s *TaskCURDServer) UpdateTask(
 	ctx context.Context, req *api.UpdateTaskRequest,
 ) (resp *api.UpdateTaskResponse, err error) {
 	if req.Task == nil {
-		logger.Errorf("UpdateTask: request is invalid, req: %v", req)
 		return nil, api.ErrorInvalidArgument("request is invalid")
 	}
 
 	do := DTO2DO_Task(req.Task)
 	err = data.TaskDAO.UpdateByID(ctx, do)
 	if err != nil {
-		logger.Errorf("UpdateTask: update task failed, err: %v, req: %v", err, req)
 		return nil, err
 	}
 
 	resp = new(api.UpdateTaskResponse)
 	d, err := data.TaskDAO.GetByID(ctx, req.Task.ID)
 	if err != nil {
-		logger.Errorf("UpdateTask: update task failed, err: %v, req: %v", err, req)
 		return nil, err
 	}
 	resp.Task = DO2DTO_Task(d)
-	logger.Debugf("UpdateTask: update task success, resp: %v", resp)
 	return resp, nil
 }
 

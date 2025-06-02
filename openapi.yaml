@@ -740,6 +740,9 @@ components:
                 parentID:
                     type: integer
                     format: int32
+                prevID:
+                    type: integer
+                    format: int32
                 task:
                     type: string
                 status:
@@ -884,4 +887,4 @@ tags:
       description: '--------------------------------------------------'
 servers: 
     - description: IN Gen2 Open API 
-      url: http://127.0.0.1:8000 
+      url: http://127.0.0.1:8080 
