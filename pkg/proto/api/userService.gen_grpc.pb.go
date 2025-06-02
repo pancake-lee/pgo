@@ -23,14 +23,17 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	UserCURD_AddUser_FullMethodName              = "/api.userCURD/AddUser"
 	UserCURD_GetUserList_FullMethodName          = "/api.userCURD/GetUserList"
+	UserCURD_UpdateUser_FullMethodName           = "/api.userCURD/UpdateUser"
 	UserCURD_DelUserByIDList_FullMethodName      = "/api.userCURD/DelUserByIDList"
 	UserCURD_AddUserDept_FullMethodName          = "/api.userCURD/AddUserDept"
 	UserCURD_GetUserDeptList_FullMethodName      = "/api.userCURD/GetUserDeptList"
+	UserCURD_UpdateUserDept_FullMethodName       = "/api.userCURD/UpdateUserDept"
 	UserCURD_DelUserDeptByIDList_FullMethodName  = "/api.userCURD/DelUserDeptByIDList"
 	UserCURD_AddUserDeptAssoc_FullMethodName     = "/api.userCURD/AddUserDeptAssoc"
 	UserCURD_GetUserDeptAssocList_FullMethodName = "/api.userCURD/GetUserDeptAssocList"
 	UserCURD_AddUserJob_FullMethodName           = "/api.userCURD/AddUserJob"
 	UserCURD_GetUserJobList_FullMethodName       = "/api.userCURD/GetUserJobList"
+	UserCURD_UpdateUserJob_FullMethodName        = "/api.userCURD/UpdateUserJob"
 	UserCURD_DelUserJobByIDList_FullMethodName   = "/api.userCURD/DelUserJobByIDList"
 )
 
@@ -44,11 +47,13 @@ type UserCURDClient interface {
 	// tbl : user
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error)
 	GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error)
+	UpdateUserDept(ctx context.Context, in *UpdateUserDeptRequest, opts ...grpc.CallOption) (*UpdateUserDeptResponse, error)
 	DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 	// --------------------------------------------------
 	// tbl : user_dept_assoc
@@ -58,6 +63,7 @@ type UserCURDClient interface {
 	// tbl : user_job
 	AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error)
 	GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error)
+	UpdateUserJob(ctx context.Context, in *UpdateUserJobRequest, opts ...grpc.CallOption) (*UpdateUserJobResponse, error)
 	DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -89,6 +95,16 @@ func (c *userCURDClient) GetUserList(ctx context.Context, in *GetUserListRequest
 	return out, nil
 }
 
+func (c *userCURDClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateUserResponse)
+	err := c.cc.Invoke(ctx, UserCURD_UpdateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -113,6 +129,16 @@ func (c *userCURDClient) GetUserDeptList(ctx context.Context, in *GetUserDeptLis
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserDeptListResponse)
 	err := c.cc.Invoke(ctx, UserCURD_GetUserDeptList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userCURDClient) UpdateUserDept(ctx context.Context, in *UpdateUserDeptRequest, opts ...grpc.CallOption) (*UpdateUserDeptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateUserDeptResponse)
+	err := c.cc.Invoke(ctx, UserCURD_UpdateUserDept_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +195,16 @@ func (c *userCURDClient) GetUserJobList(ctx context.Context, in *GetUserJobListR
 	return out, nil
 }
 
+func (c *userCURDClient) UpdateUserJob(ctx context.Context, in *UpdateUserJobRequest, opts ...grpc.CallOption) (*UpdateUserJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateUserJobResponse)
+	err := c.cc.Invoke(ctx, UserCURD_UpdateUserJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -189,11 +225,13 @@ type UserCURDServer interface {
 	// tbl : user
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error)
 	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
+	UpdateUserDept(context.Context, *UpdateUserDeptRequest) (*UpdateUserDeptResponse, error)
 	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
 	// --------------------------------------------------
 	// tbl : user_dept_assoc
@@ -203,6 +241,7 @@ type UserCURDServer interface {
 	// tbl : user_job
 	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
+	UpdateUserJob(context.Context, *UpdateUserJobRequest) (*UpdateUserJobResponse, error)
 	DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error)
 	mustEmbedUnimplementedUserCURDServer()
 }
@@ -220,6 +259,9 @@ func (UnimplementedUserCURDServer) AddUser(context.Context, *AddUserRequest) (*A
 func (UnimplementedUserCURDServer) GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserList not implemented")
 }
+func (UnimplementedUserCURDServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
 func (UnimplementedUserCURDServer) DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelUserByIDList not implemented")
 }
@@ -228,6 +270,9 @@ func (UnimplementedUserCURDServer) AddUserDept(context.Context, *AddUserDeptRequ
 }
 func (UnimplementedUserCURDServer) GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserDeptList not implemented")
+}
+func (UnimplementedUserCURDServer) UpdateUserDept(context.Context, *UpdateUserDeptRequest) (*UpdateUserDeptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserDept not implemented")
 }
 func (UnimplementedUserCURDServer) DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelUserDeptByIDList not implemented")
@@ -243,6 +288,9 @@ func (UnimplementedUserCURDServer) AddUserJob(context.Context, *AddUserJobReques
 }
 func (UnimplementedUserCURDServer) GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserJobList not implemented")
+}
+func (UnimplementedUserCURDServer) UpdateUserJob(context.Context, *UpdateUserJobRequest) (*UpdateUserJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserJob not implemented")
 }
 func (UnimplementedUserCURDServer) DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelUserJobByIDList not implemented")
@@ -304,6 +352,24 @@ func _UserCURD_GetUserList_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_UpdateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_DelUserByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelUserByIDListRequest)
 	if err := dec(in); err != nil {
@@ -354,6 +420,24 @@ func _UserCURD_GetUserDeptList_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserCURDServer).GetUserDeptList(ctx, req.(*GetUserDeptListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserCURD_UpdateUserDept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserDeptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).UpdateUserDept(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_UpdateUserDept_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).UpdateUserDept(ctx, req.(*UpdateUserDeptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -448,6 +532,24 @@ func _UserCURD_GetUserJobList_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_UpdateUserJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).UpdateUserJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_UpdateUserJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).UpdateUserJob(ctx, req.(*UpdateUserJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_DelUserJobByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelUserJobByIDListRequest)
 	if err := dec(in); err != nil {
@@ -482,6 +584,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserCURD_GetUserList_Handler,
 		},
 		{
+			MethodName: "UpdateUser",
+			Handler:    _UserCURD_UpdateUser_Handler,
+		},
+		{
 			MethodName: "DelUserByIDList",
 			Handler:    _UserCURD_DelUserByIDList_Handler,
 		},
@@ -492,6 +598,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserDeptList",
 			Handler:    _UserCURD_GetUserDeptList_Handler,
+		},
+		{
+			MethodName: "UpdateUserDept",
+			Handler:    _UserCURD_UpdateUserDept_Handler,
 		},
 		{
 			MethodName: "DelUserDeptByIDList",
@@ -512,6 +622,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserJobList",
 			Handler:    _UserCURD_GetUserJobList_Handler,
+		},
+		{
+			MethodName: "UpdateUserJob",
+			Handler:    _UserCURD_UpdateUserJob_Handler,
 		},
 		{
 			MethodName: "DelUserJobByIDList",

@@ -37,6 +37,17 @@ func (*taskDAO) GetAll(ctx context.Context,
 	return taskList, nil
 }
 
+func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
+	if do.ID == 0 {
+		return errors.New("param is invalid")
+	}
+	q := db.GetPG().Task
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func (*taskDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {

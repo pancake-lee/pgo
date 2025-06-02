@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationSchoolCURDAddCourseSwapRequest = "/api.schoolCURD/AddCourseSwapRequest"
 const OperationSchoolCURDDelCourseSwapRequestByIDList = "/api.schoolCURD/DelCourseSwapRequestByIDList"
 const OperationSchoolCURDGetCourseSwapRequestList = "/api.schoolCURD/GetCourseSwapRequestList"
+const OperationSchoolCURDUpdateCourseSwapRequest = "/api.schoolCURD/UpdateCourseSwapRequest"
 
 type SchoolCURDHTTPServer interface {
 	// AddCourseSwapRequest --------------------------------------------------
@@ -29,12 +30,14 @@ type SchoolCURDHTTPServer interface {
 	AddCourseSwapRequest(context.Context, *AddCourseSwapRequestRequest) (*AddCourseSwapRequestResponse, error)
 	DelCourseSwapRequestByIDList(context.Context, *DelCourseSwapRequestByIDListRequest) (*Empty, error)
 	GetCourseSwapRequestList(context.Context, *GetCourseSwapRequestListRequest) (*GetCourseSwapRequestListResponse, error)
+	UpdateCourseSwapRequest(context.Context, *UpdateCourseSwapRequestRequest) (*UpdateCourseSwapRequestResponse, error)
 }
 
 func RegisterSchoolCURDHTTPServer(s *http.Server, srv SchoolCURDHTTPServer) {
 	r := s.Route("/")
 	r.POST("/course-swap-request", _SchoolCURD_AddCourseSwapRequest0_HTTP_Handler(srv))
 	r.GET("/course-swap-request", _SchoolCURD_GetCourseSwapRequestList0_HTTP_Handler(srv))
+	r.PATCH("/course-swap-request", _SchoolCURD_UpdateCourseSwapRequest0_HTTP_Handler(srv))
 	r.DELETE("/course-swap-request", _SchoolCURD_DelCourseSwapRequestByIDList0_HTTP_Handler(srv))
 }
 
@@ -79,6 +82,28 @@ func _SchoolCURD_GetCourseSwapRequestList0_HTTP_Handler(srv SchoolCURDHTTPServer
 	}
 }
 
+func _SchoolCURD_UpdateCourseSwapRequest0_HTTP_Handler(srv SchoolCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateCourseSwapRequestRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSchoolCURDUpdateCourseSwapRequest)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateCourseSwapRequest(ctx, req.(*UpdateCourseSwapRequestRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateCourseSwapRequestResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SchoolCURD_DelCourseSwapRequestByIDList0_HTTP_Handler(srv SchoolCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DelCourseSwapRequestByIDListRequest
@@ -102,6 +127,7 @@ type SchoolCURDHTTPClient interface {
 	AddCourseSwapRequest(ctx context.Context, req *AddCourseSwapRequestRequest, opts ...http.CallOption) (rsp *AddCourseSwapRequestResponse, err error)
 	DelCourseSwapRequestByIDList(ctx context.Context, req *DelCourseSwapRequestByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	GetCourseSwapRequestList(ctx context.Context, req *GetCourseSwapRequestListRequest, opts ...http.CallOption) (rsp *GetCourseSwapRequestListResponse, err error)
+	UpdateCourseSwapRequest(ctx context.Context, req *UpdateCourseSwapRequestRequest, opts ...http.CallOption) (rsp *UpdateCourseSwapRequestResponse, err error)
 }
 
 type SchoolCURDHTTPClientImpl struct {
@@ -145,6 +171,19 @@ func (c *SchoolCURDHTTPClientImpl) GetCourseSwapRequestList(ctx context.Context,
 	opts = append(opts, http.Operation(OperationSchoolCURDGetCourseSwapRequestList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SchoolCURDHTTPClientImpl) UpdateCourseSwapRequest(ctx context.Context, in *UpdateCourseSwapRequestRequest, opts ...http.CallOption) (*UpdateCourseSwapRequestResponse, error) {
+	var out UpdateCourseSwapRequestResponse
+	pattern := "/course-swap-request"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSchoolCURDUpdateCourseSwapRequest))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

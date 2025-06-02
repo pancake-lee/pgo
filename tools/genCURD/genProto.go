@@ -60,11 +60,19 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		msgCode := pbReplace(msgTpl, tplTable, tbl)
 
 		// 构造pb结构体的字段列表
-		// TODO 示例所有数据库类型，并且以替换的形式处理，而不是“生成固定代码”
 		pbColList := ""
 		for i, field := range tbl.FieldList {
+			pbTypeName := ""
+			// TODO 示例所有数据库类型，并且以替换的形式处理，而不是“生成固定代码”
+			switch field.Type.String() {
+			case "time.Time":
+				pbTypeName = "int64"
+			default:
+				pbTypeName = field.Type.String()
+			}
+
 			pbColList += fmt.Sprintf("    %v %v = %v;\n",
-				field.Type.String(), DO2DTO_FieldName(field.Name), i+1)
+				pbTypeName, DO2DTO_FieldName(field.Name), i+1)
 		}
 
 		msgCode = markPairTool.ReplaceAll("MARK REPLACE PB COL",

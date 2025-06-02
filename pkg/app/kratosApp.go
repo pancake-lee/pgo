@@ -1,6 +1,7 @@
 package app
 
 import (
+	// 新增 context 包
 	"os"
 	"pgo/pkg/config"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/rs/cors"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
@@ -84,6 +86,16 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			opts = append(opts, http.Timeout(time.Millisecond*
 				time.Duration(conf.Http.Timeout)))
 		}
+
+		opts = append(opts,
+			http.Filter(cors.New(cors.Options{
+				AllowedOrigins:   []string{"*"},
+				AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+				AllowedHeaders:   []string{"*"},
+				ExposedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+				AllowCredentials: true,
+				MaxAge:           3600,
+			}).Handler))
 
 		httpSrv = http.NewServer(opts...)
 	}

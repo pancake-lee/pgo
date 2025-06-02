@@ -342,6 +342,94 @@ func (x *GetCourseSwapRequestListResponse) GetCourseSwapRequestList() []*CourseS
 	return nil
 }
 
+type UpdateCourseSwapRequestRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=courseSwapRequest,proto3" json:"courseSwapRequest,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdateCourseSwapRequestRequest) Reset() {
+	*x = UpdateCourseSwapRequestRequest{}
+	mi := &file_schoolService_gen_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCourseSwapRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCourseSwapRequestRequest) ProtoMessage() {}
+
+func (x *UpdateCourseSwapRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_schoolService_gen_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCourseSwapRequestRequest.ProtoReflect.Descriptor instead.
+func (*UpdateCourseSwapRequestRequest) Descriptor() ([]byte, []int) {
+	return file_schoolService_gen_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UpdateCourseSwapRequestRequest) GetCourseSwapRequest() *CourseSwapRequestInfo {
+	if x != nil {
+		return x.CourseSwapRequest
+	}
+	return nil
+}
+
+type UpdateCourseSwapRequestResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=courseSwapRequest,proto3" json:"courseSwapRequest,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdateCourseSwapRequestResponse) Reset() {
+	*x = UpdateCourseSwapRequestResponse{}
+	mi := &file_schoolService_gen_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCourseSwapRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCourseSwapRequestResponse) ProtoMessage() {}
+
+func (x *UpdateCourseSwapRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_schoolService_gen_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCourseSwapRequestResponse.ProtoReflect.Descriptor instead.
+func (*UpdateCourseSwapRequestResponse) Descriptor() ([]byte, []int) {
+	return file_schoolService_gen_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateCourseSwapRequestResponse) GetCourseSwapRequest() *CourseSwapRequestInfo {
+	if x != nil {
+		return x.CourseSwapRequest
+	}
+	return nil
+}
+
 type DelCourseSwapRequestByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
@@ -351,7 +439,7 @@ type DelCourseSwapRequestByIDListRequest struct {
 
 func (x *DelCourseSwapRequestByIDListRequest) Reset() {
 	*x = DelCourseSwapRequestByIDListRequest{}
-	mi := &file_schoolService_gen_proto_msgTypes[5]
+	mi := &file_schoolService_gen_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +451,7 @@ func (x *DelCourseSwapRequestByIDListRequest) String() string {
 func (*DelCourseSwapRequestByIDListRequest) ProtoMessage() {}
 
 func (x *DelCourseSwapRequestByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_schoolService_gen_proto_msgTypes[5]
+	mi := &file_schoolService_gen_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +464,7 @@ func (x *DelCourseSwapRequestByIDListRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DelCourseSwapRequestByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelCourseSwapRequestByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_schoolService_gen_proto_rawDescGZIP(), []int{5}
+	return file_schoolService_gen_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DelCourseSwapRequestByIDListRequest) GetIDList() []int32 {
@@ -419,13 +507,18 @@ const file_schoolService_gen_proto_rawDesc = "" +
 	"\x1fGetCourseSwapRequestListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"t\n" +
 	" GetCourseSwapRequestListResponse\x12P\n" +
-	"\x15courseSwapRequestList\x18\x01 \x03(\v2\x1a.api.CourseSwapRequestInfoR\x15courseSwapRequestList\"=\n" +
+	"\x15courseSwapRequestList\x18\x01 \x03(\v2\x1a.api.CourseSwapRequestInfoR\x15courseSwapRequestList\"j\n" +
+	"\x1eUpdateCourseSwapRequestRequest\x12H\n" +
+	"\x11courseSwapRequest\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"k\n" +
+	"\x1fUpdateCourseSwapRequestResponse\x12H\n" +
+	"\x11courseSwapRequest\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"=\n" +
 	"#DelCourseSwapRequestByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\x86\x03\n" +
+	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\x8e\x04\n" +
 	"\n" +
 	"schoolCURD\x12|\n" +
 	"\x14AddCourseSwapRequest\x12 .api.AddCourseSwapRequestRequest\x1a!.api.AddCourseSwapRequestResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/course-swap-request\x12\x85\x01\n" +
-	"\x18GetCourseSwapRequestList\x12$.api.GetCourseSwapRequestListRequest\x1a%.api.GetCourseSwapRequestListResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/course-swap-request\x12r\n" +
+	"\x18GetCourseSwapRequestList\x12$.api.GetCourseSwapRequestListRequest\x1a%.api.GetCourseSwapRequestListResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/course-swap-request\x12\x85\x01\n" +
+	"\x17UpdateCourseSwapRequest\x12#.api.UpdateCourseSwapRequestRequest\x1a$.api.UpdateCourseSwapRequestResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*2\x14/course-swap-request\x12r\n" +
 	"\x1cDelCourseSwapRequestByIDList\x12(.api.DelCourseSwapRequestByIDListRequest\x1a\n" +
 	".api.Empty\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/course-swap-requestB\rZ\vpgo/api;apib\x06proto3"
 
@@ -441,31 +534,37 @@ func file_schoolService_gen_proto_rawDescGZIP() []byte {
 	return file_schoolService_gen_proto_rawDescData
 }
 
-var file_schoolService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_schoolService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_schoolService_gen_proto_goTypes = []any{
 	(*CourseSwapRequestInfo)(nil),               // 0: api.CourseSwapRequestInfo
 	(*AddCourseSwapRequestRequest)(nil),         // 1: api.AddCourseSwapRequestRequest
 	(*AddCourseSwapRequestResponse)(nil),        // 2: api.AddCourseSwapRequestResponse
 	(*GetCourseSwapRequestListRequest)(nil),     // 3: api.GetCourseSwapRequestListRequest
 	(*GetCourseSwapRequestListResponse)(nil),    // 4: api.GetCourseSwapRequestListResponse
-	(*DelCourseSwapRequestByIDListRequest)(nil), // 5: api.DelCourseSwapRequestByIDListRequest
-	(*Empty)(nil), // 6: api.Empty
+	(*UpdateCourseSwapRequestRequest)(nil),      // 5: api.UpdateCourseSwapRequestRequest
+	(*UpdateCourseSwapRequestResponse)(nil),     // 6: api.UpdateCourseSwapRequestResponse
+	(*DelCourseSwapRequestByIDListRequest)(nil), // 7: api.DelCourseSwapRequestByIDListRequest
+	(*Empty)(nil), // 8: api.Empty
 }
 var file_schoolService_gen_proto_depIdxs = []int32{
 	0, // 0: api.AddCourseSwapRequestRequest.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
 	0, // 1: api.AddCourseSwapRequestResponse.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
 	0, // 2: api.GetCourseSwapRequestListResponse.courseSwapRequestList:type_name -> api.CourseSwapRequestInfo
-	1, // 3: api.schoolCURD.AddCourseSwapRequest:input_type -> api.AddCourseSwapRequestRequest
-	3, // 4: api.schoolCURD.GetCourseSwapRequestList:input_type -> api.GetCourseSwapRequestListRequest
-	5, // 5: api.schoolCURD.DelCourseSwapRequestByIDList:input_type -> api.DelCourseSwapRequestByIDListRequest
-	2, // 6: api.schoolCURD.AddCourseSwapRequest:output_type -> api.AddCourseSwapRequestResponse
-	4, // 7: api.schoolCURD.GetCourseSwapRequestList:output_type -> api.GetCourseSwapRequestListResponse
-	6, // 8: api.schoolCURD.DelCourseSwapRequestByIDList:output_type -> api.Empty
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // 3: api.UpdateCourseSwapRequestRequest.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
+	0, // 4: api.UpdateCourseSwapRequestResponse.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
+	1, // 5: api.schoolCURD.AddCourseSwapRequest:input_type -> api.AddCourseSwapRequestRequest
+	3, // 6: api.schoolCURD.GetCourseSwapRequestList:input_type -> api.GetCourseSwapRequestListRequest
+	5, // 7: api.schoolCURD.UpdateCourseSwapRequest:input_type -> api.UpdateCourseSwapRequestRequest
+	7, // 8: api.schoolCURD.DelCourseSwapRequestByIDList:input_type -> api.DelCourseSwapRequestByIDListRequest
+	2, // 9: api.schoolCURD.AddCourseSwapRequest:output_type -> api.AddCourseSwapRequestResponse
+	4, // 10: api.schoolCURD.GetCourseSwapRequestList:output_type -> api.GetCourseSwapRequestListResponse
+	6, // 11: api.schoolCURD.UpdateCourseSwapRequest:output_type -> api.UpdateCourseSwapRequestResponse
+	8, // 12: api.schoolCURD.DelCourseSwapRequestByIDList:output_type -> api.Empty
+	9, // [9:13] is the sub-list for method output_type
+	5, // [5:9] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_schoolService_gen_proto_init() }
@@ -480,7 +579,7 @@ func file_schoolService_gen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_schoolService_gen_proto_rawDesc), len(file_schoolService_gen_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

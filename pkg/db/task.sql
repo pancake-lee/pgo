@@ -7,13 +7,13 @@ CREATE TABLE task (
     "task" varchar(100) NOT NULL,
     "status" int NOT NULL, 
     "estimate" int NOT NULL,
-    "start" time DEFAULT CURRENT_TIMESTAMP,
-    "end" time DEFAULT CURRENT_TIMESTAMP,
+    "start" timestamp DEFAULT CURRENT_TIMESTAMP,
+    "end" timestamp DEFAULT CURRENT_TIMESTAMP,
 
     "desc" varchar(5000) NOT NULL,
     "metadata" varchar(5000) NOT NULL, -- {k:v}
 
-    "create_time" time DEFAULT CURRENT_TIMESTAMP,
+    "create_time" timestamp DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY ("id")
 );
 

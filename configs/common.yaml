@@ -3,11 +3,11 @@ T4: "44"
 
 Http:
   Addr: "0.0.0.0:8000"
-  Timeout: 1
+  Timeout: 1000
 
 Grpc:
   Addr: "0.0.0.0:9000"
-  Timeout: 1
+  Timeout: 1000
 
 Pg:
   Host: "127.0.0.1"

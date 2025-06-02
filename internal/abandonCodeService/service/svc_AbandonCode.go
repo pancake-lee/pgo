@@ -1,5 +1,8 @@
 package service
 
+// MARK REPLACE IMPORT START
+// MARK REPLACE IMPORT END
+
 import (
 	"context"
 	"pgo/internal/abandonCodeService/data"
@@ -82,7 +85,30 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 	return resp, nil
 }
 
-// MARK REMOVE IF NO PRIMARY KEY START 3
+// MARK REMOVE IF NO PRIMARY KEY START
+
+func (s *AbandonCodeCURDServer) UpdateAbandonCode(
+	ctx context.Context, req *api.UpdateAbandonCodeRequest,
+) (resp *api.UpdateAbandonCodeResponse, err error) {
+	if req.AbandonCode == nil {
+		return nil, api.ErrorInvalidArgument("request is invalid")
+	}
+
+	do := DTO2DO_AbandonCode(req.AbandonCode)
+	err = data.AbandonCodeDAO.UpdateByIdx1(ctx, do)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = new(api.UpdateAbandonCodeResponse)
+	d, err := data.AbandonCodeDAO.GetByIdx1(ctx, req.AbandonCode.Idx1)
+	if err != nil {
+		return nil, err
+	}
+	resp.AbandonCode = DO2DTO_AbandonCode(d)
+	return resp, nil
+}
+
 func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
 ) (resp *api.Empty, err error) {
@@ -96,4 +122,4 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	return nil, nil
 }
 
-// MARK REMOVE IF NO PRIMARY KEY END 3
+// MARK REMOVE IF NO PRIMARY KEY END

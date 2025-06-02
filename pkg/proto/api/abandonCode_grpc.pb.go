@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AbandonCodeCURD_AddAbandonCode_FullMethodName           = "/api.abandonCodeCURD/AddAbandonCode"
 	AbandonCodeCURD_GetAbandonCodeList_FullMethodName       = "/api.abandonCodeCURD/GetAbandonCodeList"
+	AbandonCodeCURD_UpdateAbandonCode_FullMethodName        = "/api.abandonCodeCURD/UpdateAbandonCode"
 	AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
 )
 
@@ -36,6 +37,7 @@ type AbandonCodeCURDClient interface {
 	AddAbandonCode(ctx context.Context, in *AddAbandonCodeRequest, opts ...grpc.CallOption) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(ctx context.Context, in *GetAbandonCodeListRequest, opts ...grpc.CallOption) (*GetAbandonCodeListResponse, error)
 	// MARK REMOVE IF NO PRIMARY KEY START
+	UpdateAbandonCode(ctx context.Context, in *UpdateAbandonCodeRequest, opts ...grpc.CallOption) (*UpdateAbandonCodeResponse, error)
 	DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -67,6 +69,16 @@ func (c *abandonCodeCURDClient) GetAbandonCodeList(ctx context.Context, in *GetA
 	return out, nil
 }
 
+func (c *abandonCodeCURDClient) UpdateAbandonCode(ctx context.Context, in *UpdateAbandonCodeRequest, opts ...grpc.CallOption) (*UpdateAbandonCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAbandonCodeResponse)
+	err := c.cc.Invoke(ctx, AbandonCodeCURD_UpdateAbandonCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *abandonCodeCURDClient) DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -89,6 +101,7 @@ type AbandonCodeCURDServer interface {
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
 	// MARK REMOVE IF NO PRIMARY KEY START
+	UpdateAbandonCode(context.Context, *UpdateAbandonCodeRequest) (*UpdateAbandonCodeResponse, error)
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	mustEmbedUnimplementedAbandonCodeCURDServer()
 }
@@ -105,6 +118,9 @@ func (UnimplementedAbandonCodeCURDServer) AddAbandonCode(context.Context, *AddAb
 }
 func (UnimplementedAbandonCodeCURDServer) GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAbandonCodeList not implemented")
+}
+func (UnimplementedAbandonCodeCURDServer) UpdateAbandonCode(context.Context, *UpdateAbandonCodeRequest) (*UpdateAbandonCodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAbandonCode not implemented")
 }
 func (UnimplementedAbandonCodeCURDServer) DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelAbandonCodeByIdx1List not implemented")
@@ -166,6 +182,24 @@ func _AbandonCodeCURD_GetAbandonCodeList_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AbandonCodeCURD_UpdateAbandonCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAbandonCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AbandonCodeCURDServer).UpdateAbandonCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AbandonCodeCURD_UpdateAbandonCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AbandonCodeCURDServer).UpdateAbandonCode(ctx, req.(*UpdateAbandonCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelAbandonCodeByIdx1ListRequest)
 	if err := dec(in); err != nil {
@@ -198,6 +232,10 @@ var AbandonCodeCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAbandonCodeList",
 			Handler:    _AbandonCodeCURD_GetAbandonCodeList_Handler,
+		},
+		{
+			MethodName: "UpdateAbandonCode",
+			Handler:    _AbandonCodeCURD_UpdateAbandonCode_Handler,
 		},
 		{
 			MethodName: "DelAbandonCodeByIdx1List",

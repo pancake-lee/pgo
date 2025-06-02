@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationTaskCURDAddTask = "/api.taskCURD/AddTask"
 const OperationTaskCURDDelTaskByIDList = "/api.taskCURD/DelTaskByIDList"
 const OperationTaskCURDGetTaskList = "/api.taskCURD/GetTaskList"
+const OperationTaskCURDUpdateTask = "/api.taskCURD/UpdateTask"
 
 type TaskCURDHTTPServer interface {
 	// AddTask --------------------------------------------------
@@ -29,12 +30,14 @@ type TaskCURDHTTPServer interface {
 	AddTask(context.Context, *AddTaskRequest) (*AddTaskResponse, error)
 	DelTaskByIDList(context.Context, *DelTaskByIDListRequest) (*Empty, error)
 	GetTaskList(context.Context, *GetTaskListRequest) (*GetTaskListResponse, error)
+	UpdateTask(context.Context, *UpdateTaskRequest) (*UpdateTaskResponse, error)
 }
 
 func RegisterTaskCURDHTTPServer(s *http.Server, srv TaskCURDHTTPServer) {
 	r := s.Route("/")
 	r.POST("/task", _TaskCURD_AddTask0_HTTP_Handler(srv))
 	r.GET("/task", _TaskCURD_GetTaskList0_HTTP_Handler(srv))
+	r.PATCH("/task", _TaskCURD_UpdateTask0_HTTP_Handler(srv))
 	r.DELETE("/task", _TaskCURD_DelTaskByIDList0_HTTP_Handler(srv))
 }
 
@@ -79,6 +82,28 @@ func _TaskCURD_GetTaskList0_HTTP_Handler(srv TaskCURDHTTPServer) func(ctx http.C
 	}
 }
 
+func _TaskCURD_UpdateTask0_HTTP_Handler(srv TaskCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateTaskRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTaskCURDUpdateTask)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateTask(ctx, req.(*UpdateTaskRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateTaskResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _TaskCURD_DelTaskByIDList0_HTTP_Handler(srv TaskCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DelTaskByIDListRequest
@@ -102,6 +127,7 @@ type TaskCURDHTTPClient interface {
 	AddTask(ctx context.Context, req *AddTaskRequest, opts ...http.CallOption) (rsp *AddTaskResponse, err error)
 	DelTaskByIDList(ctx context.Context, req *DelTaskByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	GetTaskList(ctx context.Context, req *GetTaskListRequest, opts ...http.CallOption) (rsp *GetTaskListResponse, err error)
+	UpdateTask(ctx context.Context, req *UpdateTaskRequest, opts ...http.CallOption) (rsp *UpdateTaskResponse, err error)
 }
 
 type TaskCURDHTTPClientImpl struct {
@@ -145,6 +171,19 @@ func (c *TaskCURDHTTPClientImpl) GetTaskList(ctx context.Context, in *GetTaskLis
 	opts = append(opts, http.Operation(OperationTaskCURDGetTaskList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *TaskCURDHTTPClientImpl) UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...http.CallOption) (*UpdateTaskResponse, error) {
+	var out UpdateTaskResponse
+	pattern := "/task"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationTaskCURDUpdateTask))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

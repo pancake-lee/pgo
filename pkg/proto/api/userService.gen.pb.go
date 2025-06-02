@@ -254,6 +254,94 @@ func (x *GetUserListResponse) GetUserList() []*UserInfo {
 	return nil
 }
 
+type UpdateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *UserInfo              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserRequest) Reset() {
+	*x = UpdateUserRequest{}
+	mi := &file_userService_gen_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserRequest) ProtoMessage() {}
+
+func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
+func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UpdateUserRequest) GetUser() *UserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+type UpdateUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *UserInfo              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserResponse) Reset() {
+	*x = UpdateUserResponse{}
+	mi := &file_userService_gen_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserResponse) ProtoMessage() {}
+
+func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
+func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateUserResponse) GetUser() *UserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type DelUserByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
@@ -263,7 +351,7 @@ type DelUserByIDListRequest struct {
 
 func (x *DelUserByIDListRequest) Reset() {
 	*x = DelUserByIDListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[5]
+	mi := &file_userService_gen_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -275,7 +363,7 @@ func (x *DelUserByIDListRequest) String() string {
 func (*DelUserByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[5]
+	mi := &file_userService_gen_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -288,7 +376,7 @@ func (x *DelUserByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{5}
+	return file_userService_gen_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DelUserByIDListRequest) GetIDList() []int32 {
@@ -311,7 +399,7 @@ type UserDeptInfo struct {
 
 func (x *UserDeptInfo) Reset() {
 	*x = UserDeptInfo{}
-	mi := &file_userService_gen_proto_msgTypes[6]
+	mi := &file_userService_gen_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -323,7 +411,7 @@ func (x *UserDeptInfo) String() string {
 func (*UserDeptInfo) ProtoMessage() {}
 
 func (x *UserDeptInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[6]
+	mi := &file_userService_gen_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -336,7 +424,7 @@ func (x *UserDeptInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDeptInfo.ProtoReflect.Descriptor instead.
 func (*UserDeptInfo) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{6}
+	return file_userService_gen_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UserDeptInfo) GetID() int32 {
@@ -369,7 +457,7 @@ type AddUserDeptRequest struct {
 
 func (x *AddUserDeptRequest) Reset() {
 	*x = AddUserDeptRequest{}
-	mi := &file_userService_gen_proto_msgTypes[7]
+	mi := &file_userService_gen_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +469,7 @@ func (x *AddUserDeptRequest) String() string {
 func (*AddUserDeptRequest) ProtoMessage() {}
 
 func (x *AddUserDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[7]
+	mi := &file_userService_gen_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,7 +482,7 @@ func (x *AddUserDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptRequest.ProtoReflect.Descriptor instead.
 func (*AddUserDeptRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{7}
+	return file_userService_gen_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AddUserDeptRequest) GetUserDept() *UserDeptInfo {
@@ -413,7 +501,7 @@ type AddUserDeptResponse struct {
 
 func (x *AddUserDeptResponse) Reset() {
 	*x = AddUserDeptResponse{}
-	mi := &file_userService_gen_proto_msgTypes[8]
+	mi := &file_userService_gen_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -425,7 +513,7 @@ func (x *AddUserDeptResponse) String() string {
 func (*AddUserDeptResponse) ProtoMessage() {}
 
 func (x *AddUserDeptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[8]
+	mi := &file_userService_gen_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -438,7 +526,7 @@ func (x *AddUserDeptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptResponse.ProtoReflect.Descriptor instead.
 func (*AddUserDeptResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{8}
+	return file_userService_gen_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AddUserDeptResponse) GetUserDept() *UserDeptInfo {
@@ -457,7 +545,7 @@ type GetUserDeptListRequest struct {
 
 func (x *GetUserDeptListRequest) Reset() {
 	*x = GetUserDeptListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[9]
+	mi := &file_userService_gen_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -469,7 +557,7 @@ func (x *GetUserDeptListRequest) String() string {
 func (*GetUserDeptListRequest) ProtoMessage() {}
 
 func (x *GetUserDeptListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[9]
+	mi := &file_userService_gen_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -482,7 +570,7 @@ func (x *GetUserDeptListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{9}
+	return file_userService_gen_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetUserDeptListRequest) GetIDList() []int32 {
@@ -501,7 +589,7 @@ type GetUserDeptListResponse struct {
 
 func (x *GetUserDeptListResponse) Reset() {
 	*x = GetUserDeptListResponse{}
-	mi := &file_userService_gen_proto_msgTypes[10]
+	mi := &file_userService_gen_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +601,7 @@ func (x *GetUserDeptListResponse) String() string {
 func (*GetUserDeptListResponse) ProtoMessage() {}
 
 func (x *GetUserDeptListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[10]
+	mi := &file_userService_gen_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,12 +614,100 @@ func (x *GetUserDeptListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserDeptListResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{10}
+	return file_userService_gen_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUserDeptListResponse) GetUserDeptList() []*UserDeptInfo {
 	if x != nil {
 		return x.UserDeptList
+	}
+	return nil
+}
+
+type UpdateUserDeptRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserDept      *UserDeptInfo          `protobuf:"bytes,1,opt,name=userDept,proto3" json:"userDept,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserDeptRequest) Reset() {
+	*x = UpdateUserDeptRequest{}
+	mi := &file_userService_gen_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserDeptRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserDeptRequest) ProtoMessage() {}
+
+func (x *UpdateUserDeptRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserDeptRequest.ProtoReflect.Descriptor instead.
+func (*UpdateUserDeptRequest) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UpdateUserDeptRequest) GetUserDept() *UserDeptInfo {
+	if x != nil {
+		return x.UserDept
+	}
+	return nil
+}
+
+type UpdateUserDeptResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserDept      *UserDeptInfo          `protobuf:"bytes,1,opt,name=userDept,proto3" json:"userDept,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserDeptResponse) Reset() {
+	*x = UpdateUserDeptResponse{}
+	mi := &file_userService_gen_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserDeptResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserDeptResponse) ProtoMessage() {}
+
+func (x *UpdateUserDeptResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserDeptResponse.ProtoReflect.Descriptor instead.
+func (*UpdateUserDeptResponse) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateUserDeptResponse) GetUserDept() *UserDeptInfo {
+	if x != nil {
+		return x.UserDept
 	}
 	return nil
 }
@@ -545,7 +721,7 @@ type DelUserDeptByIDListRequest struct {
 
 func (x *DelUserDeptByIDListRequest) Reset() {
 	*x = DelUserDeptByIDListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[11]
+	mi := &file_userService_gen_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -557,7 +733,7 @@ func (x *DelUserDeptByIDListRequest) String() string {
 func (*DelUserDeptByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserDeptByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[11]
+	mi := &file_userService_gen_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,7 +746,7 @@ func (x *DelUserDeptByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserDeptByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserDeptByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{11}
+	return file_userService_gen_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DelUserDeptByIDListRequest) GetIDList() []int32 {
@@ -593,7 +769,7 @@ type UserDeptAssocInfo struct {
 
 func (x *UserDeptAssocInfo) Reset() {
 	*x = UserDeptAssocInfo{}
-	mi := &file_userService_gen_proto_msgTypes[12]
+	mi := &file_userService_gen_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -605,7 +781,7 @@ func (x *UserDeptAssocInfo) String() string {
 func (*UserDeptAssocInfo) ProtoMessage() {}
 
 func (x *UserDeptAssocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[12]
+	mi := &file_userService_gen_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -618,7 +794,7 @@ func (x *UserDeptAssocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDeptAssocInfo.ProtoReflect.Descriptor instead.
 func (*UserDeptAssocInfo) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{12}
+	return file_userService_gen_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UserDeptAssocInfo) GetUserID() int32 {
@@ -651,7 +827,7 @@ type AddUserDeptAssocRequest struct {
 
 func (x *AddUserDeptAssocRequest) Reset() {
 	*x = AddUserDeptAssocRequest{}
-	mi := &file_userService_gen_proto_msgTypes[13]
+	mi := &file_userService_gen_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +839,7 @@ func (x *AddUserDeptAssocRequest) String() string {
 func (*AddUserDeptAssocRequest) ProtoMessage() {}
 
 func (x *AddUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[13]
+	mi := &file_userService_gen_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +852,7 @@ func (x *AddUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptAssocRequest.ProtoReflect.Descriptor instead.
 func (*AddUserDeptAssocRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{13}
+	return file_userService_gen_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AddUserDeptAssocRequest) GetUserDeptAssoc() *UserDeptAssocInfo {
@@ -695,7 +871,7 @@ type AddUserDeptAssocResponse struct {
 
 func (x *AddUserDeptAssocResponse) Reset() {
 	*x = AddUserDeptAssocResponse{}
-	mi := &file_userService_gen_proto_msgTypes[14]
+	mi := &file_userService_gen_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -707,7 +883,7 @@ func (x *AddUserDeptAssocResponse) String() string {
 func (*AddUserDeptAssocResponse) ProtoMessage() {}
 
 func (x *AddUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[14]
+	mi := &file_userService_gen_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,7 +896,7 @@ func (x *AddUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptAssocResponse.ProtoReflect.Descriptor instead.
 func (*AddUserDeptAssocResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{14}
+	return file_userService_gen_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AddUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
@@ -738,7 +914,7 @@ type GetUserDeptAssocListRequest struct {
 
 func (x *GetUserDeptAssocListRequest) Reset() {
 	*x = GetUserDeptAssocListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[15]
+	mi := &file_userService_gen_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -750,7 +926,7 @@ func (x *GetUserDeptAssocListRequest) String() string {
 func (*GetUserDeptAssocListRequest) ProtoMessage() {}
 
 func (x *GetUserDeptAssocListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[15]
+	mi := &file_userService_gen_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -763,7 +939,7 @@ func (x *GetUserDeptAssocListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptAssocListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{15}
+	return file_userService_gen_proto_rawDescGZIP(), []int{19}
 }
 
 type GetUserDeptAssocListResponse struct {
@@ -775,7 +951,7 @@ type GetUserDeptAssocListResponse struct {
 
 func (x *GetUserDeptAssocListResponse) Reset() {
 	*x = GetUserDeptAssocListResponse{}
-	mi := &file_userService_gen_proto_msgTypes[16]
+	mi := &file_userService_gen_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -787,7 +963,7 @@ func (x *GetUserDeptAssocListResponse) String() string {
 func (*GetUserDeptAssocListResponse) ProtoMessage() {}
 
 func (x *GetUserDeptAssocListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[16]
+	mi := &file_userService_gen_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -800,7 +976,7 @@ func (x *GetUserDeptAssocListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptAssocListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserDeptAssocListResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{16}
+	return file_userService_gen_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetUserDeptAssocListResponse) GetUserDeptAssocList() []*UserDeptAssocInfo {
@@ -822,7 +998,7 @@ type UserJobInfo struct {
 
 func (x *UserJobInfo) Reset() {
 	*x = UserJobInfo{}
-	mi := &file_userService_gen_proto_msgTypes[17]
+	mi := &file_userService_gen_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +1010,7 @@ func (x *UserJobInfo) String() string {
 func (*UserJobInfo) ProtoMessage() {}
 
 func (x *UserJobInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[17]
+	mi := &file_userService_gen_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -847,7 +1023,7 @@ func (x *UserJobInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserJobInfo.ProtoReflect.Descriptor instead.
 func (*UserJobInfo) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{17}
+	return file_userService_gen_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UserJobInfo) GetID() int32 {
@@ -873,7 +1049,7 @@ type AddUserJobRequest struct {
 
 func (x *AddUserJobRequest) Reset() {
 	*x = AddUserJobRequest{}
-	mi := &file_userService_gen_proto_msgTypes[18]
+	mi := &file_userService_gen_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -885,7 +1061,7 @@ func (x *AddUserJobRequest) String() string {
 func (*AddUserJobRequest) ProtoMessage() {}
 
 func (x *AddUserJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[18]
+	mi := &file_userService_gen_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -898,7 +1074,7 @@ func (x *AddUserJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserJobRequest.ProtoReflect.Descriptor instead.
 func (*AddUserJobRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{18}
+	return file_userService_gen_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AddUserJobRequest) GetUserJob() *UserJobInfo {
@@ -917,7 +1093,7 @@ type AddUserJobResponse struct {
 
 func (x *AddUserJobResponse) Reset() {
 	*x = AddUserJobResponse{}
-	mi := &file_userService_gen_proto_msgTypes[19]
+	mi := &file_userService_gen_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +1105,7 @@ func (x *AddUserJobResponse) String() string {
 func (*AddUserJobResponse) ProtoMessage() {}
 
 func (x *AddUserJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[19]
+	mi := &file_userService_gen_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +1118,7 @@ func (x *AddUserJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserJobResponse.ProtoReflect.Descriptor instead.
 func (*AddUserJobResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{19}
+	return file_userService_gen_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AddUserJobResponse) GetUserJob() *UserJobInfo {
@@ -961,7 +1137,7 @@ type GetUserJobListRequest struct {
 
 func (x *GetUserJobListRequest) Reset() {
 	*x = GetUserJobListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[20]
+	mi := &file_userService_gen_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1149,7 @@ func (x *GetUserJobListRequest) String() string {
 func (*GetUserJobListRequest) ProtoMessage() {}
 
 func (x *GetUserJobListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[20]
+	mi := &file_userService_gen_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1162,7 @@ func (x *GetUserJobListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserJobListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserJobListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{20}
+	return file_userService_gen_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetUserJobListRequest) GetIDList() []int32 {
@@ -1005,7 +1181,7 @@ type GetUserJobListResponse struct {
 
 func (x *GetUserJobListResponse) Reset() {
 	*x = GetUserJobListResponse{}
-	mi := &file_userService_gen_proto_msgTypes[21]
+	mi := &file_userService_gen_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1017,7 +1193,7 @@ func (x *GetUserJobListResponse) String() string {
 func (*GetUserJobListResponse) ProtoMessage() {}
 
 func (x *GetUserJobListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[21]
+	mi := &file_userService_gen_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1030,12 +1206,100 @@ func (x *GetUserJobListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserJobListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserJobListResponse) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{21}
+	return file_userService_gen_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetUserJobListResponse) GetUserJobList() []*UserJobInfo {
 	if x != nil {
 		return x.UserJobList
+	}
+	return nil
+}
+
+type UpdateUserJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserJob       *UserJobInfo           `protobuf:"bytes,1,opt,name=userJob,proto3" json:"userJob,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserJobRequest) Reset() {
+	*x = UpdateUserJobRequest{}
+	mi := &file_userService_gen_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserJobRequest) ProtoMessage() {}
+
+func (x *UpdateUserJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserJobRequest.ProtoReflect.Descriptor instead.
+func (*UpdateUserJobRequest) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *UpdateUserJobRequest) GetUserJob() *UserJobInfo {
+	if x != nil {
+		return x.UserJob
+	}
+	return nil
+}
+
+type UpdateUserJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserJob       *UserJobInfo           `protobuf:"bytes,1,opt,name=userJob,proto3" json:"userJob,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserJobResponse) Reset() {
+	*x = UpdateUserJobResponse{}
+	mi := &file_userService_gen_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserJobResponse) ProtoMessage() {}
+
+func (x *UpdateUserJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_gen_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserJobResponse.ProtoReflect.Descriptor instead.
+func (*UpdateUserJobResponse) Descriptor() ([]byte, []int) {
+	return file_userService_gen_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *UpdateUserJobResponse) GetUserJob() *UserJobInfo {
+	if x != nil {
+		return x.UserJob
 	}
 	return nil
 }
@@ -1049,7 +1313,7 @@ type DelUserJobByIDListRequest struct {
 
 func (x *DelUserJobByIDListRequest) Reset() {
 	*x = DelUserJobByIDListRequest{}
-	mi := &file_userService_gen_proto_msgTypes[22]
+	mi := &file_userService_gen_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1061,7 +1325,7 @@ func (x *DelUserJobByIDListRequest) String() string {
 func (*DelUserJobByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserJobByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_userService_gen_proto_msgTypes[22]
+	mi := &file_userService_gen_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1074,7 +1338,7 @@ func (x *DelUserJobByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserJobByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserJobByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_userService_gen_proto_rawDescGZIP(), []int{22}
+	return file_userService_gen_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DelUserJobByIDListRequest) GetIDList() []int32 {
@@ -1099,7 +1363,11 @@ const file_userService_gen_proto_rawDesc = "" +
 	"\x12GetUserListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"@\n" +
 	"\x13GetUserListResponse\x12)\n" +
-	"\buserList\x18\x01 \x03(\v2\r.api.UserInfoR\buserList\"0\n" +
+	"\buserList\x18\x01 \x03(\v2\r.api.UserInfoR\buserList\"6\n" +
+	"\x11UpdateUserRequest\x12!\n" +
+	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"7\n" +
+	"\x12UpdateUserResponse\x12!\n" +
+	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"0\n" +
 	"\x16DelUserByIDListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"V\n" +
 	"\fUserDeptInfo\x12\x0e\n" +
@@ -1113,7 +1381,11 @@ const file_userService_gen_proto_rawDesc = "" +
 	"\x16GetUserDeptListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"P\n" +
 	"\x17GetUserDeptListResponse\x125\n" +
-	"\fuserDeptList\x18\x01 \x03(\v2\x11.api.UserDeptInfoR\fuserDeptList\"4\n" +
+	"\fuserDeptList\x18\x01 \x03(\v2\x11.api.UserDeptInfoR\fuserDeptList\"F\n" +
+	"\x15UpdateUserDeptRequest\x12-\n" +
+	"\buserDept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"G\n" +
+	"\x16UpdateUserDeptResponse\x12-\n" +
+	"\buserDept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"4\n" +
 	"\x1aDelUserDeptByIDListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"Y\n" +
 	"\x11UserDeptAssocInfo\x12\x16\n" +
@@ -1137,18 +1409,27 @@ const file_userService_gen_proto_rawDesc = "" +
 	"\x15GetUserJobListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"L\n" +
 	"\x16GetUserJobListResponse\x122\n" +
-	"\vuserJobList\x18\x01 \x03(\v2\x10.api.UserJobInfoR\vuserJobList\"3\n" +
+	"\vuserJobList\x18\x01 \x03(\v2\x10.api.UserJobInfoR\vuserJobList\"B\n" +
+	"\x14UpdateUserJobRequest\x12*\n" +
+	"\auserJob\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"C\n" +
+	"\x15UpdateUserJobResponse\x12*\n" +
+	"\auserJob\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"3\n" +
 	"\x19DelUserJobByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\xee\a\n" +
+	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\xff\t\n" +
 	"\buserCURD\x12F\n" +
 	"\aAddUser\x12\x13.api.AddUserRequest\x1a\x14.api.AddUserResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
 	":\x01*\"\x05/user\x12O\n" +
-	"\vGetUserList\x12\x17.api.GetUserListRequest\x1a\x18.api.GetUserListResponse\"\r\x82\xd3\xe4\x93\x02\a\x12\x05/user\x12I\n" +
+	"\vGetUserList\x12\x17.api.GetUserListRequest\x1a\x18.api.GetUserListResponse\"\r\x82\xd3\xe4\x93\x02\a\x12\x05/user\x12O\n" +
+	"\n" +
+	"UpdateUser\x12\x16.api.UpdateUserRequest\x1a\x17.api.UpdateUserResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
+	":\x01*2\x05/user\x12I\n" +
 	"\x0fDelUserByIDList\x12\x1b.api.DelUserByIDListRequest\x1a\n" +
 	".api.Empty\"\r\x82\xd3\xe4\x93\x02\a*\x05/user\x12W\n" +
 	"\vAddUserDept\x12\x17.api.AddUserDeptRequest\x1a\x18.api.AddUserDeptResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/user-dept\x12`\n" +
 	"\x0fGetUserDeptList\x12\x1b.api.GetUserDeptListRequest\x1a\x1c.api.GetUserDeptListResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
+	"/user-dept\x12`\n" +
+	"\x0eUpdateUserDept\x12\x1a.api.UpdateUserDeptRequest\x1a\x1b.api.UpdateUserDeptResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*2\n" +
 	"/user-dept\x12V\n" +
 	"\x13DelUserDeptByIDList\x12\x1f.api.DelUserDeptByIDListRequest\x1a\n" +
 	".api.Empty\"\x12\x82\xd3\xe4\x93\x02\f*\n" +
@@ -1157,7 +1438,8 @@ const file_userService_gen_proto_rawDesc = "" +
 	"\x14GetUserDeptAssocList\x12 .api.GetUserDeptAssocListRequest\x1a!.api.GetUserDeptAssocListResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/user-dept-assoc\x12S\n" +
 	"\n" +
 	"AddUserJob\x12\x16.api.AddUserJobRequest\x1a\x17.api.AddUserJobResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/user-job\x12\\\n" +
-	"\x0eGetUserJobList\x12\x1a.api.GetUserJobListRequest\x1a\x1b.api.GetUserJobListResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/user-job\x12S\n" +
+	"\x0eGetUserJobList\x12\x1a.api.GetUserJobListRequest\x1a\x1b.api.GetUserJobListResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/user-job\x12\\\n" +
+	"\rUpdateUserJob\x12\x19.api.UpdateUserJobRequest\x1a\x1a.api.UpdateUserJobResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*2\t/user-job\x12S\n" +
 	"\x12DelUserJobByIDList\x12\x1e.api.DelUserJobByIDListRequest\x1a\n" +
 	".api.Empty\"\x11\x82\xd3\xe4\x93\x02\v*\t/user-jobB\rZ\vpgo/api;apib\x06proto3"
 
@@ -1173,73 +1455,91 @@ func file_userService_gen_proto_rawDescGZIP() []byte {
 	return file_userService_gen_proto_rawDescData
 }
 
-var file_userService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_userService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_userService_gen_proto_goTypes = []any{
 	(*UserInfo)(nil),                     // 0: api.UserInfo
 	(*AddUserRequest)(nil),               // 1: api.AddUserRequest
 	(*AddUserResponse)(nil),              // 2: api.AddUserResponse
 	(*GetUserListRequest)(nil),           // 3: api.GetUserListRequest
 	(*GetUserListResponse)(nil),          // 4: api.GetUserListResponse
-	(*DelUserByIDListRequest)(nil),       // 5: api.DelUserByIDListRequest
-	(*UserDeptInfo)(nil),                 // 6: api.UserDeptInfo
-	(*AddUserDeptRequest)(nil),           // 7: api.AddUserDeptRequest
-	(*AddUserDeptResponse)(nil),          // 8: api.AddUserDeptResponse
-	(*GetUserDeptListRequest)(nil),       // 9: api.GetUserDeptListRequest
-	(*GetUserDeptListResponse)(nil),      // 10: api.GetUserDeptListResponse
-	(*DelUserDeptByIDListRequest)(nil),   // 11: api.DelUserDeptByIDListRequest
-	(*UserDeptAssocInfo)(nil),            // 12: api.UserDeptAssocInfo
-	(*AddUserDeptAssocRequest)(nil),      // 13: api.AddUserDeptAssocRequest
-	(*AddUserDeptAssocResponse)(nil),     // 14: api.AddUserDeptAssocResponse
-	(*GetUserDeptAssocListRequest)(nil),  // 15: api.GetUserDeptAssocListRequest
-	(*GetUserDeptAssocListResponse)(nil), // 16: api.GetUserDeptAssocListResponse
-	(*UserJobInfo)(nil),                  // 17: api.UserJobInfo
-	(*AddUserJobRequest)(nil),            // 18: api.AddUserJobRequest
-	(*AddUserJobResponse)(nil),           // 19: api.AddUserJobResponse
-	(*GetUserJobListRequest)(nil),        // 20: api.GetUserJobListRequest
-	(*GetUserJobListResponse)(nil),       // 21: api.GetUserJobListResponse
-	(*DelUserJobByIDListRequest)(nil),    // 22: api.DelUserJobByIDListRequest
-	(*Empty)(nil),                        // 23: api.Empty
+	(*UpdateUserRequest)(nil),            // 5: api.UpdateUserRequest
+	(*UpdateUserResponse)(nil),           // 6: api.UpdateUserResponse
+	(*DelUserByIDListRequest)(nil),       // 7: api.DelUserByIDListRequest
+	(*UserDeptInfo)(nil),                 // 8: api.UserDeptInfo
+	(*AddUserDeptRequest)(nil),           // 9: api.AddUserDeptRequest
+	(*AddUserDeptResponse)(nil),          // 10: api.AddUserDeptResponse
+	(*GetUserDeptListRequest)(nil),       // 11: api.GetUserDeptListRequest
+	(*GetUserDeptListResponse)(nil),      // 12: api.GetUserDeptListResponse
+	(*UpdateUserDeptRequest)(nil),        // 13: api.UpdateUserDeptRequest
+	(*UpdateUserDeptResponse)(nil),       // 14: api.UpdateUserDeptResponse
+	(*DelUserDeptByIDListRequest)(nil),   // 15: api.DelUserDeptByIDListRequest
+	(*UserDeptAssocInfo)(nil),            // 16: api.UserDeptAssocInfo
+	(*AddUserDeptAssocRequest)(nil),      // 17: api.AddUserDeptAssocRequest
+	(*AddUserDeptAssocResponse)(nil),     // 18: api.AddUserDeptAssocResponse
+	(*GetUserDeptAssocListRequest)(nil),  // 19: api.GetUserDeptAssocListRequest
+	(*GetUserDeptAssocListResponse)(nil), // 20: api.GetUserDeptAssocListResponse
+	(*UserJobInfo)(nil),                  // 21: api.UserJobInfo
+	(*AddUserJobRequest)(nil),            // 22: api.AddUserJobRequest
+	(*AddUserJobResponse)(nil),           // 23: api.AddUserJobResponse
+	(*GetUserJobListRequest)(nil),        // 24: api.GetUserJobListRequest
+	(*GetUserJobListResponse)(nil),       // 25: api.GetUserJobListResponse
+	(*UpdateUserJobRequest)(nil),         // 26: api.UpdateUserJobRequest
+	(*UpdateUserJobResponse)(nil),        // 27: api.UpdateUserJobResponse
+	(*DelUserJobByIDListRequest)(nil),    // 28: api.DelUserJobByIDListRequest
+	(*Empty)(nil),                        // 29: api.Empty
 }
 var file_userService_gen_proto_depIdxs = []int32{
 	0,  // 0: api.AddUserRequest.user:type_name -> api.UserInfo
 	0,  // 1: api.AddUserResponse.user:type_name -> api.UserInfo
 	0,  // 2: api.GetUserListResponse.userList:type_name -> api.UserInfo
-	6,  // 3: api.AddUserDeptRequest.userDept:type_name -> api.UserDeptInfo
-	6,  // 4: api.AddUserDeptResponse.userDept:type_name -> api.UserDeptInfo
-	6,  // 5: api.GetUserDeptListResponse.userDeptList:type_name -> api.UserDeptInfo
-	12, // 6: api.AddUserDeptAssocRequest.userDeptAssoc:type_name -> api.UserDeptAssocInfo
-	12, // 7: api.AddUserDeptAssocResponse.userDeptAssoc:type_name -> api.UserDeptAssocInfo
-	12, // 8: api.GetUserDeptAssocListResponse.userDeptAssocList:type_name -> api.UserDeptAssocInfo
-	17, // 9: api.AddUserJobRequest.userJob:type_name -> api.UserJobInfo
-	17, // 10: api.AddUserJobResponse.userJob:type_name -> api.UserJobInfo
-	17, // 11: api.GetUserJobListResponse.userJobList:type_name -> api.UserJobInfo
-	1,  // 12: api.userCURD.AddUser:input_type -> api.AddUserRequest
-	3,  // 13: api.userCURD.GetUserList:input_type -> api.GetUserListRequest
-	5,  // 14: api.userCURD.DelUserByIDList:input_type -> api.DelUserByIDListRequest
-	7,  // 15: api.userCURD.AddUserDept:input_type -> api.AddUserDeptRequest
-	9,  // 16: api.userCURD.GetUserDeptList:input_type -> api.GetUserDeptListRequest
-	11, // 17: api.userCURD.DelUserDeptByIDList:input_type -> api.DelUserDeptByIDListRequest
-	13, // 18: api.userCURD.AddUserDeptAssoc:input_type -> api.AddUserDeptAssocRequest
-	15, // 19: api.userCURD.GetUserDeptAssocList:input_type -> api.GetUserDeptAssocListRequest
-	18, // 20: api.userCURD.AddUserJob:input_type -> api.AddUserJobRequest
-	20, // 21: api.userCURD.GetUserJobList:input_type -> api.GetUserJobListRequest
-	22, // 22: api.userCURD.DelUserJobByIDList:input_type -> api.DelUserJobByIDListRequest
-	2,  // 23: api.userCURD.AddUser:output_type -> api.AddUserResponse
-	4,  // 24: api.userCURD.GetUserList:output_type -> api.GetUserListResponse
-	23, // 25: api.userCURD.DelUserByIDList:output_type -> api.Empty
-	8,  // 26: api.userCURD.AddUserDept:output_type -> api.AddUserDeptResponse
-	10, // 27: api.userCURD.GetUserDeptList:output_type -> api.GetUserDeptListResponse
-	23, // 28: api.userCURD.DelUserDeptByIDList:output_type -> api.Empty
-	14, // 29: api.userCURD.AddUserDeptAssoc:output_type -> api.AddUserDeptAssocResponse
-	16, // 30: api.userCURD.GetUserDeptAssocList:output_type -> api.GetUserDeptAssocListResponse
-	19, // 31: api.userCURD.AddUserJob:output_type -> api.AddUserJobResponse
-	21, // 32: api.userCURD.GetUserJobList:output_type -> api.GetUserJobListResponse
-	23, // 33: api.userCURD.DelUserJobByIDList:output_type -> api.Empty
-	23, // [23:34] is the sub-list for method output_type
-	12, // [12:23] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	0,  // 3: api.UpdateUserRequest.user:type_name -> api.UserInfo
+	0,  // 4: api.UpdateUserResponse.user:type_name -> api.UserInfo
+	8,  // 5: api.AddUserDeptRequest.userDept:type_name -> api.UserDeptInfo
+	8,  // 6: api.AddUserDeptResponse.userDept:type_name -> api.UserDeptInfo
+	8,  // 7: api.GetUserDeptListResponse.userDeptList:type_name -> api.UserDeptInfo
+	8,  // 8: api.UpdateUserDeptRequest.userDept:type_name -> api.UserDeptInfo
+	8,  // 9: api.UpdateUserDeptResponse.userDept:type_name -> api.UserDeptInfo
+	16, // 10: api.AddUserDeptAssocRequest.userDeptAssoc:type_name -> api.UserDeptAssocInfo
+	16, // 11: api.AddUserDeptAssocResponse.userDeptAssoc:type_name -> api.UserDeptAssocInfo
+	16, // 12: api.GetUserDeptAssocListResponse.userDeptAssocList:type_name -> api.UserDeptAssocInfo
+	21, // 13: api.AddUserJobRequest.userJob:type_name -> api.UserJobInfo
+	21, // 14: api.AddUserJobResponse.userJob:type_name -> api.UserJobInfo
+	21, // 15: api.GetUserJobListResponse.userJobList:type_name -> api.UserJobInfo
+	21, // 16: api.UpdateUserJobRequest.userJob:type_name -> api.UserJobInfo
+	21, // 17: api.UpdateUserJobResponse.userJob:type_name -> api.UserJobInfo
+	1,  // 18: api.userCURD.AddUser:input_type -> api.AddUserRequest
+	3,  // 19: api.userCURD.GetUserList:input_type -> api.GetUserListRequest
+	5,  // 20: api.userCURD.UpdateUser:input_type -> api.UpdateUserRequest
+	7,  // 21: api.userCURD.DelUserByIDList:input_type -> api.DelUserByIDListRequest
+	9,  // 22: api.userCURD.AddUserDept:input_type -> api.AddUserDeptRequest
+	11, // 23: api.userCURD.GetUserDeptList:input_type -> api.GetUserDeptListRequest
+	13, // 24: api.userCURD.UpdateUserDept:input_type -> api.UpdateUserDeptRequest
+	15, // 25: api.userCURD.DelUserDeptByIDList:input_type -> api.DelUserDeptByIDListRequest
+	17, // 26: api.userCURD.AddUserDeptAssoc:input_type -> api.AddUserDeptAssocRequest
+	19, // 27: api.userCURD.GetUserDeptAssocList:input_type -> api.GetUserDeptAssocListRequest
+	22, // 28: api.userCURD.AddUserJob:input_type -> api.AddUserJobRequest
+	24, // 29: api.userCURD.GetUserJobList:input_type -> api.GetUserJobListRequest
+	26, // 30: api.userCURD.UpdateUserJob:input_type -> api.UpdateUserJobRequest
+	28, // 31: api.userCURD.DelUserJobByIDList:input_type -> api.DelUserJobByIDListRequest
+	2,  // 32: api.userCURD.AddUser:output_type -> api.AddUserResponse
+	4,  // 33: api.userCURD.GetUserList:output_type -> api.GetUserListResponse
+	6,  // 34: api.userCURD.UpdateUser:output_type -> api.UpdateUserResponse
+	29, // 35: api.userCURD.DelUserByIDList:output_type -> api.Empty
+	10, // 36: api.userCURD.AddUserDept:output_type -> api.AddUserDeptResponse
+	12, // 37: api.userCURD.GetUserDeptList:output_type -> api.GetUserDeptListResponse
+	14, // 38: api.userCURD.UpdateUserDept:output_type -> api.UpdateUserDeptResponse
+	29, // 39: api.userCURD.DelUserDeptByIDList:output_type -> api.Empty
+	18, // 40: api.userCURD.AddUserDeptAssoc:output_type -> api.AddUserDeptAssocResponse
+	20, // 41: api.userCURD.GetUserDeptAssocList:output_type -> api.GetUserDeptAssocListResponse
+	23, // 42: api.userCURD.AddUserJob:output_type -> api.AddUserJobResponse
+	25, // 43: api.userCURD.GetUserJobList:output_type -> api.GetUserJobListResponse
+	27, // 44: api.userCURD.UpdateUserJob:output_type -> api.UpdateUserJobResponse
+	29, // 45: api.userCURD.DelUserJobByIDList:output_type -> api.Empty
+	32, // [32:46] is the sub-list for method output_type
+	18, // [18:32] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_userService_gen_proto_init() }
@@ -1254,7 +1554,7 @@ func file_userService_gen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_userService_gen_proto_rawDesc), len(file_userService_gen_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

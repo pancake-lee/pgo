@@ -30,6 +30,9 @@ const OperationUserCURDGetUserDeptAssocList = "/api.userCURD/GetUserDeptAssocLis
 const OperationUserCURDGetUserDeptList = "/api.userCURD/GetUserDeptList"
 const OperationUserCURDGetUserJobList = "/api.userCURD/GetUserJobList"
 const OperationUserCURDGetUserList = "/api.userCURD/GetUserList"
+const OperationUserCURDUpdateUser = "/api.userCURD/UpdateUser"
+const OperationUserCURDUpdateUserDept = "/api.userCURD/UpdateUserDept"
+const OperationUserCURDUpdateUserJob = "/api.userCURD/UpdateUserJob"
 
 type UserCURDHTTPServer interface {
 	// AddUser --------------------------------------------------
@@ -51,20 +54,26 @@ type UserCURDHTTPServer interface {
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	UpdateUserDept(context.Context, *UpdateUserDeptRequest) (*UpdateUserDeptResponse, error)
+	UpdateUserJob(context.Context, *UpdateUserJobRequest) (*UpdateUserJobResponse, error)
 }
 
 func RegisterUserCURDHTTPServer(s *http.Server, srv UserCURDHTTPServer) {
 	r := s.Route("/")
 	r.POST("/user", _UserCURD_AddUser0_HTTP_Handler(srv))
 	r.GET("/user", _UserCURD_GetUserList0_HTTP_Handler(srv))
+	r.PATCH("/user", _UserCURD_UpdateUser0_HTTP_Handler(srv))
 	r.DELETE("/user", _UserCURD_DelUserByIDList0_HTTP_Handler(srv))
 	r.POST("/user-dept", _UserCURD_AddUserDept0_HTTP_Handler(srv))
 	r.GET("/user-dept", _UserCURD_GetUserDeptList0_HTTP_Handler(srv))
+	r.PATCH("/user-dept", _UserCURD_UpdateUserDept0_HTTP_Handler(srv))
 	r.DELETE("/user-dept", _UserCURD_DelUserDeptByIDList0_HTTP_Handler(srv))
 	r.POST("/user-dept-assoc", _UserCURD_AddUserDeptAssoc0_HTTP_Handler(srv))
 	r.GET("/user-dept-assoc", _UserCURD_GetUserDeptAssocList0_HTTP_Handler(srv))
 	r.POST("/user-job", _UserCURD_AddUserJob0_HTTP_Handler(srv))
 	r.GET("/user-job", _UserCURD_GetUserJobList0_HTTP_Handler(srv))
+	r.PATCH("/user-job", _UserCURD_UpdateUserJob0_HTTP_Handler(srv))
 	r.DELETE("/user-job", _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv))
 }
 
@@ -105,6 +114,28 @@ func _UserCURD_GetUserList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.C
 			return err
 		}
 		reply := out.(*GetUserListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_UpdateUser0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDUpdateUser)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUser(ctx, req.(*UpdateUserRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateUserResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -165,6 +196,28 @@ func _UserCURD_GetUserDeptList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx ht
 			return err
 		}
 		reply := out.(*GetUserDeptListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_UpdateUserDept0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserDeptRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDUpdateUserDept)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUserDept(ctx, req.(*UpdateUserDeptRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateUserDeptResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -270,6 +323,28 @@ func _UserCURD_GetUserJobList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx htt
 	}
 }
 
+func _UserCURD_UpdateUserJob0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserJobRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDUpdateUserJob)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUserJob(ctx, req.(*UpdateUserJobRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateUserJobResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DelUserJobByIDListRequest
@@ -301,6 +376,9 @@ type UserCURDHTTPClient interface {
 	GetUserDeptList(ctx context.Context, req *GetUserDeptListRequest, opts ...http.CallOption) (rsp *GetUserDeptListResponse, err error)
 	GetUserJobList(ctx context.Context, req *GetUserJobListRequest, opts ...http.CallOption) (rsp *GetUserJobListResponse, err error)
 	GetUserList(ctx context.Context, req *GetUserListRequest, opts ...http.CallOption) (rsp *GetUserListResponse, err error)
+	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UpdateUserResponse, err error)
+	UpdateUserDept(ctx context.Context, req *UpdateUserDeptRequest, opts ...http.CallOption) (rsp *UpdateUserDeptResponse, err error)
+	UpdateUserJob(ctx context.Context, req *UpdateUserJobRequest, opts ...http.CallOption) (rsp *UpdateUserJobResponse, err error)
 }
 
 type UserCURDHTTPClientImpl struct {
@@ -448,6 +526,45 @@ func (c *UserCURDHTTPClientImpl) GetUserList(ctx context.Context, in *GetUserLis
 	opts = append(opts, http.Operation(OperationUserCURDGetUserList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...http.CallOption) (*UpdateUserResponse, error) {
+	var out UpdateUserResponse
+	pattern := "/user"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDUpdateUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) UpdateUserDept(ctx context.Context, in *UpdateUserDeptRequest, opts ...http.CallOption) (*UpdateUserDeptResponse, error) {
+	var out UpdateUserDeptResponse
+	pattern := "/user-dept"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDUpdateUserDept))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) UpdateUserJob(ctx context.Context, in *UpdateUserJobRequest, opts ...http.CallOption) (*UpdateUserJobResponse, error) {
+	var out UpdateUserJobResponse
+	pattern := "/user-job"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserCURDUpdateUserJob))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

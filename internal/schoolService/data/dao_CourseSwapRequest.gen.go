@@ -37,6 +37,17 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 	return courseSwapRequestList, nil
 }
 
+func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapRequestDO) error {
+	if do.ID == 0 {
+		return errors.New("param is invalid")
+	}
+	q := db.GetPG().CourseSwapRequest
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func (*courseSwapRequestDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {

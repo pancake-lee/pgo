@@ -2,6 +2,7 @@
 
 package service
 
+
 import (
 	"context"
 	"pgo/internal/userService/data"
@@ -75,6 +76,29 @@ func (s *UserCURDServer) GetUserDeptList(
 	for _, data := range dataList {
 		resp.UserDeptList = append(resp.UserDeptList, DO2DTO_UserDept(data))
 	}
+	return resp, nil
+}
+
+
+func (s *UserCURDServer) UpdateUserDept(
+	ctx context.Context, req *api.UpdateUserDeptRequest,
+) (resp *api.UpdateUserDeptResponse, err error) {
+	if req.UserDept == nil {
+		return nil, api.ErrorInvalidArgument("request is invalid")
+	}
+
+	do := DTO2DO_UserDept(req.UserDept)
+	err = data.UserDeptDAO.UpdateByID(ctx, do)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = new(api.UpdateUserDeptResponse)
+	d, err := data.UserDeptDAO.GetByID(ctx, req.UserDept.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.UserDept = DO2DTO_UserDept(d)
 	return resp, nil
 }
 

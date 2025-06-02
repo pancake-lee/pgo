@@ -51,7 +51,6 @@ paths:
         delete:
             tags:
                 - AbandonCodeCURD
-            description: MARK REMOVE IF NO PRIMARY KEY START
             operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
             parameters:
                 - name: idx1List
@@ -69,6 +68,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - AbandonCodeCURD
+            description: MARK REMOVE IF NO PRIMARY KEY START
+            operationId: AbandonCodeCURD_UpdateAbandonCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateAbandonCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateAbandonCodeResponse'
     /course-swap-request:
         get:
             tags:
@@ -128,6 +145,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - SchoolCURD
+            operationId: SchoolCURD_UpdateCourseSwapRequest
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateCourseSwapRequestRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateCourseSwapRequestResponse'
     /task:
         get:
             tags:
@@ -187,6 +221,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - TaskCURD
+            operationId: TaskCURD_UpdateTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateTaskResponse'
     /user:
         get:
             tags:
@@ -323,6 +374,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserDept
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserDeptRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserDeptResponse'
     /user-dept-assoc:
         get:
             tags:
@@ -437,6 +505,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserJob
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserJobRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserJobResponse'
     /user/token:
         post:
             tags:
@@ -676,6 +761,66 @@ components:
             description: |-
                 --------------------------------------------------
                  tbl : task
+        api.UpdateAbandonCodeRequest:
+            type: object
+            properties:
+                abandonCode:
+                    $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.UpdateAbandonCodeResponse:
+            type: object
+            properties:
+                abandonCode:
+                    $ref: '#/components/schemas/api.AbandonCodeInfo'
+        api.UpdateCourseSwapRequestRequest:
+            type: object
+            properties:
+                courseSwapRequest:
+                    $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.UpdateCourseSwapRequestResponse:
+            type: object
+            properties:
+                courseSwapRequest:
+                    $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.UpdateTaskRequest:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/api.TaskInfo'
+        api.UpdateTaskResponse:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/api.TaskInfo'
+        api.UpdateUserDeptRequest:
+            type: object
+            properties:
+                userDept:
+                    $ref: '#/components/schemas/api.UserDeptInfo'
+        api.UpdateUserDeptResponse:
+            type: object
+            properties:
+                userDept:
+                    $ref: '#/components/schemas/api.UserDeptInfo'
+        api.UpdateUserJobRequest:
+            type: object
+            properties:
+                userJob:
+                    $ref: '#/components/schemas/api.UserJobInfo'
+        api.UpdateUserJobResponse:
+            type: object
+            properties:
+                userJob:
+                    $ref: '#/components/schemas/api.UserJobInfo'
+        api.UpdateUserRequest:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
+        api.UpdateUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/api.UserInfo'
         api.UserDeptAssocInfo:
             type: object
             properties:
@@ -737,3 +882,6 @@ tags:
       description: 用户服务模块
     - name: UserCURD
       description: '--------------------------------------------------'
+servers: 
+    - description: IN Gen2 Open API 
+      url: http://127.0.0.1:8000 

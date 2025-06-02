@@ -21,6 +21,12 @@ service taskCURD { // 该命名应该全文唯一
             get: "/task"
         };
     }
+    rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {
+        option (google.api.http) = {
+            patch: "/task"
+            body: "*"
+        };
+    }
     rpc DelTaskByIDList (DelTaskByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/task"
@@ -37,11 +43,11 @@ message TaskInfo {
     string task = 3;
     int32 status = 4;
     int32 estimate = 5;
-    string start = 6;
-    string end = 7;
+    int64 start = 6;
+    int64 end = 7;
     string desc = 8;
     string metadata = 9;
-    string createTime = 10;
+    int64 createTime = 10;
 }
 
 message AddTaskRequest {
@@ -57,6 +63,15 @@ message GetTaskListRequest {
 }
 message GetTaskListResponse {
     repeated TaskInfo taskList = 1;
+}
+
+
+message UpdateTaskRequest {
+    TaskInfo task = 1;
+}
+
+message UpdateTaskResponse {
+    TaskInfo task = 1;
 }
 
 message DelTaskByIDListRequest {

@@ -37,6 +37,17 @@ func (*userJobDAO) GetAll(ctx context.Context,
 	return userJobList, nil
 }
 
+func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
+	if do.ID == 0 {
+		return errors.New("param is invalid")
+	}
+	q := db.GetPG().UserJob
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {

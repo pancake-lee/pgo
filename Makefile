@@ -50,6 +50,9 @@ api:
 		   --go-errors_out=paths=source_relative:./pkg/proto/api/ \
 		   --openapi_out=fq_schema_naming=true,default_response=false:. \
 		   $(API_PROTO_FILES)
+	echo servers: >> ./openapi.yaml
+	echo     - description: IN Gen2 Open API >> ./openapi.yaml
+	echo       url: http://127.0.0.1:8080 >> ./openapi.yaml
 
 .PHONY: gorm
 # 通过 gorm-gen 生成数据库访问代码

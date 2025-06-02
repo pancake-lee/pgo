@@ -2,6 +2,7 @@
 
 package service
 
+
 import (
 	"context"
 	"pgo/internal/userService/data"
@@ -73,6 +74,29 @@ func (s *UserCURDServer) GetUserJobList(
 	for _, data := range dataList {
 		resp.UserJobList = append(resp.UserJobList, DO2DTO_UserJob(data))
 	}
+	return resp, nil
+}
+
+
+func (s *UserCURDServer) UpdateUserJob(
+	ctx context.Context, req *api.UpdateUserJobRequest,
+) (resp *api.UpdateUserJobResponse, err error) {
+	if req.UserJob == nil {
+		return nil, api.ErrorInvalidArgument("request is invalid")
+	}
+
+	do := DTO2DO_UserJob(req.UserJob)
+	err = data.UserJobDAO.UpdateByID(ctx, do)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = new(api.UpdateUserJobResponse)
+	d, err := data.UserJobDAO.GetByID(ctx, req.UserJob.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.UserJob = DO2DTO_UserJob(d)
 	return resp, nil
 }
 

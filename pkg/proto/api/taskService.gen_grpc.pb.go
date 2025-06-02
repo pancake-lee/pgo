@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	TaskCURD_AddTask_FullMethodName         = "/api.taskCURD/AddTask"
 	TaskCURD_GetTaskList_FullMethodName     = "/api.taskCURD/GetTaskList"
+	TaskCURD_UpdateTask_FullMethodName      = "/api.taskCURD/UpdateTask"
 	TaskCURD_DelTaskByIDList_FullMethodName = "/api.taskCURD/DelTaskByIDList"
 )
 
@@ -36,6 +37,7 @@ type TaskCURDClient interface {
 	// tbl : task
 	AddTask(ctx context.Context, in *AddTaskRequest, opts ...grpc.CallOption) (*AddTaskResponse, error)
 	GetTaskList(ctx context.Context, in *GetTaskListRequest, opts ...grpc.CallOption) (*GetTaskListResponse, error)
+	UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...grpc.CallOption) (*UpdateTaskResponse, error)
 	DelTaskByIDList(ctx context.Context, in *DelTaskByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -67,6 +69,16 @@ func (c *taskCURDClient) GetTaskList(ctx context.Context, in *GetTaskListRequest
 	return out, nil
 }
 
+func (c *taskCURDClient) UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...grpc.CallOption) (*UpdateTaskResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateTaskResponse)
+	err := c.cc.Invoke(ctx, TaskCURD_UpdateTask_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *taskCURDClient) DelTaskByIDList(ctx context.Context, in *DelTaskByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -87,6 +99,7 @@ type TaskCURDServer interface {
 	// tbl : task
 	AddTask(context.Context, *AddTaskRequest) (*AddTaskResponse, error)
 	GetTaskList(context.Context, *GetTaskListRequest) (*GetTaskListResponse, error)
+	UpdateTask(context.Context, *UpdateTaskRequest) (*UpdateTaskResponse, error)
 	DelTaskByIDList(context.Context, *DelTaskByIDListRequest) (*Empty, error)
 	mustEmbedUnimplementedTaskCURDServer()
 }
@@ -103,6 +116,9 @@ func (UnimplementedTaskCURDServer) AddTask(context.Context, *AddTaskRequest) (*A
 }
 func (UnimplementedTaskCURDServer) GetTaskList(context.Context, *GetTaskListRequest) (*GetTaskListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTaskList not implemented")
+}
+func (UnimplementedTaskCURDServer) UpdateTask(context.Context, *UpdateTaskRequest) (*UpdateTaskResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTask not implemented")
 }
 func (UnimplementedTaskCURDServer) DelTaskByIDList(context.Context, *DelTaskByIDListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelTaskByIDList not implemented")
@@ -164,6 +180,24 @@ func _TaskCURD_GetTaskList_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaskCURD_UpdateTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskCURDServer).UpdateTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskCURD_UpdateTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskCURDServer).UpdateTask(ctx, req.(*UpdateTaskRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TaskCURD_DelTaskByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelTaskByIDListRequest)
 	if err := dec(in); err != nil {
@@ -196,6 +230,10 @@ var TaskCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTaskList",
 			Handler:    _TaskCURD_GetTaskList_Handler,
+		},
+		{
+			MethodName: "UpdateTask",
+			Handler:    _TaskCURD_UpdateTask_Handler,
 		},
 		{
 			MethodName: "DelTaskByIDList",

@@ -36,6 +36,17 @@ func (*abandonCodeDAO) GetAll(ctx context.Context,
 }
 
 // MARK REMOVE IF NO PRIMARY KEY START
+func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) error {
+	if do.Idx1 == 0 {
+		return errors.New("param is invalid")
+	}
+	q := db.GetPG().AbandonCode
+	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(do.Idx1)).Updates(do)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {

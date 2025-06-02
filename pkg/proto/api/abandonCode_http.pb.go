@@ -22,21 +22,24 @@ const _ = http.SupportPackageIsVersion1
 const OperationAbandonCodeCURDAddAbandonCode = "/api.abandonCodeCURD/AddAbandonCode"
 const OperationAbandonCodeCURDDelAbandonCodeByIdx1List = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
 const OperationAbandonCodeCURDGetAbandonCodeList = "/api.abandonCodeCURD/GetAbandonCodeList"
+const OperationAbandonCodeCURDUpdateAbandonCode = "/api.abandonCodeCURD/UpdateAbandonCode"
 
 type AbandonCodeCURDHTTPServer interface {
 	// AddAbandonCode MARK REPEAT API START 一个表的接口定义
 	// --------------------------------------------------
 	// tbl : abandon_code
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
-	// DelAbandonCodeByIdx1List MARK REMOVE IF NO PRIMARY KEY START
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
+	// UpdateAbandonCode MARK REMOVE IF NO PRIMARY KEY START
+	UpdateAbandonCode(context.Context, *UpdateAbandonCodeRequest) (*UpdateAbandonCodeResponse, error)
 }
 
 func RegisterAbandonCodeCURDHTTPServer(s *http.Server, srv AbandonCodeCURDHTTPServer) {
 	r := s.Route("/")
 	r.POST("/abandon-code", _AbandonCodeCURD_AddAbandonCode0_HTTP_Handler(srv))
 	r.GET("/abandon-code", _AbandonCodeCURD_GetAbandonCodeList0_HTTP_Handler(srv))
+	r.PATCH("/abandon-code", _AbandonCodeCURD_UpdateAbandonCode0_HTTP_Handler(srv))
 	r.DELETE("/abandon-code", _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv))
 }
 
@@ -81,6 +84,28 @@ func _AbandonCodeCURD_GetAbandonCodeList0_HTTP_Handler(srv AbandonCodeCURDHTTPSe
 	}
 }
 
+func _AbandonCodeCURD_UpdateAbandonCode0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAbandonCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAbandonCodeCURDUpdateAbandonCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAbandonCode(ctx, req.(*UpdateAbandonCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAbandonCodeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DelAbandonCodeByIdx1ListRequest
@@ -104,6 +129,7 @@ type AbandonCodeCURDHTTPClient interface {
 	AddAbandonCode(ctx context.Context, req *AddAbandonCodeRequest, opts ...http.CallOption) (rsp *AddAbandonCodeResponse, err error)
 	DelAbandonCodeByIdx1List(ctx context.Context, req *DelAbandonCodeByIdx1ListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	GetAbandonCodeList(ctx context.Context, req *GetAbandonCodeListRequest, opts ...http.CallOption) (rsp *GetAbandonCodeListResponse, err error)
+	UpdateAbandonCode(ctx context.Context, req *UpdateAbandonCodeRequest, opts ...http.CallOption) (rsp *UpdateAbandonCodeResponse, err error)
 }
 
 type AbandonCodeCURDHTTPClientImpl struct {
@@ -147,6 +173,19 @@ func (c *AbandonCodeCURDHTTPClientImpl) GetAbandonCodeList(ctx context.Context, 
 	opts = append(opts, http.Operation(OperationAbandonCodeCURDGetAbandonCodeList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AbandonCodeCURDHTTPClientImpl) UpdateAbandonCode(ctx context.Context, in *UpdateAbandonCodeRequest, opts ...http.CallOption) (*UpdateAbandonCodeResponse, error) {
+	var out UpdateAbandonCodeResponse
+	pattern := "/abandon-code"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAbandonCodeCURDUpdateAbandonCode))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

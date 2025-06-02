@@ -35,6 +35,16 @@ services:
     volumes:
       - D:\nycko\docker\pgo/postgresql/data:/var/lib/postgresql/data
 
+  swagger:
+    container_name: pgo-swagger
+    image: swaggerapi/swagger-ui
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - D:\nycko\code\pgo\openapi.yaml:/api_standard.yaml
+    environment:
+      SWAGGER_JSON: /api_standard.yaml
+
 networks:
   pgo-net:
-

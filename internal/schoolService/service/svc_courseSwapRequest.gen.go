@@ -2,6 +2,7 @@
 
 package service
 
+
 import (
 	"context"
 	"pgo/internal/schoolService/data"
@@ -95,6 +96,29 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 	for _, data := range dataList {
 		resp.CourseSwapRequestList = append(resp.CourseSwapRequestList, DO2DTO_CourseSwapRequest(data))
 	}
+	return resp, nil
+}
+
+
+func (s *SchoolCURDServer) UpdateCourseSwapRequest(
+	ctx context.Context, req *api.UpdateCourseSwapRequestRequest,
+) (resp *api.UpdateCourseSwapRequestResponse, err error) {
+	if req.CourseSwapRequest == nil {
+		return nil, api.ErrorInvalidArgument("request is invalid")
+	}
+
+	do := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
+	err = data.CourseSwapRequestDAO.UpdateByID(ctx, do)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = new(api.UpdateCourseSwapRequestResponse)
+	d, err := data.CourseSwapRequestDAO.GetByID(ctx, req.CourseSwapRequest.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(d)
 	return resp, nil
 }
 

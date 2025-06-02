@@ -21,6 +21,12 @@ service schoolCURD { // 该命名应该全文唯一
             get: "/course-swap-request"
         };
     }
+    rpc UpdateCourseSwapRequest(UpdateCourseSwapRequestRequest) returns (UpdateCourseSwapRequestResponse) {
+        option (google.api.http) = {
+            patch: "/course-swap-request"
+            body: "*"
+        };
+    }
     rpc DelCourseSwapRequestByIDList (DelCourseSwapRequestByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/course-swap-request"
@@ -60,6 +66,15 @@ message GetCourseSwapRequestListRequest {
 }
 message GetCourseSwapRequestListResponse {
     repeated CourseSwapRequestInfo courseSwapRequestList = 1;
+}
+
+
+message UpdateCourseSwapRequestRequest {
+    CourseSwapRequestInfo courseSwapRequest = 1;
+}
+
+message UpdateCourseSwapRequestResponse {
+    CourseSwapRequestInfo courseSwapRequest = 1;
 }
 
 message DelCourseSwapRequestByIDListRequest {

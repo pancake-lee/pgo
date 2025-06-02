@@ -81,6 +81,7 @@ func main() {
 
 	//读取数据库表结构
 	for _, tbl := range tblMap {
+		log.Printf("%v---------------------------", tbl.Model.TableName())
 		isMultiKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {

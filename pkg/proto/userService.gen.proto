@@ -21,6 +21,12 @@ service userCURD { // 该命名应该全文唯一
             get: "/user"
         };
     }
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+        option (google.api.http) = {
+            patch: "/user"
+            body: "*"
+        };
+    }
     rpc DelUserByIDList (DelUserByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user"
@@ -37,6 +43,12 @@ service userCURD { // 该命名应该全文唯一
     rpc GetUserDeptList (GetUserDeptListRequest) returns (GetUserDeptListResponse) {
         option (google.api.http) = {
             get: "/user-dept"
+        };
+    }
+    rpc UpdateUserDept(UpdateUserDeptRequest) returns (UpdateUserDeptResponse) {
+        option (google.api.http) = {
+            patch: "/user-dept"
+            body: "*"
         };
     }
     rpc DelUserDeptByIDList (DelUserDeptByIDListRequest) returns (Empty) {
@@ -70,6 +82,12 @@ service userCURD { // 该命名应该全文唯一
             get: "/user-job"
         };
     }
+    rpc UpdateUserJob(UpdateUserJobRequest) returns (UpdateUserJobResponse) {
+        option (google.api.http) = {
+            patch: "/user-job"
+            body: "*"
+        };
+    }
     rpc DelUserJobByIDList (DelUserJobByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-job"
@@ -100,6 +118,15 @@ message GetUserListResponse {
     repeated UserInfo userList = 1;
 }
 
+
+message UpdateUserRequest {
+    UserInfo user = 1;
+}
+
+message UpdateUserResponse {
+    UserInfo user = 1;
+}
+
 message DelUserByIDListRequest {
     repeated int32 iDList = 1;
 }
@@ -126,6 +153,15 @@ message GetUserDeptListRequest {
 }
 message GetUserDeptListResponse {
     repeated UserDeptInfo userDeptList = 1;
+}
+
+
+message UpdateUserDeptRequest {
+    UserDeptInfo userDept = 1;
+}
+
+message UpdateUserDeptResponse {
+    UserDeptInfo userDept = 1;
 }
 
 message DelUserDeptByIDListRequest {
@@ -177,6 +213,15 @@ message GetUserJobListRequest {
 }
 message GetUserJobListResponse {
     repeated UserJobInfo userJobList = 1;
+}
+
+
+message UpdateUserJobRequest {
+    UserJobInfo userJob = 1;
+}
+
+message UpdateUserJobResponse {
+    UserJobInfo userJob = 1;
 }
 
 message DelUserJobByIDListRequest {

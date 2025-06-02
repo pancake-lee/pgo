@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	SchoolCURD_AddCourseSwapRequest_FullMethodName         = "/api.schoolCURD/AddCourseSwapRequest"
 	SchoolCURD_GetCourseSwapRequestList_FullMethodName     = "/api.schoolCURD/GetCourseSwapRequestList"
+	SchoolCURD_UpdateCourseSwapRequest_FullMethodName      = "/api.schoolCURD/UpdateCourseSwapRequest"
 	SchoolCURD_DelCourseSwapRequestByIDList_FullMethodName = "/api.schoolCURD/DelCourseSwapRequestByIDList"
 )
 
@@ -36,6 +37,7 @@ type SchoolCURDClient interface {
 	// tbl : course_swap_request
 	AddCourseSwapRequest(ctx context.Context, in *AddCourseSwapRequestRequest, opts ...grpc.CallOption) (*AddCourseSwapRequestResponse, error)
 	GetCourseSwapRequestList(ctx context.Context, in *GetCourseSwapRequestListRequest, opts ...grpc.CallOption) (*GetCourseSwapRequestListResponse, error)
+	UpdateCourseSwapRequest(ctx context.Context, in *UpdateCourseSwapRequestRequest, opts ...grpc.CallOption) (*UpdateCourseSwapRequestResponse, error)
 	DelCourseSwapRequestByIDList(ctx context.Context, in *DelCourseSwapRequestByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -67,6 +69,16 @@ func (c *schoolCURDClient) GetCourseSwapRequestList(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *schoolCURDClient) UpdateCourseSwapRequest(ctx context.Context, in *UpdateCourseSwapRequestRequest, opts ...grpc.CallOption) (*UpdateCourseSwapRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCourseSwapRequestResponse)
+	err := c.cc.Invoke(ctx, SchoolCURD_UpdateCourseSwapRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *schoolCURDClient) DelCourseSwapRequestByIDList(ctx context.Context, in *DelCourseSwapRequestByIDListRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -87,6 +99,7 @@ type SchoolCURDServer interface {
 	// tbl : course_swap_request
 	AddCourseSwapRequest(context.Context, *AddCourseSwapRequestRequest) (*AddCourseSwapRequestResponse, error)
 	GetCourseSwapRequestList(context.Context, *GetCourseSwapRequestListRequest) (*GetCourseSwapRequestListResponse, error)
+	UpdateCourseSwapRequest(context.Context, *UpdateCourseSwapRequestRequest) (*UpdateCourseSwapRequestResponse, error)
 	DelCourseSwapRequestByIDList(context.Context, *DelCourseSwapRequestByIDListRequest) (*Empty, error)
 	mustEmbedUnimplementedSchoolCURDServer()
 }
@@ -103,6 +116,9 @@ func (UnimplementedSchoolCURDServer) AddCourseSwapRequest(context.Context, *AddC
 }
 func (UnimplementedSchoolCURDServer) GetCourseSwapRequestList(context.Context, *GetCourseSwapRequestListRequest) (*GetCourseSwapRequestListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCourseSwapRequestList not implemented")
+}
+func (UnimplementedSchoolCURDServer) UpdateCourseSwapRequest(context.Context, *UpdateCourseSwapRequestRequest) (*UpdateCourseSwapRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCourseSwapRequest not implemented")
 }
 func (UnimplementedSchoolCURDServer) DelCourseSwapRequestByIDList(context.Context, *DelCourseSwapRequestByIDListRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelCourseSwapRequestByIDList not implemented")
@@ -164,6 +180,24 @@ func _SchoolCURD_GetCourseSwapRequestList_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchoolCURD_UpdateCourseSwapRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCourseSwapRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchoolCURDServer).UpdateCourseSwapRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchoolCURD_UpdateCourseSwapRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchoolCURDServer).UpdateCourseSwapRequest(ctx, req.(*UpdateCourseSwapRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SchoolCURD_DelCourseSwapRequestByIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelCourseSwapRequestByIDListRequest)
 	if err := dec(in); err != nil {
@@ -196,6 +230,10 @@ var SchoolCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCourseSwapRequestList",
 			Handler:    _SchoolCURD_GetCourseSwapRequestList_Handler,
+		},
+		{
+			MethodName: "UpdateCourseSwapRequest",
+			Handler:    _SchoolCURD_UpdateCourseSwapRequest_Handler,
 		},
 		{
 			MethodName: "DelCourseSwapRequestByIDList",

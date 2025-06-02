@@ -21,6 +21,12 @@ service abandonCodeCURD { // 该命名应该全文唯一
         };
     }
     // MARK REMOVE IF NO PRIMARY KEY START
+    rpc UpdateAbandonCode(UpdateAbandonCodeRequest) returns (UpdateAbandonCodeResponse) {
+        option (google.api.http) = {
+            patch: "/abandon-code"
+            body: "*"
+        };
+    }
     rpc DelAbandonCodeByIdx1List (DelAbandonCodeByIdx1ListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/abandon-code"
@@ -59,6 +65,15 @@ message GetAbandonCodeListResponse {
 }
 
 // MARK REMOVE IF NO PRIMARY KEY START
+
+message UpdateAbandonCodeRequest {
+    AbandonCodeInfo abandonCode = 1;
+}
+
+message UpdateAbandonCodeResponse {
+    AbandonCodeInfo abandonCode = 1;
+}
+
 message DelAbandonCodeByIdx1ListRequest {
     // MARK REPLACE REQUEST IDX START 替换内容，索引字段
     repeated int32 idx1List = 1;

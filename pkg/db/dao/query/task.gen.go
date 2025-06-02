@@ -32,11 +32,11 @@ func newTask(db *gorm.DB, opts ...gen.DOOption) task {
 	_task.Task = field.NewString(tableName, "task")
 	_task.Status = field.NewInt32(tableName, "status")
 	_task.Estimate = field.NewInt32(tableName, "estimate")
-	_task.Start = field.NewString(tableName, "start")
-	_task.End = field.NewString(tableName, "end")
+	_task.Start = field.NewTime(tableName, "start")
+	_task.End = field.NewTime(tableName, "end")
 	_task.Desc = field.NewString(tableName, "desc")
 	_task.Metadata = field.NewString(tableName, "metadata")
-	_task.CreateTime = field.NewString(tableName, "create_time")
+	_task.CreateTime = field.NewTime(tableName, "create_time")
 
 	_task.fillFieldMap()
 
@@ -52,11 +52,11 @@ type task struct {
 	Task       field.String
 	Status     field.Int32
 	Estimate   field.Int32
-	Start      field.String
-	End        field.String
+	Start      field.Time
+	End        field.Time
 	Desc       field.String
 	Metadata   field.String
-	CreateTime field.String
+	CreateTime field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -78,11 +78,11 @@ func (t *task) updateTableName(table string) *task {
 	t.Task = field.NewString(table, "task")
 	t.Status = field.NewInt32(table, "status")
 	t.Estimate = field.NewInt32(table, "estimate")
-	t.Start = field.NewString(table, "start")
-	t.End = field.NewString(table, "end")
+	t.Start = field.NewTime(table, "start")
+	t.End = field.NewTime(table, "end")
 	t.Desc = field.NewString(table, "desc")
 	t.Metadata = field.NewString(table, "metadata")
-	t.CreateTime = field.NewString(table, "create_time")
+	t.CreateTime = field.NewTime(table, "create_time")
 
 	t.fillFieldMap()
 
