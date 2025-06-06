@@ -885,6 +885,6 @@ tags:
       description: 用户服务模块
     - name: UserCURD
       description: '--------------------------------------------------'
-servers: 
-    - description: IN Gen2 Open API 
-      url: http://127.0.0.1:8080 
+servers:
+- description: IN Gen2 Open API
+url: http://127.0.0.1:8080

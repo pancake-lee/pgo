@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"pgo/internal/userService/data"
-	"pgo/pkg/proto/api"
+	"pgo/api"
 )
 
 type UserJobService struct {

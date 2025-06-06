@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"pgo/pkg/db/dao/model"
+	"pgo/internal/pkg/db/model"
 	"pgo/pkg/util"
 	"reflect"
 	"strings"

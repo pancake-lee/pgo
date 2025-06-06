@@ -12,3 +12,17 @@
     - 张三打电话给李四的权限用 RBAC 表达不难：拥有打电话的权限，目标资源包含李四
     - 在档案室打电话的权限，其实可以表达为：拥有打电话的权限，目标资源是档案室
     - 但是理解起来不太顺，我更希望是“用户”，在“指定范围”内，对“指定资源”，拥有“指定权限”
+
+## [CommitLint](https://github.com/conventional-changelog/commitlint/)
+
+build
+chore
+ci
+docs
+feat
+fix
+perf
+refactor
+revert
+style
+test

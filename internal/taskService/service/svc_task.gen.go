@@ -7,7 +7,7 @@ import "time"
 import (
 	"context"
 	"pgo/internal/taskService/data"
-	"pgo/pkg/proto/api"
+	"pgo/api"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {

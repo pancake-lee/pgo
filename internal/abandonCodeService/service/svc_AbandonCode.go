@@ -5,8 +5,8 @@ package service
 
 import (
 	"context"
+	"pgo/api"
 	"pgo/internal/abandonCodeService/data"
-	"pgo/pkg/proto/api"
 )
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {

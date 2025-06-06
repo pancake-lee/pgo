@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"pgo/pkg/db"
+	"pgo/internal/pkg/db"
 )
 
 func (*userDeptAssocDAO) DelByPrimaryKey(ctx context.Context,

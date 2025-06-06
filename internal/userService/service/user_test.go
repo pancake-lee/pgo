@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"pgo/pkg/proto/api"
+	"pgo/api"
 	"pgo/pkg/util"
 	"testing"
 	"time"

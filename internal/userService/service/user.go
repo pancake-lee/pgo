@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	api "pgo/api"
 	"pgo/internal/userService/data"
-	"pgo/pkg/proto/api"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"

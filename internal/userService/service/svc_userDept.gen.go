@@ -6,7 +6,7 @@ package service
 import (
 	"context"
 	"pgo/internal/userService/data"
-	"pgo/pkg/proto/api"
+	"pgo/api"
 )
 
 func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {

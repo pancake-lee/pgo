@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"pgo/pkg/db/dao/model"
+	"pgo/internal/pkg/db/model"
 )
 
 func newTask(db *gorm.DB, opts ...gen.DOOption) task {

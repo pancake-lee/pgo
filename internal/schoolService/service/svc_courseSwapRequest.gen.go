@@ -6,7 +6,7 @@ package service
 import (
 	"context"
 	"pgo/internal/schoolService/data"
-	"pgo/pkg/proto/api"
+	"pgo/api"
 )
 
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {

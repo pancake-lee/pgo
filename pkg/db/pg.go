@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"pgo/pkg/db/dao/query"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,18 +25,21 @@ func initPG() {
 	}
 	gDB = _db
 }
+
 func GetDB() (*sql.DB, error) {
 	if gDB == nil {
 		initPG()
 	}
 	return gDB.DB()
 }
-func GetPG() *query.Query {
+
+func GetGormDB() *gorm.DB {
 	if gDB == nil {
 		initPG()
 	}
-	return query.Use(gDB)
+	return gDB
 }
+
 func GetTables() (ret []string, err error) {
 	db, _ := GetDB()
 	rows, err := db.Query(`show tables`)
