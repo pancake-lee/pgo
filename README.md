@@ -13,16 +13,18 @@
     - 在档案室打电话的权限，其实可以表达为：拥有打电话的权限，目标资源是档案室
     - 但是理解起来不太顺，我更希望是“用户”，在“指定范围”内，对“指定资源”，拥有“指定权限”
 
-## [CommitLint](https://github.com/conventional-changelog/commitlint/)
+## [commitlint](`https://github.com/conventional-changelog/commitlint`)
 
-build
-chore
-ci
-docs
-feat
-fix
-perf
-refactor
-revert
-style
-test
+| prefix   | desc       |
+| -------- | ---------- |
+| build    | 构建相关   |
+| chore    | 杂项       |
+| ci       | CI/CD 相关 |
+| docs     | 文档       |
+| feat     | 功能       |
+| fix      | 修复       |
+| perf     | 性能       |
+| refactor | 重构       |
+| revert   | 回退       |
+| style    | 代码风格   |
+| test     | 测试       |
