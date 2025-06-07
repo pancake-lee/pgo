@@ -4,6 +4,7 @@ import (
 	// 新增 context 包
 	"os"
 	"pgo/pkg/config"
+	"pgo/pkg/logger"
 	"time"
 
 	_ "go.uber.org/automaxprocs"
@@ -104,7 +105,9 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		s.Reg(grpcSrv, httpSrv)
 	}
 
-	logger := log.With(log.NewStdLogger(os.Stdout),
+	kLog := log.With(
+		// log.NewStdLogger(os.Stdout),
+		logger.DefaultKratosLogger,
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
@@ -118,7 +121,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		kratos.Name(Name),
 		kratos.Version(Version),
 		kratos.Metadata(map[string]string{}),
-		kratos.Logger(logger),
+		kratos.Logger(kLog),
 		kratos.Server(
 			grpcSrv,
 			httpSrv,

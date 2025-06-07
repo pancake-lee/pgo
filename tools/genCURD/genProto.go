@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"pgo/pkg/logger"
 	"sort"
 	"strings"
 )
@@ -48,7 +49,7 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		return tblList[i].Model.TableName() < tblList[j].Model.TableName()
 	})
 	for _, tbl := range tblList {
-		log.Printf("gen pb code for tbl[%v]", tbl.Model.TableName())
+		logger.Debugf("gen pb code for tbl[%v]", tbl.Model.TableName())
 
 		// --------------------------------------------------
 		// 处理接口定义代码

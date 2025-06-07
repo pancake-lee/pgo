@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"pgo/pkg/logger"
 	"strings"
 )
 
@@ -27,7 +27,7 @@ func (r *_markPairTool) replaceOnce(mark, fileStr, replaceStr string) string {
 	iStart := r.indexBeforeMark(fileStr, mark+" START")
 	iEnd := r.indexAfterMark(fileStr, mark+" END")
 	if iStart == -1 || iEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
+		logger.Debugf("mark not found, mark: %v\n", mark)
 		return fileStr
 	}
 	return fileStr[:iStart] + replaceStr + fileStr[iEnd:]
@@ -47,7 +47,7 @@ func (r *_markPairTool) removeMarkSelfOnce(mark, fileStr string) string {
 	lastOfEnd := r.indexBeforeMark(fileStr, mark+" END")
 	nextOfEnd := r.indexAfterMark(fileStr, mark+" END")
 	if lastOfStart == -1 || nextOfStart == -1 || lastOfEnd == -1 || nextOfEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
+		logger.Debugf("mark not found, mark: %v\n", mark)
 		return fileStr
 	}
 	return fileStr[:lastOfStart] + fileStr[nextOfStart:lastOfEnd] + fileStr[nextOfEnd:]
@@ -59,7 +59,7 @@ func (r *_markPairTool) GetContent(fileStr string, mark string) string {
 	nextOfStart := r.indexAfterMark(fileStr, mark+" START")
 	lastOfEnd := r.indexBeforeMark(fileStr, mark+" END")
 	if nextOfStart == -1 || lastOfEnd == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
+		logger.Debugf("mark not found, mark: %v\n", mark)
 		return ""
 	}
 	return fileStr[nextOfStart:lastOfEnd]
@@ -71,7 +71,7 @@ func (r *_markPairTool) GetContent(fileStr string, mark string) string {
 func (r *_markPairTool) indexBeforeMark(fileStr, mark string) int {
 	i := strings.Index(fileStr, mark)
 	if i == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
+		logger.Debugf("mark not found, mark: %v\n", mark)
 		return -1
 	}
 	return strings.LastIndex(fileStr[:i], "\n") + 1
@@ -82,7 +82,7 @@ func (r *_markPairTool) indexBeforeMark(fileStr, mark string) int {
 func (r *_markPairTool) indexAfterMark(fileStr, mark string) int {
 	i := strings.Index(fileStr, mark)
 	if i == -1 {
-		log.Printf("mark not found, mark: %v\n", mark)
+		logger.Debugf("mark not found, mark: %v\n", mark)
 		return -1
 	}
 	return i + strings.Index(fileStr[i:], "\n") + 1

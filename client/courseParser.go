@@ -36,7 +36,7 @@ func (parser *courseParser) ParseCourseExcel() (map[string]*teacherInfo, error) 
 
 func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
 	for row, colList := range rowList {
-		// log.Print("row[", row, "] col size : ", len(rowList))
+		// logger.Debug("row[", row, "] col size : ", len(rowList))
 		for col, cellStr := range colList {
 			if !parser.isTecherInfoStart(cellStr) {
 				continue
@@ -121,7 +121,7 @@ func (parser *courseParser) getTecherInfo(rowStart int, colStart int,
 			tInfo.classList = append(tInfo.classList, cInfo)
 		}
 	}
-	// log.Printf("找到一个老师 [%v] 课程有 : %v", tInfo.teacher, logStr)
-	// log.Printf("")
+	// logger.Debugf("找到一个老师 [%v] 课程有 : %v", tInfo.teacher, logStr)
+	// logger.Debugf("")
 	return tInfo
 }

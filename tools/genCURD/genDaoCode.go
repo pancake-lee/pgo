@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"pgo/pkg/logger"
 	"pgo/pkg/util"
 	"strings"
 )
@@ -21,7 +22,7 @@ func genDaoCode(
 	}
 
 	for _, tbl := range tblToSvrMap {
-		log.Printf("gen dao code for tbl[%v]", tbl.Model.TableName())
+		logger.Debugf("gen dao code for tbl[%v]", tbl.Model.TableName())
 
 		daoTplCode := string(daoTplBytes)
 

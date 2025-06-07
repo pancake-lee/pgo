@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"pgo/client/swagger"
 	"pgo/pkg/config"
+	"pgo/pkg/logger"
 	"pgo/pkg/util"
 	"sort"
 	"time"
@@ -39,11 +39,11 @@ func getCli() *swagger.APIClient {
 
 func handleErr(err error, httpResp *http.Response) error {
 	if err != nil {
-		log.Println("GetCourseSwapRequestList failed: ", err)
+		logger.Debug("GetCourseSwapRequestList failed: ", err)
 		return err
 	}
 	if httpResp.StatusCode != http.StatusOK {
-		log.Println("GetCourseSwapRequestList failed: ", httpResp.Status)
+		logger.Debug("GetCourseSwapRequestList failed: ", httpResp.Status)
 		return fmt.Errorf("http status code: %v", httpResp.StatusCode)
 	}
 	return nil
@@ -61,7 +61,7 @@ func inputIntIfZero(i *int, msg string) {
 }
 
 func inputStr(str *string, msg string) {
-	log.Print(msg)
+	logger.Debug(msg)
 	var tmpStr string
 	_, _ = fmt.Scanln(&tmpStr)
 	if tmpStr != "" {
@@ -69,7 +69,7 @@ func inputStr(str *string, msg string) {
 	}
 }
 func inputInt(i *int, msg string) {
-	log.Print(msg)
+	logger.Debug(msg)
 	var tmpInt int
 	_, _ = fmt.Scanln(&tmpInt)
 	if tmpInt != 0 {
@@ -103,20 +103,20 @@ func CourseSwap() {
 	inputIntIfZero(&srcCourseNum, "请输入第几节课，1~7，以回车结束")
 
 	if srcTeacher == "" || srcDateStr == "" || srcCourseNum == 0 {
-		log.Println("input error")
+		logger.Debug("input error")
 		return
 	}
 
 	srcDate, err := util.TimeFromStr(srcDateStr, "YYYYMMDD")
 	if err != nil {
-		log.Println("time.Parse failed: ", err)
+		logger.Debug("time.Parse failed: ", err)
 		return
 	}
 
-	log.Println("从excel读取课程表: " + path)
+	logger.Debug("从excel读取课程表: " + path)
 	courseMap, err := NewCourseParser(path).ParseCourseExcel()
 	if err != nil {
-		log.Println("parseCourseExcel failed: ", err)
+		logger.Debug("parseCourseExcel failed: ", err)
 		return
 	}
 
@@ -124,13 +124,13 @@ func CourseSwap() {
 	wDiff := tNow.Weekday() - time.Monday
 	endTime := tNow.AddDate(0, 0, 21-int(wDiff))
 
-	log.Printf("用课程表，计算未来3周内的课程安排[%v]-[%v]\n",
+	logger.Debugf("用课程表，计算未来3周内的课程安排[%v]-[%v]\n",
 		util.TimeToStr(tNow, "YYYYMMDD"), util.TimeToStr(endTime, "YYYYMMDD"))
 
 	var allCourseList []*courseInfo
-	log.Printf("teacher cnt[%v]\n", len(courseMap))
+	logger.Debugf("teacher cnt[%v]\n", len(courseMap))
 	for _, tInfo := range courseMap {
-		// log.Printf("teacher[%v] class cnt[%v]\n", tInfo.teacher, len(tInfo.classList))
+		// logger.Debugf("teacher[%v] class cnt[%v]\n", tInfo.teacher, len(tInfo.classList))
 		for _, classInfo := range tInfo.classList {
 			// 一节课向后推3周
 			date := tNow.AddDate(0, 0, int(classInfo.weekDay-tNow.Weekday()))
@@ -153,7 +153,7 @@ func CourseSwap() {
 		}
 	}
 
-	log.Println("查询当前换课记录，结合换课记录来计算")
+	logger.Debug("查询当前换课记录，结合换课记录来计算")
 	{ // GetCourseSwapRequestList
 		resp, httpResp, err := getCli().SchoolCURDApi.SchoolCURDGetCourseSwapRequestList(
 			context.Background(), &swagger.SchoolCURDApiSchoolCURDGetCourseSwapRequestListOpts{
@@ -161,7 +161,7 @@ func CourseSwap() {
 			})
 		err = handleErr(err, httpResp)
 		if err != nil {
-			log.Println("GetCourseSwapRequestList failed: ", err)
+			logger.Debug("GetCourseSwapRequestList failed: ", err)
 			return
 		}
 
@@ -193,21 +193,21 @@ func CourseSwap() {
 	// 获取当前需要调课的课程，则某老师某天的某节课
 	srcCourse := getCourse(allCourseList, srcTeacher, srcDate, srcCourseNum)
 	if srcCourse == nil {
-		log.Println("srcCourse not found")
+		logger.Debug("srcCourse not found")
 		return
 	} else {
 		logCourse(srcCourse)
 	}
 	srcClassRoom := srcCourse.classRoomName
 
-	log.Printf("找到[%v][第%v节]，不用上课的，[%v]同班老师\n",
+	logger.Debugf("找到[%v][第%v节]，不用上课的，[%v]同班老师\n",
 		srcDateStr, srcCourseNum, srcCourse.classRoomName)
 	var srcFreeTeacherList []string
 	teacherList := getTeacherListByClassRoom(allCourseList, srcClassRoom)
 	for _, t := range teacherList {
 		c := getCourse(allCourseList, t, srcDate, srcCourseNum)
 		if c == nil {
-			log.Printf("teacher[%v] is free", t)
+			logger.Debugf("teacher[%v] is free", t)
 			srcFreeTeacherList = append(srcFreeTeacherList, t)
 		}
 	}
@@ -226,7 +226,7 @@ func CourseSwap() {
 		}
 	}
 
-	log.Printf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空\n",
+	logger.Debugf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空\n",
 		srcTeacher, srcDateStr, srcCourseNum)
 	var dstCourseList []*courseInfo
 	for _, dstFreeCourse := range dstFreeCourseList {
@@ -253,10 +253,10 @@ func CourseSwap() {
 			}})
 	err = handleErr(err, httpResp)
 	if err != nil {
-		log.Println("AddCourseSwap failed: ", err)
+		logger.Debug("AddCourseSwap failed: ", err)
 		return
 	}
-	log.Printf("new course swap : %v", resp)
+	logger.Debugf("new course swap : %v", resp)
 }
 
 func getTeacherListByClassRoom(courseList []*courseInfo,
@@ -320,7 +320,7 @@ func logCourseList(courseList []*courseInfo) {
 	}
 }
 func logCourse(course *courseInfo) {
-	log.Printf("course[%v][%v][第%v节][%v][%v][%v]",
+	logger.Debugf("course[%v][%v][第%v节][%v][%v][%v]",
 		course.date.Format("060102"),
 		getWeekday(course.date.Weekday()),
 		course.classNum, course.classRoomName,

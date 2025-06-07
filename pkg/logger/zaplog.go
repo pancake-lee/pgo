@@ -20,75 +20,47 @@ import (
 // 业务日志 logger
 var errorLogger *zap.SugaredLogger
 
-// 接口req/resp日志 logger
-var apiLogger *zap.SugaredLogger
-
-// 为了让go程序的core信息输出到nohup，所以程序的日志就不能输出到nohup导致篇幅太大
-// isLogConsole改成通过命令行参数输入
-// 因此，不能依赖import时的init，需要自己解析到命令行参数后手动初始化日志摸块
 var isInit bool
 
-func InitLogger(isLogConsole bool) {
-	logLevel := "debug"
-	logPath := filepath.Join(util.GetExecFolder(), "./logs/")
+func InitServiceLogger() {
+	level := config.GetStringD("Log.Level", "debug")
+	lv := GetLoggerLevel(level)
+	folder := config.GetStringD("Log.Path", "")
+	InitLogger(false, lv, folder)
+}
 
-	l, err := config.GetStringE("Log.LogLevel")
-	if err == nil && l != "" {
-		logLevel = l
-	}
-	p, err := config.GetStringE("Log.LogPath")
-	if err == nil && p != "" {
-		logPath = p
+func InitLogger(isLogConsole bool,
+	lv zapcore.Level, folder string) {
+	logPath := filepath.Join(util.GetExecFolder(), "./logs/")
+	if folder != "" {
+		logPath = folder
 	}
 
 	logName := util.GetExecName()
-	level := getLoggerLevel(logLevel)
 
-	//日志文件名 LogName_pid_20200702.log
-	fileName := logName + "_" + util.IntToStr(os.Getpid()) + "_" + "%Y%m%d.log"
+	fileName := logName + "_" + "%Y%m%d.log"
 	fullPath := path.Join(logPath, fileName)
 
 	//软连接名 LogName
 	linkName := logName
 	linkPath := path.Join(logPath, linkName)
 
-	zLogger := newZapLogger(isLogConsole, level, fullPath, linkPath)
+	zLogger := newZapLogger(isLogConsole, lv, fullPath, linkPath)
 	errorLogger = zLogger.Sugar()
 
 	//使用同一个ZapLog对象，提供kratos的日志接口，这样kratos底层日志就能打印到我们自己的日志文件中
 	initKratosLogger(errorLogger)
 
 	isInit = true
-	// Infof("logger init finish, isConsole[%v]", isLogConsole)
 	if !isLogConsole {
-		log.Printf("logger init finish, isConsole[%v], log file [%v]\n", isLogConsole, fullPath)
-
-		// 重定向 stdout 和 stderr 到 NUL
-		// os.Stdout, _ = os.OpenFile(logPath+"/std.log", os.O_WRONLY|os.O_CREATE, 0)
-		// os.Stderr, _ = os.OpenFile(logPath+"/std.log", os.O_WRONLY|os.O_CREATE, 0)
-
 		// 将 zap.Logger 作为全局 logger
 		zap.ReplaceGlobals(zLogger)
 		// 重定向标准输出和错误输出
 		zap.RedirectStdLog(zLogger)
-
-	}
-
-	if !isLogConsole { //调试程序时，并且打印控制台时，不打印这份东西
-		//日志文件名 LogName_pid_20200702_api.log
-		fileName := logName + "_" + util.IntToStr(os.Getpid()) + "_" + "%Y%m%d_api.log"
-		fullPath := path.Join(logPath, fileName)
-
-		//软连接名 LogName_api
-		linkName := logName + "_api"
-		linkPath := path.Join(logPath, linkName)
-
-		zLogger := newZapLogger(isLogConsole, level, fullPath, linkPath)
-		apiLogger = zLogger.Sugar()
 	}
 }
 
-// -----------------------------------------------------------------------
+// --------------------------------------------------
 // 实现我们自己的日志格式
 // 1：caller后置，方便message位置对齐
 // 2：支持输入callerSkip，则调用栈往上层跳跃，方便封装的函数调用时，打印调用者的位置
@@ -117,7 +89,7 @@ func myLog(logFunc func(as ...interface{}),
 	tmpArgs = append(tmpArgs, " [", file[index+1:], ":", line, "]")
 
 	if !isInit {
-		log.Print(tmpArgs...)
+		log.Println(tmpArgs...)
 		return
 	}
 	logFunc(tmpArgs...)
@@ -176,7 +148,7 @@ var levelMap = map[string]zapcore.Level{
 	"fatal":  zapcore.FatalLevel,
 }
 
-func getLoggerLevel(lvl string) zapcore.Level {
+func GetLoggerLevel(lvl string) zapcore.Level {
 	if level, ok := levelMap[lvl]; ok {
 		return level
 	}
@@ -237,10 +209,9 @@ func getWriter(filePath, linkPath string) io.Writer {
 	//rotatelogs.WithRotationTime(time.Hour), // 多久切换一次日志文件，默认24小时
 	//rotatelogs.WithRotationSize(20 * 1024 * 1024), //bytes
 
-	//日志文件名 LogName_pid_20200702.log
 	hook, err := rotatelogs.New(filePath, optList...)
 	if err != nil {
-		log.Print(err)
+		log.Println(err)
 	}
 
 	return hook

@@ -6,6 +6,7 @@ import (
 	"pgo/internal/userService/service"
 	"pgo/pkg/app"
 	"pgo/pkg/config"
+	"pgo/pkg/logger"
 )
 
 func main() {
@@ -14,6 +15,7 @@ func main() {
 	flag.Parse()
 
 	config.MustInitConfig(*c)
+	logger.InitServiceLogger()
 
 	err := config.Scan(&conf.UserSvcConf)
 	if err != nil {

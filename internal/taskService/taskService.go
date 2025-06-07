@@ -5,6 +5,7 @@ import (
 	"pgo/internal/taskService/service"
 	"pgo/pkg/app"
 	"pgo/pkg/config"
+	"pgo/pkg/logger"
 )
 
 func main() {
@@ -13,6 +14,7 @@ func main() {
 	flag.Parse()
 
 	config.MustInitConfig(*c)
+	logger.InitServiceLogger()
 
 	var taskCURDServer service.TaskCURDServer
 

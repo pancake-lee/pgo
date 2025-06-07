@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"pgo/internal/pkg/db/model"
+	"pgo/pkg/logger"
 	"pgo/pkg/util"
 	"reflect"
 	"strings"
@@ -81,14 +82,14 @@ func main() {
 
 	//读取数据库表结构
 	for _, tbl := range tblMap {
-		log.Printf("%v---------------------------", tbl.Model.TableName())
+		logger.Debugf("%v---------------------------", tbl.Model.TableName())
 		isMultiKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			tbl.FieldList = append(tbl.FieldList, &field)
 
-			log.Printf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
+			logger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
 			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
 				if tbl.IdxColName != "" {
 					isMultiKey = true
@@ -103,7 +104,7 @@ func main() {
 			tbl.IdxColType = ""
 			tbl.IdxParmName = ""
 		}
-		log.Println("tbl info : ", tbl)
+		logger.Debug("tbl info : ", tbl)
 	}
 
 	tplTable := newTable(&model.AbandonCode{}, "abandonCode")
@@ -132,10 +133,10 @@ func rmAllGenFile() {
 	filepath.Walk("internal",
 		func(path string, info os.FileInfo, err error) error {
 			if strings.Contains(path, "gen.go") {
-				log.Println("rm file: ", path)
+				logger.Debug("rm file: ", path)
 				err := os.Remove(path)
 				if err != nil {
-					log.Println("rm file failed: ", err)
+					logger.Debug("rm file failed: ", err)
 				}
 			}
 			return nil

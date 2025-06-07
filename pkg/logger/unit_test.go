@@ -24,7 +24,7 @@ func TestZapLogger(t *testing.T) {
 }
 
 func TestLogger(t *testing.T) {
-	InitLogger(false)
+	InitLogger(false, zap.DebugLevel, "")
 	Debug("test logger Debug, 中文测试，1234567890")
 	Info("test logger Info, 中文测试，1234567890")
 	Warn("test logger Warn, 中文测试，1234567890")
