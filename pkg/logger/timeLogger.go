@@ -12,6 +12,7 @@ type timeLogger struct {
 	sTime     time.Time
 	keyList   []string
 	pointList []time.Time
+	prefixCnt map[string]int
 }
 
 func NewTimeLogger(name string) *timeLogger {
@@ -25,23 +26,28 @@ func NewTimeLogger(name string) *timeLogger {
 	return tLogger
 }
 
-// 自动追加一个计时点，按0,1,2...作为key
-func (tLogger *timeLogger) AddPoint1() {
-	tLogger.addPoint(util.IntToStr(len(tLogger.keyList)))
-}
-
-// 在for循环嵌套的情况下，拼接成"level-num"的形式，level肉眼判断是第几层循环体
-func (tLogger *timeLogger) AddPoint2(prefix string) {
-	tLogger.addPoint(prefix + "-" + util.IntToStr(len(tLogger.keyList)))
-}
-
 func (tLogger *timeLogger) AddPoint(key string) {
-	tLogger.addPoint(key)
+	tLogger.keyList = append(tLogger.keyList, key)
+	tLogger.pointList = append(tLogger.pointList, time.Now())
+}
+
+// 自动追加一个计时点，按0,1,2...作为key，类似i++
+func (tLogger *timeLogger) AddPointInc() {
+	tLogger.AddPoint(util.IntToStr(len(tLogger.keyList)))
+}
+
+// 在for循环嵌套的情况下，拼接成"prefix-i"的形式
+func (tLogger *timeLogger) AddPointIncPrefix(prefix string) {
+	if tLogger.prefixCnt == nil {
+		tLogger.prefixCnt = make(map[string]int)
+	}
+	tLogger.prefixCnt[prefix]++
+	tLogger.AddPoint(prefix + "-" + util.IntToStr(tLogger.prefixCnt[prefix]))
 }
 
 // 打印输出最终时间统计信息，并且汇总整体耗时
 func (tLogger *timeLogger) Log() {
-	tLogger.addPoint("end")
+	tLogger.AddPoint("end")
 
 	logStr := "time cost [" + tLogger.name + "] " +
 		"sum[" + util.Int64ToStr(time.Since(tLogger.sTime).Milliseconds()) + "ms] " +
@@ -62,10 +68,5 @@ func (tLogger *timeLogger) Log() {
 	}
 
 	logStr += "]"
-	myLog(errorLogger.Debug, 2, nil, logStr)
-}
-
-func (tLogger *timeLogger) addPoint(key string) {
-	tLogger.keyList = append(tLogger.keyList, key)
-	tLogger.pointList = append(tLogger.pointList, time.Now())
+	myLog(zapLogger.Debug, 2, nil, logStr)
 }

@@ -4,9 +4,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path"
-	"path/filepath"
-	"pgo/pkg/config"
 	"pgo/pkg/util"
 	"runtime"
 	"strings"
@@ -17,57 +14,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// 业务日志 logger
-var errorLogger *zap.SugaredLogger
-
-var isInit bool
-
-func InitServiceLogger(isLogConsole bool) {
-	level := config.GetStringD("Log.Level", "debug")
-	lv := GetLoggerLevel(level)
-	folder := config.GetStringD("Log.Path", "")
-	InitLogger(isLogConsole, lv, folder)
-}
-
-func InitLogger(isLogConsole bool,
-	lv zapcore.Level, folder string) {
-	logPath := filepath.Join(util.GetExecFolder(), "./logs/")
-	if folder != "" {
-		logPath = folder
-	}
-
-	logName := util.GetExecName()
-
-	fileName := logName + "_" + "%Y%m%d.log"
-	fullPath := path.Join(logPath, fileName)
-
-	//软连接名 LogName
-	linkName := logName
-	linkPath := path.Join(logPath, linkName)
-
-	zLogger := newZapLogger(isLogConsole, lv, fullPath, linkPath)
-	errorLogger = zLogger.Sugar()
-
-	//使用同一个ZapLog对象，提供kratos的日志接口，这样kratos底层日志就能打印到我们自己的日志文件中
-	initKratosLogger(errorLogger)
-
-	isInit = true
-	if !isLogConsole {
-		// 将 zap.Logger 作为全局 logger
-		zap.ReplaceGlobals(zLogger)
-		// 重定向标准输出和错误输出
-		zap.RedirectStdLog(zLogger)
-	}
-}
-
-// --------------------------------------------------
 // 实现我们自己的日志格式
 // 1：caller后置，方便message位置对齐
 // 2：支持输入callerSkip，则调用栈往上层跳跃，方便封装的函数调用时，打印调用者的位置
-func myLog(logFunc func(as ...interface{}),
-	callerSkip int, prefix []interface{}, args ...interface{}) {
+func myLog(logFunc func(as ...any),
+	callerSkip int, prefix []any, args ...any) {
 
-	tmpArgs := make([]interface{}, 0, len(args)+2+len(prefix)*4+5)
+	tmpArgs := make([]any, 0, len(args)+2+len(prefix)*4+5)
 	if len(prefix) > 0 {
 		tmpArgs = append(tmpArgs, "[")
 		isFirst := true
@@ -95,8 +48,8 @@ func myLog(logFunc func(as ...interface{}),
 	logFunc(tmpArgs...)
 }
 
-func myLogf(logFunc func(t string, as ...interface{}),
-	callerSkip int, prefix []interface{}, template string, args ...interface{}) {
+func myLogf(logFunc func(t string, as ...any),
+	callerSkip int, prefix []any, template string, args ...any) {
 
 	var sb strings.Builder
 	if len(prefix) > 0 {
@@ -134,9 +87,6 @@ func myLogf(logFunc func(t string, as ...interface{}),
 	}
 	logFunc(sb.String(), args...)
 }
-
-//------------------------------------------------------------
-//关于如何构建ZapLog参数的一些封装
 
 var levelMap = map[string]zapcore.Level{
 	"debug":  zapcore.DebugLevel,
@@ -192,7 +142,10 @@ func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath str
 		)
 	}
 
-	return zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	ret := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	zap.ReplaceGlobals(ret) // 将 zap.Logger 作为全局 logger
+	zap.RedirectStdLog(ret) // 重定向标准输出和错误输出
+	return ret
 }
 
 func getWriter(filePath, linkPath string) io.Writer {
@@ -216,5 +169,3 @@ func getWriter(filePath, linkPath string) io.Writer {
 
 	return hook
 }
-
-//------------------------------------------------------------
