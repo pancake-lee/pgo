@@ -103,7 +103,7 @@ func genProtoForOneService(svcName string, tblList []*Table,
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT MSG", pbCodeStr, msgCodeForAllTable)
 
 	os.MkdirAll(pbOutputPath, 0755)
-	err := os.WriteFile(pbOutputPath+svcName+"Service.gen.proto", []byte(pbCodeStr), 0644)
+	err := os.WriteFile(pbOutputPath+"z_"+svcName+"Service.gen.proto", []byte(pbCodeStr), 0644)
 	if err != nil {
 		log.Fatalf("write pb code failed, err: %v", err)
 	}

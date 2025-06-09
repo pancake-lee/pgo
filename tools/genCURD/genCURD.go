@@ -144,4 +144,15 @@ func rmAllGenFile() {
 			}
 			return nil
 		})
+	filepath.Walk("proto",
+		func(path string, info os.FileInfo, err error) error {
+			if strings.Contains(path, "gen.proto") {
+				logger.Debug("rm file: ", path)
+				err := os.Remove(path)
+				if err != nil {
+					logger.Debug("rm file failed: ", err)
+				}
+			}
+			return nil
+		})
 }

@@ -32,7 +32,7 @@ func genDaoCode(
 
 		daoOutputPath := fmt.Sprintf("./internal/%vService/data/", tbl.ServiceName)
 		os.MkdirAll(daoOutputPath, 0755)
-		err := os.WriteFile(daoOutputPath+"dao_"+tbl.UpperCamelName+".gen.go", []byte(daoCodeStr), 0644)
+		err := os.WriteFile(daoOutputPath+"z_dao_"+tbl.UpperCamelName+".gen.go", []byte(daoCodeStr), 0644)
 		if err != nil {
 			log.Fatalf("write dao code failed, err: %v", err)
 		}

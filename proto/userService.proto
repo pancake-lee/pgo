@@ -1,7 +1,7 @@
 syntax = "proto3";
 package api;
 import "common.proto";
-import "userService.gen.proto";
+import "z_userService.gen.proto";
 import "google/api/annotations.proto";
 option go_package = "pgo/api;api";
 

@@ -33,7 +33,7 @@ func genServiceCode(
 		svrOutputPath := fmt.Sprintf("./internal/%vService/service/", svcName)
 		os.MkdirAll(svrOutputPath, 0755)
 		genServerCode(svrTpl, tplTable.ServiceName,
-			svcName, svrOutputPath+"svr_"+svcName+".gen.go")
+			svcName, svrOutputPath+"z_svr_"+svcName+".gen.go")
 	}
 
 	// --------------------------------------------------
@@ -133,7 +133,7 @@ func genServiceCodeForOneTable(
 	svcCodeStr = markPairTool.ReplaceAll("MARK REPLACE IMPORT", svcCodeStr, importCode)
 
 	// --------------------------------------------------
-	err := os.WriteFile(ctlOutputPath+"svc_"+tbl.LowerCamelName+".gen.go", []byte(svcCodeStr), 0644)
+	err := os.WriteFile(ctlOutputPath+"z_svc_"+tbl.LowerCamelName+".gen.go", []byte(svcCodeStr), 0644)
 	if err != nil {
 		log.Fatalf("write dao code failed, err: %v", err)
 	}
