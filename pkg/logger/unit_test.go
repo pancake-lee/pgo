@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"errors"
 	"testing"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -24,9 +26,61 @@ func TestZapLogger(t *testing.T) {
 }
 
 func TestLogger(t *testing.T) {
-	InitLogger(false, zap.DebugLevel, "")
+	InitLogger(true, zap.DebugLevel, "")
 	Debug("test logger Debug, 中文测试，1234567890")
 	Info("test logger Info, 中文测试，1234567890")
 	Warn("test logger Warn, 中文测试，1234567890")
 	Error("test logger Error, 中文测试，1234567890")
+}
+
+func TestTimeLogger(t *testing.T) {
+	InitLogger(true, zap.DebugLevel, "")
+
+	tLogger := NewTimeLogger("TestTimeLogger")
+	defer tLogger.Log()
+
+	tLogger.AddPoint("start")
+	time.Sleep(100 * time.Millisecond)
+	tLogger.AddPointInc()
+	time.Sleep(200 * time.Millisecond)
+
+	for range 3 {
+		tLogger.AddPointIncPrefix("loop")
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func a(log func(args ...any)) error {
+	if time.Now().Unix()%2 == 0 {
+		// 自身函数错误需要打印日志
+		err := errors.New("aa error")
+		log(err.Error())
+		return err
+	}
+
+	err := b(log)
+	if err != nil {
+		// 如果log方法会打印调用栈
+		// 那么调用b不用打印日志
+		// 因为b里面会输出调用栈
+		// log("bb error")
+		return err
+	}
+
+	return nil
+}
+
+func b(log func(args ...any)) error {
+	err := errors.New("bb error")
+	log(err.Error())
+	return err
+}
+func TestLogErrReturn(t *testing.T) {
+	InitLogger(true, zap.DebugLevel, "")
+	a(Error)
+
+	logger, _ := zap.NewDevelopment()
+	defer logger.Sync()
+	log := logger.Sugar()
+	a(func(args ...any) { log.Warnw(args[0].(string)) })
 }

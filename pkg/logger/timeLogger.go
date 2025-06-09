@@ -1,8 +1,8 @@
 package logger
 
 import (
+	"fmt"
 	"pgo/pkg/util"
-	"strings"
 	"time"
 )
 
@@ -49,24 +49,17 @@ func (tLogger *timeLogger) AddPointIncPrefix(prefix string) {
 func (tLogger *timeLogger) Log() {
 	tLogger.AddPoint("end")
 
-	logStr := "time cost [" + tLogger.name + "] " +
-		"sum[" + util.Int64ToStr(time.Since(tLogger.sTime).Milliseconds()) + "ms] " +
-		"point list["
-	//手拼一个json方便格式化查日志
+	logStr := fmt.Sprintf("time log [%v] sum[%dms] point list [key|add|sum]",
+		tLogger.name, time.Since(tLogger.sTime).Milliseconds())
+
 	lastTime := &tLogger.sTime
 	for i, v := range tLogger.keyList {
 		curTime := &tLogger.pointList[i]
-		//"距离开始时间多少毫秒|距离上一个时间点多少毫秒|计时点key"
-		logStr += "\"" +
-			util.Int64ToStr(curTime.Sub(tLogger.sTime).Milliseconds()) + "ms|" +
-			util.Int64ToStr(curTime.Sub(*lastTime).Milliseconds()) + "ms|" +
-			v + "\","
+		logStr += fmt.Sprintf(" [%s|+%d|%d]", v,
+			curTime.Sub(*lastTime).Milliseconds(),
+			curTime.Sub(tLogger.sTime).Milliseconds())
+
 		lastTime = curTime
 	}
-	if len(tLogger.keyList) != 0 {
-		logStr = strings.TrimSuffix(logStr, ",")
-	}
-
-	logStr += "]"
 	myLog(zapLogger.Debug, 2, nil, logStr)
 }

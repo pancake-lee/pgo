@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -109,6 +110,24 @@ func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("060102 15:04:05.000"))
 }
 
+// 自定义级别显示
+func levelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+	switch level {
+	case zapcore.DebugLevel:
+		enc.AppendString("[D]")
+	case zapcore.InfoLevel:
+		enc.AppendString("[I]")
+	case zapcore.WarnLevel:
+		enc.AppendString("[W]")
+	case zapcore.ErrorLevel:
+		enc.AppendString("[E]")
+	case zapcore.FatalLevel:
+		enc.AppendString("[F]")
+	default:
+		enc.AppendString(fmt.Sprintf("[%d]", level))
+	}
+}
+
 func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath string) *zap.Logger {
 	encoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 		// encoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{
@@ -118,7 +137,7 @@ func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath str
 		MessageKey:     "M",
 		StacktraceKey:  "S",
 		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeLevel:    levelEncoder, // zapcore.CapitalLevelEncoder
 		EncodeTime:     timeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 	})

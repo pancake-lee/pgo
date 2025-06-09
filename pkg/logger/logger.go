@@ -58,100 +58,73 @@ func InitLogger(isLogConsole bool,
 }
 
 // --------------------------------------------------
-// 该文件包含的主要是实际业务代码中打印日志使用的方法封装
+// 以下主要是实际业务代码中打印日志使用的方法封装
 
-func Debug(args ...interface{}) {
+func LogErr(err error) error {
+	myLogf(zapLogger.Warnf, 2, nil, "got err[%s]", err.Error())
+	return err
+}
+
+// --------------------------------------------------
+func Debug(args ...any) {
 	myLog(zapLogger.Debug, 2, nil, args...)
 }
 
-func Debugf(template string, args ...interface{}) {
+func Debugf(template string, args ...any) {
 	myLogf(zapLogger.Debugf, 2, nil, template, args...)
 }
 
 // --------------------------------------------------
-func Info(args ...interface{}) {
+func Info(args ...any) {
 	myLog(zapLogger.Info, 2, nil, args...)
 }
 
-func Infof(template string, args ...interface{}) {
+func Infof(template string, args ...any) {
 	myLogf(zapLogger.Infof, 2, nil, template, args...)
 }
 
 // --------------------------------------------------
-func Warn(args ...interface{}) {
+func Warn(args ...any) {
 	myLog(zapLogger.Warn, 2, nil, args...)
 }
 
-func Warnf(template string, args ...interface{}) {
+func Warnf(template string, args ...any) {
 	myLogf(zapLogger.Warnf, 2, nil, template, args...)
 }
 
 // --------------------------------------------------
-func Error(args ...interface{}) {
+func Error(args ...any) {
 	myLog(zapLogger.Error, 2, nil, args...)
 }
 
-func Errorf(template string, args ...interface{}) {
+func Errorf(template string, args ...any) {
 	myLogf(zapLogger.Errorf, 2, nil, template, args...)
 }
 
 // --------------------------------------------------
-func Fatal(args ...interface{}) {
+func Fatal(args ...any) {
 	myLog(zapLogger.Fatal, 2, nil, args...)
 }
 
-func Fatalf(template string, args ...interface{}) {
+func Fatalf(template string, args ...any) {
 	myLogf(zapLogger.Fatalf, 2, nil, template, args...)
 }
 
 // --------------------------------------------------
 // 可以指定打印出调用者的信息，0表示打印当前函数位置，1表示上一级调用位置
-func Log(lv zapcore.Level, callerLevel int, prefix []interface{},
-	args ...interface{}) {
-
-	switch lv {
-	case zapcore.InfoLevel:
-		myLog(zapLogger.Info, callerLevel+2, prefix, args...)
-
-	case zapcore.WarnLevel:
-		myLog(zapLogger.Warn, callerLevel+2, prefix, args...)
-
-	case zapcore.ErrorLevel:
-		myLog(zapLogger.Error, callerLevel+2, prefix, args...)
-
-	default:
-		myLog(zapLogger.Debug, callerLevel+2, prefix, args...)
+func Log(lv zapcore.Level, callerLevel int, prefix []any, args ...any) {
+	logFunc := func(args ...any) {
+		zapLogger.Log(lv, args...)
 	}
+	myLog(logFunc, callerLevel+2, prefix, args...)
 }
 
 // 可以指定打印出调用者的信息，0表示打印当前函数位置，1表示上一级调用位置
-func Logf(lv zapcore.Level, callerLevel int, prefix []interface{},
-	template string, args ...interface{}) {
+func Logf(lv zapcore.Level, callerLevel int, prefix []any,
+	template string, args ...any) {
 
-	switch lv {
-	case zapcore.InfoLevel:
-		myLogf(zapLogger.Infof, callerLevel+2, prefix, template, args...)
-
-	case zapcore.WarnLevel:
-		myLogf(zapLogger.Warnf, callerLevel+2, prefix, template, args...)
-
-	case zapcore.ErrorLevel:
-		myLogf(zapLogger.Errorf, callerLevel+2, prefix, template, args...)
-
-	default:
-		myLogf(zapLogger.Debugf, callerLevel+2, prefix, template, args...)
+	logfFunc := func(template string, args ...any) {
+		zapLogger.Logf(lv, template, args...)
 	}
-}
-
-// --------------------------------------------------
-func LogErrCode(errNo int32) int32 {
-	if errNo != 0 {
-		myLogf(zapLogger.Warnf, 2, nil, "return errNo[%v]", errNo)
-	}
-	return errNo
-}
-
-func LogErr(err error, errNo int32) int32 {
-	myLogf(zapLogger.Warnf, 2, nil, "get err[%s], return errNo[%v]", err.Error(), errNo)
-	return errNo
+	myLogf(logfFunc, callerLevel+2, prefix, template, args...)
 }
