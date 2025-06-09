@@ -25,19 +25,22 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_Unknow          ErrorReason = 0
+	ErrorReason_Unknown         ErrorReason = 0 // 未知错误
 	ErrorReason_InvalidArgument ErrorReason = 1 // 请求参数错误
+	ErrorReason_Unauthorized    ErrorReason = 2 // 未授权
 )
 
 // Enum value maps for ErrorReason.
 var (
 	ErrorReason_name = map[int32]string{
-		0: "Unknow",
+		0: "Unknown",
 		1: "InvalidArgument",
+		2: "Unauthorized",
 	}
 	ErrorReason_value = map[string]int32{
-		"Unknow":          0,
+		"Unknown":         0,
 		"InvalidArgument": 1,
+		"Unauthorized":    2,
 	}
 )
 
@@ -72,11 +75,11 @@ var File_error_reason_proto protoreflect.FileDescriptor
 
 const file_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x12error_reason.proto\x12\x03api\x1a\x13errors/errors.proto*:\n" +
-	"\vErrorReason\x12\n" +
-	"\n" +
-	"\x06Unknow\x10\x00\x12\x19\n" +
-	"\x0fInvalidArgument\x10\x01\x1a\x04\xa8E\x90\x03\x1a\x04\xa0E\xf4\x03B\rZ\vpgo/api;apib\x06proto3"
+	"\x12error_reason.proto\x12\x03api\x1a\x13errors/errors.proto*Y\n" +
+	"\vErrorReason\x12\x11\n" +
+	"\aUnknown\x10\x00\x1a\x04\xa8E\xf4\x03\x12\x19\n" +
+	"\x0fInvalidArgument\x10\x01\x1a\x04\xa8E\x90\x03\x12\x16\n" +
+	"\fUnauthorized\x10\x02\x1a\x04\xa8E\x91\x03\x1a\x04\xa0E\xf4\x03B\rZ\vpgo/api;apib\x06proto3"
 
 var (
 	file_error_reason_proto_rawDescOnce sync.Once

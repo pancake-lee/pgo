@@ -101,7 +101,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		opts = append(opts,
 			http.Middleware(
 				recovery.Recovery(),
-				// TODO : 解析/校验token
+				authMiddleware("/user/token"),
 				logging.Server(logger.DefaultKratosLogger),
 			),
 		)

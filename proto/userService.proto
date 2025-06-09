@@ -15,6 +15,8 @@ service User {
         };
     }
 
+    // TODO Echo接口，测试连通，测试中间件，测试网络
+
     // 修改用户名
     rpc EditUserName (EditUserNameRequest) returns (Empty) {
         option (google.api.http) = {

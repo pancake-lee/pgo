@@ -11,16 +11,18 @@ import (
 // is compatible with the kratos package it is being compiled against.
 const _ = errors.SupportPackageIsVersion1
 
-func IsUnknow(err error) bool {
+// 未知错误
+func IsUnknown(err error) bool {
 	if err == nil {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == ErrorReason_Unknow.String() && e.Code == 500
+	return e.Reason == ErrorReason_Unknown.String() && e.Code == 500
 }
 
-func ErrorUnknow(format string, args ...interface{}) *errors.Error {
-	return errors.New(500, ErrorReason_Unknow.String(), fmt.Sprintf(format, args...))
+// 未知错误
+func ErrorUnknown(format string, args ...interface{}) *errors.Error {
+	return errors.New(500, ErrorReason_Unknown.String(), fmt.Sprintf(format, args...))
 }
 
 // 请求参数错误
@@ -35,4 +37,18 @@ func IsInvalidArgument(err error) bool {
 // 请求参数错误
 func ErrorInvalidArgument(format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorReason_InvalidArgument.String(), fmt.Sprintf(format, args...))
+}
+
+// 未授权
+func IsUnauthorized(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_Unauthorized.String() && e.Code == 401
+}
+
+// 未授权
+func ErrorUnauthorized(format string, args ...interface{}) *errors.Error {
+	return errors.New(401, ErrorReason_Unauthorized.String(), fmt.Sprintf(format, args...))
 }
