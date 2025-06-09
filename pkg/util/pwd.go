@@ -67,7 +67,7 @@ func GetCallerFuncName(skip int) string {
 	return path.Base(fullName)
 }
 
-func GetFuncName(i interface{}) string {
+func GetFuncName(i any) string {
 	// 获取函数名称
 	fn := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	// 用 sep 进行分割，不要文件名，也不要类名

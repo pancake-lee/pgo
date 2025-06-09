@@ -26,9 +26,9 @@ func initKratosLogger(zLogger *zap.SugaredLogger) {
 }
 
 // Log Implementation of logger interface.
-func (l *kratosZapLogger) Log(level log.Level, keyvals ...interface{}) error {
-	if len(keyvals) == 0 || len(keyvals)%2 != 0 {
-		l.log.Warn(fmt.Sprint("Keyvalues must appear in pairs: ", keyvals))
+func (l *kratosZapLogger) Log(level log.Level, keyVals ...any) error {
+	if len(keyVals) == 0 || len(keyVals)%2 != 0 {
+		l.log.Warn(fmt.Sprint("kv must appear in pairs: ", keyVals))
 		return nil
 	}
 
@@ -38,9 +38,9 @@ func (l *kratosZapLogger) Log(level log.Level, keyvals ...interface{}) error {
 	var data []zap.Field
 	var caller string
 	var msg string
-	for i := 0; i < len(keyvals); i += 2 {
-		k := fmt.Sprint(keyvals[i])
-		v := fmt.Sprint(keyvals[i+1])
+	for i := 0; i < len(keyVals); i += 2 {
+		k := fmt.Sprint(keyVals[i])
+		v := fmt.Sprint(keyVals[i+1])
 		switch k {
 		case "caller":
 			caller = v

@@ -75,7 +75,7 @@ func Scan(v any) (err error) {
 // --------------------------------------------------
 // 支持代码配置默认值，支持字符串/整形/浮点型/布尔型
 // 通过Tag如`default:"10"`来设置默认值，值都使用字符串来填写
-func SetDefaults(ptr interface{}) error {
+func SetDefaults(ptr any) error {
 	v := reflect.ValueOf(ptr).Elem() // 获取指针指向的结构体
 	t := v.Type()                    // 获取结构体类型
 
