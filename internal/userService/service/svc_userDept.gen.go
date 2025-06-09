@@ -5,8 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/internal/userService/data"
 	"pgo/api"
+	"pgo/internal/userService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {
@@ -43,6 +44,9 @@ func (s *UserCURDServer) AddUserDept(
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Debugf("AddUserDept: %v", newData.ID)
+
 	resp = new(api.AddUserDeptResponse)
 	resp.UserDept = DO2DTO_UserDept(newData)
 	return resp, nil
@@ -55,6 +59,8 @@ func (s *UserCURDServer) GetUserDeptList(
 	var dataList []*data.UserDeptDO
 
 	if len(req.IDList) != 0 {
+		logger.Debugf("GetUserDeptList: %v", req.IDList)
+
 		dataMap, err := data.UserDeptDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
@@ -70,6 +76,8 @@ func (s *UserCURDServer) GetUserDeptList(
 		}
 
 	}
+
+	logger.Debugf("GetUserDeptList resp len %v", len(dataList))
 
 	resp = new(api.GetUserDeptListResponse)
 	resp.UserDeptList = make([]*api.UserDeptInfo, 0, len(dataList))
@@ -92,6 +100,7 @@ func (s *UserCURDServer) UpdateUserDept(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("UpdateUserDept %v", req.UserDept.ID)
 
 	resp = new(api.UpdateUserDeptResponse)
 	d, err := data.UserDeptDAO.GetByID(ctx, req.UserDept.ID)
@@ -112,6 +121,7 @@ func (s *UserCURDServer) DelUserDeptByIDList(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("DelUserDeptByIDList %v", req.IDList)
 	return nil, nil
 }
 

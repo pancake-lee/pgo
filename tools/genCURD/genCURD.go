@@ -132,6 +132,9 @@ func DO2DTO_FieldName(f string) string {
 func rmAllGenFile() {
 	filepath.Walk("internal",
 		func(path string, info os.FileInfo, err error) error {
+			if strings.Contains(path, "pkg") {
+				return nil // 不删除 pkg 目录下的文件
+			}
 			if strings.Contains(path, "gen.go") {
 				logger.Debug("rm file: ", path)
 				err := os.Remove(path)

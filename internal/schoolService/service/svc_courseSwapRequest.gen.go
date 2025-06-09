@@ -5,8 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/internal/schoolService/data"
 	"pgo/api"
+	"pgo/internal/schoolService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {
@@ -63,6 +64,9 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Debugf("AddCourseSwapRequest: %v", newData.ID)
+
 	resp = new(api.AddCourseSwapRequestResponse)
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(newData)
 	return resp, nil
@@ -75,6 +79,8 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 	var dataList []*data.CourseSwapRequestDO
 
 	if len(req.IDList) != 0 {
+		logger.Debugf("GetCourseSwapRequestList: %v", req.IDList)
+
 		dataMap, err := data.CourseSwapRequestDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
@@ -90,6 +96,8 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 		}
 
 	}
+
+	logger.Debugf("GetCourseSwapRequestList resp len %v", len(dataList))
 
 	resp = new(api.GetCourseSwapRequestListResponse)
 	resp.CourseSwapRequestList = make([]*api.CourseSwapRequestInfo, 0, len(dataList))
@@ -112,6 +120,7 @@ func (s *SchoolCURDServer) UpdateCourseSwapRequest(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
 
 	resp = new(api.UpdateCourseSwapRequestResponse)
 	d, err := data.CourseSwapRequestDAO.GetByID(ctx, req.CourseSwapRequest.ID)
@@ -132,6 +141,7 @@ func (s *SchoolCURDServer) DelCourseSwapRequestByIDList(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
 	return nil, nil
 }
 

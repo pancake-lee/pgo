@@ -5,8 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/internal/userService/data"
 	"pgo/api"
+	"pgo/internal/userService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {
@@ -41,6 +42,9 @@ func (s *UserCURDServer) AddUserJob(
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Debugf("AddUserJob: %v", newData.ID)
+
 	resp = new(api.AddUserJobResponse)
 	resp.UserJob = DO2DTO_UserJob(newData)
 	return resp, nil
@@ -53,6 +57,8 @@ func (s *UserCURDServer) GetUserJobList(
 	var dataList []*data.UserJobDO
 
 	if len(req.IDList) != 0 {
+		logger.Debugf("GetUserJobList: %v", req.IDList)
+
 		dataMap, err := data.UserJobDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
@@ -68,6 +74,8 @@ func (s *UserCURDServer) GetUserJobList(
 		}
 
 	}
+
+	logger.Debugf("GetUserJobList resp len %v", len(dataList))
 
 	resp = new(api.GetUserJobListResponse)
 	resp.UserJobList = make([]*api.UserJobInfo, 0, len(dataList))
@@ -90,6 +98,7 @@ func (s *UserCURDServer) UpdateUserJob(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("UpdateUserJob %v", req.UserJob.ID)
 
 	resp = new(api.UpdateUserJobResponse)
 	d, err := data.UserJobDAO.GetByID(ctx, req.UserJob.ID)
@@ -110,6 +119,7 @@ func (s *UserCURDServer) DelUserJobByIDList(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("DelUserJobByIDList %v", req.IDList)
 	return nil, nil
 }
 

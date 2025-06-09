@@ -5,8 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/internal/userService/data"
 	"pgo/api"
+	"pgo/internal/userService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_UserDeptAssoc(do *data.UserDeptAssocDO) *api.UserDeptAssocInfo {
@@ -43,6 +44,8 @@ func (s *UserCURDServer) AddUserDeptAssoc(
 	if err != nil {
 		return nil, err
 	}
+
+
 	resp = new(api.AddUserDeptAssocResponse)
 	resp.UserDeptAssoc = DO2DTO_UserDeptAssoc(newData)
 	return resp, nil
@@ -60,6 +63,8 @@ func (s *UserCURDServer) GetUserDeptAssocList(
 			return nil, err
 		}
 
+
+	logger.Debugf("GetUserDeptAssocList resp len %v", len(dataList))
 
 	resp = new(api.GetUserDeptAssocListResponse)
 	resp.UserDeptAssocList = make([]*api.UserDeptAssocInfo, 0, len(dataList))

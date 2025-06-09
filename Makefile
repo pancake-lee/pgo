@@ -17,7 +17,7 @@ dbIP=127.0.0.1
 # 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
 # 	API_PROTO_FILES=$(shell $(Git_Bash) -c "find ./api/proto -name *.proto")
 # else
-API_PROTO_FILES=$(shell find ./api/proto -name *.proto)
+API_PROTO_FILES=$(shell find ./proto -name *.proto)
 # endif
 
 .PHONY: default
@@ -44,7 +44,7 @@ init:
 # generate api proto
 api:
 	rm -f ./api/*.pb.go
-	protoc --proto_path=./api/proto/ \
+	protoc --proto_path=./proto/ \
 			--proto_path=./third_party \
 			--go_out=paths=source_relative:./api/ \
 			--go-http_out=paths=source_relative:./api/ \
@@ -60,12 +60,13 @@ api:
 .PHONY: gorm
 # 通过 gorm-gen 生成数据库访问代码
 gorm:
-	rm -rf ./pkg/db/dao/
+	rm -rf ./internal/pkg/db/model/
+	rm -rf ./internal/pkg/db/query/
 	export PGPASSWORD="pgo"; \
 	psql -h $(dbIP) -U pgo -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
 	export PGPASSWORD="pgo"; \
 	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo_build;"
-	for file in pkg/db/*.sql; d o \
+	for file in ./internal/pkg/db/*.sql; do \
 		export PGPASSWORD="pgo"; \
 		psql -h $(dbIP) -U pgo -d pgo_build -f $$file; \
 	done
@@ -73,7 +74,7 @@ gorm:
 	gentool \
 	-db postgres \
 	-dsn "host=$(dbIP) user=pgo password=pgo dbname=pgo_build port=5432 sslmode=disable" \
-	-outPath ./pkg/db/dao/query \
+	-outPath ./internal/pkg/db/query \
 	-modelPkgName "model"
 
 # 慎重，这是重置数据库的操作，交互输入密码

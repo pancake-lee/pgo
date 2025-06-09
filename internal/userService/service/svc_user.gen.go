@@ -5,8 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/internal/userService/data"
 	"pgo/api"
+	"pgo/internal/userService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
@@ -41,6 +42,9 @@ func (s *UserCURDServer) AddUser(
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Debugf("AddUser: %v", newData.ID)
+
 	resp = new(api.AddUserResponse)
 	resp.User = DO2DTO_User(newData)
 	return resp, nil
@@ -53,6 +57,8 @@ func (s *UserCURDServer) GetUserList(
 	var dataList []*data.UserDO
 
 	if len(req.IDList) != 0 {
+		logger.Debugf("GetUserList: %v", req.IDList)
+
 		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
 			return nil, err
@@ -68,6 +74,8 @@ func (s *UserCURDServer) GetUserList(
 		}
 
 	}
+
+	logger.Debugf("GetUserList resp len %v", len(dataList))
 
 	resp = new(api.GetUserListResponse)
 	resp.UserList = make([]*api.UserInfo, 0, len(dataList))
@@ -90,6 +98,7 @@ func (s *UserCURDServer) UpdateUser(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("UpdateUser %v", req.User.ID)
 
 	resp = new(api.UpdateUserResponse)
 	d, err := data.UserDAO.GetByID(ctx, req.User.ID)
@@ -110,6 +119,7 @@ func (s *UserCURDServer) DelUserByIDList(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("DelUserByIDList %v", req.IDList)
 	return nil, nil
 }
 

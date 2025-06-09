@@ -10,7 +10,8 @@ import (
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义
-const pbTplPath = "pkg/proto/AbandonCode.proto"
+const pbTplPath = "proto/AbandonCode.proto"
+const pbOutputPath = "./proto/"
 
 func genProto(
 	tblToSvrMap map[string]*Table,
@@ -24,7 +25,7 @@ func genProto(
 
 	pbTplBytes, err := os.ReadFile(pbTplPath)
 	if err != nil {
-		log.Fatalf("read tpl file failed, err: %v", err)
+		logger.Fatalf("read tpl file failed, err: %v", err)
 	}
 	pbTpl := string(pbTplBytes)
 
@@ -101,7 +102,6 @@ func genProtoForOneService(svcName string, tblList []*Table,
 	// 替换整份数据定义代码
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT MSG", pbCodeStr, msgCodeForAllTable)
 
-	pbOutputPath := "./pkg/proto/"
 	os.MkdirAll(pbOutputPath, 0755)
 	err := os.WriteFile(pbOutputPath+svcName+"Service.gen.proto", []byte(pbCodeStr), 0644)
 	if err != nil {

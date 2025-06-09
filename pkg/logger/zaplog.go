@@ -22,11 +22,11 @@ var errorLogger *zap.SugaredLogger
 
 var isInit bool
 
-func InitServiceLogger() {
+func InitServiceLogger(isLogConsole bool) {
 	level := config.GetStringD("Log.Level", "debug")
 	lv := GetLoggerLevel(level)
 	folder := config.GetStringD("Log.Path", "")
-	InitLogger(false, lv, folder)
+	InitLogger(isLogConsole, lv, folder)
 }
 
 func InitLogger(isLogConsole bool,

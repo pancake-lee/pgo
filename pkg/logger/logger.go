@@ -48,6 +48,15 @@ func Errorf(template string, args ...interface{}) {
 }
 
 // --------------------------------------------------
+func Fatal(args ...interface{}) {
+	myLog(errorLogger.Fatal, 2, nil, args...)
+}
+
+func Fatalf(template string, args ...interface{}) {
+	myLogf(errorLogger.Fatalf, 2, nil, template, args...)
+}
+
+// --------------------------------------------------
 // 可以指定打印出调用者的信息，0表示打印当前函数位置，1表示上一级调用位置
 func Log(lv zapcore.Level, callerLevel int, prefix []interface{},
 	args ...interface{}) {

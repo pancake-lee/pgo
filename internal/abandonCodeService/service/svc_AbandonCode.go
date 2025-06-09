@@ -7,6 +7,7 @@ import (
 	"context"
 	"pgo/api"
 	"pgo/internal/abandonCodeService/data"
+	"pgo/pkg/logger"
 )
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
@@ -45,6 +46,11 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 	if err != nil {
 		return nil, err
 	}
+
+	// MARK REMOVE IF NO PRIMARY KEY START
+	logger.Debugf("AddAbandonCode: %v", newData.Idx1)
+	// MARK REMOVE IF NO PRIMARY KEY END
+
 	resp = new(api.AddAbandonCodeResponse)
 	resp.AbandonCode = DO2DTO_AbandonCode(newData)
 	return resp, nil
@@ -58,6 +64,8 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 	// MARK REMOVE IF NO PRIMARY KEY START 1
 	if len(req.Idx1List) != 0 {
+		logger.Debugf("GetAbandonCodeList: %v", req.Idx1List)
+
 		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
 			return nil, err
@@ -76,6 +84,8 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 		// MARK REMOVE IF NO PRIMARY KEY START 2
 	}
 	// MARK REMOVE IF NO PRIMARY KEY END 2
+
+	logger.Debugf("GetAbandonCodeList resp len %v", len(dataList))
 
 	resp = new(api.GetAbandonCodeListResponse)
 	resp.AbandonCodeList = make([]*api.AbandonCodeInfo, 0, len(dataList))
@@ -99,6 +109,7 @@ func (s *AbandonCodeCURDServer) UpdateAbandonCode(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
 
 	resp = new(api.UpdateAbandonCodeResponse)
 	d, err := data.AbandonCodeDAO.GetByIdx1(ctx, req.AbandonCode.Idx1)
@@ -119,6 +130,7 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
 	return nil, nil
 }
 
