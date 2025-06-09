@@ -18,7 +18,7 @@ var UserDeptAssocDAO userDeptAssocDAO
 
 func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO) error {
 	if userDeptAssoc == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDeptAssoc
 	err := q.WithContext(ctx).Create(userDeptAssoc)

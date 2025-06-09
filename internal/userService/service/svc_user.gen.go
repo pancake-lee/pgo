@@ -33,7 +33,7 @@ func (s *UserCURDServer) AddUser(
 	ctx context.Context, req *api.AddUserRequest,
 ) (resp *api.AddUserResponse, err error) {
 	if req.User == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_User(req.User)
 
@@ -89,7 +89,7 @@ func (s *UserCURDServer) UpdateUser(
 	ctx context.Context, req *api.UpdateUserRequest,
 ) (resp *api.UpdateUserResponse, err error) {
 	if req.User == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_User(req.User)

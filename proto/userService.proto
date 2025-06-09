@@ -37,6 +37,7 @@ message LoginRequest {
 
 message LoginResponse {
     UserInfo user = 1;
+    string token = 2;
 }
 
 message EditUserNameRequest {

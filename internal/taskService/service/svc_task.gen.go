@@ -52,7 +52,7 @@ func (s *TaskCURDServer) AddTask(
 	ctx context.Context, req *api.AddTaskRequest,
 ) (resp *api.AddTaskResponse, err error) {
 	if req.Task == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_Task(req.Task)
 
@@ -108,7 +108,7 @@ func (s *TaskCURDServer) UpdateTask(
 	ctx context.Context, req *api.UpdateTaskRequest,
 ) (resp *api.UpdateTaskResponse, err error) {
 	if req.Task == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_Task(req.Task)

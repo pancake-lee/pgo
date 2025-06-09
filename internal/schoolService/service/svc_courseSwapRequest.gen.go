@@ -55,7 +55,7 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 	ctx context.Context, req *api.AddCourseSwapRequestRequest,
 ) (resp *api.AddCourseSwapRequestResponse, err error) {
 	if req.CourseSwapRequest == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
 
@@ -111,7 +111,7 @@ func (s *SchoolCURDServer) UpdateCourseSwapRequest(
 	ctx context.Context, req *api.UpdateCourseSwapRequestRequest,
 ) (resp *api.UpdateCourseSwapRequestResponse, err error) {
 	if req.CourseSwapRequest == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)

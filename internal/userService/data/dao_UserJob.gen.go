@@ -18,7 +18,7 @@ var UserJobDAO userJobDAO
 
 func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
 	if userJob == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	err := q.WithContext(ctx).Create(userJob)
@@ -40,7 +40,7 @@ func (*userJobDAO) GetAll(ctx context.Context,
 
 func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
@@ -52,7 +52,7 @@ func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 
 func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
@@ -78,7 +78,7 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 func (*userJobDAO) GetByID(ctx context.Context, iD int32,
 ) (userJob *UserJobDO, err error) {
 	if iD == 0 {
-		return userJob, logger.LogErr(perr.ParamInvalid)
+		return userJob, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().UserJob

@@ -16,7 +16,7 @@ var AbandonCodeDAO abandonCodeDAO
 
 func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) error {
 	if abandonCode == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().AbandonCode
 	err := q.WithContext(ctx).Create(abandonCode)
@@ -39,7 +39,7 @@ func (*abandonCodeDAO) GetAll(ctx context.Context,
 // MARK REMOVE IF NO PRIMARY KEY START
 func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) error {
 	if do.Idx1 == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(do.Idx1)).Updates(do)
@@ -51,7 +51,7 @@ func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) erro
 
 func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(idx1)).Delete()
@@ -77,7 +77,7 @@ func (*abandonCodeDAO) DelByIdx1List(ctx context.Context, idx1List []int32) erro
 func (*abandonCodeDAO) GetByIdx1(ctx context.Context, idx1 int32,
 ) (abandonCode *AbandonCodeDO, err error) {
 	if idx1 == 0 {
-		return abandonCode, logger.LogErr(perr.ParamInvalid)
+		return abandonCode, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().AbandonCode

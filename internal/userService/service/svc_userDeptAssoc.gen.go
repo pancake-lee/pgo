@@ -35,7 +35,7 @@ func (s *UserCURDServer) AddUserDeptAssoc(
 	ctx context.Context, req *api.AddUserDeptAssocRequest,
 ) (resp *api.AddUserDeptAssocResponse, err error) {
 	if req.UserDeptAssoc == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_UserDeptAssoc(req.UserDeptAssoc)
 

@@ -35,7 +35,7 @@ func (s *UserCURDServer) AddUserDept(
 	ctx context.Context, req *api.AddUserDeptRequest,
 ) (resp *api.AddUserDeptResponse, err error) {
 	if req.UserDept == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_UserDept(req.UserDept)
 
@@ -91,7 +91,7 @@ func (s *UserCURDServer) UpdateUserDept(
 	ctx context.Context, req *api.UpdateUserDeptRequest,
 ) (resp *api.UpdateUserDeptResponse, err error) {
 	if req.UserDept == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_UserDept(req.UserDept)

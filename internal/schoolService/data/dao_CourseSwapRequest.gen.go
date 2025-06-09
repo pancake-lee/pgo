@@ -18,7 +18,7 @@ var CourseSwapRequestDAO courseSwapRequestDAO
 
 func (*courseSwapRequestDAO) Add(ctx context.Context, courseSwapRequest *CourseSwapRequestDO) error {
 	if courseSwapRequest == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	err := q.WithContext(ctx).Create(courseSwapRequest)
@@ -40,7 +40,7 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 
 func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapRequestDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
@@ -52,7 +52,7 @@ func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapReque
 
 func (*courseSwapRequestDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
@@ -78,7 +78,7 @@ func (*courseSwapRequestDAO) DelByIDList(ctx context.Context, iDList []int32) er
 func (*courseSwapRequestDAO) GetByID(ctx context.Context, iD int32,
 ) (courseSwapRequest *CourseSwapRequestDO, err error) {
 	if iD == 0 {
-		return courseSwapRequest, logger.LogErr(perr.ParamInvalid)
+		return courseSwapRequest, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().CourseSwapRequest

@@ -18,7 +18,7 @@ var TaskDAO taskDAO
 
 func (*taskDAO) Add(ctx context.Context, task *TaskDO) error {
 	if task == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().Task
 	err := q.WithContext(ctx).Create(task)
@@ -40,7 +40,7 @@ func (*taskDAO) GetAll(ctx context.Context,
 
 func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
@@ -52,7 +52,7 @@ func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
 
 func (*taskDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
@@ -78,7 +78,7 @@ func (*taskDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 func (*taskDAO) GetByID(ctx context.Context, iD int32,
 ) (task *TaskDO, err error) {
 	if iD == 0 {
-		return task, logger.LogErr(perr.ParamInvalid)
+		return task, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().Task

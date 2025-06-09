@@ -37,7 +37,7 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 	ctx context.Context, req *api.AddAbandonCodeRequest,
 ) (resp *api.AddAbandonCodeResponse, err error) {
 	if req.AbandonCode == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_AbandonCode(req.AbandonCode)
 
@@ -100,7 +100,7 @@ func (s *AbandonCodeCURDServer) UpdateAbandonCode(
 	ctx context.Context, req *api.UpdateAbandonCodeRequest,
 ) (resp *api.UpdateAbandonCodeResponse, err error) {
 	if req.AbandonCode == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_AbandonCode(req.AbandonCode)

@@ -18,7 +18,7 @@ var UserDAO userDAO
 
 func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 	if user == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().User
 	err := q.WithContext(ctx).Create(user)
@@ -40,7 +40,7 @@ func (*userDAO) GetAll(ctx context.Context,
 
 func (*userDAO) UpdateByID(ctx context.Context, do *UserDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
@@ -52,7 +52,7 @@ func (*userDAO) UpdateByID(ctx context.Context, do *UserDO) error {
 
 func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
@@ -78,7 +78,7 @@ func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 func (*userDAO) GetByID(ctx context.Context, iD int32,
 ) (user *UserDO, err error) {
 	if iD == 0 {
-		return user, logger.LogErr(perr.ParamInvalid)
+		return user, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().User

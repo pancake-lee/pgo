@@ -18,7 +18,7 @@ var UserDeptDAO userDeptDAO
 
 func (*userDeptDAO) Add(ctx context.Context, userDept *UserDeptDO) error {
 	if userDept == nil {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	err := q.WithContext(ctx).Create(userDept)
@@ -40,7 +40,7 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 
 func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
@@ -52,7 +52,7 @@ func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 
 func (*userDeptDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ParamInvalid)
+		return logger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
@@ -78,7 +78,7 @@ func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 func (*userDeptDAO) GetByID(ctx context.Context, iD int32,
 ) (userDept *UserDeptDO, err error) {
 	if iD == 0 {
-		return userDept, logger.LogErr(perr.ParamInvalid)
+		return userDept, logger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().UserDept

@@ -731,6 +731,8 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+                token:
+                    type: string
         api.TaskInfo:
             type: object
             properties:

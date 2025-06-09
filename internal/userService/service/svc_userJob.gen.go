@@ -33,7 +33,7 @@ func (s *UserCURDServer) AddUserJob(
 	ctx context.Context, req *api.AddUserJobRequest,
 ) (resp *api.AddUserJobResponse, err error) {
 	if req.UserJob == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 	newData := DTO2DO_UserJob(req.UserJob)
 
@@ -89,7 +89,7 @@ func (s *UserCURDServer) UpdateUserJob(
 	ctx context.Context, req *api.UpdateUserJobRequest,
 ) (resp *api.UpdateUserJobResponse, err error) {
 	if req.UserJob == nil {
-		return nil, api.ErrorInvalidArgument("request is invalid")
+		return nil, api.ErrorInvalidArgument("")
 	}
 
 	do := DTO2DO_UserJob(req.UserJob)

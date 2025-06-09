@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -30,12 +31,12 @@ var (
 // --------------------------------------------------
 type httpConfig struct {
 	Addr    string
-	Timeout int `default:"10"` // seconds
+	Timeout int `default:"1000"` // Millisecond
 }
 
 type grpcConfig struct {
 	Addr    string
-	Timeout int `default:"10"` // seconds
+	Timeout int `default:"1000"` // Millisecond
 }
 
 type ServiceConfig struct {
@@ -97,6 +98,13 @@ func RunKratosApp(kratosServers ...kratosServer) {
 				MaxAge:           3600,
 			}).Handler))
 
+		opts = append(opts,
+			http.Middleware(
+				recovery.Recovery(),
+				// TODO : 解析/校验token
+				logging.Server(logger.DefaultKratosLogger),
+			),
+		)
 		httpSrv = http.NewServer(opts...)
 	}
 
@@ -104,16 +112,8 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		s.Reg(grpcSrv, httpSrv)
 	}
 
-	kLog := log.With(
-		// log.NewStdLogger(os.Stdout),
-		logger.DefaultKratosLogger,
-		// "ts", log.DefaultTimestamp,
+	kLog := log.With(logger.DefaultKratosLogger,
 		"caller", log.DefaultCaller,
-		// "service.id", id,
-		// "service.name", Name,
-		// "service.version", Version,
-		// "trace.id", tracing.TraceID(),
-		// "span.id", tracing.SpanID(),
 	)
 	app := kratos.New(
 		kratos.ID(id),
