@@ -41,10 +41,9 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 	}
 	newData := DTO2DO_AbandonCode(req.AbandonCode)
 
-	err = data.AbandonCodeDAO.Add(ctx,
-		newData)
+	err = data.AbandonCodeDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
 	// MARK REMOVE IF NO PRIMARY KEY START
@@ -68,7 +67,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -78,7 +77,7 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 		dataList, err = data.AbandonCodeDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 		// MARK REMOVE IF NO PRIMARY KEY START 2
@@ -107,14 +106,14 @@ func (s *AbandonCodeCURDServer) UpdateAbandonCode(
 	do := DTO2DO_AbandonCode(req.AbandonCode)
 	err = data.AbandonCodeDAO.UpdateByIdx1(ctx, do)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
 
 	resp = new(api.UpdateAbandonCodeResponse)
 	d, err := data.AbandonCodeDAO.GetByIdx1(ctx, req.AbandonCode.Idx1)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	resp.AbandonCode = DO2DTO_AbandonCode(d)
 	return resp, nil
@@ -128,7 +127,7 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	}
 	err = data.AbandonCodeDAO.DelByIdx1List(ctx, req.Idx1List)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
 	return nil, nil
