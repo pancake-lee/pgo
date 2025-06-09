@@ -39,10 +39,9 @@ func (s *UserCURDServer) AddUserDept(
 	}
 	newData := DTO2DO_UserDept(req.UserDept)
 
-	err = data.UserDeptDAO.Add(ctx,
-		newData)
+	err = data.UserDeptDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
 	logger.Debugf("AddUserDept: %v", newData.ID)
@@ -63,7 +62,7 @@ func (s *UserCURDServer) GetUserDeptList(
 
 		dataMap, err := data.UserDeptDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -72,7 +71,7 @@ func (s *UserCURDServer) GetUserDeptList(
 
 		dataList, err = data.UserDeptDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 	}
@@ -98,14 +97,14 @@ func (s *UserCURDServer) UpdateUserDept(
 	do := DTO2DO_UserDept(req.UserDept)
 	err = data.UserDeptDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("UpdateUserDept %v", req.UserDept.ID)
 
 	resp = new(api.UpdateUserDeptResponse)
 	d, err := data.UserDeptDAO.GetByID(ctx, req.UserDept.ID)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	resp.UserDept = DO2DTO_UserDept(d)
 	return resp, nil
@@ -119,7 +118,7 @@ func (s *UserCURDServer) DelUserDeptByIDList(
 	}
 	err = data.UserDeptDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("DelUserDeptByIDList %v", req.IDList)
 	return nil, nil

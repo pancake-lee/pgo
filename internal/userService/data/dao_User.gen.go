@@ -4,9 +4,10 @@ package data
 
 import (
 	"context"
-	"errors"
 	"pgo/internal/pkg/db"
 	"pgo/internal/pkg/db/model"
+	"pgo/internal/pkg/perr"
+	"pgo/pkg/logger"
 )
 
 type UserDO = model.User
@@ -17,14 +18,14 @@ var UserDAO userDAO
 
 func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 	if user == nil {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().User
 	err := q.WithContext(ctx).Create(user)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDAO) GetAll(ctx context.Context,
@@ -32,33 +33,33 @@ func (*userDAO) GetAll(ctx context.Context,
 	q := db.GetPG().User
 	userList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userList, nil
 }
 
 func (*userDAO) UpdateByID(ctx context.Context, do *UserDO) error {
 	if do.ID == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
@@ -69,22 +70,22 @@ func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDAO) GetByID(ctx context.Context, iD int32,
 ) (user *UserDO, err error) {
 	if iD == 0 {
-		return user, errors.New("param is invalid")
+		return user, logger.LogErr(perr.ParamInvalid)
 	}
 
 	q := db.GetPG().User
 	user, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return user, nil
 }
@@ -99,7 +100,7 @@ func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	userMap = make(map[int32]*UserDO)
 	for _, i := range l {

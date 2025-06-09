@@ -2,12 +2,13 @@
 
 package service
 
+import "time"
+
 import (
 	"context"
 	"pgo/api"
 	"pgo/internal/taskService/data"
 	"pgo/pkg/logger"
-	"time"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
@@ -15,17 +16,17 @@ func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
 		return nil
 	}
 	return &api.TaskInfo{
-		ID:         do.ID,
-		ParentID:   do.ParentID,
-		PrevID:     do.PrevID,
-		Task:       do.Task,
-		Status:     do.Status,
-		Estimate:   do.Estimate,
-		Start:      do.Start.Unix(),
-		End:        do.End.Unix(),
-		Desc:       do.Desc,
-		Metadata:   do.Metadata,
-		CreateTime: do.CreateTime.Unix(),
+        ID: do.ID,
+        ParentID: do.ParentID,
+        PrevID: do.PrevID,
+        Task: do.Task,
+        Status: do.Status,
+        Estimate: do.Estimate,
+        Start: do.Start.Unix(),
+        End: do.End.Unix(),
+        Desc: do.Desc,
+        Metadata: do.Metadata,
+        CreateTime: do.CreateTime.Unix(),
 	}
 }
 func DTO2DO_Task(dto *api.TaskInfo) *data.TaskDO {
@@ -33,17 +34,17 @@ func DTO2DO_Task(dto *api.TaskInfo) *data.TaskDO {
 		return nil
 	}
 	return &data.TaskDO{
-		ID:         dto.ID,
-		ParentID:   dto.ParentID,
-		PrevID:     dto.PrevID,
-		Task:       dto.Task,
-		Status:     dto.Status,
-		Estimate:   dto.Estimate,
-		Start:      time.Unix(dto.Start, 0),
-		End:        time.Unix(dto.End, 0),
-		Desc:       dto.Desc,
-		Metadata:   dto.Metadata,
-		CreateTime: time.Unix(dto.CreateTime, 0),
+        ID: dto.ID,
+        ParentID: dto.ParentID,
+        PrevID: dto.PrevID,
+        Task: dto.Task,
+        Status: dto.Status,
+        Estimate: dto.Estimate,
+        Start: time.Unix(dto.Start, 0),
+        End: time.Unix(dto.End, 0),
+        Desc: dto.Desc,
+        Metadata: dto.Metadata,
+        CreateTime: time.Unix(dto.CreateTime, 0),
 	}
 }
 
@@ -55,13 +56,12 @@ func (s *TaskCURDServer) AddTask(
 	}
 	newData := DTO2DO_Task(req.Task)
 
-	err = data.TaskDAO.Add(ctx,
-		newData)
+	err = data.TaskDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
-	logger.Debugf("AddTask: %v", newData)
+	logger.Debugf("AddTask: %v", newData.ID)
 
 	resp = new(api.AddTaskResponse)
 	resp.Task = DO2DTO_Task(newData)
@@ -79,7 +79,7 @@ func (s *TaskCURDServer) GetTaskList(
 
 		dataMap, err := data.TaskDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -88,7 +88,7 @@ func (s *TaskCURDServer) GetTaskList(
 
 		dataList, err = data.TaskDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 	}
@@ -103,6 +103,7 @@ func (s *TaskCURDServer) GetTaskList(
 	return resp, nil
 }
 
+
 func (s *TaskCURDServer) UpdateTask(
 	ctx context.Context, req *api.UpdateTaskRequest,
 ) (resp *api.UpdateTaskResponse, err error) {
@@ -113,14 +114,14 @@ func (s *TaskCURDServer) UpdateTask(
 	do := DTO2DO_Task(req.Task)
 	err = data.TaskDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("UpdateTask %v", req.Task.ID)
 
 	resp = new(api.UpdateTaskResponse)
 	d, err := data.TaskDAO.GetByID(ctx, req.Task.ID)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	resp.Task = DO2DTO_Task(d)
 	return resp, nil
@@ -134,8 +135,9 @@ func (s *TaskCURDServer) DelTaskByIDList(
 	}
 	err = data.TaskDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("DelTaskByIDList %v", req.IDList)
 	return nil, nil
 }
+

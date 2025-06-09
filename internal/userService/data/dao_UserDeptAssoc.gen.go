@@ -4,9 +4,10 @@ package data
 
 import (
 	"context"
-	"errors"
 	"pgo/internal/pkg/db"
 	"pgo/internal/pkg/db/model"
+	"pgo/internal/pkg/perr"
+	"pgo/pkg/logger"
 )
 
 type UserDeptAssocDO = model.UserDeptAssoc
@@ -17,14 +18,14 @@ var UserDeptAssocDAO userDeptAssocDAO
 
 func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO) error {
 	if userDeptAssoc == nil {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserDeptAssoc
 	err := q.WithContext(ctx).Create(userDeptAssoc)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDeptAssocDAO) GetAll(ctx context.Context,
@@ -32,7 +33,7 @@ func (*userDeptAssocDAO) GetAll(ctx context.Context,
 	q := db.GetPG().UserDeptAssoc
 	userDeptAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userDeptAssocList, nil
 }

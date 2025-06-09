@@ -4,9 +4,10 @@ package data
 
 import (
 	"context"
-	"errors"
 	"pgo/internal/pkg/db"
 	"pgo/internal/pkg/db/model"
+	"pgo/internal/pkg/perr"
+	"pgo/pkg/logger"
 )
 
 type CourseSwapRequestDO = model.CourseSwapRequest
@@ -17,14 +18,14 @@ var CourseSwapRequestDAO courseSwapRequestDAO
 
 func (*courseSwapRequestDAO) Add(ctx context.Context, courseSwapRequest *CourseSwapRequestDO) error {
 	if courseSwapRequest == nil {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	err := q.WithContext(ctx).Create(courseSwapRequest)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*courseSwapRequestDAO) GetAll(ctx context.Context,
@@ -32,33 +33,33 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 	q := db.GetPG().CourseSwapRequest
 	courseSwapRequestList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return courseSwapRequestList, nil
 }
 
 func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapRequestDO) error {
 	if do.ID == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*courseSwapRequestDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*courseSwapRequestDAO) DelByIDList(ctx context.Context, iDList []int32) error {
@@ -69,22 +70,22 @@ func (*courseSwapRequestDAO) DelByIDList(ctx context.Context, iDList []int32) er
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*courseSwapRequestDAO) GetByID(ctx context.Context, iD int32,
 ) (courseSwapRequest *CourseSwapRequestDO, err error) {
 	if iD == 0 {
-		return courseSwapRequest, errors.New("param is invalid")
+		return courseSwapRequest, logger.LogErr(perr.ParamInvalid)
 	}
 
 	q := db.GetPG().CourseSwapRequest
 	courseSwapRequest, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return courseSwapRequest, nil
 }
@@ -99,7 +100,7 @@ func (*courseSwapRequestDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	courseSwapRequestMap = make(map[int32]*CourseSwapRequestDO)
 	for _, i := range l {

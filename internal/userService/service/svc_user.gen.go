@@ -37,10 +37,9 @@ func (s *UserCURDServer) AddUser(
 	}
 	newData := DTO2DO_User(req.User)
 
-	err = data.UserDAO.Add(ctx,
-		newData)
+	err = data.UserDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
 	logger.Debugf("AddUser: %v", newData.ID)
@@ -61,7 +60,7 @@ func (s *UserCURDServer) GetUserList(
 
 		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -70,7 +69,7 @@ func (s *UserCURDServer) GetUserList(
 
 		dataList, err = data.UserDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 	}
@@ -96,14 +95,14 @@ func (s *UserCURDServer) UpdateUser(
 	do := DTO2DO_User(req.User)
 	err = data.UserDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("UpdateUser %v", req.User.ID)
 
 	resp = new(api.UpdateUserResponse)
 	d, err := data.UserDAO.GetByID(ctx, req.User.ID)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	resp.User = DO2DTO_User(d)
 	return resp, nil
@@ -117,7 +116,7 @@ func (s *UserCURDServer) DelUserByIDList(
 	}
 	err = data.UserDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("DelUserByIDList %v", req.IDList)
 	return nil, nil

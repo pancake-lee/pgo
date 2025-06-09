@@ -39,10 +39,9 @@ func (s *UserCURDServer) AddUserDeptAssoc(
 	}
 	newData := DTO2DO_UserDeptAssoc(req.UserDeptAssoc)
 
-	err = data.UserDeptAssocDAO.Add(ctx,
-		newData)
+	err = data.UserDeptAssocDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
 
@@ -60,7 +59,7 @@ func (s *UserCURDServer) GetUserDeptAssocList(
 
 		dataList, err = data.UserDeptAssocDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 

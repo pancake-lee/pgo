@@ -4,9 +4,10 @@ package data
 
 import (
 	"context"
-	"errors"
 	"pgo/internal/pkg/db"
 	"pgo/internal/pkg/db/model"
+	"pgo/internal/pkg/perr"
+	"pgo/pkg/logger"
 )
 
 type UserJobDO = model.UserJob
@@ -17,14 +18,14 @@ var UserJobDAO userJobDAO
 
 func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
 	if userJob == nil {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	err := q.WithContext(ctx).Create(userJob)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userJobDAO) GetAll(ctx context.Context,
@@ -32,33 +33,33 @@ func (*userJobDAO) GetAll(ctx context.Context,
 	q := db.GetPG().UserJob
 	userJobList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userJobList, nil
 }
 
 func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	if do.ID == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
@@ -69,22 +70,22 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userJobDAO) GetByID(ctx context.Context, iD int32,
 ) (userJob *UserJobDO, err error) {
 	if iD == 0 {
-		return userJob, errors.New("param is invalid")
+		return userJob, logger.LogErr(perr.ParamInvalid)
 	}
 
 	q := db.GetPG().UserJob
 	userJob, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userJob, nil
 }
@@ -99,7 +100,7 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	userJobMap = make(map[int32]*UserJobDO)
 	for _, i := range l {

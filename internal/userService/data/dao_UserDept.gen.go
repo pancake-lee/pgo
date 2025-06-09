@@ -4,9 +4,10 @@ package data
 
 import (
 	"context"
-	"errors"
 	"pgo/internal/pkg/db"
 	"pgo/internal/pkg/db/model"
+	"pgo/internal/pkg/perr"
+	"pgo/pkg/logger"
 )
 
 type UserDeptDO = model.UserDept
@@ -17,14 +18,14 @@ var UserDeptDAO userDeptDAO
 
 func (*userDeptDAO) Add(ctx context.Context, userDept *UserDeptDO) error {
 	if userDept == nil {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	err := q.WithContext(ctx).Create(userDept)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDeptDAO) GetAll(ctx context.Context,
@@ -32,33 +33,33 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	q := db.GetPG().UserDept
 	userDeptList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userDeptList, nil
 }
 
 func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 	if do.ID == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDeptDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return errors.New("param is invalid")
+		return logger.LogErr(perr.ParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
@@ -69,22 +70,22 @@ func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return err
+		return logger.LogErr(err)
 	}
-	return err
+	return nil
 }
 
 func (*userDeptDAO) GetByID(ctx context.Context, iD int32,
 ) (userDept *UserDeptDO, err error) {
 	if iD == 0 {
-		return userDept, errors.New("param is invalid")
+		return userDept, logger.LogErr(perr.ParamInvalid)
 	}
 
 	q := db.GetPG().UserDept
 	userDept, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	return userDept, nil
 }
@@ -99,7 +100,7 @@ func (*userDeptDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	userDeptMap = make(map[int32]*UserDeptDO)
 	for _, i := range l {

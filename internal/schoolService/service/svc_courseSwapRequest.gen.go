@@ -59,10 +59,9 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 	}
 	newData := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
 
-	err = data.CourseSwapRequestDAO.Add(ctx,
-		newData)
+	err = data.CourseSwapRequestDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 
 	logger.Debugf("AddCourseSwapRequest: %v", newData.ID)
@@ -83,7 +82,7 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 
 		dataMap, err := data.CourseSwapRequestDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -92,7 +91,7 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 
 		dataList, err = data.CourseSwapRequestDAO.GetAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, logger.LogErr(err)
 		}
 
 	}
@@ -118,14 +117,14 @@ func (s *SchoolCURDServer) UpdateCourseSwapRequest(
 	do := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
 	err = data.CourseSwapRequestDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
 
 	resp = new(api.UpdateCourseSwapRequestResponse)
 	d, err := data.CourseSwapRequestDAO.GetByID(ctx, req.CourseSwapRequest.ID)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(d)
 	return resp, nil
@@ -139,7 +138,7 @@ func (s *SchoolCURDServer) DelCourseSwapRequestByIDList(
 	}
 	err = data.CourseSwapRequestDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, err
+		return nil, logger.LogErr(err)
 	}
 	logger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
 	return nil, nil
