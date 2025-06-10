@@ -8,27 +8,17 @@ dbIP=127.0.0.1
 # dbIP=192.168.3.111 
 
 # 遍历所有proto文件
-# 这段在window上找git的代码在某些机器上有问题，我们直接用git-bash运行就好了
-# ifeq ($(GOHOSTOS), windows)
-# 	#the `find.exe` is different from `find` in bash/shell.
-# 	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
-# 	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
-# 	#Git_Bash= $(subst cmd\,bin\bash.exe,$(dir $(shell where git)))
-# 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
-# 	API_PROTO_FILES=$(shell $(Git_Bash) -c "find ./api/proto -name *.proto")
-# else
+# every developer has a Git. run in GitBash.
 API_PROTO_FILES=$(shell find ./proto -name *.proto)
-# endif
-
-.PHONY: default
-default:all
 
 .PHONY: init
-# init env
+# 安装依赖
 init:
 # wget https://github.com/protocolbuffers/protobuf/releases/download/v28.1/protoc-28.1-linux-x86_64.zip
 # unzip protoc-28.1-linux-x86_64.zip -d /usr/local
 # go env -w GOPROXY=https://goproxy.cn,direct
+# git config core.autocrlf false
+# git config core.eol lf
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
@@ -37,21 +27,19 @@ init:
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
 	go install gorm.io/gen/tools/gentool@latest
 	go mod tidy
-	git config core.autocrlf false
-	git config core.eol lf
 
 .PHONY: api
 # generate api proto
 api:
 	rm -f ./api/*.pb.go
 	protoc --proto_path=./proto/ \
-			--proto_path=./third_party \
-			--go_out=paths=source_relative:./api/ \
-			--go-http_out=paths=source_relative:./api/ \
-			--go-grpc_out=paths=source_relative:./api/ \
-			--go-errors_out=paths=source_relative:./api/ \
-			--openapi_out=fq_schema_naming=true,default_response=false:. \
-			$(API_PROTO_FILES) \
+		--proto_path=./third_party \
+		--go_out=paths=source_relative:./api/ \
+		--go-http_out=paths=source_relative:./api/ \
+		--go-grpc_out=paths=source_relative:./api/ \
+		--go-errors_out=paths=source_relative:./api/ \
+		--openapi_out=fq_schema_naming=true,default_response=false:. \
+		$(API_PROTO_FILES) \
 
 	echo servers: >> ./openapi.yaml
 	echo     - description: IN Gen2 Open API >> ./openapi.yaml
@@ -77,14 +65,17 @@ gorm:
 	-outPath ./internal/pkg/db/query \
 	-modelPkgName "model"
 
+.PHONY: initDB
 # 慎重，这是重置数据库的操作，交互输入密码
 initDB:
-# psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo;"
+	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo;"
 	for file in pkg/db/*.sql; do \
 		export PGPASSWORD="pgo"; \
 		psql -h $(dbIP) -U pgo -d pgo -f $$file; \
 	done
 
+.PHONY: curd
+# 根据数据库生成 CURD 代码
 curd:
 	go run ./tools/genCURD/
 
@@ -104,14 +95,26 @@ help:
 	@echo ' make [target]'
 	@echo ''
 	@echo 'Targets:'
-	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+	@awk '/^[a-zA-Z\-_0-9]+:/ { \
 	helpMessage = match(lastLine, /^# (.*)/); \
 		if (helpMessage) { \
 			helpCommand = substr($$1, 0, index($$1, ":")); \
 			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
-			printf "\033[36m%-22s\033[0m %s\n", helpCommand,helpMessage; \
+			printf "\033[36m%-10s\033[0m %s\n", helpCommand,helpMessage; \
 		} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
+# 设置help为默认目标，平时默认目标是第一个目标
 .DEFAULT_GOAL := help
+
+.PHONY: precommit
+# 提交生成的代码[*.pb.go, ./client/swagger/*, *.gen.go, *.gen.proto]
+precommit:
+	git add "*.pb.go"
+	git add "./client/swagger/*"
+	git add "*.gen.go"
+	git add "*.gen.proto"
+	git add "./internal/pkg/db/model/"
+	git add "./internal/pkg/db/query/"
+	git commit -m "gen: update generated code"
