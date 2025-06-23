@@ -55,7 +55,7 @@
 
 | prefix   | desc       |
 | -------- | ---------- |
-| build    | 构建相关   |
+| build    | 构建相关    |
 | chore    | 杂项       |
 | ci       | CI/CD 相关 |
 | docs     | 文档       |
@@ -64,6 +64,8 @@
 | perf     | 性能       |
 | refactor | 重构       |
 | revert   | 回退       |
-| style    | 代码风格   |
+| style    | 代码风格    |
 | test     | 测试       |
-| gen      | 生成代码   |
+| gen      | 生成代码    |
+| improve  | 优化代码    |
+| tidy     | 整理、清理  |

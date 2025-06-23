@@ -1,8 +1,16 @@
 package main
 
-import "log"
+import (
+	"log"
+	"pgo/client/courseSwap"
+)
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lshortfile)
-	CourseSwap()
+
+	i := 1
+	switch i {
+	case 0:
+		courseSwap.CourseSwap()
+	}
 }
