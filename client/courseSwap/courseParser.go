@@ -56,7 +56,7 @@ func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
 	return
 }
 
-// ------------------------------------------------------------
+// --------------------------------------------------
 type classInfo struct {
 	className     string //课名
 	classRoomName string //班级名

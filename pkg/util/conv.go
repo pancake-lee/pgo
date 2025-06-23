@@ -239,7 +239,7 @@ func StrToBool(value string) (bool, error) {
 	return strconv.ParseBool(strings.ToLower(value))
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // EncodeBase64 converts an input string to base64 string.
 func EncodeBase64(input string) string {
 	return base64.StdEncoding.EncodeToString([]byte(input))
@@ -256,7 +256,7 @@ func DecodeBase64Str(input string) string {
 	return string(s)
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 func EncodeHex(input []byte) string {
 	return hex.EncodeToString(input)
 }
@@ -265,7 +265,7 @@ func DecodeHex(input string) ([]byte, error) {
 	return hex.DecodeString(input)
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // Length2Bytes converts an int64 value to a byte array.
 func Length2Bytes(len int64, buffer []byte) []byte {
 	binary.BigEndian.PutUint64(buffer, uint64(len))
@@ -277,7 +277,7 @@ func Bytes2Length(ret []byte) int64 {
 	return int64(binary.BigEndian.Uint64(ret))
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // Int32ListToStr []int32 to string
 func Int32ListToStr(Int32List []int32, split string) string {
 	var outString strings.Builder
@@ -320,7 +320,7 @@ func StrToInt32List2(str, start, end, split string) ([]int32, error) {
 	return StrToInt32List(str, split)
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 func Int32ListToStrWithDelimiter(Int32List []int32, split, left, right string) string {
 	var outString strings.Builder
 	cnt := len(Int32List)
@@ -354,7 +354,7 @@ func StrToInt32ListWithDelimiter(str, split, left, right string) (ret []int32, e
 	return ret, nil
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // StringListToStr []string to string
 func StrListToStr(stringList []string, split string) string {
 	if len(stringList) == 0 {
@@ -464,7 +464,7 @@ func StrToStrListByStartAndEnd(s string, splitStart string, splitEnd string) (re
 	return ret
 }
 
-//----------------------------------------------------------
+// --------------------------------------------------
 
 // 根据替换映射表替换字符串，要注意map的数据，不要造成循环替换
 func ReplaceByStringMap(str string, replaceMap map[string]string) string {
@@ -474,7 +474,7 @@ func ReplaceByStringMap(str string, replaceMap map[string]string) string {
 	return str
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 func InterfaceToInt32(val any, defaultVal int32) int32 {
 	switch val := val.(type) {
 	case int32:
@@ -500,7 +500,7 @@ func InterfaceToString(val any, defaultVal string) string {
 	}
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 
 func FillPrefixToLen(in, prefix string, length int) string {
 	if len(in) >= length {
@@ -509,7 +509,7 @@ func FillPrefixToLen(in, prefix string, length int) string {
 	return strings.Repeat(prefix, length-len(in)) + in
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // 尝试将数据转换为UTF-8
 // TODO 并不能自动识别编码，有时候用错编码，乱码，但是属于可见字符，也会被认为是UTF-8合法
 func strToUTF8(str string) (string, error) {
@@ -541,7 +541,7 @@ func strToUTF8(str string) (string, error) {
 	return str, fmt.Errorf("unknown encoding")
 }
 
-// ----------------------------------------------------------
+// --------------------------------------------------
 // snake_case
 // lowerCamelCase
 // UpperCamelCase

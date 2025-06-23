@@ -53,7 +53,7 @@ func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	return tblNameReplace(codeStr, tplTable, tbl)
 }
 
-// ------------------------------------------------------------
+// --------------------------------------------------
 func tblIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 替换主键的字段名，参数名，参数类型
 	codeStr = strings.ReplaceAll(codeStr,
