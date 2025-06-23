@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	api "pgo/api"
-	"pgo/internal/userService/data"
-	"pgo/pkg/app"
-	"pgo/pkg/logger"
+	api "github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/userService/data"
+	"github.com/pancake-lee/pgo/pkg/app"
+	"github.com/pancake-lee/pgo/pkg/logger"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"

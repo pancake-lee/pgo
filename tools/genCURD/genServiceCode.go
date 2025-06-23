@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"pgo/pkg/logger"
-	"pgo/pkg/util"
 	"strings"
+
+	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/util"
 )
 
 // 生成 curd 的 service 代码，包括 DO 和 DTO 的转换代码，基础 curd 的实现

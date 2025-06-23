@@ -1,8 +1,9 @@
 package main
 
 import (
-	"pgo/pkg/logger"
 	"strings"
+
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 type iMarkPairTool interface {

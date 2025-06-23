@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pgo/internal/userService/data"
-	"pgo/api"
+	"github.com/pancake-lee/pgo/internal/userService/data"
+	"github.com/pancake-lee/pgo/api"
 )
 
 type UserJobService struct {

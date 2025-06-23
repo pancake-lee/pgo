@@ -1,8 +1,9 @@
 package app
 
 import (
-	"pgo/pkg/logger"
 	"testing"
+
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func TestJwt(t *testing.T) {

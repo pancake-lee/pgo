@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"pgo/client/swagger"
-	"pgo/pkg/config"
-	"pgo/pkg/logger"
-	"pgo/pkg/util"
 	"sort"
 	"time"
+
+	"github.com/pancake-lee/pgo/client/swagger"
+	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/util"
 )
 
 // 实在词穷，courseInfo表示课程安排，如20240101一年1班的第1节课

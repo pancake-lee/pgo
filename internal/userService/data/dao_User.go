@@ -3,8 +3,9 @@ package data
 import (
 	"context"
 	"errors"
-	"pgo/internal/pkg/db"
-	"pgo/internal/pkg/db/model"
+
+	"github.com/pancake-lee/pgo/internal/pkg/db"
+	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 )
 
 func (*userDAO) GetOrAdd(ctx context.Context,

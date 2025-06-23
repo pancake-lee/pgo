@@ -4,8 +4,9 @@ import (
 	"log"
 	"path"
 	"path/filepath"
-	"pgo/pkg/config"
-	"pgo/pkg/util"
+
+	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/util"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

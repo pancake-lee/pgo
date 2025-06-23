@@ -3,7 +3,7 @@
 package service
 
 import (
-	api "pgo/api"
+	api "github.com/pancake-lee/pgo/api"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"

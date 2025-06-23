@@ -5,10 +5,11 @@ import (
 	"io"
 	"log"
 	"os"
-	"pgo/pkg/util"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/pancake-lee/pgo/pkg/util"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"

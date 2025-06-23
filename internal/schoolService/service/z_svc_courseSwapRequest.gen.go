@@ -5,9 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/internal/schoolService/data"
-	"pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/schoolService/data"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {

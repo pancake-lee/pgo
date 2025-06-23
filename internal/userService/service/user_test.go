@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/pkg/util"
 	"testing"
 	"time"
+
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/pkg/util"
 )
 
 // 1：添加用户

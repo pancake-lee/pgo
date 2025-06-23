@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"pgo/pkg/util"
 	"reflect"
 	"strconv"
+
+	"github.com/pancake-lee/pgo/pkg/util"
 
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"

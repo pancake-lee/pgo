@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/internal/pkg/perr"
-	"pgo/internal/userService/conf"
 	"strings"
 	"time"
+
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/pkg/perr"
+	"github.com/pancake-lee/pgo/internal/userService/conf"
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"

@@ -6,9 +6,9 @@ import "time"
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/internal/taskService/data"
-	"pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/taskService/data"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {

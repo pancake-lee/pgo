@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 )
 
 func newCourseSwapRequest(db *gorm.DB, opts ...gen.DOOption) courseSwapRequest {

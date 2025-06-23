@@ -6,11 +6,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"pgo/internal/pkg/db/model"
-	"pgo/pkg/logger"
-	"pgo/pkg/util"
 	"reflect"
 	"strings"
+
+	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/util"
 )
 
 type dbModel interface {

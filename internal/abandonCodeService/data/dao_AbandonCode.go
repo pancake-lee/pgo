@@ -2,10 +2,11 @@ package data
 
 import (
 	"context"
-	"pgo/internal/pkg/db"
-	"pgo/internal/pkg/db/model"
-	"pgo/internal/pkg/perr"
-	"pgo/pkg/logger"
+
+	"github.com/pancake-lee/pgo/internal/pkg/db"
+	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/internal/pkg/perr"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 type AbandonCodeDO = model.AbandonCode

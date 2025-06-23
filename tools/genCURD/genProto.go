@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"pgo/pkg/logger"
 	"sort"
 	"strings"
+
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义

@@ -5,9 +5,9 @@ package service
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/internal/userService/data"
-	"pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/userService/data"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {

@@ -5,9 +5,10 @@ package service
 
 import (
 	"context"
-	"pgo/api"
-	"pgo/internal/abandonCodeService/data"
-	"pgo/pkg/logger"
+
+	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/abandonCodeService/data"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {

@@ -2,8 +2,9 @@ package logger
 
 import (
 	"fmt"
-	"pgo/pkg/util"
 	"time"
+
+	"github.com/pancake-lee/pgo/pkg/util"
 )
 
 // 统计耗时的日志工具

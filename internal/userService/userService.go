@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"pgo/internal/userService/conf"
-	"pgo/internal/userService/service"
-	"pgo/pkg/app"
-	"pgo/pkg/config"
-	"pgo/pkg/logger"
+
+	"github.com/pancake-lee/pgo/internal/userService/conf"
+	"github.com/pancake-lee/pgo/internal/userService/service"
+	"github.com/pancake-lee/pgo/pkg/app"
+	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func main() {

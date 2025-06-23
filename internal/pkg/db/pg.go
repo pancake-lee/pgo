@@ -1,8 +1,8 @@
 package db
 
 import (
-	"pgo/internal/pkg/db/query"
-	"pgo/pkg/db"
+	"github.com/pancake-lee/pgo/internal/pkg/db/query"
+	"github.com/pancake-lee/pgo/pkg/db"
 )
 
 func GetPG() *query.Query {

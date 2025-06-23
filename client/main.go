@@ -2,7 +2,8 @@ package main
 
 import (
 	"log"
-	"pgo/client/courseSwap"
+
+	"github.com/pancake-lee/pgo/client/courseSwap"
 )
 
 func main() {

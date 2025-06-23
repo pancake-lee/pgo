@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"pgo/internal/schoolService/service"
-	"pgo/pkg/app"
-	"pgo/pkg/config"
-	"pgo/pkg/logger"
+
+	"github.com/pancake-lee/pgo/internal/schoolService/service"
+	"github.com/pancake-lee/pgo/pkg/app"
+	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/logger"
 )
 
 func main() {

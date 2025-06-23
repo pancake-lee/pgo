@@ -3,7 +3,8 @@ package data
 import (
 	"context"
 	"errors"
-	"pgo/internal/pkg/db"
+
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 )
 
 func (*userDeptDAO) EditDeptName(ctx context.Context,

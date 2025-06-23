@@ -3,9 +3,10 @@ package app
 import (
 	// 新增 context 包
 	"os"
-	"pgo/pkg/config"
-	"pgo/pkg/logger"
 	"time"
+
+	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/logger"
 
 	_ "go.uber.org/automaxprocs"
 

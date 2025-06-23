@@ -1,7 +1,9 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
-# 取git commit的8位编号
-VERSION=$(shell git describe --tags --always)
+
+# 取git commit的8位编号，支持通过 make -v VERSION=x.x.x 覆盖
+VERSION?=$(shell git describe --tags --always --dirty)
+COMMIT=$(shell git describe --tags --always --dirty)
 
 dbIP=127.0.0.1
 # dbIP=go-pg
@@ -82,7 +84,7 @@ curd:
 .PHONY: build
 # build
 build: 
-	go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
+	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%dT%H:%M:%S)" -o ./bin/ ./...
 
 .PHONY: all
 # generate all

@@ -1,4 +1,5 @@
-module pgo
+module github.com/pancake-lee/pgo
+// module pgo
 
 go 1.23.0
 
