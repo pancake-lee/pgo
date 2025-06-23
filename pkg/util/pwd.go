@@ -24,11 +24,6 @@ func GetExecPath() string {
 	return exePath
 }
 
-// 获取当前程序/可执行文件，所在的文件夹，的绝对路径
-func GetExecFolder() string {
-	return filepath.Dir(GetExecPath())
-}
-
 func GetExecName() (n string) {
 	execName := os.Args[0]
 
@@ -49,6 +44,20 @@ func GetExecName() (n string) {
 	}
 
 	return n
+}
+
+// 获取当前程序/可执行文件，所在的文件夹，的绝对路径
+func GetExecFolder() string {
+	return filepath.Dir(GetExecPath())
+}
+
+// os.Getwd() 获取当前工作目录
+func GetCurDir() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return currentDir
 }
 
 func GetCallerFuncName(skip int) string {
