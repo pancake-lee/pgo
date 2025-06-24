@@ -6,12 +6,20 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/util"
 	"github.com/spf13/cobra"
 )
+
+var includeFileExtSet = map[string]bool{
+	".go": true,
+	".js": true,
+	".ts": true,
+}
+
+// TODO 通过.gitignore 文件以及参数来排除目录和文件
+var excludeDirs = []string{".git", ".vscode", "node_module", "bin", ".pb.go", "swagger"}
 
 var PrettyCode = &cobra.Command{
 	Use:   "pretty",
@@ -25,20 +33,34 @@ func run(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Processing files in: %s\n", curDir)
 
-	err := filepath.WalkDir(curDir, processFile)
+	err := filepath.WalkDir(curDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 跳过目录
+		if d.IsDir() {
+			return nil
+		}
+
+		// 只处理特定类型的文件
+		ext := filepath.Ext(path)
+		if !includeFileExtSet[ext] {
+			return nil
+		}
+
+		// 跳过某些目录
+		if isExcludeDirs(path) {
+			return nil
+		}
+
+		return processFile(path)
+	})
+
 	if err != nil {
 		fmt.Printf("Error walking directory: %v\n", err)
 	}
 }
-
-var includeFileExtSet = map[string]bool{
-	".go": true,
-	".js": true,
-	".ts": true,
-}
-
-// TODO 通过.gitignore 文件以及参数来排除目录和文件
-var excludeDirs = []string{".git", ".vscode", "node_module", "bin", ".pb.go", "swagger"}
 
 func isExcludeDirs(path string) bool {
 	for _, excludeDir := range excludeDirs {
@@ -49,31 +71,7 @@ func isExcludeDirs(path string) bool {
 	return false
 }
 
-func processFile(path string, d fs.DirEntry, err error) error {
-	if err != nil {
-		return err
-	}
-
-	// 跳过目录
-	if d.IsDir() {
-		return nil
-	}
-
-	// 只处理特定类型的文件
-	ext := filepath.Ext(path)
-	if !includeFileExtSet[ext] {
-		return nil
-	}
-
-	// 跳过某些目录
-	if isExcludeDirs(path) {
-		return nil
-	}
-
-	return formatDividersInFile(path)
-}
-
-func formatDividersInFile(filePath string) error {
+func processFile(filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -84,33 +82,13 @@ func formatDividersInFile(filePath string) error {
 	scanner := bufio.NewScanner(file)
 	modified := false
 
-	// 匹配分割线的正则表达式
-	// 匹配 // ---- 或 # ---- 或 /* ---- */ 等形式
-	dividerRegex := regexp.MustCompile(`^(\s*)(//|#|\*|/\*)\s*-{2,}(\s*\*/)?(.*)$`)
-
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if dividerRegex.MatchString(line) {
-			matches := dividerRegex.FindStringSubmatch(line)
-			if len(matches) >= 3 {
-				indent := matches[1]       // 前置空格
-				commentStart := matches[2] // 注释开始符号
-				// 注释结束符号（如 */）已匹配但未使用，下面直接拼接/**/就好了
-
-				// 生成新的分割线
-				var newLine string
-				if commentStart == "/*" {
-					newLine = fmt.Sprintf("%s/* %s */", indent, strings.Repeat("-", 50))
-				} else {
-					newLine = fmt.Sprintf("%s%s %s", indent, commentStart, strings.Repeat("-", 50))
-				}
-
-				lines = append(lines, newLine)
-				modified = true
-			} else {
-				lines = append(lines, line)
-			}
+		newLine, isModified := processLine(line)
+		if isModified {
+			lines = append(lines, newLine)
+			modified = true
 		} else {
 			lines = append(lines, line)
 		}
@@ -132,4 +110,54 @@ func formatDividersInFile(filePath string) error {
 	}
 
 	return nil
+}
+
+// 格式化分割线，返回新行和是否修改的标志
+func processLine(line string) (string, bool) {
+
+	otherRune := strings.IndexFunc(line, func(r rune) bool {
+		return r != '-' && r != '/' && r != '*' && r != ' ' && r != '\t'
+	})
+	if otherRune != -1 {
+		return line, false // 如果行中有其他字符，则不处理
+	}
+
+	lineIndex := strings.IndexRune(line, '-')
+	if lineIndex == -1 {
+		return line, false // 如果没有找到分割线，则不处理
+	}
+
+	indentEnd := strings.IndexFunc(line, func(r rune) bool {
+		return r == '-' || r == '/' || r == '*'
+	})
+	if indentEnd == -1 {
+		return line, false // 如果没有找到分割线的起始位置，则不处理
+	}
+
+	indent := line[:indentEnd] // 获取缩进部分
+
+	trimmed := strings.ReplaceAll(line, "\t", "")
+	trimmed = strings.ReplaceAll(trimmed, " ", "")
+
+	// 匹配 // ------
+	if strings.HasPrefix(trimmed, "//") {
+		return fmt.Sprintf("%s// %s", indent, strings.Repeat("-", 50)), true
+	}
+
+	// 匹配 /*------------
+	if strings.HasPrefix(trimmed, "/*") && !strings.HasSuffix(trimmed, "*/") {
+		return fmt.Sprintf("%s/* %s", indent, strings.Repeat("-", 50)), true
+	}
+
+	// 匹配 ----------*/
+	if !strings.HasPrefix(trimmed, "/*") && strings.HasSuffix(trimmed, "*/") {
+		return fmt.Sprintf("%s%s */", indent, strings.Repeat("-", 50)), true
+	}
+
+	// 匹配 /*------*/
+	if strings.HasPrefix(trimmed, "/*") && strings.HasSuffix(trimmed, "*/") {
+		return fmt.Sprintf("%s/* %s */", indent, strings.Repeat("-", 50)), true
+	}
+
+	return line, false
 }
