@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
-	"github.com/pancake-lee/pgo/pkg/logger"
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 type dbModel interface {
@@ -64,8 +64,8 @@ func newTable(m dbModel, svcName string) *Table {
 	}
 	tblName := tbl.Model.TableName()
 	tbl.HyphenName = strings.ReplaceAll(tblName, "_", "-")
-	tbl.UpperCamelName = util.StrToCamelCase(tblName)
-	tbl.LowerCamelName = util.StrFirstToLower(tbl.UpperCamelName)
+	tbl.UpperCamelName = putil.StrToCamelCase(tblName)
+	tbl.LowerCamelName = putil.StrFirstToLower(tbl.UpperCamelName)
 	return &tbl
 }
 
@@ -83,21 +83,21 @@ func main() {
 
 	//读取数据库表结构
 	for _, tbl := range tblMap {
-		logger.Debugf("%v---------------------------", tbl.Model.TableName())
+		plogger.Debugf("%v---------------------------", tbl.Model.TableName())
 		isMultiKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			tbl.FieldList = append(tbl.FieldList, &field)
 
-			logger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
+			plogger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
 			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
 				if tbl.IdxColName != "" {
 					isMultiKey = true
 				}
 				tbl.IdxColName = field.Name
 				tbl.IdxColType = field.Type.String()
-				tbl.IdxParmName = util.StrFirstToLower(util.StrIdToLower(tbl.IdxColName))
+				tbl.IdxParmName = putil.StrFirstToLower(putil.StrIdToLower(tbl.IdxColName))
 			}
 		}
 		if isMultiKey { //TODO
@@ -105,7 +105,7 @@ func main() {
 			tbl.IdxColType = ""
 			tbl.IdxParmName = ""
 		}
-		logger.Debug("tbl info : ", tbl)
+		plogger.Debug("tbl info : ", tbl)
 	}
 
 	tplTable := newTable(&model.AbandonCode{}, "abandonCode")
@@ -127,7 +127,7 @@ func main() {
 }
 
 func DO2DTO_FieldName(f string) string {
-	return util.StrFirstToLower(util.StrIdToLower(f))
+	return putil.StrFirstToLower(putil.StrIdToLower(f))
 }
 
 func rmAllGenFile() {
@@ -137,10 +137,10 @@ func rmAllGenFile() {
 				return nil // 不删除 pkg 目录下的文件
 			}
 			if strings.Contains(path, "gen.go") {
-				logger.Debug("rm file: ", path)
+				plogger.Debug("rm file: ", path)
 				err := os.Remove(path)
 				if err != nil {
-					logger.Debug("rm file failed: ", err)
+					plogger.Debug("rm file failed: ", err)
 				}
 			}
 			return nil
@@ -148,10 +148,10 @@ func rmAllGenFile() {
 	filepath.Walk("proto",
 		func(path string, info os.FileInfo, err error) error {
 			if strings.Contains(path, "gen.proto") {
-				logger.Debug("rm file: ", path)
+				plogger.Debug("rm file: ", path)
 				err := os.Remove(path)
 				if err != nil {
-					logger.Debug("rm file failed: ", err)
+					plogger.Debug("rm file failed: ", err)
 				}
 			}
 			return nil

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/abandonCodeService/data"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
@@ -44,11 +44,11 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 
 	err = data.AbandonCodeDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 
 	// MARK REMOVE IF NO PRIMARY KEY START
-	logger.Debugf("AddAbandonCode: %v", newData.Idx1)
+	plogger.Debugf("AddAbandonCode: %v", newData.Idx1)
 	// MARK REMOVE IF NO PRIMARY KEY END
 
 	resp = new(api.AddAbandonCodeResponse)
@@ -64,11 +64,11 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 	// MARK REMOVE IF NO PRIMARY KEY START 1
 	if len(req.Idx1List) != 0 {
-		logger.Debugf("GetAbandonCodeList: %v", req.Idx1List)
+		plogger.Debugf("GetAbandonCodeList: %v", req.Idx1List)
 
 		dataMap, err := data.AbandonCodeDAO.GetByIdx1List(ctx, req.Idx1List)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -78,14 +78,14 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 
 		dataList, err = data.AbandonCodeDAO.GetAll(ctx)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 
 		// MARK REMOVE IF NO PRIMARY KEY START 2
 	}
 	// MARK REMOVE IF NO PRIMARY KEY END 2
 
-	logger.Debugf("GetAbandonCodeList resp len %v", len(dataList))
+	plogger.Debugf("GetAbandonCodeList resp len %v", len(dataList))
 
 	resp = new(api.GetAbandonCodeListResponse)
 	resp.AbandonCodeList = make([]*api.AbandonCodeInfo, 0, len(dataList))
@@ -107,14 +107,14 @@ func (s *AbandonCodeCURDServer) UpdateAbandonCode(
 	do := DTO2DO_AbandonCode(req.AbandonCode)
 	err = data.AbandonCodeDAO.UpdateByIdx1(ctx, do)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
+	plogger.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
 
 	resp = new(api.UpdateAbandonCodeResponse)
 	d, err := data.AbandonCodeDAO.GetByIdx1(ctx, req.AbandonCode.Idx1)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	resp.AbandonCode = DO2DTO_AbandonCode(d)
 	return resp, nil
@@ -128,9 +128,9 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 	}
 	err = data.AbandonCodeDAO.DelByIdx1List(ctx, req.Idx1List)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
+	plogger.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
 	return nil, nil
 }
 

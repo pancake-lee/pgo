@@ -7,7 +7,7 @@ import (
 	"context"
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func DO2DTO_UserDeptAssoc(do *data.UserDeptAssocDO) *api.UserDeptAssocInfo {
@@ -41,7 +41,7 @@ func (s *UserCURDServer) AddUserDeptAssoc(
 
 	err = data.UserDeptAssocDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 
 
@@ -59,11 +59,11 @@ func (s *UserCURDServer) GetUserDeptAssocList(
 
 		dataList, err = data.UserDeptAssocDAO.GetAll(ctx)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 
 
-	logger.Debugf("GetUserDeptAssocList resp len %v", len(dataList))
+	plogger.Debugf("GetUserDeptAssocList resp len %v", len(dataList))
 
 	resp = new(api.GetUserDeptAssocListResponse)
 	resp.UserDeptAssocList = make([]*api.UserDeptAssocInfo, 0, len(dataList))

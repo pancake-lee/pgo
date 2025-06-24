@@ -5,9 +5,9 @@ import (
 
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/service"
-	"github.com/pancake-lee/pgo/pkg/app"
-	"github.com/pancake-lee/pgo/pkg/config"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/papp"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func main() {
@@ -16,10 +16,10 @@ func main() {
 		"config folder, should have common.yaml and ${execName}.yaml")
 	flag.Parse()
 
-	config.MustInitConfig(*c)
-	logger.InitServiceLogger(*l)
+	pconfig.MustInitConfig(*c)
+	plogger.InitServiceLogger(*l)
 
-	err := config.Scan(&conf.UserSvcConf)
+	err := pconfig.Scan(&conf.UserSvcConf)
 	if err != nil {
 		panic(err)
 	}
@@ -27,5 +27,5 @@ func main() {
 	var userCURDServer service.UserCURDServer
 	var userServer service.UserServer
 
-	app.RunKratosApp(&userServer, &userCURDServer)
+	papp.RunKratosApp(&userServer, &userCURDServer)
 }

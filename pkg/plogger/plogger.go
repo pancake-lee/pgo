@@ -1,12 +1,12 @@
-package logger
+package plogger
 
 import (
 	"log"
 	"path"
 	"path/filepath"
 
-	"github.com/pancake-lee/pgo/pkg/config"
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/putil"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -21,20 +21,20 @@ var zapLogger *zap.SugaredLogger
 var isInit bool
 
 func InitServiceLogger(isLogConsole bool) {
-	level := config.GetStringD("Log.Level", "debug")
+	level := pconfig.GetStringD("Log.Level", "debug")
 	lv := GetLoggerLevel(level)
-	folder := config.GetStringD("Log.Path", "")
+	folder := pconfig.GetStringD("Log.Path", "")
 	InitLogger(isLogConsole, lv, folder)
 }
 
 func InitLogger(isLogConsole bool,
 	lv zapcore.Level, folder string) {
-	logPath := filepath.Join(util.GetExecFolder(), "./logs/")
+	logPath := filepath.Join(putil.GetExecFolder(), "./logs/")
 	if folder != "" {
 		logPath = folder
 	}
 
-	logName := util.GetExecName()
+	logName := putil.GetExecName()
 
 	fileName := logName + "_" + "%Y%m%d.log"
 	fullPath := path.Join(logPath, fileName)

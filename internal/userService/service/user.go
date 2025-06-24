@@ -5,8 +5,8 @@ import (
 
 	api "github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/app"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/papp"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -34,15 +34,15 @@ func (s *UserServer) Login(
 	userData, err := data.UserDAO.GetOrAdd(ctx,
 		&data.UserDO{UserName: req.UserName})
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	resp = new(api.LoginResponse)
 	resp.User = new(api.UserInfo)
 	resp.User.ID = userData.ID
 	resp.User.UserName = userData.UserName
-	resp.Token, err = app.GenToken(userData.ID)
+	resp.Token, err = papp.GenToken(userData.ID)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return resp, nil
 }
@@ -55,7 +55,7 @@ func (s *UserServer) EditUserName(
 
 	err = data.UserDAO.EditUserName(ctx, req.ID, req.UserName)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return nil, nil
 }
@@ -69,7 +69,7 @@ func (s *UserServer) DelUserDeptAssoc(
 
 	err = data.UserDeptAssocDAO.DelByPrimaryKey(ctx, req.UserID, req.DeptID)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return nil, nil
 }

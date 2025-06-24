@@ -1,10 +1,10 @@
-package logger
+package plogger
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 统计耗时的日志工具
@@ -18,7 +18,7 @@ type timeLogger struct {
 
 func NewTimeLogger(name string) *timeLogger {
 	if name == "" {
-		name = util.GetCallerFuncName(1)
+		name = putil.GetCallerFuncName(1)
 	}
 
 	tLogger := new(timeLogger)
@@ -34,7 +34,7 @@ func (tLogger *timeLogger) AddPoint(key string) {
 
 // 自动追加一个计时点，按0,1,2...作为key，类似i++
 func (tLogger *timeLogger) AddPointInc() {
-	tLogger.AddPoint(util.IntToStr(len(tLogger.keyList)))
+	tLogger.AddPoint(putil.IntToStr(len(tLogger.keyList)))
 }
 
 // 在for循环嵌套的情况下，拼接成"prefix-i"的形式
@@ -43,7 +43,7 @@ func (tLogger *timeLogger) AddPointIncPrefix(prefix string) {
 		tLogger.prefixCnt = make(map[string]int)
 	}
 	tLogger.prefixCnt[prefix]++
-	tLogger.AddPoint(prefix + "-" + util.IntToStr(tLogger.prefixCnt[prefix]))
+	tLogger.AddPoint(prefix + "-" + putil.IntToStr(tLogger.prefixCnt[prefix]))
 }
 
 // 打印输出最终时间统计信息，并且汇总整体耗时

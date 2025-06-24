@@ -7,7 +7,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 type UserDeptAssocDO = model.UserDeptAssoc
@@ -18,12 +18,12 @@ var UserDeptAssocDAO userDeptAssocDAO
 
 func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO) error {
 	if userDeptAssoc == nil {
-		return logger.LogErr(perr.ErrParamInvalid)
+		return plogger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDeptAssoc
 	err := q.WithContext(ctx).Create(userDeptAssoc)
 	if err != nil {
-		return logger.LogErr(err)
+		return plogger.LogErr(err)
 	}
 	return nil
 }
@@ -33,7 +33,7 @@ func (*userDeptAssocDAO) GetAll(ctx context.Context,
 	q := db.GetPG().UserDeptAssoc
 	userDeptAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return userDeptAssocList, nil
 }

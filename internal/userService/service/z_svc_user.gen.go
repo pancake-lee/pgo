@@ -7,7 +7,7 @@ import (
 	"context"
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
@@ -39,10 +39,10 @@ func (s *UserCURDServer) AddUser(
 
 	err = data.UserDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 
-	logger.Debugf("AddUser: %v", newData.ID)
+	plogger.Debugf("AddUser: %v", newData.ID)
 
 	resp = new(api.AddUserResponse)
 	resp.User = DO2DTO_User(newData)
@@ -56,11 +56,11 @@ func (s *UserCURDServer) GetUserList(
 	var dataList []*data.UserDO
 
 	if len(req.IDList) != 0 {
-		logger.Debugf("GetUserList: %v", req.IDList)
+		plogger.Debugf("GetUserList: %v", req.IDList)
 
 		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -69,12 +69,12 @@ func (s *UserCURDServer) GetUserList(
 
 		dataList, err = data.UserDAO.GetAll(ctx)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 
 	}
 
-	logger.Debugf("GetUserList resp len %v", len(dataList))
+	plogger.Debugf("GetUserList resp len %v", len(dataList))
 
 	resp = new(api.GetUserListResponse)
 	resp.UserList = make([]*api.UserInfo, 0, len(dataList))
@@ -95,14 +95,14 @@ func (s *UserCURDServer) UpdateUser(
 	do := DTO2DO_User(req.User)
 	err = data.UserDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("UpdateUser %v", req.User.ID)
+	plogger.Debugf("UpdateUser %v", req.User.ID)
 
 	resp = new(api.UpdateUserResponse)
 	d, err := data.UserDAO.GetByID(ctx, req.User.ID)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	resp.User = DO2DTO_User(d)
 	return resp, nil
@@ -116,9 +116,9 @@ func (s *UserCURDServer) DelUserByIDList(
 	}
 	err = data.UserDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("DelUserByIDList %v", req.IDList)
+	plogger.Debugf("DelUserByIDList %v", req.IDList)
 	return nil, nil
 }
 

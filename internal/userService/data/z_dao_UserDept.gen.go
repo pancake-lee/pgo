@@ -7,7 +7,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 type UserDeptDO = model.UserDept
@@ -18,12 +18,12 @@ var UserDeptDAO userDeptDAO
 
 func (*userDeptDAO) Add(ctx context.Context, userDept *UserDeptDO) error {
 	if userDept == nil {
-		return logger.LogErr(perr.ErrParamInvalid)
+		return plogger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	err := q.WithContext(ctx).Create(userDept)
 	if err != nil {
-		return logger.LogErr(err)
+		return plogger.LogErr(err)
 	}
 	return nil
 }
@@ -33,31 +33,31 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	q := db.GetPG().UserDept
 	userDeptList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return userDeptList, nil
 }
 
 func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 	if do.ID == 0 {
-		return logger.LogErr(perr.ErrParamInvalid)
+		return plogger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return logger.LogErr(err)
+		return plogger.LogErr(err)
 	}
 	return nil
 }
 
 func (*userDeptDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
-		return logger.LogErr(perr.ErrParamInvalid)
+		return plogger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return logger.LogErr(err)
+		return plogger.LogErr(err)
 	}
 	return nil
 }
@@ -70,7 +70,7 @@ func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return logger.LogErr(err)
+		return plogger.LogErr(err)
 	}
 	return nil
 }
@@ -78,14 +78,14 @@ func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 func (*userDeptDAO) GetByID(ctx context.Context, iD int32,
 ) (userDept *UserDeptDO, err error) {
 	if iD == 0 {
-		return userDept, logger.LogErr(perr.ErrParamInvalid)
+		return userDept, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetPG().UserDept
 	userDept, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	return userDept, nil
 }
@@ -100,7 +100,7 @@ func (*userDeptDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	userDeptMap = make(map[int32]*UserDeptDO)
 	for _, i := range l {

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义
@@ -26,7 +26,7 @@ func genProto(
 
 	pbTplBytes, err := os.ReadFile(pbTplPath)
 	if err != nil {
-		logger.Fatalf("read tpl file failed, err: %v", err)
+		plogger.Fatalf("read tpl file failed, err: %v", err)
 	}
 	pbTpl := string(pbTplBytes)
 
@@ -51,7 +51,7 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		return tblList[i].Model.TableName() < tblList[j].Model.TableName()
 	})
 	for _, tbl := range tblList {
-		logger.Debugf("gen pb code for tbl[%v]", tbl.Model.TableName())
+		plogger.Debugf("gen pb code for tbl[%v]", tbl.Model.TableName())
 
 		// --------------------------------------------------
 		// 处理接口定义代码

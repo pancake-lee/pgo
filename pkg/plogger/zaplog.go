@@ -1,4 +1,4 @@
-package logger
+package plogger
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/putil"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
@@ -64,7 +64,7 @@ func myLogf(logFunc func(t string, as ...any),
 				sb.WriteString(" ")
 			}
 
-			vs := util.InterfaceToString(v, "")
+			vs := putil.InterfaceToString(v, "")
 			sb.WriteString(vs)
 		}
 		sb.WriteString("] ")
@@ -80,7 +80,7 @@ func myLogf(logFunc func(t string, as ...any),
 	sb.WriteString("[")
 	sb.WriteString(fileName)
 	sb.WriteString(":")
-	sb.WriteString(util.IntToStr(line))
+	sb.WriteString(putil.IntToStr(line))
 	sb.WriteString("]")
 
 	if !isInit {

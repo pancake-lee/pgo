@@ -4,9 +4,9 @@ import (
 	"flag"
 
 	"github.com/pancake-lee/pgo/internal/abandonCodeService/service"
-	"github.com/pancake-lee/pgo/pkg/app"
-	"github.com/pancake-lee/pgo/pkg/config"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/papp"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func main() {
@@ -15,10 +15,10 @@ func main() {
 		"config folder, should have common.yaml and ${execName}.yaml")
 	flag.Parse()
 
-	config.MustInitConfig(*c)
-	logger.InitServiceLogger(*l)
+	pconfig.MustInitConfig(*c)
+	plogger.InitServiceLogger(*l)
 
 	var s service.AbandonCodeCURDServer
 
-	app.RunKratosApp(&s)
+	papp.RunKratosApp(&s)
 }

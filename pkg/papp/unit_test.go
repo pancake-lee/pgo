@@ -1,9 +1,9 @@
-package app
+package papp
 
 import (
 	"testing"
 
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func TestJwt(t *testing.T) {
@@ -11,15 +11,15 @@ func TestJwt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	logger.Debugf("token: %s", tokenStr)
+	plogger.Debugf("token: %s", tokenStr)
 
 	token, err := ParseToken(tokenStr)
 	if err != nil {
 		t.Fatal(err)
 	}
-	logger.Debugf("userId: %d", token.UserID)
+	plogger.Debugf("userId: %d", token.UserID)
 
 	if token.UserID != 1 {
-		logger.Fatalf("expected userId 1, got %d", token.UserID)
+		plogger.Fatalf("expected userId 1, got %d", token.UserID)
 	}
 }

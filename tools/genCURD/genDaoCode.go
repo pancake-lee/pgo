@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pancake-lee/pgo/pkg/logger"
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 生成 curd 的 dao 代码
@@ -23,7 +23,7 @@ func genDaoCode(
 	}
 
 	for _, tbl := range tblToSvrMap {
-		logger.Debugf("gen dao code for tbl[%v]", tbl.Model.TableName())
+		plogger.Debugf("gen dao code for tbl[%v]", tbl.Model.TableName())
 
 		daoTplCode := string(daoTplBytes)
 
@@ -57,7 +57,7 @@ func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 func tblIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 替换主键的字段名，参数名，参数类型
 	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.IdxColName, util.StrIdToLower(tbl.IdxColName))
+		tplTable.IdxColName, putil.StrIdToLower(tbl.IdxColName))
 
 	codeStr = strings.ReplaceAll(codeStr,
 		tplTable.IdxColType, tbl.IdxColType)

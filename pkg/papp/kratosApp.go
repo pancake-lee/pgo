@@ -1,12 +1,12 @@
-package app
+package papp
 
 import (
 	// 新增 context 包
 	"os"
 	"time"
 
-	"github.com/pancake-lee/pgo/pkg/config"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 
 	_ "go.uber.org/automaxprocs"
 
@@ -52,7 +52,7 @@ type kratosServer interface {
 
 func RunKratosApp(kratosServers ...kratosServer) {
 	var conf ServiceConfig
-	err := config.Scan(&conf)
+	err := pconfig.Scan(&conf)
 	if err != nil {
 		panic(err)
 	}
@@ -103,7 +103,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			http.Middleware(
 				recovery.Recovery(),
 				authMiddleware("/user/token"),
-				logging.Server(logger.DefaultKratosLogger),
+				logging.Server(plogger.DefaultKratosLogger),
 			),
 		)
 		httpSrv = http.NewServer(opts...)
@@ -113,7 +113,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		s.Reg(grpcSrv, httpSrv)
 	}
 
-	kLog := log.With(logger.DefaultKratosLogger,
+	kLog := log.With(plogger.DefaultKratosLogger,
 		"caller", log.DefaultCaller,
 	)
 	app := kratos.New(

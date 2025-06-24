@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/pancake-lee/pgo/pkg/logger"
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/spf13/cobra"
 )
@@ -29,13 +29,13 @@ func init() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	curDir := util.GetCurDir()
+	curDir := putil.GetCurDir()
 
-	logger.Debugf("Processing files in: %s", curDir)
+	plogger.Debugf("Processing files in: %s", curDir)
 
 	// 显示配置信息
-	logger.Debugf("Include extensions : %v", includeFileExts)
-	logger.Debugf("Exclude directories: %v", excludeDirs)
+	plogger.Debugf("Include extensions : %v", includeFileExts)
+	plogger.Debugf("Exclude directories: %v", excludeDirs)
 
 	// 初始化 gitignore 处理器
 	initGitignore(curDir)
@@ -67,7 +67,7 @@ func run(cmd *cobra.Command, args []string) {
 	})
 
 	if err != nil {
-		logger.Debugf("Error walking directory: %v", err)
+		plogger.Debugf("Error walking directory: %v", err)
 	}
 }
 
@@ -85,7 +85,7 @@ func initGitignore(rootDir string) {
 	if err != nil {
 		return
 	}
-	logger.Debugf("Using .gitignore rules for file exclusion")
+	plogger.Debugf("Using .gitignore rules for file exclusion")
 }
 
 // 检查文件是否应该被排除
@@ -159,12 +159,12 @@ func processFile(filePath string) error {
 
 	// 如果文件有修改，写回文件
 	if modified {
-		logger.Debugf("Updated dividers in: %s", filePath)
+		plogger.Debugf("Updated dividers in: %s", filePath)
 
 		output := strings.Join(lines, "\n") + "\n"
 		err = os.WriteFile(filePath, []byte(output), 0644)
 		if err != nil {
-			logger.Errorf("Failed to write file %s: %v", filePath, err)
+			plogger.Errorf("Failed to write file %s: %v", filePath, err)
 			return err
 		}
 	}

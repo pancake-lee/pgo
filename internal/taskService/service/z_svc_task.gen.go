@@ -8,7 +8,7 @@ import (
 	"context"
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/taskService/data"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
@@ -58,10 +58,10 @@ func (s *TaskCURDServer) AddTask(
 
 	err = data.TaskDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 
-	logger.Debugf("AddTask: %v", newData.ID)
+	plogger.Debugf("AddTask: %v", newData.ID)
 
 	resp = new(api.AddTaskResponse)
 	resp.Task = DO2DTO_Task(newData)
@@ -75,11 +75,11 @@ func (s *TaskCURDServer) GetTaskList(
 	var dataList []*data.TaskDO
 
 	if len(req.IDList) != 0 {
-		logger.Debugf("GetTaskList: %v", req.IDList)
+		plogger.Debugf("GetTaskList: %v", req.IDList)
 
 		dataMap, err := data.TaskDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -88,12 +88,12 @@ func (s *TaskCURDServer) GetTaskList(
 
 		dataList, err = data.TaskDAO.GetAll(ctx)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 
 	}
 
-	logger.Debugf("GetTaskList resp len %v", len(dataList))
+	plogger.Debugf("GetTaskList resp len %v", len(dataList))
 
 	resp = new(api.GetTaskListResponse)
 	resp.TaskList = make([]*api.TaskInfo, 0, len(dataList))
@@ -114,14 +114,14 @@ func (s *TaskCURDServer) UpdateTask(
 	do := DTO2DO_Task(req.Task)
 	err = data.TaskDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("UpdateTask %v", req.Task.ID)
+	plogger.Debugf("UpdateTask %v", req.Task.ID)
 
 	resp = new(api.UpdateTaskResponse)
 	d, err := data.TaskDAO.GetByID(ctx, req.Task.ID)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	resp.Task = DO2DTO_Task(d)
 	return resp, nil
@@ -135,9 +135,9 @@ func (s *TaskCURDServer) DelTaskByIDList(
 	}
 	err = data.TaskDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("DelTaskByIDList %v", req.IDList)
+	plogger.Debugf("DelTaskByIDList %v", req.IDList)
 	return nil, nil
 }
 

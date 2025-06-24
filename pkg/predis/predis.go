@@ -3,9 +3,11 @@ package predis
 import (
 	"github.com/go-redis/redis"
 	"github.com/kataras/iris/v12/x/errors"
-	"github.com/pancake-lee/pgo/pkg/config"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
+
+// 按固定的配置结构，初始化一个默认的Redis客户端单例
 
 var DefaultClient *redisClient
 
@@ -26,11 +28,11 @@ type redisConfig struct {
 
 func InitDefaultClient() error {
 	var conf redisConfig
-	err := config.Scan(&conf)
+	err := pconfig.Scan(&conf)
 	if err != nil {
 		return err
 	}
-	logger.Infof("load default redis with config: %+v", conf)
+	plogger.Infof("load default redis with config: %+v", conf)
 
 	cli := redis.NewClient(&redis.Options{
 		Addr:     conf.Redis.Addr,

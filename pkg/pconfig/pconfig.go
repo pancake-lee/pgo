@@ -1,4 +1,4 @@
-package config
+package pconfig
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/putil"
 
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
@@ -26,7 +26,7 @@ func MustInitConfig(confFolder string) {
 
 func InitConfig(confPath string) (err error) {
 	if confPath == "" {
-		confPath = filepath.Join(util.GetExecFolder(), "configs")
+		confPath = filepath.Join(putil.GetExecFolder(), "configs")
 	}
 
 	f, err := os.Stat(confPath)
@@ -36,7 +36,7 @@ func InitConfig(confPath string) (err error) {
 		),
 		)
 	} else {
-		execName := util.GetExecName()
+		execName := putil.GetExecName()
 
 		// 从框架上来说，配置文件不是必须的
 		// kratos封装的Load，一个配置文件Load失败就不继续了

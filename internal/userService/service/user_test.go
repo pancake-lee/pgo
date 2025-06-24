@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pancake-lee/pgo/api"
-	"github.com/pancake-lee/pgo/pkg/util"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 1：添加用户
@@ -21,7 +21,7 @@ func TestUserService(t *testing.T) {
 	var userCURDSvr UserCURDServer
 	var userSvr UserServer
 
-	nowStr := util.TimeToStrDefault(time.Now())
+	nowStr := putil.TimeToStrDefault(time.Now())
 	var userName string = "pancake" + nowStr
 	var newUserName string = "pancake2" + nowStr
 	var userId int32
@@ -35,7 +35,7 @@ func TestUserService(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		i := util.SliceIndex(resp.UserList, func(i int) bool {
+		i := putil.SliceIndex(resp.UserList, func(i int) bool {
 			return resp.UserList[i].UserName == userName
 		})
 		if i == -1 {
@@ -74,7 +74,7 @@ func TestUserDeptJob(t *testing.T) {
 
 	var userCURDSvr UserCURDServer
 
-	nowStr := util.TimeToStrDefault(time.Now())
+	nowStr := putil.TimeToStrDefault(time.Now())
 	var userName string = "pancake" + nowStr
 	var deptName1 string = "dept1_" + nowStr
 	var deptName2 string = "dept2_" + nowStr
@@ -105,7 +105,7 @@ func TestUserDeptJob(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		i := util.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
+		i := putil.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
 			item := resp.UserDeptAssocList[i]
 			return item.UserID == userId &&
 				item.DeptID == deptId1 &&
@@ -115,7 +115,7 @@ func TestUserDeptJob(t *testing.T) {
 			t.Log(resp.UserDeptAssocList)
 			t.Fatal("user dept assoc is not found")
 		}
-		i = util.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
+		i = putil.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
 			item := resp.UserDeptAssocList[i]
 			return item.UserID == userId &&
 				item.DeptID == deptId2 &&

@@ -7,7 +7,7 @@ import (
 	"context"
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/schoolService/data"
-	"github.com/pancake-lee/pgo/pkg/logger"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {
@@ -61,10 +61,10 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 
 	err = data.CourseSwapRequestDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 
-	logger.Debugf("AddCourseSwapRequest: %v", newData.ID)
+	plogger.Debugf("AddCourseSwapRequest: %v", newData.ID)
 
 	resp = new(api.AddCourseSwapRequestResponse)
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(newData)
@@ -78,11 +78,11 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 	var dataList []*data.CourseSwapRequestDO
 
 	if len(req.IDList) != 0 {
-		logger.Debugf("GetCourseSwapRequestList: %v", req.IDList)
+		plogger.Debugf("GetCourseSwapRequestList: %v", req.IDList)
 
 		dataMap, err := data.CourseSwapRequestDAO.GetByIDList(ctx, req.IDList)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 		for _, d := range dataMap {
 			dataList = append(dataList, d)
@@ -91,12 +91,12 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 
 		dataList, err = data.CourseSwapRequestDAO.GetAll(ctx)
 		if err != nil {
-			return nil, logger.LogErr(err)
+			return nil, plogger.LogErr(err)
 		}
 
 	}
 
-	logger.Debugf("GetCourseSwapRequestList resp len %v", len(dataList))
+	plogger.Debugf("GetCourseSwapRequestList resp len %v", len(dataList))
 
 	resp = new(api.GetCourseSwapRequestListResponse)
 	resp.CourseSwapRequestList = make([]*api.CourseSwapRequestInfo, 0, len(dataList))
@@ -117,14 +117,14 @@ func (s *SchoolCURDServer) UpdateCourseSwapRequest(
 	do := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
 	err = data.CourseSwapRequestDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
+	plogger.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
 
 	resp = new(api.UpdateCourseSwapRequestResponse)
 	d, err := data.CourseSwapRequestDAO.GetByID(ctx, req.CourseSwapRequest.ID)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(d)
 	return resp, nil
@@ -138,9 +138,9 @@ func (s *SchoolCURDServer) DelCourseSwapRequestByIDList(
 	}
 	err = data.CourseSwapRequestDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, logger.LogErr(err)
+		return nil, plogger.LogErr(err)
 	}
-	logger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
+	plogger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
 	return nil, nil
 }
 

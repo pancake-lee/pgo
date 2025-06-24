@@ -3,11 +3,11 @@ package predis
 import (
 	"testing"
 
-	"github.com/pancake-lee/pgo/pkg/config"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
 )
 
 func TestRedis(t *testing.T) {
-	config.MustInitConfig("../../configs/pancake.yaml")
+	pconfig.MustInitConfig("../../configs/pancake.yaml")
 	err := InitDefaultClient()
 	if err != nil {
 		t.Fatalf("Failed to initialize Redis client: %v", err)
