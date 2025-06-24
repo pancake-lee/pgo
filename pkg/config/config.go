@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -36,17 +37,36 @@ func InitConfig(confPath string) (err error) {
 		)
 	} else {
 		execName := util.GetExecName()
-		c = config.New(config.WithSource(
-			file.NewSource(filepath.Join(confPath, "common.yaml")),
-			file.NewSource(filepath.Join(confPath, execName+".yaml")),
-		),
-		)
+
+		// 从框架上来说，配置文件不是必须的
+		// kratos封装的Load，一个配置文件Load失败就不继续了
+		// 这里要自己判断是否存在
+		tryFileNames := []string{
+			"common.toml", execName + ".toml",
+			"common.yaml", execName + ".yaml",
+		}
+		if len(tryFileNames) == 0 {
+			return errors.New("no config file found")
+		}
+
+		var srcList []config.Source
+		for _, n := range tryFileNames {
+			path := filepath.Join(confPath, n)
+			_, err := os.Stat(path)
+			if err != nil { // 如果文件不存在，继续下一个
+				log.Println("try, config file not found:", path)
+				continue
+			}
+			srcList = append(srcList, file.NewSource(path))
+		}
+
+		c = config.New(config.WithSource(srcList...))
 	}
 
 	err = c.Load()
 	if err != nil {
-		// 从框架上来说，配置文件不是必须的
-		// return err
+		log.Println("config load error:", err)
+		return err
 	}
 
 	return nil

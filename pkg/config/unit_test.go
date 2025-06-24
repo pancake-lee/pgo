@@ -15,7 +15,7 @@ type testConf struct {
 }
 
 func TestConf(t *testing.T) {
-	InitConfig(`D:\nycko\code\pgo\configs`)
+	InitConfig(`../../configs`)
 
 	var err error
 
