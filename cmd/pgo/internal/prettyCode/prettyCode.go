@@ -6,20 +6,14 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
+	"github.com/pancake-lee/pgo/pkg/logger"
 	"github.com/pancake-lee/pgo/pkg/util"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/spf13/cobra"
 )
-
-var includeFileExtSet = map[string]bool{
-	".go": true,
-	".js": true,
-	".ts": true,
-}
-
-// TODO 通过.gitignore 文件以及参数来排除目录和文件
-var excludeDirs = []string{".git", ".vscode", "node_module", "bin", ".pb.go", "swagger"}
 
 var PrettyCode = &cobra.Command{
 	Use:   "pretty",
@@ -28,10 +22,23 @@ var PrettyCode = &cobra.Command{
 	Run:   run,
 }
 
+func init() {
+	// 添加命令行参数
+	PrettyCode.Flags().StringSliceVar(&excludeDirs, "exclude", defaultExcludeDirs, "Directories to exclude")
+	PrettyCode.Flags().StringSliceVar(&includeFileExts, "include", defaultIncludeFileExts, "File extensions to include")
+}
+
 func run(cmd *cobra.Command, args []string) {
 	curDir := util.GetCurDir()
 
-	fmt.Printf("Processing files in: %s\n", curDir)
+	logger.Debugf("Processing files in: %s", curDir)
+
+	// 显示配置信息
+	logger.Debugf("Include extensions : %v", includeFileExts)
+	logger.Debugf("Exclude directories: %v", excludeDirs)
+
+	// 初始化 gitignore 处理器
+	initGitignore(curDir)
 
 	err := filepath.WalkDir(curDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -44,13 +51,15 @@ func run(cmd *cobra.Command, args []string) {
 		}
 
 		// 只处理特定类型的文件
-		ext := filepath.Ext(path)
-		if !includeFileExtSet[ext] {
+		if !isIncludeExt(path) {
 			return nil
 		}
 
-		// 跳过某些目录
-		if isExcludeDirs(path) {
+		if isExcludeFile(path, curDir) {
+			return nil
+		}
+
+		if isExcludeDir(path) {
 			return nil
 		}
 
@@ -58,19 +67,69 @@ func run(cmd *cobra.Command, args []string) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error walking directory: %v\n", err)
+		logger.Debugf("Error walking directory: %v", err)
 	}
 }
 
-func isExcludeDirs(path string) bool {
-	for _, excludeDir := range excludeDirs {
-		if strings.Contains(path, excludeDir) {
+// --------------------------------------------------
+var gitignoreHandler *ignore.GitIgnore
+
+// 初始化 gitignore 处理器
+func initGitignore(rootDir string) {
+	gitignorePath := filepath.Join(rootDir, ".gitignore")
+	_, err := os.Stat(gitignorePath)
+	if err != nil {
+		return
+	}
+	gitignoreHandler, err = ignore.CompileIgnoreFile(gitignorePath)
+	if err != nil {
+		return
+	}
+	logger.Debugf("Using .gitignore rules for file exclusion")
+}
+
+// 检查文件是否应该被排除
+func isExcludeFile(filePath, rootDir string) bool {
+	// 获取相对路径
+	relPath, err := filepath.Rel(rootDir, filePath)
+	if err != nil {
+		return false
+	}
+
+	// 使用 Unix 风格的路径分隔符
+	relPath = filepath.ToSlash(relPath)
+
+	// 如果有 gitignore 处理器，使用它
+	if gitignoreHandler != nil {
+		if gitignoreHandler.MatchesPath(relPath) {
 			return true
 		}
 	}
 	return false
 }
 
+// --------------------------------------------------
+var defaultIncludeFileExts = []string{".go", ".js", ".ts"}
+
+// 默认排除的目录和文件模式
+var defaultExcludeDirs = []string{".git", ".vscode", "node_modules", "bin", ".pb.go", "swagger"}
+
+// 运行时使用的排除规则
+var includeFileExts []string
+var excludeDirs []string
+
+func isExcludeDir(path string) bool {
+	return slices.ContainsFunc(excludeDirs, func(excludeDir string) bool {
+		return strings.Contains(path, excludeDir)
+	})
+}
+
+func isIncludeExt(path string) bool {
+	e := filepath.Ext(path)
+	return slices.Contains(includeFileExts, e)
+}
+
+// --------------------------------------------------
 func processFile(filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -100,12 +159,13 @@ func processFile(filePath string) error {
 
 	// 如果文件有修改，写回文件
 	if modified {
-		fmt.Printf("Updated dividers in: %s\n", filePath)
+		logger.Debugf("Updated dividers in: %s", filePath)
 
 		output := strings.Join(lines, "\n") + "\n"
 		err = os.WriteFile(filePath, []byte(output), 0644)
 		if err != nil {
-			return fmt.Errorf("failed to write file %s: %w", filePath, err)
+			logger.Errorf("Failed to write file %s: %v", filePath, err)
+			return err
 		}
 	}
 
