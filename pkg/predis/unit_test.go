@@ -8,7 +8,7 @@ import (
 
 func TestRedis(t *testing.T) {
 	pconfig.MustInitConfig("../../configs/pancake.yaml")
-	err := InitDefaultClient()
+	err := InitRedisByConfig()
 	if err != nil {
 		t.Fatalf("Failed to initialize Redis client: %v", err)
 	}

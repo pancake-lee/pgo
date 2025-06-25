@@ -26,7 +26,14 @@ type redisConfig struct {
 	}
 }
 
-func InitDefaultClient() error {
+func MustInitRedisByConfig() {
+	err := InitRedisByConfig()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func InitRedisByConfig() error {
 	var conf redisConfig
 	err := pconfig.Scan(&conf)
 	if err != nil {

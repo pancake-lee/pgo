@@ -5,9 +5,16 @@ GOPATH:=$(shell go env GOPATH)
 VERSION?=$(shell git describe --tags --always --dirty)
 COMMIT=$(shell git describe --tags --always --dirty)
 
-dbIP=127.0.0.1
-# dbIP=go-pg
-# dbIP=192.168.3.111 
+dbIP?=127.0.0.1
+dbUser?=pgo
+dbPass?=pgo
+dbName?=pgo
+
+dbCli?=go run ./cmd/pgo/ psql
+# dbCli?=psql
+
+dbCmd=export PGPASSWORD=${dbPass}; \
+	${dbCli} --host $(dbIP) -U ${dbUser}
 
 # 遍历所有proto文件
 # every developer has a Git. run in GitBash.
@@ -52,29 +59,30 @@ api:
 gorm:
 	rm -rf ./internal/pkg/db/model/
 	rm -rf ./internal/pkg/db/query/
-	export PGPASSWORD="pgo"; \
-	psql -h $(dbIP) -U pgo -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
-	export PGPASSWORD="pgo"; \
-	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo_build;"
+	${dbCmd} -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
+	${dbCmd} -d postgres -c "CREATE DATABASE pgo_build;"
 	for file in ./internal/pkg/db/*.sql; do \
-		export PGPASSWORD="pgo"; \
-		psql -h $(dbIP) -U pgo -d pgo_build -f $$file; \
+		${dbCmd} -d pgo_build -f $$file; \
 	done
 
 	gentool \
 	-db postgres \
-	-dsn "host=$(dbIP) user=pgo password=pgo dbname=pgo_build port=5432 sslmode=disable" \
+	-dsn "host=$(dbIP) user=${dbUser} password=${dbPass} dbname=pgo_build port=5432 sslmode=disable" \
 	-outPath ./internal/pkg/db/query \
 	-modelPkgName "model"
 
 .PHONY: initDB
-# 慎重，这是重置数据库的操作，交互输入密码
 initDB:
-	psql -h $(dbIP) -U pgo -d postgres -c "CREATE DATABASE pgo;"
-	for file in pkg/db/*.sql; do \
-		export PGPASSWORD="pgo"; \
-		psql -h $(dbIP) -U pgo -d pgo -f $$file; \
+	${dbCmd} -d postgres -c "CREATE DATABASE ${dbName};"
+	for file in internal/pkg/db/*.sql; do \
+		${dbCmd} -d ${dbName} -f $$file; \
 	done
+
+.PHONY: reInitDB
+# 慎重，这是重置数据库的操作
+reInitDB:
+	${dbCmd} -d postgres -c "DROP DATABASE ${dbName};"
+	make initDB
 
 .PHONY: curd
 # 根据数据库生成 CURD 代码
