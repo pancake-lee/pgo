@@ -18,8 +18,8 @@ services:
 #       - pgo-net
 #     volumes:
 #       # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
-#       - D:\nycko\code\:/root/workspace/
-#       - D:\nycko\docker\docker-dev.sh:/docker-dev.sh
+#       - D:/workspace/code:/root/workspace/
+#       - D:/workspace/docker-dev.sh:/docker-dev.sh
       
   postgres:
     container_name: pgo-pg
@@ -33,7 +33,7 @@ services:
     networks:
       - pgo-net
     volumes:
-      - D:\nycko\docker\pgo/postgresql/data:/var/lib/postgresql/data
+      - D:/workspace/pgo/postgresql/data:/var/lib/postgresql/data
 
   swagger:
     container_name: pgo-swagger
@@ -42,7 +42,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - D:\nycko\code\pgo\openapi.yaml:/api_standard.yaml
+      - D:/workspace/pgo/openapi.yaml:/api_standard.yaml
     environment:
       SWAGGER_JSON: /api_standard.yaml
 

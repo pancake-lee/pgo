@@ -7,6 +7,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/userService/service"
 	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
@@ -18,6 +19,7 @@ func main() {
 
 	pconfig.MustInitConfig(*c)
 	plogger.InitServiceLogger(*l)
+	pdb.MustInitPGByConfig()
 
 	err := pconfig.Scan(&conf.UserSvcConf)
 	if err != nil {

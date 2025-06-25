@@ -19,3 +19,5 @@ CREATE TABLE task (
 );
 
 ALTER SEQUENCE task_id_seq RESTART WITH 10;
+
+insert into task (parent_id,prev_id,task,status,estimate,"desc",metadata)values(0,0,'test',0,0,'' ,'');
