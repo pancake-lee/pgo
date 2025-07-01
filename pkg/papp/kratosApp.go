@@ -79,7 +79,18 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			http.Middleware(
 				recovery.Recovery(),
 			),
+			http.Filter(cors.New(cors.Options{
+				AllowedOrigins:   []string{"*"},
+				AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+				AllowedHeaders:   []string{"*"},
+				ExposedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+				AllowCredentials: true,
+				MaxAge:           3600,
+			}).Handler),
+			// authMiddleware("/user/token"),
+			// logging.Server(plogger.DefaultKratosLogger),
 		}
+
 		if conf.Http.Addr != "" {
 			opts = append(opts, http.Address(conf.Http.Addr))
 		}
@@ -88,23 +99,6 @@ func RunKratosApp(kratosServers ...kratosServer) {
 				time.Duration(conf.Http.Timeout)))
 		}
 
-		opts = append(opts,
-			http.Filter(cors.New(cors.Options{
-				AllowedOrigins:   []string{"*"},
-				AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-				AllowedHeaders:   []string{"*"},
-				ExposedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
-				AllowCredentials: true,
-				MaxAge:           3600,
-			}).Handler))
-
-		opts = append(opts,
-			http.Middleware(
-				recovery.Recovery(),
-				// authMiddleware("/user/token"),
-				// logging.Server(plogger.DefaultKratosLogger),
-			),
-		)
 		httpSrv = http.NewServer(opts...)
 	}
 

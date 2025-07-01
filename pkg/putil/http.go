@@ -1,6 +1,7 @@
 package putil
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -8,7 +9,16 @@ import (
 	"strings"
 )
 
+func NewHttpRequestJson(method, rawURL string, header, querys map[string]string, body map[string]any) (*http.Request, error) {
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	return NewHttpRequest(method, rawURL, header, querys, string(jsonBody))
+}
+
 func NewHttpRequest(method, rawURL string, header, querys map[string]string, body string) (*http.Request, error) {
+	// fmt.Println("body : ", body)
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err

@@ -1,0 +1,210 @@
+package pweixin
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
+)
+
+/*
+
+请求之前，需要配置可信IP：
+1：要么有一个和公司主题信息一致的域名，则用该公司授权的开发者账号/管理员账号来操作企微后台的应用设置，
+2：要么就要配置回调服务，比起找公司的人走流程，还不如整这个回调服务。
+
+首先是文档（可以不看）：
+	接收消息与事件
+	https://developer.work.weixin.qq.com/document/10514
+	回调配置
+	https://developer.work.weixin.qq.com/document/path/90930
+	加解密方案说明
+	https://developer.work.weixin.qq.com/devtool/introduce?id=36388
+
+然后官方提供了这个回调服务的SDK：
+	./pkg/pweixin/weworkapi_golang
+	用于对接企业微信API的回调SDK
+	https://developer.work.weixin.qq.com/devtool/introduce?id=10128
+	自己改了参数的输入方式，包路径，屏蔽了sample.go代码，main和结构体都和httpserver.go重复定义了
+	参数有token和EncodingAESKey是[企微后台->应用设置->可信IP->设置接收消息服务器URL]页面中的信息
+	然后receiver_id不知道是什么，然后通过报错信息，提取了一个值，直接拿来用了
+	这个服务运行起来，通过nginx公布到公网，然后把访问地址填写到上面说的页面。
+
+	然后就可以真正配置可信IP了，本地调试根据报错信息，把当前公网IP添加到可信IP列表中。
+	如果嫌麻烦，就把程序部署到固定公网IP的云服务器上开发。
+
+关于开发的咨询在https://developer.work.weixin.qq.com/community/question/ask
+找企微客服是没用的
+*/
+
+var g_token string
+var g_agentid int32 // 这个agentid是企微后台应用设置中配置的应用ID
+
+func handleRespError(resp []byte) error {
+	var respMap map[string]any
+	err := json.Unmarshal(resp, &respMap)
+	if err != nil {
+		plogger.Error(err)
+		return err
+	}
+	return handleRespErrorByMap(respMap)
+}
+
+func handleRespErrorByMap(resp map[string]any) error {
+	if resp["errcode"] != nil {
+		e := putil.InterfaceToInt32(resp["errcode"], 0)
+		if e != 0 {
+			errMsg := putil.InterfaceToString(resp["errmsg"], "")
+			return fmt.Errorf("wx api error[%d] : %s", e, errMsg)
+		}
+	}
+	return nil
+}
+
+func InitWxApiByConfig() error {
+	corpid := pconfig.GetStringM("WX.corpid")
+	corpsecret := pconfig.GetStringM("WX.corpsecret")
+	agentid := int32(pconfig.GetInt64M("WX.agentid"))
+
+	return InitWxApi(corpid, corpsecret, agentid)
+}
+
+func InitWxApi(corpid, corpsecret string, agentid int32) error {
+	g_agentid = agentid
+	_, err := getToken(corpid, corpsecret)
+	return err
+}
+
+func getToken(corpid, corpsecret string) (string, error) {
+	req, err := putil.NewHttpRequest(http.MethodGet, "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
+		nil, map[string]string{"corpid": corpid, "corpsecret": corpsecret}, "")
+	if err != nil {
+		return "", plogger.LogErr(err)
+	}
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return "", plogger.LogErr(err)
+	}
+
+	var respMap map[string]any
+	err = json.Unmarshal(resp, &respMap)
+	if err != nil {
+		return "", plogger.LogErr(err)
+	}
+
+	err = handleRespErrorByMap(respMap)
+	if err != nil {
+		return "", plogger.LogErr(err)
+	}
+	g_token = putil.InterfaceToString(respMap["access_token"], "")
+	plogger.Debug("token : ", g_token)
+	// TODO 处理过期时间，自动刷新token
+	return g_token, nil
+}
+
+// TODO 还不知道具体流程
+// 只能由通讯录同步助手的access_token来调用。同时需要保证通讯录同步功能是开启的。
+func GetUserList() error {
+	url := "https://qyapi.weixin.qq.com/cgi-bin/user/list_id"
+
+	req, err := putil.NewHttpRequestJson(http.MethodGet, url, nil,
+		map[string]string{
+			"access_token": g_token,
+		},
+		map[string]any{
+			"cursor": "",
+			"limit":  10000,
+		})
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	err = handleRespError(resp)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	plogger.Debugf("getUserList resp : %s", string(resp))
+
+	return nil
+}
+
+func SendMsg(touserList []string, msg string) error {
+	url := "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+		map[string]string{
+			"access_token": g_token,
+		},
+		map[string]any{
+			"touser":  putil.StrListToStr(touserList, "|"),
+			"msgtype": "text",
+			"agentid": g_agentid,
+			"text": map[string]any{
+				"content": msg,
+			},
+			"safe": 0,
+		})
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	err = handleRespError(resp)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	return nil
+}
+
+// 初步调用返回48002:api forbidden，需要开启一些权限
+// https://developer.work.weixin.qq.com/devtool/query?e=48002
+// 在【协作->文档】这个页面副标题【可多人实时在线协作的文档、表格和幻灯片。】后面有一个【API】的UI
+// 点击后看到选项【可调用接口的应用】，进去勾上我们的应用
+// 该接口创建出来，由于没有指定父级位置，所以在企微客户端根本找不到这个文档
+// 1：打开resp的url，然后在自己最近访问里就能找到了
+// 2：TODO看如何把spaceid和fatherid填进去，创建在指定目录下
+func CreateMultiTable(tblName string) (docid string, docurl string, err error) {
+	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/create_doc"
+
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+		map[string]string{
+			"access_token": g_token,
+		},
+		map[string]any{
+			// "spaceid":     "",
+			// "fatherid":    "",
+			"doc_type": 10,
+			"doc_name": tblName,
+			// "admin_users": []string{"USERID1", "USERID2", "USERID3"},
+		})
+	if err != nil {
+		return "", "", plogger.LogErr(err)
+	}
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return "", "", plogger.LogErr(err)
+	}
+	var respMap map[string]any
+	err = json.Unmarshal(resp, &respMap)
+	if err != nil {
+		return "", "", plogger.LogErr(err)
+	}
+	err = handleRespErrorByMap(respMap)
+	if err != nil {
+		return "", "", plogger.LogErr(err)
+	}
+
+	plogger.Debug("createMultiTable resp : ", respMap)
+	return putil.InterfaceToString(respMap["docid"], ""),
+		putil.InterfaceToString(respMap["docurl"], ""),
+		nil
+}

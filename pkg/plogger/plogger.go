@@ -27,6 +27,10 @@ func InitServiceLogger(isLogConsole bool) {
 	InitLogger(isLogConsole, lv, folder)
 }
 
+func InitConsoleLogger() {
+	InitLogger(true, zap.DebugLevel, "")
+}
+
 func InitLogger(isLogConsole bool,
 	lv zapcore.Level, folder string) {
 	logPath := filepath.Join(putil.GetExecFolder(), "./logs/")

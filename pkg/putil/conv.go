@@ -479,6 +479,14 @@ func InterfaceToInt32(val any, defaultVal int32) int32 {
 	switch val := val.(type) {
 	case int32:
 		return val
+	case int64:
+		return int32(val)
+	case int:
+		return int32(val)
+	case float32:
+		return int32(val)
+	case float64:
+		return int32(val)
 	case string:
 		vInt, err := StrToInt32(val)
 		if err != nil {
