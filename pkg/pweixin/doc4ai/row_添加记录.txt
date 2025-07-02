@@ -1,0 +1,50 @@
+添加记录
+本接口用于在 Smartsheet 中的某个子表里添加一行或多行新记录。单表最多允许有40000行记录。
+注意
+不能通过添加记录接口给创建时间、最后编辑时间、创建人和最后编辑人四种类型的字段添加记录。
+
+请求方式：POST(HTTPS)
+请求地址：https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_records?access_token=ACCESS_TOKEN
+
+请求包体：
+
+{
+	"docid": "DOCID",
+	"sheet_id": "123Abc",
+	"key_type": "CELL_VALUE_KEY_TYPE_FIELD_TITLE",
+	"records": [{
+		"values": {
+			"FILED_TITLE": [{
+				"type": "text",
+				"text": "文本内容"
+			}]
+		}
+	}]
+}
+参数说明
+
+参数	类型	是否必须	说明
+docid	string	是	文档的docid
+sheet_id	string	是	Smartsheet 子表ID
+key_type	string(CellValueKeyType)	否	返回记录中单元格的key类型，默认用标题
+records	Object[](AddRecord)	是	需要添加的记录的具体内容组成的 JSON 数组
+权限说明
+
+自建应用需配置到“可调用应用”列表中的应用secret所获取的accesstoken来调用（accesstoken如何获取？）
+第三方应用需具有“文档”权限
+代开发自建应用需具有“文档”权限
+返回示例
+
+{
+    "errcode": 0,
+    "errmsg": "ok",
+    "records": [
+			
+    ]
+}
+参数说明
+
+参数	类型	说明
+errcode	int32	错误码
+errmsg	string	错误码说明
+records	Object[](CommonRecord)	由添加成功的记录的具体内容组成的 JSON 数组

@@ -1,0 +1,342 @@
+package pweixin
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
+)
+
+// --------------------------------------------------
+// 删除记录
+func (doc *multiTableDoc) DelRow(recordIds []string) error {
+	if len(recordIds) == 0 {
+		return nil
+	}
+	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/delete_records"
+
+	// 构建请求体
+	reqBody := deleteRecordRequest{
+		Docid:     doc.Docid,
+		SheetId:   doc.SheetId,
+		RecordIds: recordIds,
+	}
+
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+		getTokenHeader(),
+		reqBody)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	var respData deleteRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if respData.Errcode != 0 {
+		return plogger.LogErr(fmt.Errorf("delete records failed: errcode=%d, errmsg=%s", respData.Errcode, respData.Errmsg))
+	}
+
+	return nil
+}
+
+// 删除记录请求结构
+type deleteRecordRequest struct {
+	Docid     string   `json:"docid"`
+	SheetId   string   `json:"sheet_id"`
+	RecordIds []string `json:"record_ids"`
+}
+
+// 删除记录响应结构
+type deleteRecordResponse struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+}
+
+// --------------------------------------------------
+// 创建排序规则
+func NewSortRule(fieldTitle string, desc bool) sortRule {
+	return sortRule{
+		FieldTitle: fieldTitle,
+		Desc:       desc,
+	}
+}
+
+func (doc *multiTableDoc) GetRow(req *getRecordRequest) (*getRecordResponse, error) {
+	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_records"
+
+	httpReq, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+		getTokenHeader(),
+		req)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(httpReq)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	var respData getRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if respData.Errcode != 0 {
+		return nil, plogger.LogErr(fmt.Errorf("get records failed: errcode=%d, errmsg=%s", respData.Errcode, respData.Errmsg))
+	}
+
+	return &respData, nil
+}
+
+// --------------------------------------------------
+// 创建文本值
+func NewTextValue(text string) []CellTextValue {
+	return []CellTextValue{
+		{
+			Type: "text",
+			Text: text,
+		},
+	}
+}
+
+// 创建链接值
+func NewUrlValue(text, link string) []CellTextValue {
+	return []CellTextValue{
+		{
+			Type: "url",
+			Text: text,
+			Link: link,
+		},
+	}
+}
+
+// 创建用户值
+func NewUserValue(userIds ...string) []CellUserValue {
+	values := make([]CellUserValue, len(userIds))
+	for i, userId := range userIds {
+		values[i] = CellUserValue{UserId: userId}
+	}
+	return values
+}
+
+// 创建选项值
+func NewOptionValue(options ...CellOption) []CellOption {
+	return options
+}
+
+// 创建地理位置值
+func NewLocationValue(id, latitude, longitude, title string) []CellLocationValue {
+	return []CellLocationValue{
+		{
+			SourceType: 1,
+			Id:         id,
+			Latitude:   latitude,
+			Longitude:  longitude,
+			Title:      title,
+		},
+	}
+}
+
+func (doc *multiTableDoc) AddRow(rows []AddRecord) error {
+	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_records"
+
+	// 构建请求体
+	reqBody := addRecordRequest{
+		Docid:   doc.Docid,
+		SheetId: doc.SheetId,
+		KeyType: CELL_VALUE_KEY_TYPE_FIELD_TITLE,
+		Records: rows,
+	}
+
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+		getTokenHeader(),
+		reqBody)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	var respData addRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if respData.Errcode != 0 {
+		return plogger.LogErr(fmt.Errorf("add records failed: errcode=%d, errmsg=%s", respData.Errcode, respData.Errmsg))
+	}
+
+	return nil
+}
+
+// --------------------------------------------------
+// 添加记录请求结构
+type addRecordRequest struct {
+	Docid   string      `json:"docid"`
+	SheetId string      `json:"sheet_id"`
+	KeyType string      `json:"key_type,omitempty"`
+	Records []AddRecord `json:"records"`
+}
+
+// 添加记录响应结构
+type addRecordResponse struct {
+	Errcode int            `json:"errcode"`
+	Errmsg  string         `json:"errmsg"`
+	Records []CommonRecord `json:"records"`
+}
+
+// 添加记录结构
+type AddRecord struct {
+	Values map[string]any `json:"values"`
+}
+
+// 通用记录结构
+type CommonRecord struct {
+	AddRecord
+	RecordId string `json:"record_id"`
+}
+
+// 查询记录请求结构
+type getRecordRequest struct {
+	Docid       string      `json:"docid"`
+	SheetId     string      `json:"sheet_id"`
+	ViewId      string      `json:"view_id,omitempty"`
+	RecordIds   []string    `json:"record_ids,omitempty"`
+	KeyType     string      `json:"key_type,omitempty"`
+	FieldTitles []string    `json:"field_titles,omitempty"`
+	FieldIds    []string    `json:"field_ids,omitempty"`
+	Sort        []sortRule  `json:"sort,omitempty"`
+	Offset      uint32      `json:"offset,omitempty"`
+	Limit       uint32      `json:"limit,omitempty"` //最大值1000，即使设置为0，超过1000也会被截断
+	Ver         uint32      `json:"ver,omitempty"`
+	FilterSpec  *filterSpec `json:"filter_spec,omitempty"`
+}
+
+// 查询记录响应结构
+type getRecordResponse struct {
+	Errcode int            `json:"errcode"`
+	Errmsg  string         `json:"errmsg"`
+	Total   uint32         `json:"total"`
+	HasMore bool           `json:"has_more"`
+	Next    uint32         `json:"next"`
+	Records []recordDetail `json:"records"`
+	Ver     uint32         `json:"ver"`
+}
+
+// 记录详情结构
+type recordDetail struct {
+	RecordId    string         `json:"record_id"`
+	CreateTime  string         `json:"create_time"`
+	UpdateTime  string         `json:"update_time"`
+	Values      map[string]any `json:"values"`
+	CreatorName string         `json:"creator_name"`
+	UpdaterName string         `json:"updater_name"`
+}
+
+// 排序规则
+type sortRule struct {
+	FieldTitle string `json:"field_title"`
+	Desc       bool   `json:"desc,omitempty"`
+}
+
+// 过滤条件
+type filterSpec struct {
+	Conjunction string      `json:"conjunction"`
+	Conditions  []condition `json:"conditions"`
+}
+
+type condition struct {
+	FieldId     string       `json:"field_id"`
+	FieldType   wxFieldType  `json:"field_type"`
+	Operator    string       `json:"operator"`
+	StringValue *stringValue `json:"string_value,omitempty"`
+}
+
+type stringValue struct {
+	Value []string `json:"value"`
+}
+
+// --------------------------------------------------
+const (
+	CELL_VALUE_KEY_TYPE_FIELD_TITLE = "CELL_VALUE_KEY_TYPE_FIELD_TITLE" // 以标题索引一个字段
+	CELL_VALUE_KEY_TYPE_FIELD_ID    = "CELL_VALUE_KEY_TYPE_FIELD_ID"    // 以ID索引一个字段
+)
+
+// 文本类型单元格值
+type CellTextValue struct {
+	Type string `json:"type"` // "text" 或 "url"
+	Text string `json:"text"`
+	Link string `json:"link,omitempty"` // 当type为url时使用
+}
+
+// 图片类型单元格值
+type CellImageValue struct {
+	Id       string `json:"id"`
+	Title    string `json:"title"`
+	ImageUrl string `json:"image_url"`
+	Width    int32  `json:"width"`
+	Height   int32  `json:"height"`
+}
+
+// 文件类型单元格值
+type CellAttachmentValue struct {
+	Name     string `json:"name"`
+	Size     int32  `json:"size"`
+	FileExt  string `json:"file_ext"`
+	FileUrl  string `json:"file_url"`
+	FileType string `json:"file_type"`
+	DocType  string `json:"doc_type"`
+}
+
+// 用户类型单元格值
+type CellUserValue struct {
+	UserId            string `json:"user_id"`
+	TmpExternalUserId string `json:"tmp_external_userid,omitempty"`
+}
+
+// 链接类型单元格值
+type CellUrlValue struct {
+	Type string `json:"type"` // "url"
+	Text string `json:"text"`
+	Link string `json:"link"`
+}
+
+// 选项类型（用于单选和多选）
+type CellOption struct {
+	Id    string `json:"id"`
+	Style uint32 `json:"style"`
+	Text  string `json:"text"`
+}
+
+// 地理位置类型单元格值
+type CellLocationValue struct {
+	SourceType uint32 `json:"source_type"` // 填1，表示来源为腾讯地图
+	Id         string `json:"id"`
+	Latitude   string `json:"latitude"`
+	Longitude  string `json:"longitude"`
+	Title      string `json:"title"`
+}
+
+// 自动编号类型单元格值
+type CellAutoNumberValue struct {
+	Seq  string `json:"seq"`
+	Text string `json:"text"`
+}

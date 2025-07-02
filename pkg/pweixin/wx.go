@@ -40,9 +40,24 @@ import (
 找企微客服是没用的
 */
 
-var g_token string
 var g_agentid int32 // 这个agentid是企微后台应用设置中配置的应用ID
 
+// --------------------------------------------------
+func InitWxApiByConfig() error {
+	corpid := pconfig.GetStringM("WX.corpid")
+	corpsecret := pconfig.GetStringM("WX.corpsecret")
+	agentid := int32(pconfig.GetInt64M("WX.agentid"))
+
+	return InitWxApi(corpid, corpsecret, agentid)
+}
+
+func InitWxApi(corpid, corpsecret string, agentid int32) error {
+	g_agentid = agentid
+	_, err := getToken(corpid, corpsecret)
+	return err
+}
+
+// --------------------------------------------------
 func handleRespError(resp []byte) error {
 	var respMap map[string]any
 	err := json.Unmarshal(resp, &respMap)
@@ -64,19 +79,8 @@ func handleRespErrorByMap(resp map[string]any) error {
 	return nil
 }
 
-func InitWxApiByConfig() error {
-	corpid := pconfig.GetStringM("WX.corpid")
-	corpsecret := pconfig.GetStringM("WX.corpsecret")
-	agentid := int32(pconfig.GetInt64M("WX.agentid"))
-
-	return InitWxApi(corpid, corpsecret, agentid)
-}
-
-func InitWxApi(corpid, corpsecret string, agentid int32) error {
-	g_agentid = agentid
-	_, err := getToken(corpid, corpsecret)
-	return err
-}
+// --------------------------------------------------
+var g_token string
 
 func getToken(corpid, corpsecret string) (string, error) {
 	req, err := putil.NewHttpRequest(http.MethodGet, "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
@@ -105,15 +109,25 @@ func getToken(corpid, corpsecret string) (string, error) {
 	return g_token, nil
 }
 
+func getTokenHeader() map[string]string {
+	if g_token == "" {
+		plogger.Error("g_token is empty, please call InitWxApi first")
+		return nil
+	}
+	return map[string]string{
+		"access_token": g_token,
+		"debug":        "1", // 开发调试时可以开启debug
+	}
+}
+
+// --------------------------------------------------
 // TODO 还不知道具体流程
 // 只能由通讯录同步助手的access_token来调用。同时需要保证通讯录同步功能是开启的。
 func GetUserList() error {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/user/list_id"
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url, nil,
-		map[string]string{
-			"access_token": g_token,
-		},
+		getTokenHeader(),
 		map[string]any{
 			"cursor": "",
 			"limit":  10000,
@@ -138,9 +152,7 @@ func SendMsg(touserList []string, msg string) error {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/message/send"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		map[string]string{
-			"access_token": g_token,
-		},
+		getTokenHeader(),
 		map[string]any{
 			"touser":  putil.StrListToStr(touserList, "|"),
 			"msgtype": "text",
@@ -163,48 +175,4 @@ func SendMsg(touserList []string, msg string) error {
 	}
 
 	return nil
-}
-
-// 初步调用返回48002:api forbidden，需要开启一些权限
-// https://developer.work.weixin.qq.com/devtool/query?e=48002
-// 在【协作->文档】这个页面副标题【可多人实时在线协作的文档、表格和幻灯片。】后面有一个【API】的UI
-// 点击后看到选项【可调用接口的应用】，进去勾上我们的应用
-// 该接口创建出来，由于没有指定父级位置，所以在企微客户端根本找不到这个文档
-// 1：打开resp的url，然后在自己最近访问里就能找到了
-// 2：TODO看如何把spaceid和fatherid填进去，创建在指定目录下
-func CreateMultiTable(tblName string) (docid string, docurl string, err error) {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/create_doc"
-
-	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		map[string]string{
-			"access_token": g_token,
-		},
-		map[string]any{
-			// "spaceid":     "",
-			// "fatherid":    "",
-			"doc_type": 10,
-			"doc_name": tblName,
-			// "admin_users": []string{"USERID1", "USERID2", "USERID3"},
-		})
-	if err != nil {
-		return "", "", plogger.LogErr(err)
-	}
-	resp, err := putil.HttpDo(req)
-	if err != nil {
-		return "", "", plogger.LogErr(err)
-	}
-	var respMap map[string]any
-	err = json.Unmarshal(resp, &respMap)
-	if err != nil {
-		return "", "", plogger.LogErr(err)
-	}
-	err = handleRespErrorByMap(respMap)
-	if err != nil {
-		return "", "", plogger.LogErr(err)
-	}
-
-	plogger.Debug("createMultiTable resp : ", respMap)
-	return putil.InterfaceToString(respMap["docid"], ""),
-		putil.InterfaceToString(respMap["docurl"], ""),
-		nil
 }

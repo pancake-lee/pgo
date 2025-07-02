@@ -17,8 +17,36 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
+	mrand "math/rand"
 	"os"
+	"time"
 )
+
+// --------------------------------------------------
+var mr *mrand.Rand
+
+// [start, end)
+func GetRand(start, end int) int {
+	if mr == nil {
+		mr = mrand.New(mrand.NewSource((time.Now().UnixNano())))
+	}
+	return mr.Intn(end-start) + start
+}
+
+func GetRandStr(n int) string {
+	b := make([]byte, n/2+1)
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+
+	s := ""
+	for _, v := range b {
+		s += fmt.Sprintf("%02x", v)
+	}
+	s = s[:n]
+	return s
+}
 
 // --------------------------------------------------
 // Md5Sum calculates md5 value of some strings.

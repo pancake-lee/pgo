@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewHttpRequestJson(method, rawURL string, header, querys map[string]string, body map[string]any) (*http.Request, error) {
+func NewHttpRequestJson(method, rawURL string, header, querys map[string]string, body any) (*http.Request, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
