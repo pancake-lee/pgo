@@ -35,6 +35,10 @@ func InitConfig(paths ...string) (err error) {
 	}
 	var srcList []config.Source
 	for _, path := range paths {
+		if path == "" {
+			path = filepath.Join(putil.GetExecFolder(), "configs")
+		}
+
 		f, err := os.Stat(path)
 		if err != nil || !f.IsDir() { // 指定文件
 			srcList = append(srcList, file.NewSource(path))

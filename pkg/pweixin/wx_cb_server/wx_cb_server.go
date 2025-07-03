@@ -1,24 +1,23 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"io"
 
-	// "wxbizjsonmsgcrypt"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/pweixin/weworkapi_golang/json_callback/wxbizjsonmsgcrypt"
+	"github.com/pancake-lee/pgo/pkg/pweixin/wx_cb_server/xml_callback"
 
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-var token = "gY1AGR3mjBhzy"
-var receiverId = "wwabfd0cec7171e769"
-var encodingAeskey = "g8VGfQEqluUhoKOlyjmmll8Q9C5tVFUTX5T2qkmI9Sv"
+var token = ""
+var receiverId = ""
+var encodingAeskey = ""
 
 func getString(str, endstr string, start int, msg *string) int {
 	end := strings.Index(str, endstr)
@@ -28,7 +27,7 @@ func getString(str, endstr string, start int, msg *string) int {
 
 func VerifyURL(w http.ResponseWriter, r *http.Request) {
 	//httpstr := `&{GET /?msg_signature=825075c093249d5a60967fe4a613cae93146636b&timestamp=1597998748&nonce=1597483820&echostr=neLB8CftccHiz19tluVb%2BUBnUVMT3xpUMZU8qvDdD17eH8XfEsbPYC%2FkJyPsZOOc6GdsCeu8jSIa2noSJ%2Fez2w%3D%3D HTTP/1.1 1 1 map[Cache-Control:[no-cache] Accept:[*/*] Pragma:[no-cache] User-Agent:[Mozilla/4.0]] 0x86c180 0 [] false 100.108.211.112:8893 map[] map[] <nil> map[] 100.108.79.233:59663 /?msg_signature=825075c093249d5a60967fe4a613cae93146636b&timestamp=1597998748&nonce=1597483820&echostr=neLB8CftccHiz19tluVb%2BUBnUVMT3xpUMZU8qvDdD17eH8XfEsbPYC%2FkJyPsZOOc6GdsCeu8jSIa2noSJ%2Fez2w%3D%3D <nil>}`
-	fmt.Println(r, r.Body)
+	plogger.Debug(r, r.Body)
 	httpstr := r.URL.RawQuery
 	start := strings.Index(httpstr, "msg_signature=")
 	start += len("msg_signature=")
@@ -42,29 +41,38 @@ func VerifyURL(w http.ResponseWriter, r *http.Request) {
 	var nonce string
 	next = getString(httpstr, "&echostr=", next, &nonce)
 
-	echostr := httpstr[next:len(httpstr)]
+	echostr := httpstr[next:]
 
 	echostr, _ = url.QueryUnescape(echostr)
-	fmt.Println(msg_signature, timestamp, nonce, echostr, next)
+	plogger.Debug(msg_signature, timestamp, nonce, echostr, next)
 
-	wxcpt := wxbizjsonmsgcrypt.NewWXBizMsgCrypt(token, encodingAeskey, receiverId, wxbizjsonmsgcrypt.JsonType)
+	wxcpt := xml_callback.NewWXBizMsgCrypt(token, encodingAeskey, receiverId, xml_callback.XmlType)
 	echoStr, cryptErr := wxcpt.VerifyURL(msg_signature, timestamp, nonce, echostr)
 	if nil != cryptErr {
-		fmt.Println("verifyUrl fail", cryptErr)
+		plogger.Error("verifyUrl fail", cryptErr)
 	}
-	fmt.Println("verifyUrl success echoStr", string(echoStr))
-	fmt.Fprintf(w, string(echoStr))
+	plogger.Debug("verifyUrl success echoStr", string(echoStr))
+	fmt.Fprint(w, string(echoStr))
 
 }
 
-type MsgContent struct {
-	ToUsername   string `json:"ToUserName"`
-	FromUsername string `json:"FromUserName"`
-	CreateTime   uint32 `json:"CreateTime"`
-	MsgType      string `json:"MsgType"`
-	Content      string `json:"Content"`
-	Msgid        uint64 `json:"MsgId"`
-	Agentid      uint32 `json:"AgentId"`
+type SheetChangeRecord struct {
+	ToUsername   string `xml:"ToUserName"`
+	FromUsername string `xml:"FromUserName"`
+	MsgType      string `xml:"MsgType"`
+
+	// 表格修改通知有
+	Event      string `xml:"Event"`
+	ChangeType string `xml:"ChangeType"`
+	CreateTime uint32 `xml:"CreateTime"`
+	DocId      string `xml:"DocId"`
+	SheetId    string `xml:"SheetId"`
+	RecordId   string `xml:"RecordId"`
+
+	// 未必有
+	Content string `xml:"Content"`
+	Msgid   string `xml:"MsgId"`
+	Agentid uint32 `xml:"AgentId"`
 }
 
 func MsgHandler(w http.ResponseWriter, r *http.Request) {
@@ -78,39 +86,43 @@ func MsgHandler(w http.ResponseWriter, r *http.Request) {
 	var timestamp string
 	next = getString(httpstr, "&nonce=", next, &timestamp)
 
-	nonce := httpstr[next:len(httpstr)]
-	fmt.Println(msg_signature, timestamp, nonce)
+	nonce := httpstr[next:]
+	// plogger.Debugf("msgSign[%v] t[%v] nonce[%v]", msg_signature, timestamp, nonce)
 
-	body, err := ioutil.ReadAll(r.Body)
-	fmt.Println(string(body), err)
-	wxcpt := wxbizjsonmsgcrypt.NewWXBizMsgCrypt(token, encodingAeskey, receiverId, wxbizjsonmsgcrypt.JsonType)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		plogger.Error("ReadAll fail", err)
+		return
+	}
 
-	msg, err_ := wxcpt.DecryptMsg(msg_signature, timestamp, nonce, body)
-	fmt.Println(string(msg), err_)
-	var msgContent MsgContent
-	err = json.Unmarshal(msg, &msgContent)
+	// plogger.Debugf("body: %v", string(body))
+
+	wxcpt := xml_callback.NewWXBizMsgCrypt(token, encodingAeskey, receiverId, xml_callback.XmlType)
+
+	msg, cryptErr := wxcpt.DecryptMsg(msg_signature, timestamp, nonce, body)
+	if cryptErr != nil {
+		plogger.Error("DecryptMsg fail", cryptErr)
+		return
+	}
+
+	// plogger.Debugf("decrypt msg: %v", string(msg))
+
+	var req SheetChangeRecord
+	err = xml.Unmarshal(msg, &req)
 	if nil != err {
-		fmt.Println("Unmarshal fail", err)
+		plogger.Error("Unmarshal fail", err)
+		return
+	}
+
+	if req.MsgType == "event" &&
+		req.Event == "smart_sheet_change" &&
+		req.ChangeType == "update_record" {
+
+		plogger.Debugf("Received smart_sheet_change event: %v", req)
+
 	} else {
-		fmt.Println("struct", msgContent)
+		plogger.Debugf("Received unknown event: %v", req)
 	}
-
-	fmt.Println(msgContent, err)
-	ToUsername := msgContent.ToUsername
-	msgContent.ToUsername = msgContent.FromUsername
-	msgContent.FromUsername = ToUsername
-	fmt.Println("replaymsg", msgContent)
-	replayJson, err := json.Marshal(&msgContent)
-
-	encryptMsg, cryptErr := wxcpt.EncryptMsg(string(replayJson), "1409659589", "1409659589")
-	if nil != cryptErr {
-		fmt.Println("DecryptMsg fail", cryptErr)
-	}
-
-	sEncryptMsg := string(encryptMsg)
-
-	fmt.Println("after encrypt sEncryptMsg: ", sEncryptMsg)
-	fmt.Fprintf(w, sEncryptMsg)
 }
 
 func CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -121,8 +133,6 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		MsgHandler(w, r)
 	}
-
-	fmt.Println("finished CallbackHandler", httpstr)
 }
 
 func main() {
@@ -131,8 +141,10 @@ func main() {
 	encodingAeskey = pconfig.GetStringM("WX.cbEncodingAESKey")
 	receiverId = pconfig.GetStringM("WX.cbReceiverId")
 
-	plogger.InitConsoleLogger()
+	plogger.InitServiceLogger(false)
 
 	http.HandleFunc("/", CallbackHandler) //      设置访问路由
+
+	plogger.Debug("Starting server on :8893")
 	log.Fatal(http.ListenAndServe(":8893", nil))
 }
