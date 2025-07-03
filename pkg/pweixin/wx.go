@@ -11,12 +11,12 @@ import (
 )
 
 /*
-
 请求之前，需要配置可信IP：
 1：要么有一个和公司主题信息一致的域名，则用该公司授权的开发者账号/管理员账号来操作企微后台的应用设置，
 2：要么就要配置回调服务，比起找公司的人走流程，还不如整这个回调服务。
 
 首先是文档（可以不看）：
+
 	接收消息与事件
 	https://developer.work.weixin.qq.com/document/10514
 	回调配置
@@ -25,6 +25,7 @@ import (
 	https://developer.work.weixin.qq.com/devtool/introduce?id=36388
 
 然后官方提供了这个回调服务的SDK：
+
 	./pkg/pweixin/weworkapi_golang
 	用于对接企业微信API的回调SDK
 	https://developer.work.weixin.qq.com/devtool/introduce?id=10128
@@ -39,22 +40,64 @@ import (
 关于开发的咨询在https://developer.work.weixin.qq.com/community/question/ask
 找企微客服是没用的
 */
+var g_corpid string // 企微管理后台-我的企业-企业信息-企业ID
+var g_agentid int32 // 企微管理后台-应用管理-对应的应用打开-AgentId
 
-var g_agentid int32 // 这个agentid是企微后台应用设置中配置的应用ID
+var g_corpSecret string // 企微管理后台-应用管理-对应的应用打开-Secret
+var g_token string
+
+var g_userSecret string // 企微管理后台-安全与管理-管理工具-通讯录同步-Secret
+var g_userToken string
 
 // --------------------------------------------------
 func InitWxApiByConfig() error {
-	corpid := pconfig.GetStringM("WX.corpid")
-	corpsecret := pconfig.GetStringM("WX.corpsecret")
-	agentid := int32(pconfig.GetInt64M("WX.agentid"))
-
-	return InitWxApi(corpid, corpsecret, agentid)
+	return InitWxApi(pconfig.GetStringM("WX.corpid"),
+		pconfig.GetStringM("WX.corpsecret"),
+		pconfig.GetStringD("WX.usersecret", ""),
+		int32(pconfig.GetInt64D("WX.agentid", 0)),
+	)
 }
 
-func InitWxApi(corpid, corpsecret string, agentid int32) error {
+func InitWxApi(corpid, corpSecret, userSecret string, agentid int32) (err error) {
+	g_corpid = corpid
+	g_corpSecret = corpSecret
+	g_userSecret = userSecret
 	g_agentid = agentid
-	_, err := getToken(corpid, corpsecret)
-	return err
+
+	g_token, err = getToken(g_corpid, g_corpSecret)
+	if err != nil {
+		plogger.Error(err)
+		return err
+	}
+	if g_userSecret != "" {
+		g_userToken, err = getToken(g_corpid, g_userSecret)
+		if err != nil {
+			plogger.Error(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func getTokenHeader() map[string]string {
+	if g_token == "" {
+		plogger.Error("g_token is empty, please call InitWxApi first")
+		return nil
+	}
+	return map[string]string{
+		"access_token": g_token,
+		"debug":        "1", // 开发调试时可以开启debug
+	}
+}
+func getUserTokenHeader() map[string]string {
+	if g_userToken == "" {
+		plogger.Error("g_userToken is empty, please call InitWxApi first")
+		return nil
+	}
+	return map[string]string{
+		"access_token": g_userToken,
+		"debug":        "1", // 开发调试时可以开启debug
+	}
 }
 
 // --------------------------------------------------
@@ -80,7 +123,6 @@ func handleRespErrorByMap(resp map[string]any) error {
 }
 
 // --------------------------------------------------
-var g_token string
 
 func getToken(corpid, corpsecret string) (string, error) {
 	req, err := putil.NewHttpRequest(http.MethodGet, "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
@@ -103,31 +145,16 @@ func getToken(corpid, corpsecret string) (string, error) {
 	if err != nil {
 		return "", plogger.LogErr(err)
 	}
-	g_token = putil.InterfaceToString(respMap["access_token"], "")
-	plogger.Debug("token : ", g_token)
-	// TODO 处理过期时间，自动刷新token
-	return g_token, nil
-}
-
-func getTokenHeader() map[string]string {
-	if g_token == "" {
-		plogger.Error("g_token is empty, please call InitWxApi first")
-		return nil
-	}
-	return map[string]string{
-		"access_token": g_token,
-		"debug":        "1", // 开发调试时可以开启debug
-	}
+	return putil.InterfaceToString(respMap["access_token"], ""), nil
 }
 
 // --------------------------------------------------
-// TODO 还不知道具体流程
 // 只能由通讯录同步助手的access_token来调用。同时需要保证通讯录同步功能是开启的。
 func GetUserList() error {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/user/list_id"
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url, nil,
-		getTokenHeader(),
+		getUserTokenHeader(),
 		map[string]any{
 			"cursor": "",
 			"limit":  10000,

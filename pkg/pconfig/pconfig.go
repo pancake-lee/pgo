@@ -17,51 +17,56 @@ import (
 
 var c config.Config
 
-func MustInitConfig(confFolder string) {
-	err := InitConfig(confFolder)
+// same as InitConfig, but panic if error occurs
+func MustInitConfig(paths ...string) {
+	err := InitConfig(paths...)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func InitConfig(confPath string) (err error) {
-	if confPath == "" {
-		confPath = filepath.Join(putil.GetExecFolder(), "configs")
+// InitConfig 初始化配置
+// paths: 可以指定一个或多个配置文件路径，
+// 如果是目录，则会尝试加载common.toml和执行文件名的toml
+// 如果没有指定路径，则默认加载当前执行文件所在目录下的configs目录中的配置
+func InitConfig(paths ...string) (err error) {
+	if len(paths) == 0 {
+		paths = append(paths, filepath.Join(putil.GetExecFolder(), "configs"))
 	}
-
-	f, err := os.Stat(confPath)
-	if err != nil || !f.IsDir() {
-		c = config.New(config.WithSource(
-			file.NewSource(confPath),
-		),
-		)
-	} else {
-		execName := putil.GetExecName()
-
-		// 从框架上来说，配置文件不是必须的
-		// kratos封装的Load，一个配置文件Load失败就不继续了
-		// 这里要自己判断是否存在
-		tryFileNames := []string{
-			"common.toml", execName + ".toml",
-			"common.yaml", execName + ".yaml",
-		}
-		if len(tryFileNames) == 0 {
-			return errors.New("no config file found")
-		}
-
-		var srcList []config.Source
-		for _, n := range tryFileNames {
-			path := filepath.Join(confPath, n)
-			_, err := os.Stat(path)
-			if err != nil { // 如果文件不存在，继续下一个
-				log.Println("try, config file not found:", path)
-				continue
-			}
+	var srcList []config.Source
+	for _, path := range paths {
+		f, err := os.Stat(path)
+		if err != nil || !f.IsDir() { // 指定文件
 			srcList = append(srcList, file.NewSource(path))
-		}
 
-		c = config.New(config.WithSource(srcList...))
+		} else { // 指定目录，尝试找common和执行文件名的配置文件，但不存在也没关系
+			execName := putil.GetExecName()
+
+			// 从框架上来说，配置文件不是必须的
+			// kratos封装的Load，一个配置文件Load失败就不继续了
+			// 这里要自己判断是否存在
+			tryFileNames := []string{
+				"common.toml", execName + ".toml",
+				"common.yaml", execName + ".yaml",
+			}
+			if len(tryFileNames) == 0 {
+				return errors.New("no config file found")
+			}
+
+			for _, n := range tryFileNames {
+				path := filepath.Join(path, n)
+				_, err := os.Stat(path)
+				if err != nil { // 如果文件不存在，继续下一个
+					log.Println("try, config file not found:", path)
+					continue
+				}
+				srcList = append(srcList, file.NewSource(path))
+			}
+
+		}
 	}
+
+	c = config.New(config.WithSource(srcList...))
 
 	err = c.Load()
 	if err != nil {

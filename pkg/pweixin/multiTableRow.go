@@ -3,7 +3,9 @@ package pweixin
 import (
 	"encoding/json"
 	"fmt"
+	"inserver/pkg/util"
 	"net/http"
+	"time"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -11,6 +13,41 @@ import (
 
 // --------------------------------------------------
 // 删除记录
+
+func (doc *multiTableDoc) DelAllRows() error {
+	var rowIds []string
+	limit := 1000
+	offset := 0
+	for {
+		resp, err := doc.GetRow(&GetRecordRequest{
+			Docid:   doc.Docid,
+			SheetId: doc.SheetId,
+			Offset:  uint32(offset),
+			Limit:   uint32(limit),
+		})
+		if err != nil {
+			return plogger.LogErr(err)
+		}
+		offset = int(resp.Next)
+		plogger.Debugf("get rows cnt [%d] next[%v] total [%v]", len(resp.Records), resp.Next, resp.Total)
+
+		for _, row := range resp.Records {
+			rowIds = append(rowIds, row.RecordId)
+		}
+
+		if !resp.HasMore {
+			break
+		}
+	}
+	plogger.Debugf("total rows cnt [%d] ", offset)
+
+	err := doc.DelRow(rowIds)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
+}
+
 func (doc *multiTableDoc) DelRow(recordIds []string) error {
 	if len(recordIds) == 0 {
 		return nil
@@ -72,7 +109,7 @@ func NewSortRule(fieldTitle string, desc bool) sortRule {
 	}
 }
 
-func (doc *multiTableDoc) GetRow(req *getRecordRequest) (*getRecordResponse, error) {
+func (doc *multiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, error) {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_records"
 
 	httpReq, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
@@ -102,6 +139,11 @@ func (doc *multiTableDoc) GetRow(req *getRecordRequest) (*getRecordResponse, err
 }
 
 // --------------------------------------------------
+// 创建数字值
+func NewNumValue(value float64) float64 {
+	return value
+}
+
 // 创建文本值
 func NewTextValue(text string) []CellTextValue {
 	return []CellTextValue{
@@ -110,6 +152,11 @@ func NewTextValue(text string) []CellTextValue {
 			Text: text,
 		},
 	}
+}
+
+// 创建日期时间值（传入毫秒时间戳字符串）
+func NewTimeValue(t time.Time) any {
+	return util.Int64ToStr(t.UnixMilli())
 }
 
 // 创建链接值
@@ -133,8 +180,12 @@ func NewUserValue(userIds ...string) []CellUserValue {
 }
 
 // 创建选项值
-func NewOptionValue(options ...CellOption) []CellOption {
-	return options
+func NewOptionValue(option *SelectFieldOption) *CellOption {
+	return &CellOption{
+		Id:    option.Id,
+		Text:  option.Text,
+		Style: uint32(option.Style),
+	}
 }
 
 // 创建地理位置值
@@ -150,7 +201,7 @@ func NewLocationValue(id, latitude, longitude, title string) []CellLocationValue
 	}
 }
 
-func (doc *multiTableDoc) AddRow(rows []AddRecord) error {
+func (doc *multiTableDoc) AddRow(rows []*AddRecord) error {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_records"
 
 	// 构建请求体
@@ -190,10 +241,10 @@ func (doc *multiTableDoc) AddRow(rows []AddRecord) error {
 // --------------------------------------------------
 // 添加记录请求结构
 type addRecordRequest struct {
-	Docid   string      `json:"docid"`
-	SheetId string      `json:"sheet_id"`
-	KeyType string      `json:"key_type,omitempty"`
-	Records []AddRecord `json:"records"`
+	Docid   string       `json:"docid"`
+	SheetId string       `json:"sheet_id"`
+	KeyType string       `json:"key_type,omitempty"`
+	Records []*AddRecord `json:"records"`
 }
 
 // 添加记录响应结构
@@ -215,7 +266,7 @@ type CommonRecord struct {
 }
 
 // 查询记录请求结构
-type getRecordRequest struct {
+type GetRecordRequest struct {
 	Docid       string      `json:"docid"`
 	SheetId     string      `json:"sheet_id"`
 	ViewId      string      `json:"view_id,omitempty"`
@@ -321,7 +372,8 @@ type CellUrlValue struct {
 
 // 选项类型（用于单选和多选）
 type CellOption struct {
-	Id    string `json:"id"`
+	Id string `json:"id"`
+	// 你没看错，col配置用int，这里uint，企微官方文档就是这么写的，本来也确实没关系的细节
 	Style uint32 `json:"style"`
 	Text  string `json:"text"`
 }
@@ -340,3 +392,9 @@ type CellAutoNumberValue struct {
 	Seq  string `json:"seq"`
 	Text string `json:"text"`
 }
+
+// 数字类型单元格值（实际为float64）
+type CellNumValue = float64
+
+// 日期时间类型单元格值（实际为string，毫秒时间戳）
+type CellTimeValue = string
