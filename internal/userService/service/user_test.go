@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
@@ -35,8 +36,9 @@ func TestUserService(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		i := putil.SliceIndex(resp.UserList, func(i int) bool {
-			return resp.UserList[i].UserName == userName
+
+		i := slices.IndexFunc(resp.UserList, func(user *api.UserInfo) bool {
+			return user.UserName == userName
 		})
 		if i == -1 {
 			t.Fatal("user pancake is not found")
@@ -105,8 +107,8 @@ func TestUserDeptJob(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		i := putil.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
-			item := resp.UserDeptAssocList[i]
+
+		i := slices.IndexFunc(resp.UserDeptAssocList, func(item *api.UserDeptAssocInfo) bool {
 			return item.UserID == userId &&
 				item.DeptID == deptId1 &&
 				item.JobID == jobId1
@@ -115,8 +117,7 @@ func TestUserDeptJob(t *testing.T) {
 			t.Log(resp.UserDeptAssocList)
 			t.Fatal("user dept assoc is not found")
 		}
-		i = putil.SliceIndex(resp.UserDeptAssocList, func(i int) bool {
-			item := resp.UserDeptAssocList[i]
+		i = slices.IndexFunc(resp.UserDeptAssocList, func(item *api.UserDeptAssocInfo) bool {
 			return item.UserID == userId &&
 				item.DeptID == deptId2 &&
 				item.JobID == jobId2
