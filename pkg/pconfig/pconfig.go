@@ -42,6 +42,7 @@ func InitConfig(paths ...string) (err error) {
 		f, err := os.Stat(path)
 		if err != nil || !f.IsDir() { // 指定文件
 			srcList = append(srcList, file.NewSource(path))
+			log.Println("config file found:", path)
 
 		} else { // 指定目录，尝试找common和执行文件名的配置文件，但不存在也没关系
 			execName := putil.GetExecName()
@@ -65,8 +66,8 @@ func InitConfig(paths ...string) (err error) {
 					continue
 				}
 				srcList = append(srcList, file.NewSource(path))
+				log.Println("config file found:", path)
 			}
-
 		}
 	}
 

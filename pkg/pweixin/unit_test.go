@@ -36,7 +36,7 @@ func TestWX(t *testing.T) {
 	// }
 
 	// --------------------------------------------------
-	var doc *multiTableDoc
+	var doc *MultiTableDoc
 	if false {
 		doc, err = CreateMultiTable("TestTable_" + putil.TimeToStrDefault(time.Now()))
 		if err != nil {

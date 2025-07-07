@@ -131,7 +131,7 @@ func CourseSwap() {
 	var allCourseList []*courseInfo
 	plogger.Debugf("teacher cnt[%v]\n", len(courseMap))
 	for _, tInfo := range courseMap {
-		// logger.Debugf("teacher[%v] class cnt[%v]\n", tInfo.teacher, len(tInfo.classList))
+		// plogger.Debugf("teacher[%v] class cnt[%v]\n", tInfo.teacher, len(tInfo.classList))
 		for _, classInfo := range tInfo.classList {
 			// 一节课向后推3周
 			date := tNow.AddDate(0, 0, int(classInfo.weekDay-tNow.Weekday()))

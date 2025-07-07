@@ -9,18 +9,18 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
-type multiTableDoc struct {
+type MultiTableDoc struct {
 	Docid   string `json:"docid"`    // 文档ID
 	Docurl  string `json:"docurl"`   // 文档访问地址
 	SheetId string `json:"sheet_id"` // 表ID
 }
 
-func (doc *multiTableDoc) SetCurSheetId(sheetId string) {
+func (doc *MultiTableDoc) SetCurSheetId(sheetId string) {
 	doc.SheetId = sheetId
 }
 
-func NewMultiTableDoc(docid, docurl string) *multiTableDoc {
-	return &multiTableDoc{
+func NewMultiTableDoc(docid, docurl string) *MultiTableDoc {
+	return &MultiTableDoc{
 		Docid:  docid,
 		Docurl: docurl,
 	}
@@ -33,7 +33,7 @@ func NewMultiTableDoc(docid, docurl string) *multiTableDoc {
 // 该接口创建出来，由于没有指定父级位置，所以在企微客户端根本找不到这个文档
 // 1：打开resp的url，然后在自己最近访问里就能找到了
 // 2：TODO看如何把spaceid和fatherid填进去，创建在指定目录下
-func CreateMultiTable(tblName string) (doc *multiTableDoc, err error) {
+func CreateMultiTable(tblName string) (doc *MultiTableDoc, err error) {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/create_doc"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
@@ -101,7 +101,7 @@ type getSheetResponse struct {
 }
 
 // 内部方法：查询子表
-func (doc *multiTableDoc) GetSheets(sheetId string) ([]SheetInfo, error) {
+func (doc *MultiTableDoc) GetSheets(sheetId string) ([]SheetInfo, error) {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_sheet"
 
 	// 构建请求体

@@ -3,7 +3,6 @@ package pweixin
 import (
 	"encoding/json"
 	"fmt"
-	"inserver/pkg/util"
 	"net/http"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 // --------------------------------------------------
 // 删除记录
 
-func (doc *multiTableDoc) DelAllRows() error {
+func (doc *MultiTableDoc) DelAllRows() error {
 	var rowIds []string
 	limit := 1000
 	offset := 0
@@ -48,7 +47,7 @@ func (doc *multiTableDoc) DelAllRows() error {
 	return nil
 }
 
-func (doc *multiTableDoc) DelRow(recordIds []string) error {
+func (doc *MultiTableDoc) DelRow(recordIds []string) error {
 	if len(recordIds) == 0 {
 		return nil
 	}
@@ -109,7 +108,7 @@ func NewSortRule(fieldTitle string, desc bool) sortRule {
 	}
 }
 
-func (doc *multiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, error) {
+func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, error) {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_records"
 
 	httpReq, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
@@ -144,6 +143,14 @@ func NewNumValue(value float64) float64 {
 	return value
 }
 
+// 解析数字值
+func ParseNumValue(value any) (float64, error) {
+	if v, ok := value.(float64); ok {
+		return v, nil
+	}
+	return 0, fmt.Errorf("invalid number value type: %T", value)
+}
+
 // 创建文本值
 func NewTextValue(text string) []CellTextValue {
 	return []CellTextValue{
@@ -154,9 +161,33 @@ func NewTextValue(text string) []CellTextValue {
 	}
 }
 
+// 解析文本值
+func ParseTextValue(value any) (string, error) {
+	if values, ok := value.([]interface{}); ok && len(values) > 0 {
+		if textValue, ok := values[0].(map[string]interface{}); ok {
+			if text, ok := textValue["text"].(string); ok {
+				return text, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("invalid text value format")
+}
+
 // 创建日期时间值（传入毫秒时间戳字符串）
 func NewTimeValue(t time.Time) any {
-	return util.Int64ToStr(t.UnixMilli())
+	return putil.Int64ToStr(t.UnixMilli())
+}
+
+// 解析日期时间值
+func ParseTimeValue(value any) (time.Time, error) {
+	if timeStr, ok := value.(string); ok {
+		timestamp, err := putil.StrToInt64(timeStr)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("invalid timestamp format: %v", err)
+		}
+		return time.UnixMilli(timestamp), nil
+	}
+	return time.Time{}, fmt.Errorf("invalid time value type: %T", value)
 }
 
 // 创建链接值
@@ -170,6 +201,20 @@ func NewUrlValue(text, link string) []CellTextValue {
 	}
 }
 
+// 解析链接值
+func ParseUrlValue(value any) (text, link string, err error) {
+	if values, ok := value.([]interface{}); ok && len(values) > 0 {
+		if urlValue, ok := values[0].(map[string]interface{}); ok {
+			text, _ = urlValue["text"].(string)
+			link, _ = urlValue["link"].(string)
+			if text != "" || link != "" {
+				return text, link, nil
+			}
+		}
+	}
+	return "", "", fmt.Errorf("invalid url value format")
+}
+
 // 创建用户值
 func NewUserValue(userIds ...string) []CellUserValue {
 	values := make([]CellUserValue, len(userIds))
@@ -179,6 +224,22 @@ func NewUserValue(userIds ...string) []CellUserValue {
 	return values
 }
 
+// 解析用户值
+func ParseUserValue(value any) ([]string, error) {
+	if values, ok := value.([]interface{}); ok {
+		userIds := make([]string, 0, len(values))
+		for _, v := range values {
+			if userValue, ok := v.(map[string]interface{}); ok {
+				if userId, ok := userValue["user_id"].(string); ok {
+					userIds = append(userIds, userId)
+				}
+			}
+		}
+		return userIds, nil
+	}
+	return nil, fmt.Errorf("invalid user value format")
+}
+
 // 创建选项值
 func NewOptionValue(option *SelectFieldOption) *CellOption {
 	return &CellOption{
@@ -186,6 +247,26 @@ func NewOptionValue(option *SelectFieldOption) *CellOption {
 		Text:  option.Text,
 		Style: uint32(option.Style),
 	}
+}
+
+// 解析选项值
+func ParseSingleOptionValue(value any) (*CellOption, error) {
+	if values, ok := value.([]interface{}); ok && len(values) > 0 {
+		if optionValue, ok := values[0].(map[string]interface{}); ok {
+			option := &CellOption{}
+			if id, ok := optionValue["id"].(string); ok {
+				option.Id = id
+			}
+			if text, ok := optionValue["text"].(string); ok {
+				option.Text = text
+			}
+			if style, ok := optionValue["style"].(float64); ok {
+				option.Style = uint32(style)
+			}
+			return option, nil
+		}
+	}
+	return nil, fmt.Errorf("invalid option value format")
 }
 
 // 创建地理位置值
@@ -201,7 +282,33 @@ func NewLocationValue(id, latitude, longitude, title string) []CellLocationValue
 	}
 }
 
-func (doc *multiTableDoc) AddRow(rows []*AddRecord) error {
+// 解析地理位置值
+func ParseLocationValue(value any) (*CellLocationValue, error) {
+	if values, ok := value.([]interface{}); ok && len(values) > 0 {
+		if locationValue, ok := values[0].(map[string]interface{}); ok {
+			location := &CellLocationValue{}
+			if sourceType, ok := locationValue["source_type"].(float64); ok {
+				location.SourceType = uint32(sourceType)
+			}
+			if id, ok := locationValue["id"].(string); ok {
+				location.Id = id
+			}
+			if latitude, ok := locationValue["latitude"].(string); ok {
+				location.Latitude = latitude
+			}
+			if longitude, ok := locationValue["longitude"].(string); ok {
+				location.Longitude = longitude
+			}
+			if title, ok := locationValue["title"].(string); ok {
+				location.Title = title
+			}
+			return location, nil
+		}
+	}
+	return nil, fmt.Errorf("invalid location value format")
+}
+
+func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_records"
 
 	// 构建请求体

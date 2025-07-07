@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"io"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/pmq"
 	"github.com/pancake-lee/pgo/pkg/pweixin/wx_cb_server/xml_callback"
 
 	"log"
@@ -57,22 +61,23 @@ func VerifyURL(w http.ResponseWriter, r *http.Request) {
 }
 
 type SheetChangeRecord struct {
-	ToUsername   string `xml:"ToUserName"`
-	FromUsername string `xml:"FromUserName"`
-	MsgType      string `xml:"MsgType"`
+	ToUsername   string ` json:"toUserName,omitempty" xml:"ToUserName"`
+	FromUsername string ` json:"fromUserName,omitempty" xml:"FromUserName"`
+	MsgType      string ` json:"msgType,omitempty" xml:"MsgType"`
 
 	// 表格修改通知有
-	Event      string `xml:"Event"`
-	ChangeType string `xml:"ChangeType"`
-	CreateTime uint32 `xml:"CreateTime"`
-	DocId      string `xml:"DocId"`
-	SheetId    string `xml:"SheetId"`
-	RecordId   string `xml:"RecordId"`
+	Event      string ` json:"event,omitempty" xml:"Event"`
+	ChangeType string ` json:"changeType,omitempty" xml:"ChangeType"`
+	CreateTime uint32 ` json:"createTime,omitempty" xml:"CreateTime"`
+	DocId      string ` json:"docId,omitempty" xml:"DocId"`
+	SheetId    string ` json:"sheetId,omitempty" xml:"SheetId"`
+	// TODO 不会多个记录吗？
+	RecordId string ` json:"recordId,omitempty" xml:"RecordId"`
 
 	// 未必有
-	Content string `xml:"Content"`
-	Msgid   string `xml:"MsgId"`
-	Agentid uint32 `xml:"AgentId"`
+	Content string ` json:"content,omitempty" xml:"Content"`
+	Msgid   string ` json:"msgId,omitempty" xml:"MsgId"`
+	Agentid uint32 ` json:"agentId,omitempty" xml:"AgentId"`
 }
 
 func MsgHandler(w http.ResponseWriter, r *http.Request) {
@@ -120,6 +125,23 @@ func MsgHandler(w http.ResponseWriter, r *http.Request) {
 
 		plogger.Debugf("Received smart_sheet_change event: %v", req)
 
+		jsonReq, err := json.Marshal(&req)
+		if err != nil {
+			plogger.Error("json marshal fail", err)
+			return
+		}
+
+		jsonStrReq := string(jsonReq)
+
+		err = pmq.DefaultClient.SendServerEventStr(context.Background(),
+			pmq.DefaultClient.GetDefaultEventExchange(),
+			req.Event, &jsonStrReq,
+		)
+		if err != nil {
+			plogger.LogErr(err)
+			return
+		}
+
 	} else {
 		plogger.Debugf("Received unknown event: %v", req)
 	}
@@ -136,12 +158,16 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var isLogConsole = flag.Bool("l", false, "true: log in file and console; false: only log in file")
+	flag.Parse()
+
 	pconfig.MustInitConfig("")
 	token = pconfig.GetStringM("WX.cbToken")
 	encodingAeskey = pconfig.GetStringM("WX.cbEncodingAESKey")
 	receiverId = pconfig.GetStringM("WX.cbReceiverId")
 
-	plogger.InitServiceLogger(false)
+	plogger.InitServiceLogger(*isLogConsole)
+	pmq.MustInitMQByConfig()
 
 	http.HandleFunc("/", CallbackHandler) //      设置访问路由
 

@@ -5,6 +5,31 @@ import "fmt"
 // 支持动态获取配置，包括error/default/must模式
 
 // --------------------------------------------------
+func GetInt32D(key string, defaultVal int32) int32 {
+	v, err := MustGetConfig().Value(key).Int()
+	if err != nil {
+		return defaultVal
+	}
+	return int32(v)
+}
+
+func GetInt32E(key string) (int32, error) {
+	v, err := MustGetConfig().Value(key).Int()
+	if err != nil {
+		return 0, err
+	}
+	return int32(v), nil
+}
+
+func GetInt32M(key string) int32 {
+	v, err := MustGetConfig().Value(key).Int()
+	if err != nil {
+		panic(fmt.Errorf("must get config value[%v] error: %v", key, err))
+	}
+	return int32(v)
+}
+
+// --------------------------------------------------
 func GetInt64D(key string, defaultVal int64) int64 {
 	v, err := MustGetConfig().Value(key).Int()
 	if err != nil {

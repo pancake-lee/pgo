@@ -14,7 +14,7 @@ import (
 // 如果该列已存在，则不修改。如需修改列，为了确保程序不会误删数据，应该手动删除列，再通过该方法重建。
 // 如果该列不存在，则添加列。
 // 如果deleteExcept为true，则删除除myColList之外的所有列。
-func (doc *multiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) error {
+func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) error {
 	if len(myColList) == 0 {
 		return errors.New("cannot set empty col list")
 	}
@@ -76,7 +76,7 @@ func (doc *multiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) e
 }
 
 // 删除字段
-func (doc *multiTableDoc) DelCol(fieldIds []string) error {
+func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 	if len(fieldIds) == 0 {
 		return nil
 	}
@@ -131,7 +131,7 @@ type deleteFieldResponse struct {
 
 // --------------------------------------------------
 // 内部方法：查询字段
-func (doc *multiTableDoc) GetCols(fieldIds, fieldTitles []string) ([]*Field, error) {
+func (doc *MultiTableDoc) GetCols(fieldIds, fieldTitles []string) ([]*Field, error) {
 	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_fields"
 
 	// 构建请求体
@@ -192,7 +192,7 @@ type getFieldResponse struct {
 
 // --------------------------------------------------
 // 添加指定类型的字段
-func (doc *multiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
+func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 	if len(fields) == 0 {
 		return []*Field{}, nil
 	}

@@ -51,8 +51,16 @@ var g_userToken string
 
 // --------------------------------------------------
 func InitWxApiByConfig() error {
-	return InitWxApi(pconfig.GetStringM("WX.corpid"),
-		pconfig.GetStringM("WX.corpsecret"),
+	corpid, err := pconfig.GetStringE("WX.corpid")
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	corpSecret, err := pconfig.GetStringE("WX.corpsecret")
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	return InitWxApi(corpid, corpSecret,
 		pconfig.GetStringD("WX.usersecret", ""),
 		int32(pconfig.GetInt64D("WX.agentid", 0)),
 	)
