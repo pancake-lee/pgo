@@ -1,0 +1,539 @@
+字段
+字段的数据结构如下：
+
+属性	说明
+id	string
+字段 ID
+例："fldsRHWJZwFcM"
+name	string
+字段名称
+例： "Order number"
+type	string
+字段类型，可能的值见字段类型及属性一节中列举的字段
+例："SingleText"
+editable	boolean
+字段权限，即列权限，true 为可编辑，false 为只读
+例： true
+property	object
+参数。不同的字段有不同的属性，详见字段类型及属性一节各种字段的属性说明
+例： {"defaultValue":"待补充"}
+isPrimary	boolean
+是否为主数据列
+例： true
+desc	string
+字段描述，即列描述
+例： "这一列是自动生成的单号，不要手动修改"
+字段类型及属性
+维格表目前有如下字段类型：
+
+接口返回的字段类型	对应的维格列类型
+SingleText	单行文本
+Text	多行文本
+SingleSelect	单选
+MultiSelect	多选
+Number	数字
+Currency	货币
+Percent	百分比
+DateTime	日期
+Attachment	附件
+Member	成员
+Checkbox	勾选
+Rating	评分
+URL	网址
+Phone	电话
+Email	邮箱
+WorkDoc	轻文档
+OneWayLink	单向关联
+TwoWayLink	双向关联
+MagicLookUp	神奇引用
+Formula	智能公式
+AutoNumber	自增数字
+CreatedTime	创建时间
+LastModifiedTime	修改时间
+CreatedBy	创建人
+LastModifiedBy	更新人
+Button	按钮
+下面将详细说明各字段类型的属性。
+
+当调用「获取字段」接口时，各字段类型返回结果如下所示：
+
+SingleText（单行文本）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "SingleText",
+  "property": {
+    "defaultValue": ""
+  }
+}
+字段属性	数据类型	说明
+defaultValue	string	新建记录时，此字段对应单元格的默认值，默认为空
+Text（多行文本）
+暂无参数。
+
+SingleSelect（单选）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "SingleSelect",
+  "property": {
+    "options": [
+      {
+        "id": "optpTVSGk0R2M",
+        "name": "Elevit",
+        "color": {
+          "name": "indigo_4",
+          "value": "#5586FF"
+        }
+      },
+      {
+        "id": "optqX2Bw479FG",
+        "name": "OAD",
+        "color": {
+          "name": "blue_4",
+          "value": "#55CDFF"
+        }
+      }
+    ]
+  }
+}
+字段属性	数据类型	说明
+options	object arrays	所有可选项列表
+options 下包含的参数：
+
+参数	数据类型	说明
+id	string	选项 ID
+name	string	选项名称
+color	object	选项颜色，包含颜色的名称和色值
+MultiSelect（多选）
+参数与单选相同。
+
+Number（数字）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Number",
+  "property": {
+    "defaultValue": "2",
+    "precision": 0,
+    "commaStyle": ",",
+    "symbol": "平方米"
+  }
+}
+字段属性	数据类型	说明
+defaultValue	string	新建记录时，此字段对应单元格的默认值，默认为空
+precision	number	表示小数点的位数，即数字精度。取值有 0（代表整数）、1（精确到小数点后一位）、2（精确到小数点后两位）、3（精确到小数点后三位）、4（精确到小数点后四位）
+commaStyle	string	千分位分隔符，设置此属性后数字字段将以英文逗号分隔千分位，如 1,000。默认为空（可选）
+symbol	string	数字单位，显示在数字的右边，默认为空（可选）
+Currency（货币）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Currency",
+  "property": {
+    "defaultValue": "1000.00",
+    "precision": 2,
+    "symbol": "¥",
+    "symbolAlign": "Default"
+  }
+}
+字段属性	数据类型	说明
+defaultValue	string	新建记录时，此字段对应单元格的默认值，默认为空
+precision	number	表示小数点的位数，即数字精度。取值有 0（代表整数）、1（精确到小数点后一位）、2（精确到小数点后两位）、3（精确到小数点后三位）、4（精确到小数点后四位）
+symbol	string	货币符号，可以是自定义的任意字符
+symbolAlign	string	货币符号的对齐方式（可选）。默认值为 Default（货币单位紧挨在数值的左边），其他取值有 Left（货币单位固定到左边）、Right（货币单位固定到右边）。
+Percent（百分比）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Percent",
+  "property": {
+    "defaultValue": "0.85",
+    "precision": 1
+  }
+}
+字段属性	数据类型	说明
+defaultValue	string	新建记录时，此字段对应单元格的默认值，默认为空
+precision	number	表示将字段值转换为百分比后小数点的位数，即百分比精度。取值有 0（代表整数）、1（精确到小数点后一位）、2（精确到小数点后两位）、3（精确到小数点后三位）、4（精确到小数点后四位）。例如：字段值为 0.22 时，如果百分比精度为 0，则展示为 22%；如果百分比精度为 1，则展示为 22.0%
+DateTime（日期）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "DateTime",
+  "property": {
+    "dateFormat": "YYYY/MM/DD hh:mm",
+    "includeTime": true,
+    "timeFormat": "hh:mm",
+    "autoFill": true,
+    "timeZone": "Asia/Shanghai",
+    "includeTimeZone": true
+  }
+}
+字段属性	数据类型	说明
+dateFormat	string(enum)*	YYYY/MM/DD，YYYY-MM-DD，DD/MM/YYYY，YYYY-MM，MM-DD，YYYY，MM，DD
+includeTime	boolean	是否显示时间
+timeFormat	string(enum)	HH:mm，hh:mm
+autoFill	boolean	新建记录时，是否自动填充时间
+timeZone	string	时区
+includeTimeZone	boolean	是否显示时区
+日期字段的值会返回时间戳，不限制格式。参数中 format 信息可用于格式化，含义参见 dayjs format。
+
+如果你不想处理日期格式化，希望返回结果和视图展示内容保持一致，可以在接口请求参数中赋值 cellFormat 为 string，则返回的内容全部为字符串。
+
+timeZone 属性可用的时区名称请参考 List of Time Zones 网站，例：Asia/Shanghai。
+
+Attachment（附件）
+暂无参数。
+
+Member（成员）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Member",
+  "property": {
+    "isMulti": true,
+    "shouldSendMsg": true
+  }
+}
+字段属性	数据类型	说明
+isMulti	boolean	是否可以选择多个成员
+shouldSendMsg	boolean	成员列中提及某成员时，是否向其发送站内消息通知
+Checkbox（勾选）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Checkbox",
+  "property": {
+    "icon": "white_check_mark"
+  }
+}
+字段属性	数据类型	说明
+icon	string(enum)	请参考 emoji 枚举
+Rating（评分）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Rating",
+  "property": {
+    "icon": "⭐",
+    "max": 5
+  }
+}
+字段属性	数据类型	说明
+icon	string	评分值的图标表示，一般为 emoji 字符，比如 ⭐ 或 🎉
+max	number	评分最大值，取值为 1-10
+URL（网址）
+暂无参数。
+
+Phone（电话）
+暂无参数。
+
+Email（邮箱）
+暂无参数。
+
+Workdoc（轻文档）
+暂无参数。
+
+OneWayLink（单向关联）
+表 A 通过单向关联字段与 B 连接
+
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "OneWayLink",
+  "property": {
+    "foreignDatasheetId": "dstgr2YN264s7CXKVs",
+    "limitToViewId": "viwY4B8pmiMoi",
+    "limitSingleRecord": true
+  }
+}
+字段属性	数据类型	说明
+foreignDatasheetId	string	关联表 ID
+limitToViewId	string	指定关联表的一个视图，限制只能选取该视图下的记录
+limitSingleRecord	boolean	是否只能选取单条记录
+TwoWayLink（双向关联）
+两张表 A 与 B 通过双向关联字段连接，在 A 中会有关联到 B 的关联字段，在 B 中也会有关联到 A 的关联字段。这一对关联字段被称为 兄弟字段。
+
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "TwoWayLink",
+  "property": {
+    "foreignDatasheetId": "dstgr2YN264s7CXKVs",
+    "brotherFieldId": "fldxxxxxxxx",
+    "limitToViewId": "viwY4B8pmiMoi",
+    "limitSingleRecord": true
+  }
+}
+字段属性	数据类型	说明
+foreignDatasheetId	string	关联表 ID
+brotherFieldId	String	关联列 ID
+limitToViewId	string	指定关联表的一个视图，限制只能选取该视图下的记录
+limitSingleRecord	boolean	是否只能选取单条记录
+MagicLookUp（神奇引用）
+神奇引用是依附于双向关联或单向关联存在的一种字段，它是一个动态的计算字段，单元格本身不存储任何值。
+
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "MagicLookUp",
+  "property": {
+    "relatedLinkFieldId": "fldhBGpM3ylTq",
+    "targetFieldId": "fldS2mgS18LE1",
+    "rollupFunction": "VALUES",
+    "valueType": "Array",
+    "entityField": {
+      "datasheetId": "dstgr2YN264s7CXKVs",
+      "field": {
+        "id": "fldS2mgS18LE1",
+        "name": "title",
+        "type": "SingleText",
+        "property": {
+          "defaultValue": ""
+        },
+        "editable": true
+      }
+    },
+    "enableFilterSort": true,
+    "sortInfo": {
+      "rules": [
+        {
+          "fieldId": "fld7aautAK1h",
+          "desc": false
+        }
+      ]
+    },
+    "filterInfo": {
+      "conjunction": "and",
+      "conditions": [
+        {
+          "fieldId": "fldL74kjFHak",
+          "fieldType": "Number",
+          "operator": "isGreater",
+          "value": [13]
+        }
+      ]
+    },
+    "lookUpLimit": "ALL"
+  }
+}
+字段属性	数据类型	说明
+relatedLinkFieldId	string	引用的当前表的关联字段 ID
+targetFieldId	string	关联表中查询的字段 ID
+hasError	boolean	当神奇引用的依赖的关联字段被删除或者转化类型时，可能无法正常获取引用值
+entityField	object	最终引用到的实体字段，不包含神奇引用类型的字段。存在错误时，实体字段可能不存在。
+rollupFunction	string	汇总函数
+valueType	string	返回值类型，取值包括 String、Boolean、Number、DateTime、Array
+format	object	当返回值类型为 Number 或 DateTime 时，返回对数字或者日期格式化操作的结果
+enableFilterSort	boolean	是否开启筛选和排序
+sortInfo	object	排序设置
+filterInfo	object	筛选设置
+lookUpLimit	string	限制展示的记录数量
+rollupFunction 的取值说明（参数含义参考 神奇引用产品手册）：
+
+函数名	返回值类型	说明
+VALUES	array	原样引用
+AVERAGE	number	平均数
+COUNT	number	非空数值计数
+COUNTA	number	非空值计数
+COUNTALL	number	全计数
+SUM	number	总和
+MIN	number/datetime	最小值
+MAX	number/datetime	最大值
+AND	boolean	和运算
+OR	boolean	或运算
+XOR	boolean	异或运算
+CONCATENATE	string	连接成文本
+ARRAYJOIN	string	逗号连接
+ARRAYUNIQUE	array	去重
+ARRAYCOMPACT	array	过滤所有空值
+entityField 下包含的参数说明：
+
+参数	数据类型	说明
+datasheetId	string	实体字段的表 ID
+field	object	除了 LookUp 外的 Field 对象，神奇引用可以引用其他表的神奇引用类型的字段，但最终会存在一个实体字段。
+注意：如果你的应用中使用了此字段的特性，在检测到字段存在引用错误时，需要处理好异常情况。
+
+format 下包含的参数说明：
+
+参数	数据类型	说明
+type	string	格式化类型 DateTime、Number、Percent、Currency
+format	object	不同格式化类型的具体格式
+格式化为日期：
+
+参数	数据类型	说明
+dateFormat	string	日期格式，比如 YYYY/MM/DD
+timeFormat	string	时间格式，比如 hh:mm、HH:mm
+includeTime	boolean	是否显示时间
+timeZone	string	时区
+includeTimeZone	boolean	是否显示时区
+格式化为数字或百分比：
+
+参数	数据类型	说明
+precision	number	数字精度或百分比精度
+格式化为货币：
+
+参数	数据类型	说明
+precision	number	精度
+symbol	string	货币符号
+sortInfo 下包含的参数说明：
+
+参数	数据类型	说明
+rules	array	排序规则的数组。目前只能指定一个排序规则（数组只能有一个元素）。
+rules 数组元素下包含的参数说明：
+
+参数	数据类型	说明
+fieldId	string	用于排序的字段ID
+desc	boolean	是否按降序排序
+filterInfo 下包含的参数说明：
+
+参数	数据类型	说明
+conjunction	string	筛选条件的组合方式：and 需要满足所有筛选条件；or 满足任意一个筛选条件即可。
+conditions	array	筛选条件的数组
+conditions 下包含的参数说明：
+
+参数	数据类型	说明
+fieldId	string	筛选字段的字段ID
+fieldType	string	筛选字段的字段类型
+operator	string	筛选条件的运算符，可选的取值见下表
+value	array	筛选条件的基准值，例如筛选条件是「大于3」，则基准值为 3，value 的取值是 [3]
+operator 的取值说明：
+
+取值	说明
+is	筛选字段的字段值等于基准值
+isNot	筛选字段的字段值不等于基准值
+contains	筛选字段的字段值包含基准值
+doesNotContain	筛选字段的字段值不包含基准值
+isEmpty	筛选字段的字段值为空
+isNotEmpty	筛选字段的字段值不为空
+isGreater	筛选字段的字段值大于基准值
+isGreaterEqual	筛选字段的字段值大于或等于基准值
+isLess	筛选字段的字段值小于基准值
+isLessEqual	筛选字段的字段值小于或等于基准值
+isRepeat	筛选字段的字段值存在重复项
+lookUpLimit 的取值说明：
+
+取值	说明
+ALL	显示所有引用的记录值
+FIRST	只显示引用的第一条记录值
+Formula（智能公式）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "Formula",
+  "property": {
+    "expression": "",
+    "valueType": "String",
+    "hasError": false
+  }
+}
+字段属性	数据类型	说明
+expression	string*	公式表达式
+valueType	string(enum)*	返回值类型，取值包括 String、Boolean、Number、DateTime、Array
+hasError	boolean	当公式依赖的相关字段被删除或者转化类型时，可能无法正常获取计算值
+format	object	当返回值类型为 Number 或 DateTime 时候，返回对数字或者日期格式化操作，与 lookup 返回的 format 格式相同
+和神奇引用相同，遇到错误时，需要处理异常情况。
+
+AutoNumber（自增数字）
+暂无参数。
+
+CreatedTime（创建时间）
+与 DateTime 相同。
+
+LastModifiedTime（修改时间）
+与 DateTime 相同。
+
+CreatedBy（创建人）
+成员 id 是空间站级别的，创建人 id 是账号级别的。
+
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "CreatedBy",
+  "property": {
+    "options": [
+      {
+        "id": "e9cbc839fd1b49be85b1f7b0977047e2",
+        "name": "Coco",
+        "avatar": "https://s4.vika.cn/default/avatar004.jpg"
+      }
+    ]
+  }
+}
+字段属性	数据类型	说明
+options	array	当前成员字段已经选过的成员的数组
+options 数组中每个对象包含的参数：
+
+参数	数据类型	说明
+id	string*	用户 id
+name	string*	用户昵称
+avatar	string*	用户头像的网址 URL
+LastModifiedBy（更新人）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "type": "LastModifiedBy",
+  "property": {
+    "options": [
+      {
+        "id": "e9cbc839fd1b49be85b1f7b0977047e2",
+        "name": "Coco",
+        "avatar": "https://s4.vika.cn/default/avatar004.jpg"
+      }
+    ]
+  }
+}
+字段属性	数据类型	说明
+options	array	当前字段存储过的用户的数组
+options 数组中每个对象包含的参数：
+
+参数	数据类型	说明
+id	string*	用户 id
+name	string*	用户昵称
+avatar	string*	用户头像的网址 URL
+Button（按钮）
+返回结果示例片段（仅包含字段类型及属性）：
+
+{
+  "id": "fldb6L4FznMbZ",
+  "name": "Button",
+  "type": "Button",
+  "property": {
+    "text": "Click to start",
+    "style": {
+      "type": "Background",
+      "color": {
+        "name": "deepPurple_5",
+        "value": "#B0A4F5"
+      }
+    },
+    "action": {
+      "type": "openLink",
+      "openLink": {
+        "type": "Url",
+        "expression": "https://vika.cn"
+      }
+    }
+  },
+  "editable": false
+}
+Field Properties	Data Type	Description
+text	String	按钮文案
+style	Object	按钮样式
+action	Object	按钮操作
+style对象包含的参数:
+Parameters	Data Type	Description
+type	String	按钮样式类型：带背景颜色按钮, 纯文字按钮。默认为：Background
+color	Object	按钮颜色
+color对象包含的参数:
+Parameters	Data Type	Description
+name	String	颜色名称，详细查看色板
+value	String	颜色名称对应的值，仅供查看，不支持使用此参数修改颜色。详细查看色板
+action对象包含的参数:
+Parameters	Data Type	Description
+type	String	按钮操作类型：跳转链接（OpenLink），触发自动化流程（TriggerAutomation），目前API仅支持写入OpenLink按钮列
+openLink	Object	点击跳转链接
+openLink对象包含的参数:
+Parameters	Data Type	Description
+type	String	跳转链接URL,支持: url（Url）、公式（Expression）
+expression	String	跳转链接

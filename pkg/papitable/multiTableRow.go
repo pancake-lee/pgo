@@ -1,0 +1,594 @@
+package papitable
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
+)
+
+// --------------------------------------------------
+// 清空记录
+func (doc *MultiTableDoc) DelAllRows() error {
+	var rowIds []string
+	pageNum := 1
+	pageSize := 100 // apitable 建议的分页大小=100
+
+	for {
+		resp, err := doc.GetRow(&GetRecordRequest{
+			PageNum:  pageNum,
+			PageSize: pageSize,
+		})
+		if err != nil {
+			return plogger.LogErr(err)
+		}
+
+		hasMore := resp.Data.PageSize == pageSize
+
+		plogger.Debugf("get rows cnt [%d] hasMore[%v] total [%v]",
+			len(resp.Data.Records), hasMore, resp.Data.Total)
+
+		for _, row := range resp.Data.Records {
+			rowIds = append(rowIds, row.RecordId)
+		}
+
+		if !hasMore {
+			break
+		}
+		pageNum++
+	}
+	plogger.Debugf("total rows cnt [%d] ", len(rowIds))
+
+	// 批量删除，每次最多100条
+	err := putil.WalkSliceByStep(rowIds, 100, func(start, end int) error {
+		tmpRowIds := rowIds[start:end]
+		return doc.DelRow(tmpRowIds)
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// --------------------------------------------------
+// 删除记录
+func (doc *MultiTableDoc) DelRow(recordIds []string) error {
+	if len(recordIds) == 0 {
+		return nil
+	}
+	if len(recordIds) > 10 {
+		return fmt.Errorf("recordIds length is %d, should be less than 10", len(recordIds))
+	}
+
+	// apitable 支持批量删除，但需要通过查询参数传递recordIds
+	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/records", g_baseUrl, doc.DatasheetId)
+
+	// 构建查询参数
+	params := make(map[string]string)
+	params["recordIds"] = putil.StrListToStr(recordIds, ",")
+
+	req, err := putil.NewHttpRequestJson(http.MethodDelete, url,
+		getTokenHeader(), params, nil)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	var respData deleteRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if !respData.Success {
+		return plogger.LogErr(fmt.Errorf("delete records failed: code=%d, message=%s", respData.Code, respData.Message))
+	}
+
+	return nil
+}
+
+// --------------------------------------------------
+// 创建记录
+func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, error) {
+	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/records", g_baseUrl, doc.DatasheetId)
+
+	req.FieldKey = CELL_VALUE_KEY_TYPE_FIELD_TITLE
+
+	querys := putil.GetUrlQueryString(req)
+	httpReq, err := putil.NewHttpRequestJson(http.MethodGet, url,
+		getTokenHeader(), querys, nil)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(httpReq)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	var respData getRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if !respData.Success {
+		return nil, plogger.LogErr(fmt.Errorf("get records failed: code=%d, message=%s", respData.Code, respData.Message))
+	}
+
+	return &respData, nil
+}
+func NewSortRule(fieldName string, desc bool) SortRule {
+	ret := SortRule{
+		Field: fieldName,
+		Order: "asc",
+	}
+	if desc {
+		ret.Order = "desc"
+	}
+	return ret
+}
+
+const (
+	CELL_VALUE_KEY_TYPE_FIELD_TITLE = "name" // apitable 使用 name 作为字段键
+	CELL_VALUE_KEY_TYPE_FIELD_ID    = "id"   // apitable 使用 id 作为字段键
+)
+
+// --------------------------------------------------
+// 增加记录
+func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	if len(rows) > 10 {
+		return fmt.Errorf("records length is %d, should be less than 10", len(rows))
+	}
+
+	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/records", g_baseUrl, doc.DatasheetId)
+
+	// 构建请求体
+	reqBody := addRecordRequest{
+		Records:  rows,
+		FieldKey: CELL_VALUE_KEY_TYPE_FIELD_TITLE,
+	}
+
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url,
+		getTokenHeader(), nil, reqBody)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	resp, err := putil.HttpDo(req)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	var respData addRecordResponse
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	// 检查响应错误
+	if !respData.Success {
+		return plogger.LogErr(fmt.Errorf("add records failed: code=%d, message=%s", respData.Code, respData.Message))
+	}
+
+	return nil
+}
+
+// --------------------------------------------------
+// api req/resp结构
+// --------------------------------------------------
+
+// 添加记录结构
+type AddRecord struct {
+	Fields map[string]any `json:"fields"`
+}
+
+// 通用记录结构
+type CommonRecord struct {
+	RecordId  string         `json:"recordId"`
+	Fields    map[string]any `json:"fields"`
+	CreatedAt int64          `json:"createdAt"`
+	UpdatedAt int64          `json:"updatedAt"`
+}
+
+// 删除记录响应结构
+type deleteRecordResponse struct {
+	Success bool   `json:"success"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	// Data    struct{} `json:"data"` // 可解析，未解析
+}
+
+// 添加记录请求结构
+type addRecordRequest struct {
+	Records  []*AddRecord `json:"records"`
+	FieldKey string       `json:"fieldKey,omitempty"`
+}
+
+// 添加记录响应结构
+type addRecordResponse struct {
+	Success bool   `json:"success"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    struct {
+		Records []CommonRecord `json:"records"`
+	} `json:"data"`
+}
+
+// 查询记录请求结构
+type GetRecordRequest struct {
+	PageSize       int        `json:"-"`
+	MaxRecords     int        `json:"-"`
+	PageNum        int        `json:"-"`
+	Sort           []SortRule `json:"-"`
+	RecordIds      []string   `json:"-"`
+	ViewId         string     `json:"-"`
+	Fields         []string   `json:"-"`
+	FilterByFrmula string     `json:"-"`
+	CellFormat     string     `json:"-"`
+	FieldKey       string     `json:"-"`
+}
+
+// 查询记录响应结构
+type getRecordResponse struct {
+	Success bool   `json:"success"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    struct {
+		PageNum  int            `json:"pageNum"`
+		Records  []CommonRecord `json:"records"`
+		PageSize int            `json:"pageSize"`
+		Total    int            `json:"total"`
+	} `json:"data"`
+}
+
+// 排序规则
+type SortRule struct {
+	Field string `json:"field"`
+	Order string `json:"order"` // "asc" 或 "desc"
+}
+
+// --------------------------------------------------
+// 行数据中的字段Def/New/Parse
+// --------------------------------------------------
+
+func NewNumValue(value float64) float64 {
+	return value
+}
+func ParseNumValue(value any) (float64, error) {
+	if v, ok := value.(float64); ok {
+		return v, nil
+	}
+	return 0, fmt.Errorf("invalid number value type: %T", value)
+}
+
+// --------------------------------------------------
+// func NewSingleTextValue(text string) string {
+// 	return text
+// }
+// func ParseSingleTextValue(value any) (string, error) {
+// 	if text, ok := value.(string); ok {
+// 		return text, nil
+// 	}
+// 	return "", fmt.Errorf("invalid single text value type: %T", value)
+// }
+
+// --------------------------------------------------
+func NewTextValue(text string) string {
+	return text
+}
+
+func ParseTextValue(value any) (string, error) {
+	if text, ok := value.(string); ok {
+		return text, nil
+	}
+	return "", fmt.Errorf("invalid text value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewSingleSelectValue(option string) string {
+	return option
+}
+
+func ParseSingleSelectValue(value any) (string, error) {
+	if option, ok := value.(string); ok {
+		return option, nil
+	}
+	return "", fmt.Errorf("invalid single select value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewMultiSelectValue(options ...string) []string {
+	return options
+}
+
+func ParseMultiSelectValue(value any) ([]string, error) {
+	if options, ok := value.([]interface{}); ok {
+		result := make([]string, 0, len(options))
+		for _, opt := range options {
+			if str, ok := opt.(string); ok {
+				result = append(result, str)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid multi select value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewTimeValue(t time.Time) float64 {
+	return float64(t.UnixMilli())
+}
+
+func ParseTimeValue(value any) (time.Time, error) {
+	if timestamp, ok := value.(float64); ok {
+		return time.UnixMilli(int64(timestamp)), nil
+	}
+	return time.Time{}, fmt.Errorf("invalid time value type: %T", value)
+}
+
+// --------------------------------------------------
+// 附件类型单元格值
+type CellAttachmentValue struct {
+	MimeType string `json:"mimeType"`          // 附件的媒体类型
+	Name     string `json:"name"`              // 附件的名称
+	Size     int32  `json:"size"`              // 附件的大小，单位为字节
+	Width    int32  `json:"width,omitempty"`   // 如果附件是图片格式，表示图片的宽度，单位为px
+	Height   int32  `json:"height,omitempty"`  // 如果附件是图片格式，表示图片的高度，单位为px
+	Token    string `json:"token"`             // 附件的访问路径
+	Preview  string `json:"preview,omitempty"` // 如果附件是PDF格式，将会生成一个预览图，用户可以通过此网址访问
+}
+
+func NewAttachmentValue(attachments ...CellAttachmentValue) []CellAttachmentValue {
+	return attachments
+}
+
+func ParseAttachmentValue(value any) ([]CellAttachmentValue, error) {
+	if attachments, ok := value.([]interface{}); ok {
+		result := make([]CellAttachmentValue, 0, len(attachments))
+		for _, att := range attachments {
+			if attMap, ok := att.(map[string]interface{}); ok {
+				attachment := CellAttachmentValue{}
+				attMap = attMap // TODO
+				result = append(result, attachment)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid attachment value type: %T", value)
+}
+
+// --------------------------------------------------
+// 成员类型单元格值
+type CellMemberValue struct {
+	Id     string `json:"id"`               // 组织单元的ID
+	Type   int32  `json:"type"`             // 组织单元的类型，1是小组，3是成员
+	Name   string `json:"name"`             // 小组或成员的名称
+	Avatar string `json:"avatar,omitempty"` // 头像URL，只读，不可写入
+}
+
+func NewMemberValue(members ...CellMemberValue) []CellMemberValue {
+	return members
+}
+
+func ParseMemberValue(value any) ([]CellMemberValue, error) {
+	if members, ok := value.([]interface{}); ok {
+		result := make([]CellMemberValue, 0, len(members))
+		for _, mem := range members {
+			if memMap, ok := mem.(map[string]interface{}); ok {
+				member := CellMemberValue{}
+				if id, ok := memMap["id"].(string); ok {
+					member.Id = id
+				}
+				if memberType, ok := memMap["type"].(float64); ok {
+					member.Type = int32(memberType)
+				}
+				if name, ok := memMap["name"].(string); ok {
+					member.Name = name
+				}
+				if avatar, ok := memMap["avatar"].(string); ok {
+					member.Avatar = avatar
+				}
+				result = append(result, member)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid member value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewCheckboxValue(checked bool) bool {
+	return checked
+}
+
+func ParseCheckboxValue(value any) (bool, error) {
+	if checked, ok := value.(bool); ok {
+		return checked, nil
+	}
+	return false, fmt.Errorf("invalid checkbox value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewRatingValue(rating float64) float64 {
+	return rating
+}
+
+func ParseRatingValue(value any) (float64, error) {
+	if rating, ok := value.(float64); ok {
+		return rating, nil
+	}
+	return 0, fmt.Errorf("invalid rating value type: %T", value)
+}
+
+// --------------------------------------------------
+// 链接类型单元格值
+type CellUrlValue struct {
+	Title   string `json:"title"`   // 网页标题
+	Text    string `json:"text"`    // 网页地址
+	Favicon string `json:"favicon"` // 网页 ICON
+}
+
+func NewUrlValue(title, text, favicon string) CellUrlValue {
+	return CellUrlValue{
+		Title:   title,
+		Text:    text,
+		Favicon: favicon,
+	}
+}
+
+func ParseUrlValue(value any) (*CellUrlValue, error) {
+	if urlMap, ok := value.(map[string]interface{}); ok {
+		url := &CellUrlValue{}
+		if title, ok := urlMap["title"].(string); ok {
+			url.Title = title
+		}
+		if text, ok := urlMap["text"].(string); ok {
+			url.Text = text
+		}
+		if favicon, ok := urlMap["favicon"].(string); ok {
+			url.Favicon = favicon
+		}
+		return url, nil
+	}
+	return nil, fmt.Errorf("invalid url value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewPhoneValue(phone string) string {
+	return phone
+}
+
+func ParsePhoneValue(value any) (string, error) {
+	if phone, ok := value.(string); ok {
+		return phone, nil
+	}
+	return "", fmt.Errorf("invalid phone value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewEmailValue(email string) string {
+	return email
+}
+
+func ParseEmailValue(value any) (string, error) {
+	if email, ok := value.(string); ok {
+		return email, nil
+	}
+	return "", fmt.Errorf("invalid email value type: %T", value)
+}
+
+// --------------------------------------------------
+// 工作文档类型单元格值
+type CellWorkDocValue struct {
+	DocumentId string `json:"documentId"`
+	Title      string `json:"title"`
+}
+
+func NewWorkDocValue(workDocs ...CellWorkDocValue) []CellWorkDocValue {
+	return workDocs
+}
+
+func ParseWorkDocValue(value any) ([]CellWorkDocValue, error) {
+	if workDocs, ok := value.([]interface{}); ok {
+		result := make([]CellWorkDocValue, 0, len(workDocs))
+		for _, doc := range workDocs {
+			if docMap, ok := doc.(map[string]interface{}); ok {
+				workDoc := CellWorkDocValue{}
+				if documentId, ok := docMap["documentId"].(string); ok {
+					workDoc.DocumentId = documentId
+				}
+				if title, ok := docMap["title"].(string); ok {
+					workDoc.Title = title
+				}
+				result = append(result, workDoc)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid workdoc value type: %T", value)
+}
+
+// --------------------------------------------------
+func NewOneWayLinkValue(recordIds ...string) []string {
+	return recordIds
+}
+
+func ParseOneWayLinkValue(value any) ([]string, error) {
+	if recordIds, ok := value.([]interface{}); ok {
+		result := make([]string, 0, len(recordIds))
+		for _, id := range recordIds {
+			if str, ok := id.(string); ok {
+				result = append(result, str)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid one way link value type: %T", value)
+}
+
+// --------------------------------------------------
+// 双向链接值
+func NewTwoWayLinkValue(recordIds ...string) []string {
+	return recordIds
+}
+
+func ParseTwoWayLinkValue(value any) ([]string, error) {
+	if recordIds, ok := value.([]interface{}); ok {
+		result := make([]string, 0, len(recordIds))
+		for _, id := range recordIds {
+			if str, ok := id.(string); ok {
+				result = append(result, str)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid two way link value type: %T", value)
+}
+
+// --------------------------------------------------
+// 解析自动编号值（只读字段）
+func ParseAutoNumberValue(value any) (float64, error) {
+	if num, ok := value.(float64); ok {
+		return num, nil
+	}
+	return 0, fmt.Errorf("invalid auto number value type: %T", value)
+}
+
+// 解析公式值（只读字段）
+func ParseFormulaValue(value any) (any, error) {
+	// 公式字段可以返回string、number或boolean
+	return value, nil
+}
+
+// 解析引用值（只读字段）
+func ParseMagicLookUpValue(value any) ([]interface{}, error) {
+	if lookupResult, ok := value.([]interface{}); ok {
+		return lookupResult, nil
+	}
+	return nil, fmt.Errorf("invalid magic lookup value type: %T", value)
+}
+
+// 以下类型定义已移除，因为根据文档它们的值格式更简单：
+// - CellNumberValue (直接使用 float64)
+// - CellTextValue (直接使用 string)
+// - CellImageValue (合并到 CellAttachmentValue)
+// - CellUserValue (更名为 CellMemberValue)
+// - CellOption (单选多选直接使用 string 和 []string)
+// - CellLocationValue (文档中未提及，可能不支持)
+// - CellAutoNumberValue (直接使用 float64)
+// - CellNumValue (直接使用 float64)
+// - CellTimeValue (直接使用 float64 时间戳)

@@ -101,8 +101,8 @@ type deleteRecordResponse struct {
 
 // --------------------------------------------------
 // 创建排序规则
-func NewSortRule(fieldTitle string, desc bool) sortRule {
-	return sortRule{
+func NewSortRule(fieldTitle string, desc bool) SortRule {
+	return SortRule{
 		FieldTitle: fieldTitle,
 		Desc:       desc,
 	}
@@ -381,7 +381,7 @@ type GetRecordRequest struct {
 	KeyType     string      `json:"key_type,omitempty"`
 	FieldTitles []string    `json:"field_titles,omitempty"`
 	FieldIds    []string    `json:"field_ids,omitempty"`
-	Sort        []sortRule  `json:"sort,omitempty"`
+	Sort        []SortRule  `json:"sort,omitempty"`
 	Offset      uint32      `json:"offset,omitempty"`
 	Limit       uint32      `json:"limit,omitempty"` //最大值1000，即使设置为0，超过1000也会被截断
 	Ver         uint32      `json:"ver,omitempty"`
@@ -410,7 +410,7 @@ type RecordDetail struct {
 }
 
 // 排序规则
-type sortRule struct {
+type SortRule struct {
 	FieldTitle string `json:"field_title"`
 	Desc       bool   `json:"desc,omitempty"`
 }

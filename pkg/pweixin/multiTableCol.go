@@ -280,6 +280,8 @@ type AddField struct {
 }
 
 // --------------------------------------------------
+// 字段类型
+// --------------------------------------------------
 // 字段类型常量
 type wxFieldType string
 
@@ -302,6 +304,7 @@ const (
 	FIELD_TYPE_PERCENTAGE    wxFieldType = "FIELD_TYPE_PERCENTAGE"
 )
 
+// --------------------------------------------------
 func NewSimpleTextCol(colName string) *AddField {
 	return &AddField{
 		FieldTitle: colName,
@@ -309,6 +312,7 @@ func NewSimpleTextCol(colName string) *AddField {
 	}
 }
 
+// --------------------------------------------------
 type numberFieldProperty struct {
 	DecimalPlaces int  `json:"decimal_places"`
 	UseSeparate   bool `json:"use_separate"`
@@ -325,10 +329,7 @@ func NewSimpleNumCol(colName string) *AddField {
 	}
 }
 
-type checkboxFieldProperty struct {
-	Checked bool `json:"checked"`
-}
-
+// --------------------------------------------------
 type dateTimeFieldProperty struct {
 	Format   string `json:"format"`
 	AutoFill bool   `json:"auto_fill"`
@@ -347,10 +348,7 @@ func NewSimpleTimeCol(colName string) *AddField {
 	}
 }
 
-type attachmentFieldProperty struct {
-	DisplayMode string `json:"display_mode"`
-}
-
+// --------------------------------------------------
 type userFieldProperty struct {
 	IsMultiple bool `json:"is_multiple"`
 	IsNotified bool `json:"is_notified"`
@@ -365,6 +363,37 @@ func NewSimpleUserCol(colName string, isMultiple bool) *AddField {
 			IsNotified: false, // 是否通知用户
 		},
 	}
+}
+
+// --------------------------------------------------
+type SelectFieldOption struct {
+	Id    string `json:"id,omitempty"`
+	Text  string `json:"text"`
+	Style int    `json:"style,omitempty"`
+}
+type singleSelectFieldProperty struct {
+	IsQuickAdd bool                 `json:"is_quick_add"`
+	Options    []*SelectFieldOption `json:"options"`
+}
+
+func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
+	return &AddField{
+		FieldTitle: colName,
+		FieldType:  FIELD_TYPE_SINGLE_SELECT,
+		PropertySingleSelect: &singleSelectFieldProperty{
+			IsQuickAdd: true,
+			Options:    options,
+		},
+	}
+}
+
+// --------------------------------------------------
+type checkboxFieldProperty struct {
+	Checked bool `json:"checked"`
+}
+
+type attachmentFieldProperty struct {
+	DisplayMode string `json:"display_mode"`
 }
 
 type urlFieldProperty struct {
@@ -386,22 +415,6 @@ type modifiedTimeFieldProperty struct {
 
 type progressFieldProperty struct {
 	DecimalPlaces int `json:"decimal_places"`
-}
-
-type singleSelectFieldProperty struct {
-	IsQuickAdd bool                 `json:"is_quick_add"`
-	Options    []*SelectFieldOption `json:"options"`
-}
-
-func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
-	return &AddField{
-		FieldTitle: colName,
-		FieldType:  FIELD_TYPE_SINGLE_SELECT,
-		PropertySingleSelect: &singleSelectFieldProperty{
-			IsQuickAdd: true,
-			Options:    options,
-		},
-	}
 }
 
 type referenceFieldProperty struct {
@@ -440,18 +453,13 @@ type barcodeFieldProperty struct {
 	MobileScanOnly bool `json:"mobile_scan_only"`
 }
 
-// 辅助结构体
-type SelectFieldOption struct {
-	Id    string `json:"id,omitempty"`
-	Text  string `json:"text"`
-	Style int    `json:"style,omitempty"`
-}
-
 type numberRule struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 }
 
+// --------------------------------------------------
+// 颜色
 type SelectFieldOptionStyle int
 
 const (

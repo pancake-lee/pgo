@@ -1,0 +1,74 @@
+删除记录
+该接口用于删除某个维格表的记录。单次请求最多可删除 10 条记录。
+
+请求地址：https://vika.cn/fusion/v1/datasheets/{datasheetId}/records
+请求方法：DELETE
+请求头必须包含：
+Authorization: Bearer {你的 API Token}
+Content-Type：application/json
+右侧区域提供了 cURL、Javascript SDK 的请求示例，供你参考。
+
+如果你需要更详细的操作指导，可阅读「API 指南」的删除记录操作指南。
+
+如果你有更复杂的接口请求，可参考下列参数，自行组合。
+
+path Parameters
+datasheetId
+required
+string
+Example: dst0Yj5aNeoHldqvf6
+维格表 ID
+
+query Parameters
+recordIds
+required
+string
+Example: recordIds=recwZ6yV3Srv3,recwXXyV12454
+需要删除的记录 ID，多条记录用逗号分隔，一次请求最多可删除 10 条。
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+全局状态值，如果为 false，则表示发生了业务错误或接口调用错误。
+
+code
+required
+number
+业务状态码，200 表示业务请求成功。
+
+message
+required
+string
+返回信息，执行错误时返回错误信息。
+
+data
+required
+boolean
+返回的业务数据体。
+
+
+delete
+/fusion/v1/datasheets/{datasheetId}/records
+
+Request samples
+cURLJavaScript SDK
+
+Copy
+curl -X DELETE \
+"https://vika.cn/fusion/v1/datasheets/{替换为你的 datasheetId}/records?recordIds={替换为想要删除的 recordId}" \
+-H  "Authorization: Bearer {替换为你的 API Token}"
+Response samples
+200
+Content type
+application/json
+
+Copy
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": true
+}

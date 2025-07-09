@@ -1,5 +1,7 @@
 package putil
 
+import "reflect"
+
 // 命名是copilot提供的，表示“集合”，主要用于存放slice和map的一些操作代码封装
 
 // int32数组交集，输出排序是根据nums2的排序
@@ -156,4 +158,28 @@ func StrListUnique(list []string) []string {
 		list = append(list, k)
 	}
 	return list
+}
+
+func WalkSliceByStep(x any, step int, cb func(s, e int) error) (err error) {
+	rv := reflect.ValueOf(x)
+	length := rv.Len()
+
+	var curIndex int = 0
+	for {
+		if curIndex >= length {
+			break
+		}
+
+		endIndex := curIndex + step
+		if endIndex > length {
+			endIndex = length
+		}
+
+		err = cb(curIndex, endIndex)
+		if err != nil {
+			return err
+		}
+		curIndex += step
+	}
+	return nil
 }

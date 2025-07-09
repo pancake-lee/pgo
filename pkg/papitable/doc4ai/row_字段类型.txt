@@ -1,0 +1,121 @@
+记录
+目前维格云开放获取记录、创建记录、更新记录、删除记录的接口。
+
+记录（Record）的数据结构如下：
+
+属性	说明
+
+recordId	string
+该记录的 ID，示例值："rec1jV9eWxcaB"
+
+createdAt	number
+该记录的创建时间，为时间戳格式，示例值：1624960629000
+
+updatedAt	number
+该记录的修改时间，为时间戳格式，示例值：1624964696000
+
+fields	object
+一条记录里对应字段的数据，返回格式为 {"fieldName": fieldValue}
+
+使用创建记录或更新记录接口对表格字段进行写入操作时，需要了解每种字段值的数据类型和结构。
+
+需注意：动态计算类型的字段（自增数字、公式、神奇引用、修改时间、创建时间、修改人、创建人）不允许主动写入值。
+
+为方便参考，下表列举了不同类型字段的值：
+
+Field Type(字段类型)	说明
+
+SingleText(单行文本)	string
+单行文本，适合保存不带换行符的文本，例如文章的标题
+例：{"fieldName": "an example title"}
+
+Text(多行文本)	string
+多行文本，可用于存放较长的文本内容，例如一篇学术论文
+例：{"fieldName": "a long text"}
+
+SingleSelect(单选)	string
+已选中的选项文本值。当创建/更新记录时，提交的选项值不存在于选项列表，则会返回错误码400，并提示“参数错误”
+例：{"fieldName": "done"}
+
+MultiSelect(多选)	array of strings
+已选中的若干选项文本值组成的数组。当创建/更新记录时，提交的选项值不存在于选项列表，则会返回错误码400，并提示“参数错误”
+例：{"fieldName": ["Option1", "Option2"]}
+
+Number(数字)	number
+数值，支持负值。通过api读取此字段的值，精度不受列配置影响，只会原样返回
+例：{"fieldName": 1998}
+
+Currency(货币)	number
+数值，支持负值。通过api读取此字段的值，精度不受列配置影响，只会原样返回
+例：{"fieldName": 999}
+
+Percent(百分比)	number
+数值，支持负值。通过api读取此字段的值，精度不受列配置影响，只会原样返回
+例：{"fieldName": 0.1}
+
+DateTime(日期)	number
+日期和时间，以毫秒（ms）为单位返回时间戳
+例：{"fieldName": 1678723200000}
+
+Attachment(附件)	array of attachment objects
+由若干“附件对象”组成的数组，每一个附件对象应该包含下列属性：
+- mimeType : string，附件的媒体类型
+- name: string，附件的名称
+- size: number，附件的大小，单位为字节
+- width: number， 如果附件是图片格式，表示图片的宽度，单位为px
+- height: number，如果附件是图片格式，表示图片的高度，单位为px
+- token: string，附件的访问路径
+- preview: string，如果附件是PDF格式，将会生成一个预览图，用户可以通过此网址访问
+例：{"fieldName":[{"id":"atcFagvJrELTS","name":"logo.png","size":6396,"mimeType":"image/png","token":"space/2023/03/17/ee1bb79d3fd847e383e21c9b0bd53dfc","width":424,"height":80,"url":"https://s1.vika.com/space/2023/03/17/ee1bb79d3fd847e383e21c9b0bd53dfc"}]}
+
+Member(成员)	array of unit objects
+由若干「组织单元（unit）」对象构成的数组，「组织单元」是维格表中描述“空间站”与“成员”之间的关系的一个抽象概念。成员（member）、小组（team）都是一种组织单元。每一个「组织单元」对象应该包含下列属性：
+- id: string，组织单元的ID
+- type: number，组织单元的类型，1是小组，3是成员
+- name: string，小组或成员的名称
+- avatar: string，头像URL，只读，不可写入
+例：{"fieldName":[{"id":"1291258301781176321","type":3,"name":"Jane","avatar":"https://s1.vika.com/space/2023/02/09/79e112dd10424ac7842256736e4f5568"}]}
+
+Checkbox(勾选)	boolean
+布尔类型的true 或 空。当此字段被勾选时返回“true”。除此以外，记录中不返回此字段
+例：{"fieldName": true}
+
+Rating(评分)	number
+评分值是 1-9 之间的一个正整数如果单元格为空或者撤销评分，则记录中不返回此字段
+例：{"fieldName": 5}
+
+URL(网址)	object
+返回一个 URL 对象，其中包括 title(网页标题)、text(网页地址)、favicon(网页 ICON)
+例：{"fieldName":{"title":"vika","text":"https://vika.cn", "favicon":"https://s4.vika.cn/space/2022/12/20/73456950217f4f79b20c7ef1a49acf6e"}}
+
+Phone(电话)	string
+电话号码（字符串）
+例：{"fieldName": "138xxxx7240"}
+
+Email(邮箱)	string
+邮件地址（字符串）
+例：{"fieldName": "support@vikadata.com"}
+
+WorkDoc(轻文档)	array of workdoc objects
+由若干“轻文档对象”组成的数组，每一个轻文档对象包含下列属性：
+- documentId : string，文档ID
+- title: string，文档标题
+例：{"fieldName":[{"documentId":"docCqiLTtyx4l","title":"I am title"}]}
+
+OneWayLink(单向关联)	array of record IDs
+由多条已关联记录的ID组成的数组
+例：{"fieldName": ['recz9eeg61SEa', 'recz97eg81ScD']}
+
+TwoWayLink(双向关联)	array of record IDs
+由多条已关联记录的ID组成的数组
+例：{"fieldName": ['recz9eeg61SEa', 'recz97eg81ScD']}
+
+MagicLookUp(神奇引用)	array of any
+A表与B表通过双向关联或单向字段进行表关联后，可使用此字段对B表的任意字段进行引用，视乎引用方式的不同，而返回不同数据类型的运算值。如果引用方式选择了「原样引用」，则运算结果的数据类型保持与B表源字段一致；其他引用方式皆返回数字类型的运算值
+例：{"fieldName": ['Reference data 1', 'Reference data 2']}
+
+Formula(智能公式)	string | number | boolean
+经过公式和函数运算后的结果，数据类型可能是数字、字符串、布尔值。此字段是计算字段，创建/更新记录时不支持写入
+AutoNumber(自增数字)	number
+数值，正整数。创建记录时自动生成，不支持手动写入
+例：{"fieldName": 1}

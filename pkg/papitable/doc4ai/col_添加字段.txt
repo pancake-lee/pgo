@@ -1,0 +1,115 @@
+Create Field
+This interface is used to create new fields in the specified datasheet.A maximum of 200 fields can be created in a single datasheet.
+
+Request address: https://aitable.ai/fusion/v1/spaces/{spaceId}/datasheets/{datasheetId}/fields
+Request method: POST
+The request header must contain.
+Authorization: Bearer {your API Token}
+Content-Type: application/json
+If you have more complex interface requests, you can refer to the following parameters and combine them by yourself.
+
+path Parameters
+spaceId
+required
+string
+Example: spcjXzqVrjaP3
+Space ID
+
+datasheetId
+required
+string
+Example: dstNiC6R9MryevVaCQ
+Datasheet ID
+
+Request Body schema: application/json
+Request body structure
+
+type
+required
+string
+Field Type
+
+
+SingleText
+SingleText
+name
+required
+string
+Field name, no more than 100 characters
+
+property
+required
+object
+Single line text attribute
+
+defaultValue	
+string
+Default text content
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+
+code
+required
+number
+Business status code, 200 indicates that the business request is successful.
+
+message
+required
+string
+Return information, and return error information when executing an error.
+
+data
+required
+object
+id	
+string
+Field ID
+
+name	
+string
+Field Name
+
+
+post
+/fusion/v1/spaces/{spaceId}/datasheets/{datasheetId}/fields
+
+Request samples
+PayloadcURLJavaScript SDKPython SDK
+Content type
+application/json
+Example
+
+SingleText
+SingleText
+
+Copy
+Expand allCollapse all
+{
+"type": "SingleText",
+"name": "Title",
+"property": {
+"defaultValue": "Default text text"
+}
+}
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": {
+"id": "fldupsvkR2ATB",
+"name": "Title"
+}
+}

@@ -7,8 +7,93 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strconv"
 	"strings"
 )
+
+func GetUrlQueryString(req any) (querys map[string]string) {
+	if req == nil {
+		return nil
+	}
+	querys = make(map[string]string)
+
+	v := reflect.ValueOf(req)
+	t := reflect.TypeOf(req)
+
+	// 如果是指针，获取指向的值
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return querys
+		}
+		v = v.Elem()
+		t = t.Elem()
+	}
+
+	// 只处理结构体
+	if v.Kind() != reflect.Struct {
+		return querys
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldType := t.Field(i)
+
+		// 跳过未导出的字段
+		if !field.CanInterface() {
+			continue
+		}
+
+		// 获取字段名，优先使用 json tag
+		fieldName := fieldType.Name
+		if jsonTag := fieldType.Tag.Get("json"); jsonTag != "" {
+			if jsonTag == "-" {
+				continue
+			}
+			// 解析 json tag，取第一部分作为字段名
+			if parts := strings.Split(jsonTag, ","); len(parts) > 0 && parts[0] != "" {
+				fieldName = parts[0]
+			}
+		}
+
+		// 处理不同类型的字段
+		switch field.Kind() {
+		case reflect.String:
+			if str := field.String(); str != "" {
+				querys[fieldName] = str
+			}
+		case reflect.Int32:
+			if val := field.Int(); val != 0 {
+				querys[fieldName] = strconv.FormatInt(val, 10)
+			}
+		case reflect.Int64:
+			if val := field.Int(); val != 0 {
+				querys[fieldName] = strconv.FormatInt(val, 10)
+			}
+		case reflect.Slice, reflect.Array:
+			// 处理数组类型
+			if field.Len() > 0 {
+				var values []string
+				for j := 0; j < field.Len(); j++ {
+					elem := field.Index(j)
+					switch elem.Kind() {
+					case reflect.String:
+						if str := elem.String(); str != "" {
+							values = append(values, str)
+						}
+					case reflect.Int32, reflect.Int64:
+						values = append(values, strconv.FormatInt(elem.Int(), 10))
+					}
+				}
+				if len(values) > 0 {
+					querys[fieldName] = strings.Join(values, ",")
+				}
+			}
+		}
+	}
+
+	return querys
+}
 
 func NewHttpRequestJson(method, rawURL string, header, querys map[string]string, body any) (*http.Request, error) {
 	jsonBody, err := json.Marshal(body)
@@ -17,6 +102,7 @@ func NewHttpRequestJson(method, rawURL string, header, querys map[string]string,
 	}
 	fmt.Println("--------------------------------------------------")
 	fmt.Printf("url[%v]\nbody[%s]\n", rawURL, string(jsonBody))
+	header["Content-Type"] = "application/json"
 	return NewHttpRequest(method, rawURL, header, querys, string(jsonBody))
 }
 

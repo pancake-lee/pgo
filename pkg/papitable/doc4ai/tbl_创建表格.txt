@@ -1,0 +1,141 @@
+Create Datasheet
+This interface is used to create a datasheet with the specified fields in the specified space.A maximum of 200 fields can be created in a single request in a newly created datasheet.
+
+Request address: https://aitable.ai/fusion/v1/spaces/{spaceId}/datasheets
+Request method: POST
+The request header must contain.
+Authorization: Bearer {your API Token}
+Content-Type: application/json
+If you have more complex interface requests, you can refer to the following parameters and combine them by yourself.
+
+path Parameters
+spaceId
+required
+string
+Example: spcjXzqVrjaP3
+Space ID
+
+Request Body schema: application/json
+Request body structure
+
+name
+required
+string
+Datasheet name, no more than 100 characters
+
+description	
+string
+Table description, no more than 500 characters
+
+folderId	
+string
+The folder ID; if it is blank, it will be the working directory by default
+
+preNodeId	
+string
+The ID of the previous node. If it is empty, it will be moved to the first place
+
+fields	
+Array of objects (FieldItemRo)
+Field list. If it is blank, 3 columns of default fields will be added
+
+Array 
+type
+required
+string
+Field Type
+
+
+SingleText
+SingleText
+name
+required
+string
+Field name, no more than 100 characters
+
+property
+required
+object
+Single line text attribute
+
+defaultValue	
+string
+Default text content
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+
+code
+required
+number
+Business status code, 200 indicates that the business request is successful.
+
+message
+required
+string
+Return information, and return error information when executing an error.
+
+data
+required
+object
+id	
+string
+Form ID
+
+createdAt	
+number
+Create Timestamp
+
+fields	
+Array of objects (FieldCreateItemVo)
+Array 
+id	
+string
+Field ID
+
+name	
+string
+Field Name
+
+
+post
+/fusion/v1/spaces/{spaceId}/datasheets
+
+Request samples
+PayloadcURLJavaScript SDKPython SDK
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"name": "My Datasheet",
+"description": "This is a description",
+"folderId": "fodn173Q0e8nC",
+"preNodeId": "dstQJl6BGku1WfLPTD",
+"fields": [
+{}
+]
+}
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": {
+"id": "dstbs2U7mt8AEqgKuh",
+"createdAt": 1648648690000,
+"fields": []
+}
+}

@@ -1,0 +1,167 @@
+Get Records
+This interface is used to get the records of the specified datasheet.
+
+Request address: https://aitable.ai/fusion/v1/datasheets/{datasheetId}/records
+Request method: GET
+Request header must contain: Authorization: Bearer {your API Token}
+The area on the right provides sample requests for cURL, Javascript SDK for your reference.
+
+If you need more detailed operation guidance, you can read the get-records operation guide of API Guide.
+
+If you have more complex interface requests, you can refer to the following parameters and combine them by yourself.
+
+path Parameters
+datasheetId
+required
+string
+Example: dst0Yj5aNeoHldqvf6
+AITable Datasheet ID
+
+query Parameters
+pageSize	
+number
+Default: 100
+Example: pageSize=100
+How many records are returned per page. By default, 100 records are returned per page. The value range is an integer from 1 to 1000.
+
+maxRecords	
+number
+Example: maxRecords=1000
+How many records are returned in total. If maxRecords and pageSize are used at the same time, and the value of maxRecords is less than the total number of records, only the setting of maxRecords will take effect.
+
+pageNum	
+number
+Default: 1
+Example: pageNum=1
+Specifies the page number of the page, which is used in conjunction with the pageSize parameter. For example, 'pageSize=1000&pageNum=2' returns records between 1001 and 2000.
+
+sort	
+Array of objects
+Sort the returned records. Sort is an array of multiple sort objects.The structure of a single sort object is {"order":"asc or desc", "field":"Field name or field ID"}.Query Example sort[][field]=Customer Name&sort[][order]=asc,The returned records are sorted alphabetically in the Customer Name column.If sort and viewId are used at the same time, the sort condition specified by sort will overwrite the sort condition in the view.
+
+recordIds	
+Array of strings
+Example: recordIds=rec4zxfWB5uyM
+Returns a specified record. Example of obtaining multiple records:&recordIds=rec4zxfWB5uyM&,reclNflLgtzjY. The returned results are sorted according to the order in which the recordIds are passed in. No paging, up to 1000 records can be returned each time.
+
+viewId	
+string
+Example: viewId=viwG9l1VPD6nH
+When the viewId is not explicitly specified, all records and fields are returned.When the viewId is explicitly specified, all records in the specified view will be returned in turn according to the sorting in the specified view.Note that the hidden fields in the view will not appear in the returned results.
+
+fields	
+Array of strings
+The returned record results are limited to the specified fields.cURL Query Example. 1. &fields=name,age (when &fieldKey=name) 2. &fields=fldWooy3c3Puz,fldEAr5y7Go5S (when &fieldKey=id).Both of the above two writing methods specify that the returned record only contains two columns 「Name」 and 「Age」.
+
+filterByFormula	
+string
+Use smart formulas to filter records.The formula can be used for reference《Formula Overview》.If filterByFormula and viewId are used at the same time, all records in the specified view that meet this formula will be returned.Query Example. &filterByFormula={Title}="tittle 1"(You need to use the encodeURIComponent() function to escape the '{Title}="Heading 1"'.) You can accurately match the record with the value of "Heading 1" in the "Heading" column.
+
+cellFormat	
+string
+Default: "json"
+Enum: "string" "json"
+The type of the value in the cell. The default is json. When string is specified, all values will be automatically converted to string format. When string is specified, if the returned records contain date-time values, these values will use the time zone given in the following order (priority from high to low):
+
+If the date-time field has set a time zone, use that one.
+If the user has set a time zone in user settings, use that one.
+Use the default time zone (UTC-5, America/Toronto).
+fieldKey	
+string
+Default: "name"
+Enum: "name" "id"
+The key used when querying fields and returning fields. The default is' name '(field name). When 'id' is specified, fieldId will be used as the query and return method (use 'id' can avoid code invalidation caused by modifying field names).
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+
+code
+required
+number
+Business status code, 200 indicates that the business request is successful.
+
+message
+required
+string
+Return information, and return error information when executing an error.
+
+data
+required
+object
+The returned business data body.
+
+pageNum
+required
+number
+The current pagination number.
+
+records
+required
+Array of objects (ApiRecordDto)
+All record data returned by the current page, the data structure of each record can refer to here
+
+Array 
+recordId
+required
+string
+record ID
+
+fields
+required
+object
+The data of the corresponding field in a record, the return format is {'fieldName': 'fielValue'}, please refer to Record for details
+
+createdAt
+required
+number
+The creation time of the record, in timestamp format
+
+updatedAt
+required
+number
+The modification time of the record, in timestamp format
+
+pageSize
+required
+number
+The actual number of records returned per page.If 'pageSize=100' is specified when requesting, but the actual number of records is only 35, 35 is returned.
+
+total
+required
+number
+The total number of records that meet the filter criteria.
+
+
+get
+/fusion/v1/datasheets/{datasheetId}/records
+
+Request samples
+cURLJavaScript SDK
+
+Copy
+curl -X GET \
+"https://aitable.ai/fusion/v1/datasheets/{Replace with yours datasheetId}/records" \
+-H "Authorization: Bearer {Replace your API Token}"
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": {
+"pageNum": 1,
+"records": [],
+"pageSize": 100,
+"total": 500
+}
+}
