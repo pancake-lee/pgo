@@ -34,7 +34,7 @@ func NewMultiTableDoc(docid, docurl string) *MultiTableDoc {
 // 1：打开resp的url，然后在自己最近访问里就能找到了
 // 2：TODO看如何把spaceid和fatherid填进去，创建在指定目录下
 func CreateMultiTable(tblName string) (doc *MultiTableDoc, err error) {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/create_doc"
+	url := g_baseUrl + "/cgi-bin/wedoc/create_doc"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
 		getTokenHeader(),
@@ -102,7 +102,7 @@ type getSheetResponse struct {
 
 // 内部方法：查询子表
 func (doc *MultiTableDoc) GetSheets(sheetId string) ([]SheetInfo, error) {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_sheet"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/get_sheet"
 
 	// 构建请求体
 	reqBody := getSheetRequest{

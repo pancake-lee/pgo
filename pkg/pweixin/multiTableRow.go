@@ -51,7 +51,7 @@ func (doc *MultiTableDoc) DelRow(recordIds []string) error {
 	if len(recordIds) == 0 {
 		return nil
 	}
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/delete_records"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/delete_records"
 
 	// 构建请求体
 	reqBody := deleteRecordRequest{
@@ -109,7 +109,7 @@ func NewSortRule(fieldTitle string, desc bool) sortRule {
 }
 
 func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, error) {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_records"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/get_records"
 
 	httpReq, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
 		getTokenHeader(),
@@ -309,7 +309,7 @@ func ParseLocationValue(value any) (*CellLocationValue, error) {
 }
 
 func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_records"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/add_records"
 
 	// 构建请求体
 	reqBody := addRecordRequest{
@@ -395,12 +395,12 @@ type getRecordResponse struct {
 	Total   uint32         `json:"total"`
 	HasMore bool           `json:"has_more"`
 	Next    uint32         `json:"next"`
-	Records []recordDetail `json:"records"`
+	Records []RecordDetail `json:"records"`
 	Ver     uint32         `json:"ver"`
 }
 
 // 记录详情结构
-type recordDetail struct {
+type RecordDetail struct {
 	RecordId    string         `json:"record_id"`
 	CreateTime  string         `json:"create_time"`
 	UpdateTime  string         `json:"update_time"`

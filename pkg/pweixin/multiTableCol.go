@@ -14,9 +14,9 @@ import (
 // 如果该列已存在，则不修改。如需修改列，为了确保程序不会误删数据，应该手动删除列，再通过该方法重建。
 // 如果该列不存在，则添加列。
 // 如果deleteExcept为true，则删除除myColList之外的所有列。
-func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) error {
+func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) (isEdited bool, err error) {
 	if len(myColList) == 0 {
-		return errors.New("cannot set empty col list")
+		return isEdited, errors.New("cannot set empty col list")
 	}
 
 	myColNameList := make([]string, 0, len(myColList))
@@ -29,7 +29,7 @@ func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) e
 	// --------------------------------------------------
 	colList, err := doc.GetCols(nil, nil)
 	if err != nil {
-		return plogger.LogErr(err)
+		return isEdited, plogger.LogErr(err)
 	}
 
 	colNameList := make([]string, 0, len(colList))
@@ -42,16 +42,17 @@ func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) e
 	}
 
 	// --------------------------------------------------
-	{
-		addColNameList := putil.StrListExcept(myColNameList, colNameList)
+	addColNameList := putil.StrListExcept(myColNameList, colNameList)
+	if len(addColNameList) > 0 {
 		addColList := make([]*AddField, 0, len(addColNameList))
 		for _, col := range addColNameList {
 			addColList = append(addColList, nameToMyColMap[col])
 		}
 		newFields, err := doc.AddCol(addColList)
 		if err != nil {
-			return plogger.LogErr(err)
+			return isEdited, plogger.LogErr(err)
 		}
+		isEdited = true
 		for _, newField := range newFields {
 			plogger.Debugf("added col[%s] title[%s] type[%s]",
 				newField.FieldId, newField.FieldTitle, newField.FieldType)
@@ -60,19 +61,22 @@ func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) e
 	// --------------------------------------------------
 	if deleteExcept {
 		delColNameList := putil.StrListExcept(colNameList, myColNameList)
-		delColIdList := make([]string, 0, len(delColNameList))
-		for _, colName := range delColNameList {
-			delColIdList = append(delColIdList, nameToColMap[colName].FieldId)
-		}
-		err = doc.DelCol(delColIdList)
-		if err != nil {
-			return plogger.LogErr(err)
-		}
-		for _, colId := range delColIdList {
-			plogger.Debugf("deleted col[%s] title[%s]", idToColMap[colId].FieldId, idToColMap[colId].FieldTitle)
+		if len(delColNameList) > 0 {
+			delColIdList := make([]string, 0, len(delColNameList))
+			for _, colName := range delColNameList {
+				delColIdList = append(delColIdList, nameToColMap[colName].FieldId)
+			}
+			err = doc.DelCol(delColIdList)
+			if err != nil {
+				return isEdited, plogger.LogErr(err)
+			}
+			isEdited = true
+			for _, colId := range delColIdList {
+				plogger.Debugf("deleted col[%s] title[%s]", idToColMap[colId].FieldId, idToColMap[colId].FieldTitle)
+			}
 		}
 	}
-	return nil
+	return isEdited, nil
 }
 
 // 删除字段
@@ -80,7 +84,7 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 	if len(fieldIds) == 0 {
 		return nil
 	}
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/delete_fields"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/delete_fields"
 
 	// 构建请求体
 	reqBody := deleteFieldRequest{
@@ -132,7 +136,7 @@ type deleteFieldResponse struct {
 // --------------------------------------------------
 // 内部方法：查询字段
 func (doc *MultiTableDoc) GetCols(fieldIds, fieldTitles []string) ([]*Field, error) {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/get_fields"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/get_fields"
 
 	// 构建请求体
 	reqBody := getFieldRequest{
@@ -196,7 +200,7 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 	if len(fields) == 0 {
 		return []*Field{}, nil
 	}
-	url := "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/add_fields"
+	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/add_fields"
 
 	// 构建请求体
 	reqBody := addFieldRequest{

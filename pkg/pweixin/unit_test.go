@@ -78,21 +78,28 @@ func TestWX(t *testing.T) {
 	// --------------------------------------------------
 	// curd表格数据
 	// --------------------------------------------------
+	// 先删除所有行
+	err = doc.DelAllRows()
+	if err != nil {
+		t.Fatalf("failed to delete all rows: %v", err)
+	}
+
+	// --------------------------------------------------
 	myColList := []*AddField{
 		NewSimpleTextCol("测试字段1"),
 		NewSimpleTextCol("测试字段2"),
 	}
 
-	err = doc.SetColList(myColList, false)
+	isEdited, err := doc.SetColList(myColList, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// --------------------------------------------------
-	// 先删除所有行
-	err = doc.DelAllRows()
-	if err != nil {
-		t.Fatalf("failed to delete all rows: %v", err)
+	if isEdited { // 修改字段后，重新导入数据，经常会导致频繁请求
+		for i := range 12 {
+			time.Sleep(5 * time.Second)
+			plogger.Debugf("wait [%v/%v]s for wx api to cooldown", (i+1)*5, 60)
+		}
 	}
 
 	// --------------------------------------------------

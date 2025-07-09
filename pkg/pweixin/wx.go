@@ -37,6 +37,13 @@ import (
 	然后就可以真正配置可信IP了，本地调试根据报错信息，把当前公网IP添加到可信IP列表中。
 	如果嫌麻烦，就把程序部署到固定公网IP的云服务器上开发。
 
+最后，回调服务用来接收文档修改事件了
+而可信IP，可以通过一个有公网IP的云服务器来跳转
+
+	先配置一个nginx：deploy/nginx/wx_api.conf
+	然后在企微后台的应用设置中，设置可信IP为该云服务器的IP
+	而局域网/本地程序访问云服务器的nginx提供的服务
+
 关于开发的咨询在https://developer.work.weixin.qq.com/community/question/ask
 找企微客服是没用的
 */
@@ -48,6 +55,8 @@ var g_token string
 
 var g_userSecret string // 企微管理后台-安全与管理-管理工具-通讯录同步-Secret
 var g_userToken string
+
+var g_baseUrl string = "https://qyapi.weixin.qq.com"
 
 // --------------------------------------------------
 func InitWxApiByConfig() error {
@@ -63,14 +72,18 @@ func InitWxApiByConfig() error {
 	return InitWxApi(corpid, corpSecret,
 		pconfig.GetStringD("WX.usersecret", ""),
 		int32(pconfig.GetInt64D("WX.agentid", 0)),
+		pconfig.GetStringD("WX.baseUrl", ""),
 	)
 }
 
-func InitWxApi(corpid, corpSecret, userSecret string, agentid int32) (err error) {
+func InitWxApi(corpid, corpSecret, userSecret string, agentid int32, baseUrl string) (err error) {
 	g_corpid = corpid
 	g_corpSecret = corpSecret
 	g_userSecret = userSecret
 	g_agentid = agentid
+	if baseUrl != "" {
+		g_baseUrl = baseUrl
+	}
 
 	g_token, err = getToken(g_corpid, g_corpSecret)
 	if err != nil {
@@ -133,7 +146,10 @@ func handleRespErrorByMap(resp map[string]any) error {
 // --------------------------------------------------
 
 func getToken(corpid, corpsecret string) (string, error) {
-	req, err := putil.NewHttpRequest(http.MethodGet, "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
+	url := g_baseUrl + "/cgi-bin/gettoken"
+	plogger.Debugf("getToken url: %s", url)
+
+	req, err := putil.NewHttpRequest(http.MethodGet, url,
 		nil, map[string]string{"corpid": corpid, "corpsecret": corpsecret}, "")
 	if err != nil {
 		return "", plogger.LogErr(err)
@@ -146,6 +162,7 @@ func getToken(corpid, corpsecret string) (string, error) {
 	var respMap map[string]any
 	err = json.Unmarshal(resp, &respMap)
 	if err != nil {
+		plogger.Errorf("getToken json unmarshal error: %s", string(resp))
 		return "", plogger.LogErr(err)
 	}
 
@@ -159,7 +176,7 @@ func getToken(corpid, corpsecret string) (string, error) {
 // --------------------------------------------------
 // 只能由通讯录同步助手的access_token来调用。同时需要保证通讯录同步功能是开启的。
 func GetUserList() error {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/user/list_id"
+	url := g_baseUrl + "/cgi-bin/user/list_id"
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url, nil,
 		getUserTokenHeader(),
@@ -184,7 +201,7 @@ func GetUserList() error {
 }
 
 func SendMsg(touserList []string, msg string) error {
-	url := "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+	url := g_baseUrl + "/cgi-bin/message/send"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
 		getTokenHeader(),
