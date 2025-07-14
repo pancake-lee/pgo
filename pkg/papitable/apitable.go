@@ -1,13 +1,12 @@
 package papitable
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/putil"
 )
+
+// APITable API 接口
+// https://developers.aitable.ai/zh-CN/api/cn/reference/
 
 var g_token string
 
@@ -41,26 +40,4 @@ func getTokenHeader() map[string]string {
 	return map[string]string{
 		"Authorization": "Bearer " + g_token,
 	}
-}
-
-// --------------------------------------------------
-func handleRespError(resp []byte) error {
-	var respMap map[string]any
-	err := json.Unmarshal(resp, &respMap)
-	if err != nil {
-		plogger.Error(err)
-		return err
-	}
-	return handleRespErrorByMap(respMap)
-}
-
-func handleRespErrorByMap(resp map[string]any) error {
-	if resp["errcode"] != nil {
-		e := putil.InterfaceToInt32(resp["errcode"], 0)
-		if e != 0 {
-			errMsg := putil.InterfaceToString(resp["errmsg"], "")
-			return fmt.Errorf("wx api error[%d] : %s", e, errMsg)
-		}
-	}
-	return nil
 }

@@ -101,8 +101,12 @@ func NewHttpRequestJson(method, rawURL string, header, querys map[string]string,
 		return nil, err
 	}
 	fmt.Println("--------------------------------------------------")
-	fmt.Printf("url[%v]\nbody[%s]\n", rawURL, string(jsonBody))
+	if header == nil {
+		header = make(map[string]string)
+	}
 	header["Content-Type"] = "application/json"
+	fmt.Printf("method[%v] url[%v]\nheader[%v]\nquerys[%v]\nbody[%s]\n",
+		method, rawURL, header, querys, string(jsonBody))
 	return NewHttpRequest(method, rawURL, header, querys, string(jsonBody))
 }
 

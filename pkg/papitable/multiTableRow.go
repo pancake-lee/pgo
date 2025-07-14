@@ -26,10 +26,10 @@ func (doc *MultiTableDoc) DelAllRows() error {
 			return plogger.LogErr(err)
 		}
 
-		hasMore := resp.Data.PageSize == pageSize
+		hasMore := pageNum*pageSize > resp.Data.Total
 
-		plogger.Debugf("get rows cnt [%d] hasMore[%v] total [%v]",
-			len(resp.Data.Records), hasMore, resp.Data.Total)
+		plogger.Debugf("get rows pages[%v] cnt [%d] hasMore[%v] total [%v]",
+			pageNum, resp.Data.PageSize, hasMore, resp.Data.Total)
 
 		for _, row := range resp.Data.Records {
 			rowIds = append(rowIds, row.RecordId)
@@ -39,13 +39,19 @@ func (doc *MultiTableDoc) DelAllRows() error {
 			break
 		}
 		pageNum++
+		time.Sleep(10 * time.Millisecond) // 避免请求过快
 	}
 	plogger.Debugf("total rows cnt [%d] ", len(rowIds))
 
-	// 批量删除，每次最多100条
-	err := putil.WalkSliceByStep(rowIds, 100, func(start, end int) error {
+	// 批量删除，每次最多10条
+	err := putil.WalkSliceByStep(rowIds, 10, func(start, end int) error {
 		tmpRowIds := rowIds[start:end]
-		return doc.DelRow(tmpRowIds)
+		err := doc.DelRow(tmpRowIds)
+		if err != nil {
+			return err
+		}
+		time.Sleep(10 * time.Millisecond) // 避免请求过快
+		return nil
 	})
 	if err != nil {
 		return err
@@ -230,16 +236,16 @@ type addRecordResponse struct {
 
 // 查询记录请求结构
 type GetRecordRequest struct {
-	PageSize       int        `json:"-"`
-	MaxRecords     int        `json:"-"`
-	PageNum        int        `json:"-"`
-	Sort           []SortRule `json:"-"`
-	RecordIds      []string   `json:"-"`
-	ViewId         string     `json:"-"`
-	Fields         []string   `json:"-"`
-	FilterByFrmula string     `json:"-"`
-	CellFormat     string     `json:"-"`
-	FieldKey       string     `json:"-"`
+	PageSize       int        `json:"pageSize,omitempty"`
+	MaxRecords     int        `json:"maxRecords,omitempty"`
+	PageNum        int        `json:"pageNum,omitempty"`
+	Sort           []SortRule `json:"sort,omitempty"`
+	RecordIds      []string   `json:"recordIds,omitempty"`
+	ViewId         string     `json:"viewId,omitempty"`
+	Fields         []string   `json:"fields,omitempty"`
+	FilterByFrmula string     `json:"filterByFrmula,omitempty"`
+	CellFormat     string     `json:"cellFormat,omitempty"`
+	FieldKey       string     `json:"fieldKey,omitempty"`
 }
 
 // 查询记录响应结构

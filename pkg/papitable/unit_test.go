@@ -51,10 +51,10 @@ func TestAPITable(t *testing.T) {
 	// curd表格数据
 	// --------------------------------------------------
 	// 先删除所有行
-	// err = doc.DelAllRows()
-	// if err != nil {
-	// 	t.Fatalf("failed to delete all rows: %v", err)
-	// }
+	err = doc.DelAllRows()
+	if err != nil {
+		t.Fatalf("failed to delete all rows: %v", err)
+	}
 
 	// --------------------------------------------------
 
@@ -78,12 +78,7 @@ func TestAPITable(t *testing.T) {
 		return rowValues
 	}
 
-	// 当前这里用go test运行有点问题，本来打算30*1000写入3w数据的，微信官方文档明确单表限制4w行
-	// 首先企微API并发不能太快，一次1000行，30s间隔也会报错，1min顺利
-	// https://developer.work.weixin.qq.com/document/path/90312
-	// 但是go test本身有时间限制，我配置了5min，所以只能插入3k行做测试，更多性能测试后面再说
-	for range 1 {
-		// for range 400 {
+	for range 400 {
 		var rowList []*AddRecord
 		for range 10 {
 			rowList = append(rowList, &AddRecord{Fields: getRandomRecord()})
@@ -94,6 +89,6 @@ func TestAPITable(t *testing.T) {
 		} else {
 			plogger.Debugf("added %d rows", len(rowList))
 		}
-		time.Sleep(500 * time.Millisecond) // 避免请求过快
+		time.Sleep(10 * time.Millisecond) // 避免请求过快
 	}
 }

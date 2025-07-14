@@ -11,7 +11,7 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pmq"
-	"github.com/pancake-lee/pgo/pkg/pweixin/wx_cb_server/xml_callback"
+	"github.com/pancake-lee/pgo/pkg/pweixin/cb_server_wx/xml_callback"
 
 	"log"
 	"net/http"

@@ -89,8 +89,8 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 		url := fmt.Sprintf("%s/fusion/v1/spaces/%s/datasheets/%s/fields/%s",
 			g_baseUrl, doc.SpaceId, doc.DatasheetId, fieldId)
 
-		req, err := putil.NewHttpRequestJson(http.MethodDelete, url, nil,
-			getTokenHeader(), nil)
+		req, err := putil.NewHttpRequestJson(http.MethodDelete, url,
+			getTokenHeader(), nil, nil)
 		if err != nil {
 			return plogger.LogErr(err)
 		}

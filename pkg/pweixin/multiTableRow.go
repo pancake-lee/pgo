@@ -61,7 +61,7 @@ func (doc *MultiTableDoc) DelRow(recordIds []string) error {
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -112,7 +112,7 @@ func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, err
 	url := g_baseUrl + "/cgi-bin/wedoc/smartsheet/get_records"
 
 	httpReq, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -320,7 +320,7 @@ func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return plogger.LogErr(err)

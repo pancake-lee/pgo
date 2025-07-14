@@ -37,7 +37,7 @@ func CreateMultiTable(tblName string) (doc *MultiTableDoc, err error) {
 	url := g_baseUrl + "/cgi-bin/wedoc/create_doc"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		map[string]any{
 			// "spaceid":     "",
 			// "fatherid":    "",
@@ -112,7 +112,7 @@ func (doc *MultiTableDoc) GetSheets(sheetId string) ([]SheetInfo, error) {
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return nil, plogger.LogErr(err)

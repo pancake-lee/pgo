@@ -11,7 +11,7 @@ import (
 
 	// "github.com/pancake-lee/pgo/pkg/pweixin/wx_cb_server/json_callback/wxbizjsonmsgcrypt"
 
-	"github.com/pancake-lee/pgo/pkg/pweixin/wx_cb_server/xml_callback"
+	"github.com/pancake-lee/pgo/pkg/pweixin/cb_server_wx/xml_callback"
 )
 
 var msg_signature = "d258cfa79a31d24718e793b47e58e9faa32f9d33"

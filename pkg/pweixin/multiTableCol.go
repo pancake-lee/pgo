@@ -94,7 +94,7 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -149,7 +149,7 @@ func (doc *MultiTableDoc) GetCols(fieldIds, fieldTitles []string) ([]*Field, err
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -210,7 +210,7 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		reqBody)
 	if err != nil {
 		return nil, plogger.LogErr(err)

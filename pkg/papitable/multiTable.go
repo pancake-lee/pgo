@@ -36,9 +36,9 @@ func CreateMultiTable(spaceId, tblName, keyColName string) (doc *MultiTableDoc, 
 		},
 	}
 
-	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
+	req, err := putil.NewHttpRequestJson(http.MethodPost, url,
 		getTokenHeader(),
-		reqBody)
+		nil, reqBody)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

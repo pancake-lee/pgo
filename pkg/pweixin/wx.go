@@ -90,6 +90,8 @@ func InitWxApi(corpid, corpSecret, userSecret string, agentid int32, baseUrl str
 		plogger.Error(err)
 		return err
 	}
+	plogger.Debugf("getToken success, token: %s", g_token)
+
 	if g_userSecret != "" {
 		g_userToken, err = getToken(g_corpid, g_userSecret)
 		if err != nil {
@@ -100,7 +102,7 @@ func InitWxApi(corpid, corpSecret, userSecret string, agentid int32, baseUrl str
 	return nil
 }
 
-func getTokenHeader() map[string]string {
+func getTokenQuerys() map[string]string {
 	if g_token == "" {
 		plogger.Error("g_token is empty, please call InitWxApi first")
 		return nil
@@ -110,7 +112,7 @@ func getTokenHeader() map[string]string {
 		"debug":        "1", // 开发调试时可以开启debug
 	}
 }
-func getUserTokenHeader() map[string]string {
+func getUserTokenQuerys() map[string]string {
 	if g_userToken == "" {
 		plogger.Error("g_userToken is empty, please call InitWxApi first")
 		return nil
@@ -179,7 +181,7 @@ func GetUserList() error {
 	url := g_baseUrl + "/cgi-bin/user/list_id"
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url, nil,
-		getUserTokenHeader(),
+		getUserTokenQuerys(),
 		map[string]any{
 			"cursor": "",
 			"limit":  10000,
@@ -204,7 +206,7 @@ func SendMsg(touserList []string, msg string) error {
 	url := g_baseUrl + "/cgi-bin/message/send"
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url, nil,
-		getTokenHeader(),
+		getTokenQuerys(),
 		map[string]any{
 			"touser":  putil.StrListToStr(touserList, "|"),
 			"msgtype": "text",
