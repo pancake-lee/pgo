@@ -26,7 +26,7 @@ func (doc *MultiTableDoc) DelAllRows() error {
 			return plogger.LogErr(err)
 		}
 
-		hasMore := pageNum*pageSize > resp.Data.Total
+		hasMore := pageNum*pageSize < resp.Data.Total
 
 		plogger.Debugf("get rows pages[%v] cnt [%d] hasMore[%v] total [%v]",
 			pageNum, resp.Data.PageSize, hasMore, resp.Data.Total)
@@ -153,6 +153,18 @@ const (
 // --------------------------------------------------
 // 增加记录
 func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
+	err := putil.WalkSliceByStep(rows, 10, func(start, end int) error {
+		tmpRows := rows[start:end]
+		err := doc.iAddRow(tmpRows)
+		if err != nil {
+			return err
+		}
+		time.Sleep(10 * time.Millisecond) // 避免请求过快
+		return nil
+	})
+	return err
+}
+func (doc *MultiTableDoc) iAddRow(rows []*AddRecord) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -199,7 +211,8 @@ func (doc *MultiTableDoc) AddRow(rows []*AddRecord) error {
 
 // 添加记录结构
 type AddRecord struct {
-	Fields map[string]any `json:"fields"`
+	Values map[string]any `json:"fields"`
+	// Fields map[string]any `json:"fields"`
 }
 
 // 通用记录结构
@@ -379,25 +392,30 @@ func ParseAttachmentValue(value any) ([]CellAttachmentValue, error) {
 
 // --------------------------------------------------
 // 成员类型单元格值
-type CellMemberValue struct {
-	Id     string `json:"id"`               // 组织单元的ID
+type CellUserValue struct {
+	// Id     string `json:"id"`               // 组织单元的ID
+	UserId string `json:"id"`               // 组织单元的ID
 	Type   int32  `json:"type"`             // 组织单元的类型，1是小组，3是成员
 	Name   string `json:"name"`             // 小组或成员的名称
 	Avatar string `json:"avatar,omitempty"` // 头像URL，只读，不可写入
 }
 
-func NewMemberValue(members ...CellMemberValue) []CellMemberValue {
-	return members
+func NewUserValue(userIds ...string) []CellUserValue {
+	values := make([]CellUserValue, len(userIds))
+	for i, userId := range userIds {
+		values[i] = CellUserValue{UserId: userId}
+	}
+	return values
 }
 
-func ParseMemberValue(value any) ([]CellMemberValue, error) {
+func ParseUserValue(value any) ([]CellUserValue, error) {
 	if members, ok := value.([]interface{}); ok {
-		result := make([]CellMemberValue, 0, len(members))
+		result := make([]CellUserValue, 0, len(members))
 		for _, mem := range members {
 			if memMap, ok := mem.(map[string]interface{}); ok {
-				member := CellMemberValue{}
-				if id, ok := memMap["id"].(string); ok {
-					member.Id = id
+				member := CellUserValue{}
+				if userId, ok := memMap["id"].(string); ok {
+					member.UserId = userId
 				}
 				if memberType, ok := memMap["type"].(float64); ok {
 					member.Type = int32(memberType)
@@ -592,8 +610,27 @@ func ParseMagicLookUpValue(value any) ([]interface{}, error) {
 // - CellNumberValue (直接使用 float64)
 // - CellTextValue (直接使用 string)
 // - CellImageValue (合并到 CellAttachmentValue)
-// - CellUserValue (更名为 CellMemberValue)
+
+// --------------------------------------------------
 // - CellOption (单选多选直接使用 string 和 []string)
+type CellOption string
+
+func (opt *CellOption) GetKey() string {
+	return string(*opt)
+}
+
+func NewOptionValue(option *SelectFieldOption) *CellOption {
+	return (*CellOption)(&option.Text)
+}
+func ParseSingleOptionValue(value any) (*CellOption, error) {
+	if str, ok := value.(string); ok {
+		option := CellOption(str)
+		return &option, nil
+	}
+	return nil, fmt.Errorf("invalid option value type: %T", value)
+}
+
+// --------------------------------------------------
 // - CellLocationValue (文档中未提及，可能不支持)
 // - CellAutoNumberValue (直接使用 float64)
 // - CellNumValue (直接使用 float64)

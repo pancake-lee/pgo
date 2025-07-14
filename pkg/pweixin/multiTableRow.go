@@ -215,6 +215,13 @@ func ParseUrlValue(value any) (text, link string, err error) {
 	return "", "", fmt.Errorf("invalid url value format")
 }
 
+// --------------------------------------------------
+// 用户类型单元格值
+type CellUserValue struct {
+	UserId            string `json:"user_id"`
+	TmpExternalUserId string `json:"tmp_external_userid,omitempty"`
+}
+
 // 创建用户值
 func NewUserValue(userIds ...string) []CellUserValue {
 	values := make([]CellUserValue, len(userIds))
@@ -225,19 +232,34 @@ func NewUserValue(userIds ...string) []CellUserValue {
 }
 
 // 解析用户值
-func ParseUserValue(value any) ([]string, error) {
+func ParseUserValue(value any) ([]CellUserValue, error) {
 	if values, ok := value.([]interface{}); ok {
-		userIds := make([]string, 0, len(values))
+		userValues := make([]CellUserValue, 0, len(values))
 		for _, v := range values {
-			if userValue, ok := v.(map[string]interface{}); ok {
-				if userId, ok := userValue["user_id"].(string); ok {
-					userIds = append(userIds, userId)
-				}
+			celVal, ok := v.(CellUserValue)
+			if ok {
+				userValues = append(userValues, celVal)
+			} else {
+				return nil, fmt.Errorf("invalid user value format: %v", v)
 			}
 		}
-		return userIds, nil
+		return userValues, nil
 	}
 	return nil, fmt.Errorf("invalid user value format")
+}
+
+// --------------------------------------------------
+
+// 选项类型（用于单选和多选）
+type CellOption struct {
+	Id string `json:"id"`
+	// 你没看错，col配置用int，这里uint，企微官方文档就是这么写的，本来也确实没关系的细节
+	Style uint32 `json:"style"`
+	Text  string `json:"text"`
+}
+
+func (opt *CellOption) GetKey() string {
+	return opt.Id
 }
 
 // 创建选项值
@@ -269,6 +291,7 @@ func ParseSingleOptionValue(value any) (*CellOption, error) {
 	return nil, fmt.Errorf("invalid option value format")
 }
 
+// --------------------------------------------------
 // 创建地理位置值
 func NewLocationValue(id, latitude, longitude, title string) []CellLocationValue {
 	return []CellLocationValue{
@@ -464,25 +487,11 @@ type CellAttachmentValue struct {
 	DocType  string `json:"doc_type"`
 }
 
-// 用户类型单元格值
-type CellUserValue struct {
-	UserId            string `json:"user_id"`
-	TmpExternalUserId string `json:"tmp_external_userid,omitempty"`
-}
-
 // 链接类型单元格值
 type CellUrlValue struct {
 	Type string `json:"type"` // "url"
 	Text string `json:"text"`
 	Link string `json:"link"`
-}
-
-// 选项类型（用于单选和多选）
-type CellOption struct {
-	Id string `json:"id"`
-	// 你没看错，col配置用int，这里uint，企微官方文档就是这么写的，本来也确实没关系的细节
-	Style uint32 `json:"style"`
-	Text  string `json:"text"`
 }
 
 // 地理位置类型单元格值

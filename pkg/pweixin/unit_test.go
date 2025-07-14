@@ -86,8 +86,8 @@ func TestWX(t *testing.T) {
 
 	// --------------------------------------------------
 	myColList := []*AddField{
-		NewSimpleTextCol("测试字段1"),
-		NewSimpleTextCol("测试字段2"),
+		NewTextCol("测试字段1"),
+		NewTextCol("测试字段2"),
 	}
 
 	isEdited, err := doc.SetColList(myColList, false)

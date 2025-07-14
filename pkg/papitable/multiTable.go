@@ -24,16 +24,14 @@ func NewMultiTableDoc(spaceId, datasheetId, viewId string) *MultiTableDoc {
 }
 
 // APITable 首列不能隐藏/删除/拖拽等等操作，所以需要指定业务的主键列名
-func CreateMultiTable(spaceId, tblName, keyColName string) (doc *MultiTableDoc, err error) {
+func CreateMultiTable(spaceId, tblName string, keyCol *AddField) (doc *MultiTableDoc, err error) {
 	url := fmt.Sprintf("%s/fusion/v1/spaces/%s/datasheets", g_baseUrl, spaceId)
 
 	// 构建请求体
 	reqBody := createDatasheetRequest{
 		Name:        tblName,
 		Description: "",
-		Fields: []*AddField{
-			NewTextCol(keyColName),
-		},
+		Fields:      []*AddField{keyCol},
 	}
 
 	req, err := putil.NewHttpRequestJson(http.MethodPost, url,

@@ -31,7 +31,7 @@ func TestAPITable(t *testing.T) {
 		doc, err = CreateMultiTable(
 			pconfig.GetStringM("APITable.spaceId"),
 			"TestTable_"+putil.TimeToStrDefault(time.Now()),
-			myColList[0].Name,
+			myColList[0],
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -81,7 +81,7 @@ func TestAPITable(t *testing.T) {
 	for range 400 {
 		var rowList []*AddRecord
 		for range 10 {
-			rowList = append(rowList, &AddRecord{Fields: getRandomRecord()})
+			rowList = append(rowList, &AddRecord{Values: getRandomRecord()})
 		}
 		err = doc.AddRow(rowList)
 		if err != nil {

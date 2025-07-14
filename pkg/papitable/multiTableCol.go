@@ -32,6 +32,9 @@ func (doc *MultiTableDoc) SetColList(myColList []*AddField, deleteExcept bool) (
 		return isEdited, plogger.LogErr(err)
 	}
 
+	// plogger.Debugf("current col count[%d] : %+v", len(colList), colList)
+	// os.Exit(0)
+
 	colNameList := make([]string, 0, len(colList))
 	idToColMap := make(map[string]*Field, len(colList))
 	nameToColMap := make(map[string]*Field, len(colList))
@@ -133,6 +136,7 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
+	plogger.Debugf("response: %s", string(resp))
 
 	var respData getFieldResponse
 	err = json.Unmarshal(resp, &respData)
@@ -140,7 +144,6 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 		return nil, plogger.LogErr(err)
 	}
 
-	plogger.Debugf("response: %s", string(resp))
 	// 检查响应错误
 	if !respData.Success {
 		return nil, plogger.LogErr(fmt.Errorf("get fields failed: code=%d, message=%s", respData.Code, respData.Message))
@@ -244,43 +247,6 @@ type deleteFieldResponse struct {
 }
 
 // --------------------------------------------------
-// 字段类型
-// --------------------------------------------------
-// 字段类型常量
-type FieldType string
-
-const (
-	// FIELD_TYPE_SINGLE_TEXT FieldType = "SingleText" //单行文本
-	// FIELD_TYPE_TEXT               FieldType = "Text"             //多行文本
-	FIELD_TYPE_TEXT FieldType = "SingleText" // 用一个就好了，文档有两个类型
-
-	FIELD_TYPE_SINGLE_SELECT      FieldType = "SingleSelect"     //单选
-	FIELD_TYPE_MULTI_SELECT       FieldType = "MultiSelect"      //多选
-	FIELD_TYPE_NUMBER             FieldType = "Number"           //数字
-	FIELD_TYPE_CURRENCY           FieldType = "Currency"         //货币
-	FIELD_TYPE_PERCENT            FieldType = "Percent"          //百分比
-	FIELD_TYPE_DATE_TIME          FieldType = "DateTime"         //日期
-	FIELD_TYPE_ATTACHMENT         FieldType = "Attachment"       //附件
-	FIELD_TYPE_MEMBER             FieldType = "Member"           //成员
-	FIELD_TYPE_CHECKBOX           FieldType = "Checkbox"         //勾选
-	FIELD_TYPE_RATING             FieldType = "Rating"           //评分
-	FIELD_TYPE_URL                FieldType = "URL"              //网址
-	FIELD_TYPE_PHONE              FieldType = "Phone"            //电话
-	FIELD_TYPE_EMAIL              FieldType = "Email"            //邮箱
-	FIELD_TYPE_WORK_DOC           FieldType = "WorkDoc"          //轻文档
-	FIELD_TYPE_ONE_WAY_LINK       FieldType = "OneWayLink"       //单向关联
-	FIELD_TYPE_TWO_WAY_LINK       FieldType = "TwoWayLink"       //双向关联
-	FIELD_TYPE_MAGIC_LOOKUP       FieldType = "MagicLookUp"      //神奇引用
-	FIELD_TYPE_FORMULA            FieldType = "Formula"          //智能公式
-	FIELD_TYPE_AUTO_NUMBER        FieldType = "AutoNumber"       //自增数字
-	FIELD_TYPE_CREATED_TIME       FieldType = "CreatedTime"      //创建时间
-	FIELD_TYPE_LAST_MODIFIED_TIME FieldType = "LastModifiedTime" //修改时间
-	FIELD_TYPE_CREATED_BY         FieldType = "CreatedBy"        //创建人
-	FIELD_TYPE_LAST_MODIFIED_BY   FieldType = "LastModifiedBy"   //更新人
-	FIELD_TYPE_BUTTON             FieldType = "Button"           //按钮
-)
-
-// --------------------------------------------------
 // func NewSimpleTextCol(colName string) *AddField {
 // 	return &AddField{
 // 		Name: colName,
@@ -307,8 +273,8 @@ func NewSimpleNumCol(colName string) *AddField {
 		Name: colName,
 		Type: FIELD_TYPE_NUMBER,
 		Property: map[string]interface{}{
-			"precision":    0,
-			"commaStyle":   "",
+			"precision": 0,
+			// "commaStyle":   "",
 			"defaultValue": "",
 		},
 	}
@@ -341,9 +307,11 @@ func NewSimpleUserCol(colName string, isMultiple bool) *AddField {
 
 // --------------------------------------------------
 type SelectFieldOption struct {
-	Id    string                  `json:"id,omitempty"`
-	Name  string                  `json:"name"`
-	Color *SelectFieldOptionColor `json:"color,omitempty"`
+	Id string `json:"id,omitempty"`
+	// Name  string                  `json:"name"`
+	Text string `json:"name"`
+	// Color *SelectFieldOptionColor `json:"color,omitempty"` // 文档有问题，这里只需要string
+	Style SelectFieldOptionColor `json:"color,omitempty"`
 }
 
 func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
@@ -355,20 +323,3 @@ func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *Add
 		},
 	}
 }
-
-// --------------------------------------------------
-// 颜色
-type SelectFieldOptionColor struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// 预定义的颜色选项
-var (
-	ColorRed    = &SelectFieldOptionColor{Name: "red_4", Value: "#FF5555"}
-	ColorOrange = &SelectFieldOptionColor{Name: "orange_4", Value: "#FF8C00"}
-	ColorBlue   = &SelectFieldOptionColor{Name: "blue_4", Value: "#55CDFF"}
-	ColorGreen  = &SelectFieldOptionColor{Name: "green_4", Value: "#00CC88"}
-	ColorPurple = &SelectFieldOptionColor{Name: "purple_4", Value: "#B084CC"}
-	ColorGray   = &SelectFieldOptionColor{Name: "gray_4", Value: "#CCCCCC"}
-)
