@@ -134,8 +134,7 @@ func MsgHandler(w http.ResponseWriter, r *http.Request) {
 		jsonStrReq := string(jsonReq)
 
 		err = pmq.DefaultClient.SendServerEventStr(context.Background(),
-			pmq.DefaultClient.GetDefaultEventExchange(),
-			req.Event, &jsonStrReq,
+			"wx_event", "smart_sheet_change", &jsonStrReq,
 		)
 		if err != nil {
 			plogger.LogErr(err)

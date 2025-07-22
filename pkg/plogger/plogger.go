@@ -60,6 +60,7 @@ func InitLogger(isLogConsole bool,
 		// 重定向标准输出和错误输出
 		zap.RedirectStdLog(zLogger)
 	}
+	Info("Logger initialized -------------------------------")
 }
 
 // --------------------------------------------------

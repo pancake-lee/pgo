@@ -62,13 +62,22 @@ func GetUrlQueryString(req any) (querys map[string]string) {
 			if str := field.String(); str != "" {
 				querys[fieldName] = str
 			}
-		case reflect.Int32:
+		case reflect.Int, reflect.Int32, reflect.Int64:
 			if val := field.Int(); val != 0 {
 				querys[fieldName] = strconv.FormatInt(val, 10)
 			}
-		case reflect.Int64:
-			if val := field.Int(); val != 0 {
-				querys[fieldName] = strconv.FormatInt(val, 10)
+		case reflect.Bool:
+			querys[fieldName] = strconv.FormatBool(field.Bool())
+		case reflect.Float32, reflect.Float64:
+			if val := field.Float(); val != 0 {
+				querys[fieldName] = strconv.FormatFloat(val, 'f', -1, 64)
+			}
+		case reflect.Struct:
+			// 处理结构体类型，将结构体转换为JSON字符串
+			if !field.IsZero() {
+				if jsonBytes, err := json.Marshal(field.Interface()); err == nil {
+					querys[fieldName] = string(jsonBytes)
+				}
 			}
 		case reflect.Slice, reflect.Array:
 			// 处理数组类型
@@ -81,8 +90,17 @@ func GetUrlQueryString(req any) (querys map[string]string) {
 						if str := elem.String(); str != "" {
 							values = append(values, str)
 						}
-					case reflect.Int32, reflect.Int64:
+					case reflect.Int, reflect.Int32, reflect.Int64:
 						values = append(values, strconv.FormatInt(elem.Int(), 10))
+					case reflect.Bool:
+						values = append(values, strconv.FormatBool(elem.Bool()))
+					case reflect.Float32, reflect.Float64:
+						values = append(values, strconv.FormatFloat(elem.Float(), 'f', -1, 64))
+					case reflect.Struct:
+						// 处理结构体数组，将每个结构体转换为JSON字符串
+						if jsonBytes, err := json.Marshal(elem.Interface()); err == nil {
+							values = append(values, string(jsonBytes))
+						}
 					}
 				}
 				if len(values) > 0 {

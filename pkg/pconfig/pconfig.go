@@ -31,12 +31,12 @@ func MustInitConfig(paths ...string) {
 // 如果没有指定路径，则默认加载当前执行文件所在目录下的configs目录中的配置
 func InitConfig(paths ...string) (err error) {
 	if len(paths) == 0 {
-		paths = append(paths, filepath.Join(putil.GetExecFolder(), "configs"))
+		paths = append(paths, filepath.Join(putil.GetExecFolder()))
 	}
 	var srcList []config.Source
 	for _, path := range paths {
 		if path == "" {
-			path = filepath.Join(putil.GetExecFolder(), "configs")
+			path = filepath.Join(putil.GetExecFolder())
 		}
 
 		f, err := os.Stat(path)

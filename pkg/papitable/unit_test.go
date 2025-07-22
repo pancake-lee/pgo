@@ -83,7 +83,7 @@ func TestAPITable(t *testing.T) {
 		for range 10 {
 			rowList = append(rowList, &AddRecord{Values: getRandomRecord()})
 		}
-		err = doc.AddRow(rowList)
+		_, err = doc.AddRow(rowList)
 		if err != nil {
 			plogger.LogErr(err)
 		} else {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -126,7 +127,7 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url,
 		getTokenHeader(), map[string]string{
-			"viewId": doc.ViewId,
+			// "viewId": doc.ViewId,
 		}, nil)
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -184,6 +185,12 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 		plogger.Debugf("response: %s", string(resp))
 		// 检查响应错误
 		if !respData.Success {
+			if respData.Code == 400 && strings.Contains(respData.Message, "必须唯一") {
+				plogger.Warnf("AddCol failed: %s, field name[%s] already exists",
+					respData.Message, field.Name)
+				continue
+			}
+
 			return nil, plogger.LogErr(fmt.Errorf("add field failed: code=%d, message=%s", respData.Code, respData.Message))
 		}
 
