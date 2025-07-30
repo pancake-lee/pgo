@@ -114,9 +114,9 @@ func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, err
 
 	req.FieldKey = CELL_VALUE_KEY_TYPE_FIELD_TITLE
 
-	querys := putil.GetUrlQueryString(req)
+	query := putil.GetUrlQueryString(req)
 	httpReq, err := putil.NewHttpRequestJson(http.MethodGet, url,
-		getTokenHeader(), querys, nil)
+		getTokenHeader(), query, nil)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -316,10 +316,10 @@ type getRecordResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Data    struct {
-		PageNum  int            `json:"pageNum"`
-		Records  []CommonRecord `json:"records"`
-		PageSize int            `json:"pageSize"`
-		Total    int            `json:"total"`
+		PageNum  int             `json:"pageNum"`
+		Records  []*CommonRecord `json:"records"`
+		PageSize int             `json:"pageSize"`
+		Total    int             `json:"total"`
 	} `json:"data"`
 }
 

@@ -12,14 +12,12 @@ import (
 type MultiTableDoc struct {
 	SpaceId     string `json:"spaceId"`     // 空间ID
 	DatasheetId string `json:"datasheetId"` // 数据表ID
-	ViewId      string `json:"viewId"`      // 视图ID
 }
 
-func NewMultiTableDoc(spaceId, datasheetId, viewId string) *MultiTableDoc {
+func NewMultiTableDoc(spaceId, datasheetId string) *MultiTableDoc {
 	return &MultiTableDoc{
 		SpaceId:     spaceId,
 		DatasheetId: datasheetId,
-		ViewId:      viewId,
 	}
 }
 
@@ -58,7 +56,7 @@ func CreateMultiTable(spaceId, tblName string, keyCol *AddField) (doc *MultiTabl
 	}
 
 	plogger.Debug("CreateMultiTable success, datasheet_id:", respData.Data.Id)
-	return NewMultiTableDoc(spaceId, respData.Data.Id, ""), nil
+	return NewMultiTableDoc(spaceId, respData.Data.Id), nil
 }
 
 // 创建数据表请求结构

@@ -126,9 +126,7 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/fields", g_baseUrl, doc.DatasheetId)
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url,
-		getTokenHeader(), map[string]string{
-			// "viewId": doc.ViewId,
-		}, nil)
+		getTokenHeader(), map[string]string{}, nil)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

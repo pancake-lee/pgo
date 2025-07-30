@@ -78,10 +78,11 @@ func NewTimeValue(t time.Time) float64 {
 }
 
 func ParseTimeValue(value any) (time.Time, error) {
-	if timestamp, ok := value.(float64); ok {
+	if timestamp, ok := value.(float64); ok && timestamp >= 0 {
 		return time.UnixMilli(int64(timestamp)), nil
 	}
-	return time.Time{}, fmt.Errorf("invalid time value type: %T", value)
+
+	return time.UnixMilli(0), fmt.Errorf("invalid time value type: %v", value)
 }
 
 // --------------------------------------------------

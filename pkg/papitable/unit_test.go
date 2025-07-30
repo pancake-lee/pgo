@@ -43,7 +43,6 @@ func TestAPITable(t *testing.T) {
 		doc = NewMultiTableDoc(
 			pconfig.GetStringM("APITable.spaceId"),
 			pconfig.GetStringM("APITable.datasheetId"),
-			pconfig.GetStringM("APITable.viewId"),
 		)
 	}
 
