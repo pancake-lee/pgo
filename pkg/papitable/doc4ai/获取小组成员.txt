@@ -1,0 +1,213 @@
+获取小组的成员
+该接口用于获取指定小组的成员。
+
+请求地址：https://vika.cn/fusion/v1/spaces/{spaceId}/teams/{unitId}/members
+请求方法：GET
+请求头必须包含：Authorization: Bearer {你的 API Token}
+右侧区域提供了 cURL 的请求示例供你参考。
+
+如果你需要更详细的操作指导，可阅读「API 指南」的获取小组的成员操作指南。
+
+如果你有更复杂的接口请求，可参考下列参数，自行组合。
+
+path Parameters
+spaceId
+required
+string
+Example: spcjXzqVrjaP3
+空间站的 space Id
+
+unitId
+required
+string
+Example: X9vJ6R2qFzL8sK1mVxZcPwNtY3gT5yD
+指定小组的 unitId
+
+query Parameters
+pageSize	
+number
+Example: pageSize=100
+每页返回多少条记录。默认每页返回 100 条记录。取值范围为 1~1000 的整数。
+
+pageNum	
+number
+Example: pageNum=1
+指定分页的页码，与参数 pageSize 配合使用。例如 pageSize=1000&pageNum=2，返回 1001～2000 之间的记录。
+
+sensitiveData	
+string
+Example: sensitiveData=true
+是否获取成员的敏感数据（手机号、邮箱），如需获取则填入 "true"
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+全局状态值，如果为 false，则表示发生了业务错误或接口调用错误。
+
+code
+required
+number
+业务状态码，200 表示业务请求成功。
+
+message
+required
+string
+返回信息，执行错误时返回错误信息。
+
+data
+required
+object
+返回的业务数据体。
+
+pageNum
+required
+number
+指定分页的页码，与参数 pageSize 配合使用。例如 pageSize=1000&pageNum=2，返回 1001～2000 之间的记录。
+
+pageSize
+required
+number
+每页返回多少个成员。默认每页返回 100 个成员。取值范围为 1~1000 的整数。
+
+total
+required
+number
+总成员个数。
+
+members
+required
+Array of objects (SpaceMemberDto)
+Array 
+unitId
+required
+string
+成员的 unitId
+
+name
+required
+string
+成员昵称
+
+email
+required
+string
+成员的邮箱
+
+mobile	
+object
+number	
+string
+成员的手机号
+
+areaCode	
+string
+成员手机号的区号
+
+avatar	
+string
+成员的头像资源地址
+
+status
+required
+number
+成员的状态，是否已加入空间站(1:已加入, 0:未加入)
+
+type
+required
+string (MemberType)
+Enum: "PrimaryAdmin" "SubAdmin" "Member"
+成员的类型 (主管理员：PrimaryAdmin, 子管理员：SubAdmin, 成员：Member)
+
+teams	
+Array of objects (SpaceTeamDto)
+成员所属的小组列表
+
+Array 
+unitId
+required
+string
+小组的 unitId
+
+name
+required
+string
+小组的名称
+
+sequence	
+number
+小组在当前层级的排序，通讯录中按照此序号升序排序，同层级的小组序号可重复，若重复则根据小组的创建时间升序排序
+
+parentUnitId	
+string
+小组所属父级小组的 unitId
+
+roles	
+Array of objects (SpaceRoleDto)
+小组关联的角色列表
+
+Array 
+unitId
+required
+string
+角色的 unitId
+
+name
+required
+string
+角色的名称
+
+sequence	
+number
+角色的排序，值从 2000 开始递增，如 “2001，2002，2003”。角色的排序序号可重复，若重复则根据角色的创建时间升序排序
+
+roles	
+Array of objects (SpaceRoleDto)
+成员关联的角色列表
+
+Array 
+unitId
+required
+string
+角色的 unitId
+
+name
+required
+string
+角色的名称
+
+sequence	
+number
+角色的排序，值从 2000 开始递增，如 “2001，2002，2003”。角色的排序序号可重复，若重复则根据角色的创建时间升序排序
+
+
+get
+/fusion/v1/spaces/{spaceId}/teams/{unitId}/members
+
+Request samples
+cURL
+
+Copy
+curl -X GET \
+"https://vika.cn/fusion/v1/spaces/{spaceId}/teams/{unitId}/members?sensitiveData=true" \
+-H "Authorization: Bearer {替换为你的 API Token}"
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": {
+"pageNum": 1,
+"pageSize": 100,
+"total": 500,
+"members": []
+}
+}

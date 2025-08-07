@@ -19,7 +19,21 @@ func TestAPITable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// --------------------------------------------------
+	if true {
+		// 用户列表
+		userList, err := GetUserList(pconfig.GetStringM("APITable.spaceId"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		plogger.Debugf("获取到 %d 个用户", len(userList))
+		for _, user := range userList {
+			plogger.Debugf("User: ID=%s, Name=%s, Email=%s", user.UnitId, user.Name, user.Email)
+		}
+		return
+	}
 
+	// --------------------------------------------------
 	myColList := []*AddField{
 		NewTextCol("DB_ID"),
 		NewTextCol("测试字段1"),
@@ -44,6 +58,26 @@ func TestAPITable(t *testing.T) {
 			pconfig.GetStringM("APITable.spaceId"),
 			pconfig.GetStringM("APITable.datasheetId"),
 		)
+	}
+	// --------------------------------------------------
+	// 获取数据，简单看看接口通不通
+	if true {
+		resp, err := doc.GetRow(&GetRecordRequest{
+			PageNum:  1,
+			PageSize: 100,
+		})
+		if err != nil {
+			plogger.LogErr(err)
+			return
+		}
+
+		plogger.Debugf("get rows cnt [%d] total [%v]", resp.Data.PageSize, resp.Data.Total)
+
+		for _, r := range resp.Data.Records {
+			plogger.Debugf("row: %+v", r.Fields)
+		}
+
+		return
 	}
 
 	// --------------------------------------------------

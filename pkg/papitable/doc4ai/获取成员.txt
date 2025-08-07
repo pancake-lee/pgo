@@ -1,0 +1,203 @@
+成员
+成员（Member）的数据结构如下：
+
+属性	类型	说明	示例值
+unitId	string	成员的唯一 ID	"T7fL3jV4KvX1cY2dGmS9sPqZzN6rWnB"
+name	string	成员的昵称	"张三"
+avatar	string	成员的头像资源地址	"https://s4.vika.cn/public/2023/05/16/d2d74a23dabb4700a91594fbc975fd06"
+email	string	成员的邮箱号	"test@vikadata.com"
+mobile	object	成员的手机号	{"number": "12345678901","areaCode": "+86"}
+status	integer	成员的状态，0 为未加入空间站，1 为已加入空间站	1
+type	string	成员的类型，包含 PrimaryAdmin（主管理员），SubAdmin（子管理员），Member（成员）	"Member"
+teams	array of object	成员所属的小组列表	[{"unitId": "VS1SejiywaMWbiGMEHAohh62T9EPmmlh","name": "test","sequence": 1,"parentUnitId":"YN3YT97EPGL9ZA0loc9V2kNQnWb9ivKW"},...]
+roles	array of object	成员所关联的角色列表	[{"unitId": "sZ6gJ9L2HxP5XW1fRtNwE4zKqVcY7yM","name": "role A","sequence": 1},...]
+
+获取成员
+该接口用于获取指定成员。
+
+请求地址：https://vika.cn/fusion/v1/spaces/{spaceId}/members/{unitId}
+请求方法：GET
+请求头必须包含：Authorization: Bearer {你的 API Token}
+右侧区域提供了 cURL 的请求示例供你参考。
+
+如果你需要更详细的操作指导，可阅读「API 指南」的获取成员操作指南。
+
+如果你有更复杂的接口请求，可参考下列参数，自行组合。
+
+path Parameters
+spaceId
+required
+string
+Example: spcjXzqVrjaP3
+空间站的 space Id
+
+unitId
+required
+string
+Example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+成员的 unitId
+
+query Parameters
+sensitiveData	
+string
+Example: sensitiveData=true
+是否获取成员的敏感数据（手机号、邮箱），如需获取则填入 "true"
+
+Responses
+200
+Response Schema: application/json
+success
+required
+boolean
+全局状态值，如果为 false，则表示发生了业务错误或接口调用错误。
+
+code
+required
+number
+业务状态码，200 表示业务请求成功。
+
+message
+required
+string
+返回信息，执行错误时返回错误信息。
+
+data
+required
+object
+返回的业务数据体。
+
+unitId
+required
+string
+成员的 unitId
+
+name
+required
+string
+成员昵称
+
+email
+required
+string
+成员的邮箱
+
+mobile	
+object
+number	
+string
+成员的手机号
+
+areaCode	
+string
+成员手机号的区号
+
+avatar	
+string
+成员的头像资源地址
+
+status
+required
+number
+成员的状态，是否已加入空间站(1:已加入, 0:未加入)
+
+type
+required
+string (MemberType)
+Enum: "PrimaryAdmin" "SubAdmin" "Member"
+成员的类型 (主管理员：PrimaryAdmin, 子管理员：SubAdmin, 成员：Member)
+
+teams	
+Array of objects (SpaceTeamDto)
+成员所属的小组列表
+
+Array 
+unitId
+required
+string
+小组的 unitId
+
+name
+required
+string
+小组的名称
+
+sequence	
+number
+小组在当前层级的排序，通讯录中按照此序号升序排序，同层级的小组序号可重复，若重复则根据小组的创建时间升序排序
+
+parentUnitId	
+string
+小组所属父级小组的 unitId
+
+roles	
+Array of objects (SpaceRoleDto)
+小组关联的角色列表
+
+Array 
+unitId
+required
+string
+角色的 unitId
+
+name
+required
+string
+角色的名称
+
+sequence	
+number
+角色的排序，值从 2000 开始递增，如 “2001，2002，2003”。角色的排序序号可重复，若重复则根据角色的创建时间升序排序
+
+roles	
+Array of objects (SpaceRoleDto)
+成员关联的角色列表
+
+Array 
+unitId
+required
+string
+角色的 unitId
+
+name
+required
+string
+角色的名称
+
+sequence	
+number
+角色的排序，值从 2000 开始递增，如 “2001，2002，2003”。角色的排序序号可重复，若重复则根据角色的创建时间升序排序
+
+
+get
+/fusion/v1/spaces/{spaceId}/members/{unitId}
+
+Request samples
+cURL
+
+Copy
+curl -X GET \
+'https://vika.cn/fusion/v1/spaces/{spaceId}/members/{unitId}?sensitiveData=true' \
+-H 'Authorization: Bearer {替换为你的 API Token}'
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"code": 200,
+"message": "SUCCESS",
+"data": {
+"unitId": "kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6",
+"name": "张三",
+"email": "zhangsan@vikadata.com",
+"mobile": {},
+"avatar": "https://s1.vika.cn/public/2023/05/16/d2d74a23dabb4700a91594fbc975fd06",
+"status": 1,
+"type": "PrimaryAdmin",
+"teams": [],
+"roles": []
+}
+}
