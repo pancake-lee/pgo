@@ -71,3 +71,14 @@ var (
 	ColorGray   SelectFieldOptionColor = "blue_0"
 	ColorPink   SelectFieldOptionColor = "pink_4"
 )
+
+var AllColors = []SelectFieldOptionColor{
+	ColorRed,
+	ColorOrange,
+	ColorYellow,
+	ColorBlue,
+	ColorGreen,
+	ColorPurple,
+	ColorGray,
+	ColorPink,
+}

@@ -328,3 +328,13 @@ func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *Add
 		},
 	}
 }
+
+func NewMultiSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
+	return &AddField{
+		Name: colName,
+		Type: FIELD_TYPE_MULTI_SELECT,
+		Property: map[string]interface{}{
+			"options": options,
+		},
+	}
+}
