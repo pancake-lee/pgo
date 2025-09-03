@@ -1,32 +1,49 @@
 package putil
 
-import "reflect"
+import (
+	"reflect"
+)
 
-// 命名是copilot提供的，表示“集合”，主要用于存放slice和map的一些操作代码封装
+// 命名是copilot提供的，表示"集合"，主要用于存放slice和map的一些操作代码封装
 
 // int32数组交集，输出排序是根据nums2的排序
-func Int32ListIntersect(nums1 []int32, nums2 []int32) []int32 {
-	if len(nums1) == 0 {
-		return nums1
-	}
-	if len(nums2) == 0 {
-		return nums2
+func Int32ListIntersect(list1 []int32, list2 []int32) (ret []int32) {
+	if len(list1) == 0 || len(list2) == 0 {
+		return []int32{}
 	}
 
-	m := make(map[int32]int32, 0)
-	for _, v := range nums1 {
-		m[v] += 1
+	m := make(map[int32]bool)
+	for _, v := range list1 {
+		m[v] = true
 	}
-	count := 0 //记录新数组长度
-	for _, v := range nums2 {
-		if m[v] > 0 {
-			m[v] = 0
-			nums1[count] = v
-			count++
+	for _, v := range list2 {
+		if m[v] {
+			ret = append(ret, v)
+			m[v] = false // 避免重复添加
 		}
 	}
-	return nums1[:count]
+	return ret
 }
+
+func StrListIntersect(list1 []string, list2 []string) (ret []string) {
+	if len(list1) == 0 || len(list2) == 0 {
+		return []string{}
+	}
+
+	m := make(map[string]bool)
+	for _, v := range list1 {
+		m[v] = true
+	}
+	for _, v := range list2 {
+		if m[v] {
+			ret = append(ret, v)
+			m[v] = false // 避免重复添加
+		}
+	}
+	return ret
+}
+
+// --------------------------------------------------
 
 // 差集：输出，baseList中有，exclude中没有，的元素
 func Int32ListExcept(baseList []int32, exclude []int32) (ret []int32) {
@@ -37,13 +54,12 @@ func Int32ListExcept(baseList []int32, exclude []int32) (ret []int32) {
 		return baseList
 	}
 
-	m := make(map[int32]struct{})
+	m := make(map[int32]bool)
 	for _, v := range exclude {
-		m[v] = struct{}{}
+		m[v] = true
 	}
 	for _, v := range baseList {
-		_, ok := m[v]
-		if !ok {
+		if !m[v] {
 			ret = append(ret, v)
 		}
 	}
@@ -72,28 +88,28 @@ func StrListExcept(baseList []string, exclude []string) (ret []string) {
 	return ret
 }
 
+// --------------------------------------------------
+
 // Int32ListUnion int32数组并集，去除重复数据
-func Int32ListUnion(nums1 []int32, nums2 []int32) []int32 {
-	if len(nums1) == 0 {
-		return nums2
-	} else if len(nums2) == 0 {
-		return nums1
+func Int32ListUnion(list1 []int32, list2 []int32) []int32 {
+	if len(list1) == 0 {
+		return list2
+	} else if len(list2) == 0 {
+		return list1
 	}
-	//将数组A转成map
-	m := make(map[int32]int32)
-	for _, v := range nums1 {
-		m[v] = 0
+	m := make(map[int32]bool)
+	for _, v := range list1 {
+		m[v] = true
 	}
-	//遍历数组B
-	for _, v := range nums2 {
-		//判断B中的元素在A是否存在
-		_, ok := m[v]
-		if !ok {
-			//不存在，直接插入A列表中
-			nums1 = append(nums1, v)
-		}
+	for _, v := range list2 {
+		m[v] = true
 	}
-	return nums1
+	ret := make([]int32, 0, len(m))
+	for v := range m {
+		ret = append(ret, v)
+	}
+
+	return ret
 }
 
 // StrListUnion string数组并集，去除重复数据
@@ -104,29 +120,32 @@ func StrListUnion(list1 []string, list2 []string) []string {
 		return list1
 	}
 	//将数组A转成map
-	m := make(map[string]int32)
+	m := make(map[string]bool)
 	for _, v := range list1 {
-		m[v] = 0
+		m[v] = true
 	}
-	//遍历数组B
 	for _, v := range list2 {
-		//判断B中的元素在A是否存在
-		_, ok := m[v]
-		if !ok {
-			//不存在，直接插入A列表中
-			list1 = append(list1, v)
-		}
+		m[v] = true
 	}
-	return list1
+	ret := make([]string, 0, len(m))
+	for v := range m {
+		ret = append(ret, v)
+	}
+
+	return ret
 }
+
+// --------------------------------------------------
 
 // 取名XOR异或，实际逻辑是(A-B)U(B-A)的集合b
 // https://www.lodashjs.com/docs/lodash.xor
-func StrListXOR(a []string, b []string) (ret []string) {
-	c := StrListExcept(a, b)
-	d := StrListExcept(b, a)
+func StrListXOR(list1 []string, list2 []string) (ret []string) {
+	c := StrListExcept(list1, list2)
+	d := StrListExcept(list2, list1)
 	return StrListUnion(c, d)
 }
+
+// --------------------------------------------------
 
 // Int32ListUnique int32数组去重
 func Int32ListUnique(list []int32) []int32 {
@@ -137,11 +156,11 @@ func Int32ListUnique(list []int32) []int32 {
 	for _, v := range list {
 		m[v] = true
 	}
-	list = list[:0]
+	ret := make([]int32, 0, len(m))
 	for k := range m {
-		list = append(list, k)
+		ret = append(ret, k)
 	}
-	return list
+	return ret
 }
 
 // StrListUnique string数组去重
@@ -153,12 +172,14 @@ func StrListUnique(list []string) []string {
 	for _, v := range list {
 		m[v] = true
 	}
-	list = list[:0]
+	ret := make([]string, 0, len(m))
 	for k := range m {
-		list = append(list, k)
+		ret = append(ret, k)
 	}
-	return list
+	return ret
 }
+
+// --------------------------------------------------
 
 func WalkSliceByStep(x any, step int, cb func(s, e int) error) (err error) {
 	rv := reflect.ValueOf(x)
