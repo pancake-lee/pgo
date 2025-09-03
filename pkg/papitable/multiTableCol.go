@@ -121,7 +121,7 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 }
 
 // --------------------------------------------------
-// 内部方法：查询字段
+// 查询字段
 func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/fields", g_baseUrl, doc.DatasheetId)
 
@@ -135,7 +135,7 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	plogger.Debugf("response: %s", string(resp))
+	// plogger.Debugf("response: %s", string(resp))
 
 	var respData getFieldResponse
 	err = json.Unmarshal(resp, &respData)
@@ -203,6 +203,13 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 
 	return results, nil
 }
+
+// --------------------------------------------------
+// 修改列并没有专门API
+// 如果要做其实是删除列然后重新加列，并且需要重新写入该列数据
+// 但是这样的性能还不如全表重建，因为都要遍历所有行
+// func (doc *MultiTableDoc) EditCol(fields []*AddField) (ret []*Field, err error) {
+// }
 
 // --------------------------------------------------
 // api req/resp结构
@@ -311,6 +318,7 @@ func NewSimpleUserCol(colName string, isMultiple bool) *AddField {
 }
 
 // --------------------------------------------------
+
 type SelectFieldOption struct {
 	Id string `json:"id,omitempty"`
 	// Name  string                  `json:"name"`
@@ -337,4 +345,72 @@ func NewMultiSingleSelectCol(colName string, options []*SelectFieldOption) *AddF
 			"options": options,
 		},
 	}
+}
+
+type SelectFieldOptionHandler struct {
+	optionMap map[string]*SelectFieldOption
+}
+
+func (h *SelectFieldOptionHandler) Reset() {
+	h.optionMap = make(map[string]*SelectFieldOption)
+}
+func (h *SelectFieldOptionHandler) RegOptionI(id int32, text string, style SelectFieldOptionColor) {
+	h.RegOptionS(putil.Int32ToStr(id), text, style)
+}
+func (h *SelectFieldOptionHandler) RegOptionS(id, text string, style SelectFieldOptionColor) {
+	if h.optionMap == nil {
+		h.optionMap = make(map[string]*SelectFieldOption)
+	}
+	h.optionMap[id] = &SelectFieldOption{
+		Id:    id,
+		Text:  text,
+		Style: style,
+	}
+}
+func (h *SelectFieldOptionHandler) GetOptionList() []*SelectFieldOption {
+	if h.optionMap == nil {
+		return nil
+	}
+	var options []*SelectFieldOption
+	for _, option := range h.optionMap {
+		options = append(options, option)
+	}
+	return options
+}
+func (h *SelectFieldOptionHandler) GetOptionByText(text string) *SelectFieldOption {
+	if h.optionMap == nil {
+		return nil
+	}
+	for _, option := range h.optionMap {
+		if option.Text == text {
+			return option
+		}
+	}
+	return nil
+}
+
+func (h *SelectFieldOptionHandler) GetCellOptionById_I(id int32) *CellOption {
+	return h.GetCellOptionById_S(putil.Int32ToStr(id))
+}
+func (h *SelectFieldOptionHandler) GetCellOptionById_S(id string) *CellOption {
+	if h.optionMap == nil {
+		return NewOptionValueByStr("")
+	}
+	opt, ok := h.optionMap[id]
+	if !ok {
+		return NewOptionValueByStr("")
+	}
+	return NewOptionValue(opt)
+}
+
+func (h *SelectFieldOptionHandler) GetCellOptionByText(text string) *CellOption {
+	if h.optionMap == nil {
+		return NewOptionValueByStr("")
+	}
+	for _, opt := range h.optionMap {
+		if opt.Text == text {
+			return NewOptionValue(opt)
+		}
+	}
+	return NewOptionValueByStr("")
 }

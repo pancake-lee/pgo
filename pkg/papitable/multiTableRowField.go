@@ -342,6 +342,10 @@ func (opt *CellOption) GetKey() string {
 func NewOptionValue(option *SelectFieldOption) *CellOption {
 	return (*CellOption)(&option.Text)
 }
+
+func NewOptionValueByStr(str string) *CellOption {
+	return (*CellOption)(&str)
+}
 func ParseSingleOptionValue(value any) (*CellOption, error) {
 	if str, ok := value.(string); ok {
 		option := CellOption(str)
