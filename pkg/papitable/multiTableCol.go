@@ -259,6 +259,19 @@ type deleteFieldResponse struct {
 }
 
 // --------------------------------------------------
+func NewSimpleNumCol(colName string) *AddField {
+	return &AddField{
+		Name: colName,
+		Type: FIELD_TYPE_NUMBER,
+		Property: map[string]interface{}{
+			"precision": 0,
+			// "commaStyle":   "",
+			"defaultValue": "",
+		},
+	}
+}
+
+// --------------------------------------------------
 // func NewSimpleTextCol(colName string) *AddField {
 // 	return &AddField{
 // 		Name: colName,
@@ -280,19 +293,6 @@ func NewTextCol(colName string) *AddField {
 }
 
 // --------------------------------------------------
-func NewSimpleNumCol(colName string) *AddField {
-	return &AddField{
-		Name: colName,
-		Type: FIELD_TYPE_NUMBER,
-		Property: map[string]interface{}{
-			"precision": 0,
-			// "commaStyle":   "",
-			"defaultValue": "",
-		},
-	}
-}
-
-// --------------------------------------------------
 func NewSimpleTimeCol(colName string) *AddField {
 	return &AddField{
 		Name: colName,
@@ -306,6 +306,7 @@ func NewSimpleTimeCol(colName string) *AddField {
 }
 
 // --------------------------------------------------
+// 成员类型，因为用户列表API调不通，所以暂时用不上
 func NewSimpleUserCol(colName string, isMultiple bool) *AddField {
 	return &AddField{
 		Name: colName,
@@ -413,4 +414,104 @@ func (h *SelectFieldOptionHandler) GetCellOptionByText(text string) *CellOption 
 		}
 	}
 	return NewOptionValueByStr("")
+}
+
+// --------------------------------------------------
+// Formula（智能公式）字段，暂时只处理string类型
+func NewFormulaCol(colName string, expression string) *AddField {
+	return &AddField{
+		Name: colName,
+		Type: FIELD_TYPE_FORMULA,
+		Property: map[string]any{
+			"expression": expression,
+			"valueType":  "String",
+		},
+	}
+}
+
+// --------------------------------------------------
+// OneWayLink（单向关联）字段
+func NewOneWayLinkCol(colName string, foreignDatasheetId string, multiSelect bool) *AddField {
+	return &AddField{
+		Name: colName,
+		Type: FIELD_TYPE_ONE_WAY_LINK,
+		Property: map[string]any{
+			"foreignDatasheetId": foreignDatasheetId,
+			"limitSingleRecord":  !multiSelect,
+			// "limitToViewId":      limitToViewId, // 没有创建视图的API，就不能完成整个程序闭环
+		},
+	}
+}
+
+// --------------------------------------------------
+// MagicLookUp（神奇引用）字段
+type MagicLookUpConfig struct {
+	RelatedLinkFieldId string                 // 引用的当前表的关联字段 ID（注意这是本表）
+	TargetFieldId      string                 // 关联表中查询的字段 ID（注意这是关联的表）
+	RollupFunction     string                 // 汇总函数，如 "VALUES", "AVERAGE", "COUNT" 等
+	EnableFilterSort   bool                   // 是否开启筛选和排序
+	SortInfo           *MagicLookUpSortInfo   // 排序设置
+	FilterInfo         *MagicLookUpFilterInfo // 筛选设置
+	LookUpLimit        string                 // 限制展示的记录数量 "ALL" 或 "FIRST"
+}
+
+type MagicLookUpSortInfo struct {
+	Rules []MagicLookUpSortRule `json:"rules"`
+}
+
+type MagicLookUpSortRule struct {
+	FieldId string `json:"fieldId"` // 用于排序的字段ID
+	Desc    bool   `json:"desc"`    // 是否按降序排序
+}
+
+type MagicLookUpFilterInfo struct {
+	Conjunction string                       `json:"conjunction"` // "and" 或 "or"
+	Conditions  []MagicLookUpFilterCondition `json:"conditions"`
+}
+
+type MagicLookUpFilterCondition struct {
+	FieldId   string        `json:"fieldId"`   // 筛选字段的字段ID
+	FieldType string        `json:"fieldType"` // 筛选字段的字段类型
+	Operator  string        `json:"operator"`  // 筛选条件的运算符
+	Value     []interface{} `json:"value"`     // 筛选条件的基准值
+}
+
+func NewMagicLookUpCol(colName string, config *MagicLookUpConfig) *AddField {
+	property := map[string]interface{}{
+		"relatedLinkFieldId": config.RelatedLinkFieldId,
+		"targetFieldId":      config.TargetFieldId,
+		"rollupFunction":     config.RollupFunction,
+	}
+
+	if config.LookUpLimit != "" {
+		property["lookUpLimit"] = config.LookUpLimit
+	} else {
+		property["lookUpLimit"] = "ALL"
+	}
+
+	if config.EnableFilterSort {
+		property["enableFilterSort"] = true
+		if config.SortInfo != nil {
+			property["sortInfo"] = config.SortInfo
+		}
+		if config.FilterInfo != nil {
+			property["filterInfo"] = config.FilterInfo
+		}
+	}
+
+	return &AddField{
+		Name:     colName,
+		Type:     FIELD_TYPE_MAGIC_LOOKUP,
+		Property: property,
+	}
+}
+
+// NewSimpleMagicLookUpCol 创建简单的神奇引用字段（不带筛选和排序）
+func NewSimpleMagicLookUpCol(colName string, relatedLinkFieldId string, targetFieldId string) *AddField {
+	return NewMagicLookUpCol(colName, &MagicLookUpConfig{
+		RelatedLinkFieldId: relatedLinkFieldId,
+		TargetFieldId:      targetFieldId,
+		RollupFunction:     "VALUES",
+		LookUpLimit:        "ALL",
+	})
 }
