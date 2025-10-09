@@ -237,7 +237,7 @@ func (doc *MultiTableDoc) EditRow(rows []*UpdateRecord) error {
 
 	// 检查响应错误
 	if !respData.Success {
-		return plogger.LogErr(fmt.Errorf("add records failed: code=%d, message=%s", respData.Code, respData.Message))
+		return plogger.LogErr(fmt.Errorf("edit records failed: code=%d, message=%s", respData.Code, respData.Message))
 	}
 
 	return nil
@@ -298,16 +298,16 @@ type CommonRecord struct {
 
 // 查询记录请求结构
 type GetRecordRequest struct {
-	PageSize       int        `json:"pageSize,omitempty"`
-	MaxRecords     int        `json:"maxRecords,omitempty"`
-	PageNum        int        `json:"pageNum,omitempty"`
-	Sort           []SortRule `json:"sort,omitempty"`
-	RecordIds      []string   `json:"recordIds,omitempty"`
-	ViewId         string     `json:"viewId,omitempty"`
-	Fields         []string   `json:"fields,omitempty"`
-	FilterByFrmula string     `json:"filterByFrmula,omitempty"`
-	CellFormat     string     `json:"cellFormat,omitempty"`
-	FieldKey       string     `json:"fieldKey,omitempty"`
+	PageSize        int        `json:"pageSize,omitempty"`
+	MaxRecords      int        `json:"maxRecords,omitempty"`
+	PageNum         int        `json:"pageNum,omitempty"`
+	Sort            []SortRule `json:"sort,omitempty"`
+	RecordIds       []string   `json:"recordIds,omitempty"`
+	ViewId          string     `json:"viewId,omitempty"`
+	Fields          []string   `json:"fields,omitempty"`
+	FilterByFormula string     `json:"filterByFormula,omitempty"`
+	CellFormat      string     `json:"cellFormat,omitempty"`
+	FieldKey        string     `json:"fieldKey,omitempty"`
 }
 
 // 查询记录响应结构

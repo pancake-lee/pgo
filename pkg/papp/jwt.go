@@ -7,45 +7,61 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/internal/userService/conf"
+	"github.com/pancake-lee/pgo/pkg/putil"
 
 	"github.com/go-kratos/kratos/v2/middleware"
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/golang-jwt/jwt/v4"
+	jwt5 "github.com/golang-jwt/jwt/v5"
 )
 
 type claims struct {
-	UserID int32 `json:"userId"` // 其实标准的sub字段可以用来表达用户ID
-	jwt.RegisteredClaims
+	// 其实标准的sub字段可以用来表达用户ID，这里只是示例，方便后续加入更多字段
+	UserID int32 `json:"userId"`
+	jwt5.RegisteredClaims
 }
 
 func GenToken(userId int32) (string, error) {
 	tNow := time.Now()
 	tokenClaims := claims{
 		UserID: userId,
-		RegisteredClaims: jwt.RegisteredClaims{
-			NotBefore: jwt.NewNumericDate(tNow),
-			IssuedAt:  jwt.NewNumericDate(tNow),
-			ExpiresAt: jwt.NewNumericDate(
-				tNow.Add(time.Duration(conf.UserSvcConf.TokenExpire) * time.Hour)),
-			Issuer: "pgo",
+		RegisteredClaims: jwt5.RegisteredClaims{
+			NotBefore: jwt5.NewNumericDate(tNow),
+			IssuedAt:  jwt5.NewNumericDate(tNow),
+			ExpiresAt: jwt5.NewNumericDate(tNow.Add(httpAuthExpire)),
+			Issuer:    "pgo",
+			Subject:   putil.Int32ToStr(userId),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-	ret, err := token.SignedString([]byte(conf.UserSvcConf.TokenSK))
+	token := jwt5.NewWithClaims(jwt5.SigningMethodHS256, tokenClaims)
+	ret, err := token.SignedString([]byte(httpAuthKey))
 	if err != nil {
 		return ret, perr.ErrTokenSign
 	}
 	return ret, nil
 }
 
+// --------------------------------------------------
+func GetTokenFromCtx(ctx context.Context) (*claims, error) {
+	token, ok := jwt.FromContext(ctx)
+	if !ok {
+		return nil, api.ErrorUnauthorized("auth failed")
+	}
+	t, ok := token.(*claims)
+	if !ok {
+		return nil, api.ErrorUnauthorized("token format invalid")
+	}
+	return t, nil
+}
+
 func ParseToken(tokenString string) (*claims, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-	token, err := jwt.ParseWithClaims(tokenString, &claims{},
-		func(token *jwt.Token) (any, error) {
-			return []byte(conf.UserSvcConf.TokenSK), nil
+	token, err := jwt5.ParseWithClaims(tokenString, &claims{},
+		func(token *jwt5.Token) (any, error) {
+			return []byte(httpAuthKey), nil
 		},
 	)
 	if err != nil {
@@ -62,13 +78,50 @@ func ParseToken(tokenString string) (*claims, error) {
 	return claims, nil
 }
 
-func authMiddleware(excludePaths ...string) middleware.Middleware {
-	excludeMap := make(map[string]bool)
-	for _, path := range excludePaths {
-		excludeMap[path] = true
-	}
+// --------------------------------------------------
+var httpAuthKey string = ""
 
-	return func(handler middleware.Handler) middleware.Handler {
+func SetHTTPAuthKey(key string) {
+	httpAuthKey = key
+}
+
+var httpAuthExpire time.Duration = 24 * time.Hour
+
+func SetHTTPAuthExpire(expire time.Duration) {
+	httpAuthExpire = expire
+}
+
+var whiteList = make(map[string]bool)
+
+func AddWhiteList(paths ...string) {
+	for _, p := range paths {
+		whiteList[p] = true
+	}
+}
+
+// --------------------------------------------------
+// 利用kratos的selector和jwt组件实现
+func authMiddleware() middleware.Middleware {
+	return selector.
+		Server(jwt.Server(
+			func(token *jwt5.Token) (interface{}, error) {
+				return []byte(httpAuthKey), nil
+			},
+			jwt.WithSigningMethod(jwt5.SigningMethodHS256),
+			jwt.WithClaims(func() jwt5.Claims {
+				return &jwt5.MapClaims{}
+			}),
+		)).
+		Match(func(ctx context.Context, operation string) bool {
+			return whiteList[operation]
+		}).
+		Build()
+}
+
+// --------------------------------------------------
+// 自定义中间件的方式实现
+func authMiddleware2() middleware.Middleware {
+	return func(nextHandler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
 			// https://go-kratos.dev/docs/component/transport/http#middleware-%E4%B8%AD%E5%A4%84%E7%90%86-http-%E8%AF%B7%E6%B1%82
 			tr, ok := transport.FromServerContext(ctx)
@@ -81,8 +134,8 @@ func authMiddleware(excludePaths ...string) middleware.Middleware {
 			}
 
 			// 检查是否为排除路径
-			if excludeMap[ht.Request().URL.Path] {
-				return handler(ctx, req)
+			if whiteList[ht.Request().URL.Path] {
+				return nextHandler(ctx, req)
 			}
 
 			token := ht.Request().Header.Get("Authorization")
@@ -95,14 +148,14 @@ func authMiddleware(excludePaths ...string) middleware.Middleware {
 				return nil, api.ErrorUnauthorized(err.Error())
 			}
 
-			if time.Now().After(claims.ExpiresAt.Time) {
-				return nil, api.ErrorUnauthorized("expired")
-			}
+			// ParseToken里的ParseWithClaims已经做了过期检查
+			// if time.Now().After(claims.ExpiresAt.Time) {
+			// 	return nil, api.ErrorUnauthorized("expired")
+			// }
 
-			// 将用户信息添加到context中
-			ctx = CtxSetUserId(ctx, claims.UserID)
+			ctx = jwt.NewContext(ctx, claims)
 
-			return handler(ctx, req)
+			return nextHandler(ctx, req)
 		}
 	}
 }

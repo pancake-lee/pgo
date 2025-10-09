@@ -28,6 +28,7 @@ func main() {
 
 	var userCURDServer service.UserCURDServer
 	var userServer service.UserServer
-
+	papp.AddWhiteList("/user/token")
+	papp.SetHTTPAuthKey(conf.UserSvcConf.TokenSK)
 	papp.RunKratosApp(&userServer, &userCURDServer)
 }

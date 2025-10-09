@@ -2,11 +2,13 @@ package papp
 
 import (
 	// 新增 context 包
+
 	"os"
 	"time"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 
 	_ "go.uber.org/automaxprocs"
 
@@ -18,14 +20,9 @@ import (
 	"github.com/rs/cors"
 )
 
-// go build -ldflags "-X main.Version=x.y.z"
+// go build -ldflags "-X 'github.com/pancake-lee/pgo/pkg/papp.version=x.y.z'"
 var (
-	// Name is the name of the compiled software.
-	Name string
-	// Version is the version of the compiled software.
-	Version string
-
-	id, _ = os.Hostname()
+	version string
 )
 
 // --------------------------------------------------
@@ -78,17 +75,17 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		var opts = []http.ServerOption{
 			http.Middleware(
 				recovery.Recovery(),
+				authMiddleware(),
 			),
 			http.Filter(cors.New(cors.Options{
-				AllowedOrigins:   []string{"*"},
-				AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-				AllowedHeaders:   []string{"*"},
-				ExposedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+				AllowedOrigins: []string{"*"},
+				AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+				AllowedHeaders: []string{"*"},
+				ExposedHeaders: []string{"Accept", "Accept-Encoding",
+					"X-CSRF-Token", "Authorization", "Content-Type", "Content-Length"},
 				AllowCredentials: true,
-				MaxAge:           3600,
+				MaxAge:           60,
 			}).Handler),
-			// authMiddleware("/user/token"),
-			// logging.Server(plogger.DefaultKratosLogger),
 		}
 
 		if conf.Http.Addr != "" {
@@ -109,16 +106,22 @@ func RunKratosApp(kratosServers ...kratosServer) {
 	kLog := log.With(plogger.DefaultKratosLogger,
 		"caller", log.DefaultCaller,
 	)
+
+	name := putil.GetExecName()
+
+	id, _ := os.Hostname()
+	if id != "" {
+		id += "_"
+	}
+	id += name
+
 	app := kratos.New(
 		kratos.ID(id),
-		kratos.Name(Name),
-		kratos.Version(Version),
+		kratos.Name(name),
+		kratos.Version(version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(kLog),
-		kratos.Server(
-			grpcSrv,
-			httpSrv,
-		),
+		kratos.Server(grpcSrv, httpSrv),
 	)
 
 	// start and wait for stop signal

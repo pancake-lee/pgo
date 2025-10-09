@@ -19,7 +19,7 @@ func TestWX(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	time.Sleep(5 * time.Second)
 	err = GetUserList()
 	if err != nil {
 		t.Fatal(err)

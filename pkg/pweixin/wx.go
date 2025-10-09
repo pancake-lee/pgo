@@ -198,7 +198,7 @@ func GetUserList() error {
 		return plogger.LogErr(err)
 	}
 	plogger.Debugf("getUserList resp : %s", string(resp))
-
+	// {"errcode":0,"errmsg":"ok","dept_user":[{"userid":"your name","department":1}]}
 	return nil
 }
 
