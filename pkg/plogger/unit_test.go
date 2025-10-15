@@ -31,6 +31,9 @@ func TestLogger(t *testing.T) {
 	Info("test logger Info, 中文测试，1234567890")
 	Warn("test logger Warn, 中文测试，1234567890")
 	Error("test logger Error, 中文测试，1234567890")
+
+	l := NewPLogWarper(GetDefaultLogger())
+	l.Debug("test warper Debug, 中文测试，1234567890")
 }
 
 func TestTimeLogger(t *testing.T) {

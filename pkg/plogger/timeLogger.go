@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	kLog "github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -14,16 +15,25 @@ type timeLogger struct {
 	keyList   []string
 	pointList []time.Time
 	prefixCnt map[string]int
+
+	l kLog.Logger
 }
 
 func NewTimeLogger(name string) *timeLogger {
-	if name == "" {
-		name = putil.GetCallerFuncName(1)
-	}
-
 	tLogger := new(timeLogger)
-	tLogger.name = name
+	tLogger.name = putil.GetCallerFuncName(1)
 	tLogger.sTime = time.Now()
+	tLogger.l = GetDefaultLogger()
+	return tLogger
+}
+
+func (tLogger *timeLogger) WithName(name string) *timeLogger {
+	tLogger.name = name
+	return tLogger
+}
+
+func (tLogger *timeLogger) WithLogger(l kLog.Logger) *timeLogger {
+	tLogger.l = l
 	return tLogger
 }
 
@@ -62,5 +72,5 @@ func (tLogger *timeLogger) Log() {
 
 		lastTime = curTime
 	}
-	myLog(zapLogger.Debug, 2, nil, logStr)
+	NewPLogWarper(tLogger.l).AddCallerLevel(1).Debug(logStr)
 }

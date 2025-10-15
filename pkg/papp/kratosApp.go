@@ -13,7 +13,6 @@ import (
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -103,10 +102,6 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		s.Reg(grpcSrv, httpSrv)
 	}
 
-	kLog := log.With(plogger.DefaultKratosLogger,
-		"caller", log.DefaultCaller,
-	)
-
 	name := putil.GetExecName()
 
 	id, _ := os.Hostname()
@@ -120,7 +115,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		kratos.Name(name),
 		kratos.Version(version),
 		kratos.Metadata(map[string]string{}),
-		kratos.Logger(kLog),
+		kratos.Logger(plogger.GetDefaultLogger()),
 		kratos.Server(grpcSrv, httpSrv),
 	)
 
