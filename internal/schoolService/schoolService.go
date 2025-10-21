@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 
 	pconfig.MustInitConfig(*c)
-	plogger.InitServiceLogger(*l)
+	plogger.InitFromConfig(*l)
 	pdb.MustInitPGByConfig()
 
 	var curdServer service.SchoolCURDServer

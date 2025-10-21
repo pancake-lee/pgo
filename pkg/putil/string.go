@@ -30,3 +30,9 @@ func StrFirstToUpper(str string) string {
 func StrFirstToLower(str string) string {
 	return string(unicode.ToLower(rune(str[0]))) + str[1:]
 }
+func StrPrefixByNum(str string, num int) string {
+	if num <= 0 || num > len(str) {
+		return str
+	}
+	return str[:num]
+}

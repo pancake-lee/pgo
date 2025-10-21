@@ -136,9 +136,9 @@ func handleRespError(resp []byte) error {
 
 func handleRespErrorByMap(resp map[string]any) error {
 	if resp["errcode"] != nil {
-		e := putil.InterfaceToInt32(resp["errcode"], 0)
+		e := putil.AnyToInt32(resp["errcode"], 0)
 		if e != 0 {
-			errMsg := putil.InterfaceToString(resp["errmsg"], "")
+			errMsg := putil.AnyToStr(resp["errmsg"])
 			return fmt.Errorf("wx api error[%d] : %s", e, errMsg)
 		}
 	}
@@ -172,7 +172,7 @@ func getToken(corpid, corpsecret string) (string, error) {
 	if err != nil {
 		return "", plogger.LogErr(err)
 	}
-	return putil.InterfaceToString(respMap["access_token"], ""), nil
+	return putil.AnyToStr(respMap["access_token"]), nil
 }
 
 // --------------------------------------------------

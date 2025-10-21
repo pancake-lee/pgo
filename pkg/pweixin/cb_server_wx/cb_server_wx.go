@@ -165,7 +165,7 @@ func main() {
 	encodingAeskey = pconfig.GetStringM("WX.cbEncodingAESKey")
 	receiverId = pconfig.GetStringM("WX.cbReceiverId")
 
-	plogger.InitServiceLogger(*isLogConsole)
+	plogger.InitFromConfig(*isLogConsole)
 	pmq.MustInitMQByConfig()
 
 	http.HandleFunc("/", CallbackHandler) //      设置访问路由

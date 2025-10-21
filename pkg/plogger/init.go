@@ -54,7 +54,7 @@ func GetDefaultLogWarper() *PLogWarper {
 }
 
 // --------------------------------------------------
-func InitServiceLogger(isLogConsole bool) {
+func InitFromConfig(isLogConsole bool) {
 	level := pconfig.GetStringD("Log.Level", "debug")
 	lv := GetLoggerLevel(level)
 	folder := pconfig.GetStringD("Log.Path", "")

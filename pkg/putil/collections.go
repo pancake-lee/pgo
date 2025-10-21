@@ -179,6 +179,19 @@ func StrListUnique(list []string) []string {
 	return ret
 }
 
+func Int32ListSafeGet(list []int32, index int) (ret int32) {
+	if index < len(list) {
+		return list[index]
+	}
+	return 0
+}
+func StrListSafeGet(list []string, index int) (ret string) {
+	if index < len(list) {
+		return list[index]
+	}
+	return ""
+}
+
 // --------------------------------------------------
 
 func WalkSliceByStep(x any, step int, cb func(s, e int) error) (err error) {

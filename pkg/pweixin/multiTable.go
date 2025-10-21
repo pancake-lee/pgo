@@ -64,8 +64,8 @@ func CreateMultiTable(tblName string) (doc *MultiTableDoc, err error) {
 
 	// plogger.Debug("createMultiTable resp : ", respMap)
 	return NewMultiTableDoc(
-		putil.InterfaceToString(respMap["docid"], ""),
-		putil.InterfaceToString(respMap["docurl"], ""),
+		putil.AnyToStr(respMap["docid"]),
+		putil.AnyToStr(respMap["docurl"]),
 	), nil
 }
 

@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	pconfig.MustInitConfig(*c)
-	plogger.InitServiceLogger(*l)
+	plogger.InitFromConfig(*l)
 	pdb.MustInitPGByConfig()
 
 	err := pconfig.Scan(&conf.UserSvcConf)

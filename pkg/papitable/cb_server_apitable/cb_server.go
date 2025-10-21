@@ -20,7 +20,7 @@ func main() {
 	flag.Parse()
 
 	pconfig.MustInitConfig(*configFile)
-	plogger.InitServiceLogger(*isLogConsole)
+	plogger.InitFromConfig(*isLogConsole)
 	pmq.MustInitMQByConfig()
 
 	// 设置路由

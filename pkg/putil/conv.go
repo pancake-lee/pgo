@@ -475,7 +475,7 @@ func ReplaceByStringMap(str string, replaceMap map[string]string) string {
 }
 
 // --------------------------------------------------
-func InterfaceToInt32(val any, defaultVal int32) int32 {
+func AnyToInt32(val any, defaultVal int32) int32 {
 	switch val := val.(type) {
 	case int32:
 		return val
@@ -497,14 +497,16 @@ func InterfaceToInt32(val any, defaultVal int32) int32 {
 		return defaultVal
 	}
 }
-func InterfaceToString(val any, defaultVal string) string {
+func AnyToStr(val any) string {
 	switch val := val.(type) {
 	case string:
 		return val
+	case *string:
+		return *val
 	case int32:
 		return Int32ToStr(val)
 	default:
-		return defaultVal
+		return fmt.Sprintf("%v", val)
 	}
 }
 

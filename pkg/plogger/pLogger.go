@@ -2,9 +2,11 @@ package plogger
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
-	klog "github.com/go-kratos/kratos/v2/log"
+	kLog "github.com/go-kratos/kratos/v2/log"
+	"github.com/pancake-lee/pgo/pkg/putil"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +26,7 @@ import (
 
 // 整个log的封装层次：
 // 1：zaplog作为最底层的日志实现
-// 2：kratosZapLogger实现了kratos的log.Logger接口，依赖注入到kratos包内
+// 2：pLogger实现了kratos的log.Logger接口，依赖注入到kratos包内
 // PS：需要固定嵌入到每行日志的值，都在依赖注入前的log.With中定义，可以但不建议分散在其他地方在log.With追加动态的参数
 // 3：myHelper参考kratos的log.Helper做一次包装，提供给业务代码使用
 // PS：不直接使用log.Helper是因为我在业务代码中需要封装更加方便的日志打印方法
@@ -34,9 +36,8 @@ import (
 // 为了统一代码，可以提供客户端专用的rpcCtx，log对象不用从service对象传递一遍，直接构造就好了
 
 // log.Logger接口实现检查
-var _ klog.Logger = (*pLogger)(nil)
+var _ kLog.Logger = (*pLogger)(nil)
 
-// pLogger is a logger impl.
 type pLogger struct {
 	log *zap.Logger
 }
@@ -45,36 +46,68 @@ func FromZap(zLogger *zap.Logger) *pLogger {
 	return &pLogger{log: zLogger}
 }
 
-// Log Implementation of logger interface.
-func (l *pLogger) Log(level klog.Level, keyVals ...any) error {
+// TODO 需要两个实现，一个是打印到控制台或文件，需要提供肉眼可读的日志
+// 另一个是打印到日志收集系统，需要提供结构化的日志，用json输出
+// 还有些需求可能考虑通过脚本重新分析日志得到某些数据，应该在日志系统后面做，线上文件是临时的/短期的
+func (l *pLogger) Log(level kLog.Level, keyVals ...any) error {
 	if len(keyVals) == 0 || len(keyVals)%2 != 0 {
 		l.log.Warn(fmt.Sprint("kv must appear in pairs: ", keyVals))
 		return nil
 	}
 
+	// 字符串拼接可能是性能瓶颈，
+	// 但zap的sugar实现也是用fmt.Sprintf而已，
+	// 所以出现性能问题再考虑优化吧
 	var sb strings.Builder
 
-	var data []zap.Field
+	prefixData := make(map[string]string)
+	otherData := make(map[string]string)
 	var caller string
 	var msg string
 	for i := 0; i < len(keyVals); i += 2 {
-		k := fmt.Sprint(keyVals[i])
-		v := fmt.Sprint(keyVals[i+1])
+		k := fmt.Sprint(putil.AnyToStr(keyVals[i]))
+		v := fmt.Sprint(putil.AnyToStr(keyVals[i+1]))
 		switch k {
 		case "caller":
-			// TODO log.With自定义callerSkip，kratos默认的未必符合需要
-			// github.com/go-kratos/kratos/v2@v2.7.3/log/value.go:Caller
 			caller = v
 		case "msg":
 			msg = v
 		default:
-			data = append(data, zap.Any(k, v))
+			if globalPrefixKeys[k] {
+				prefixData[k] = v
+			} else {
+				otherData[k] = v
+			}
 		}
 	}
+
+	if len(prefixData) > 0 {
+		for _, k := range globalSortedPrefixKey {
+			v := prefixData[k]
+			if v == "" {
+				continue
+			}
+			sb.WriteString("[")
+			sb.WriteString(k)
+			sb.WriteString(":")
+			sb.WriteString(v)
+			sb.WriteString("] ")
+		}
+	}
+
 	sb.WriteString(msg)
 
-	if len(data) > 0 {
-		sb.WriteString(fmt.Sprint(data))
+	if len(otherData) > 0 {
+		for k, v := range otherData {
+			if v == "" {
+				continue
+			}
+			sb.WriteString(" [")
+			sb.WriteString(k)
+			sb.WriteString(":")
+			sb.WriteString(v)
+			sb.WriteString("]")
+		}
 	}
 
 	sb.WriteString(" [")
@@ -82,18 +115,46 @@ func (l *pLogger) Log(level klog.Level, keyVals ...any) error {
 	sb.WriteString("]")
 
 	switch level {
-	case klog.LevelDebug:
+	case kLog.LevelDebug:
 		l.log.Debug(sb.String())
-	case klog.LevelInfo:
+	case kLog.LevelInfo:
 		l.log.Info(sb.String())
-	case klog.LevelWarn:
+	case kLog.LevelWarn:
 		l.log.Warn(sb.String())
-	case klog.LevelError:
+	case kLog.LevelError:
 		l.log.Error(sb.String())
-	case klog.LevelFatal:
+	case kLog.LevelFatal:
 		l.log.Fatal(sb.String())
 	default:
-		l.log.Error(sb.String())
+		l.log.Error("unknown log level: " + sb.String())
 	}
 	return nil
+}
+
+// --------------------------------------------------
+// WithPrefix是希望把某几个key打印在msg前面，方便肉眼查看
+// 但是因为利用了kratos的Logger接口，增加接口我首先需要自己实现比如log.With方法
+/*
+prefixKeys      map[string]bool
+sortedPrefixKey []string
+func (l *pLogger) WithPrefix(kv ...interface{}) kLog.Logger {
+	for i := 0; i < len(kv); i += 2 {
+		key := fmt.Sprint(kv[i])
+		l.prefixKeys[key] = true
+		l.sortedPrefixKey = append(l.sortedPrefixKey, key)
+	}
+	sort.Strings(l.sortedPrefixKey)
+	return kLog.With(l, kv...)
+}
+*/
+// 所以直接用全局变量传递prefixKeys了
+var globalPrefixKeys = make(map[string]bool)
+var globalSortedPrefixKey []string
+
+func SetPrefixKeys(keys ...string) {
+	for _, k := range keys {
+		globalPrefixKeys[k] = true
+		globalSortedPrefixKey = append(globalSortedPrefixKey, k)
+	}
+	sort.Strings(globalSortedPrefixKey)
 }
