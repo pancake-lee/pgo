@@ -5,6 +5,36 @@ import (
 	"testing"
 )
 
+func TestFixWindowsSlash_SMBInJSON(t *testing.T) {
+	// 模拟一个完整的（非严格 JSON）字符串，其中包含 UNC/SMB 路径（不是在字符串开头）
+	// 这里使用原始字符串字面量，路径内使用单个反斜杠表示（代表内存中的路径）
+	in := `{"src":"\\192.168.1.123\a\b.jpg","note":"file"}`
+	// 期望保留协议头的两个反斜杠，替换其后的单斜杠为 '/'
+	want := `{"src":"\\192.168.1.123/a/b.jpg","note":"file"}`
+	got := FixWinSlash(in)
+	if got != want {
+		t.Fatalf("FixWindowsSlash(%q) = %q, want %q", in, got, want)
+	}
+}
+
+func TestFixWindowsSlash_NormalWindowsPath(t *testing.T) {
+	in := `C:\Users\Alice\file.txt`
+	want := `C:/Users/Alice/file.txt`
+	got := FixWinSlash(in)
+	if got != want {
+		t.Fatalf("FixWindowsSlash(%q) = %q, want %q", in, got, want)
+	}
+}
+
+func TestFixWindowsSlash_AlreadyUnix(t *testing.T) {
+	in := `/usr/local/bin`
+	want := `/usr/local/bin`
+	got := FixWinSlash(in)
+	if got != want {
+		t.Fatalf("FixWindowsSlash(%q) = %q, want %q", in, got, want)
+	}
+}
+
 func TestAnyToUrlQuery(t *testing.T) {
 	var testCases struct {
 		A  string
