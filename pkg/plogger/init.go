@@ -1,9 +1,11 @@
 package plogger
 
 import (
+	"inserver/pkg/util"
 	"log"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -65,20 +67,28 @@ func InitConsoleLogger() {
 	InitLogger(true, zap.DebugLevel, "")
 }
 
-func InitLogger(isLogConsole bool, lv zapcore.Level, folder string) {
-	logPath := filepath.Join(putil.GetExecFolder(), "./logs/")
-	if folder != "" {
-		logPath = folder
+func InitLogger(isLogConsole bool, lv zapcore.Level, logPath string) {
+	fullPath := ""
+	folderPath := ""
+
+	execName := putil.GetExecName()
+
+	if strings.HasSuffix(logPath, ".log") {
+		folderPath = util.NewPathToolSimple(logPath).GetParentFolderPath()
+		fullPath = logPath
+
+	} else {
+		folderPath = logPath
+		if logPath == "" {
+			folderPath = filepath.Join(putil.GetExecFolder(), "./logs/")
+		}
+		fileName := execName + "_" + "%Y%m%d.log"
+		fullPath = path.Join(folderPath, fileName)
 	}
 
-	logName := putil.GetExecName()
-
-	fileName := logName + "_" + "%Y%m%d.log"
-	fullPath := path.Join(logPath, fileName)
-
 	//软连接名 LogName
-	linkName := logName
-	linkPath := path.Join(logPath, linkName)
+	linkName := execName + ".log"
+	linkPath := path.Join(folderPath, linkName)
 
 	zLogger := newZapLogger(isLogConsole, lv, fullPath, linkPath)
 
@@ -90,5 +100,5 @@ func InitLogger(isLogConsole bool, lv zapcore.Level, folder string) {
 	}
 
 	initDefaultLogger(zLogger)
-	Info("Logger initialized -------------------------------")
+	// Debugf("Logger initialized -------------------------------")
 }

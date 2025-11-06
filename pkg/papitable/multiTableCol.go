@@ -329,6 +329,9 @@ type SelectFieldOption struct {
 }
 
 func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
+	if options == nil {
+		options = []*SelectFieldOption{}
+	}
 	return &AddField{
 		Name: colName,
 		Type: FIELD_TYPE_SINGLE_SELECT,
@@ -370,7 +373,7 @@ func (h *SelectFieldOptionHandler) RegOptionS(id, text string, style SelectField
 }
 func (h *SelectFieldOptionHandler) GetOptionList() []*SelectFieldOption {
 	if h.optionMap == nil {
-		return nil
+		return []*SelectFieldOption{}
 	}
 	var options []*SelectFieldOption
 	for _, option := range h.optionMap {
