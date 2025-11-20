@@ -55,7 +55,7 @@ func (doc *MultiTableDoc) DelAllRows() error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(10 * time.Millisecond) // 避免请求过快
+		time.Sleep(25 * time.Millisecond) // 避免请求过快
 		return nil
 	})
 	if err != nil {

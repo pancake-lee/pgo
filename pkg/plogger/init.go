@@ -58,7 +58,7 @@ func GetDefaultLogWarper() *PLogWarper {
 // --------------------------------------------------
 func InitFromConfig(isLogConsole bool) {
 	level := pconfig.GetStringD("Log.Level", "debug")
-	lv := GetLoggerLevel(level)
+	lv := StrToLoggerLevel(level)
 	folder := pconfig.GetStringD("Log.Path", "")
 	InitLogger(isLogConsole, lv, folder)
 }
@@ -87,7 +87,7 @@ func InitLogger(isLogConsole bool, lv zapcore.Level, logPath string) {
 	}
 
 	//软连接名 LogName
-	linkName := execName + ".log"
+	linkName := execName
 	linkPath := path.Join(folderPath, linkName)
 
 	zLogger := newZapLogger(isLogConsole, lv, fullPath, linkPath)

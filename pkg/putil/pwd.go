@@ -3,7 +3,6 @@ package putil
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -65,20 +64,16 @@ func GetCallerFuncName(skip int) string {
 	if !ok {
 		return ""
 	}
-
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return ""
-	}
-
-	// 获取完整的函数名（包含包路径）
-	fullName := fn.Name()
-	return path.Base(fullName)
+	fn := runtime.FuncForPC(pc).Name()
+	return GetFuncBaseName(fn)
 }
 
 func GetFuncName(i any) string {
-	// 获取函数名称
 	fn := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+	return GetFuncBaseName(fn)
+}
+
+func GetFuncBaseName(fn string) string {
 	// 用 sep 进行分割，不要文件名，也不要类名
 	sepList := []rune{'.', '/', '\\'}
 	fields := strings.FieldsFunc(fn, func(sep rune) bool {

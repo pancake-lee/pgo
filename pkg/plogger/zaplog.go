@@ -19,6 +19,13 @@ var (
 	resetTimer   *time.Timer
 )
 
+func GetLoggerLevel() zapcore.Level {
+	if logLevel == nil {
+		return zap.InfoLevel
+	}
+	return logLevel.Level()
+}
+
 // 临时设置日志级别，10分钟后恢复
 func SetLoggerLevel(lv string) {
 	if logLevel == nil {
@@ -26,7 +33,7 @@ func SetLoggerLevel(lv string) {
 	}
 
 	Errorf("SetLoggerLevel: %s, origLogLevel: %s", lv, origLogLevel)
-	logLevel.SetLevel(GetLoggerLevel(lv))
+	logLevel.SetLevel(StrToLoggerLevel(lv))
 
 	// 只能临时修改10分钟，如果需要长期修改，应该修改配置文件，然后重启程序
 	if resetTimer != nil {
@@ -36,7 +43,7 @@ func SetLoggerLevel(lv string) {
 		// 恢复为配置文件中的日志级别
 		if origLogLevel != "" {
 			Errorf("reset origLogLevel: %s", origLogLevel)
-			logLevel.SetLevel(GetLoggerLevel(origLogLevel))
+			logLevel.SetLevel(StrToLoggerLevel(origLogLevel))
 		}
 	})
 }
@@ -103,7 +110,7 @@ var levelMap = map[string]zapcore.Level{
 	"fatal":  zapcore.FatalLevel,
 }
 
-func GetLoggerLevel(lvl string) zapcore.Level {
+func StrToLoggerLevel(lvl string) zapcore.Level {
 	if level, ok := levelMap[lvl]; ok {
 		return level
 	}
