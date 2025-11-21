@@ -102,14 +102,13 @@ func ParseUserValue(value any) ([]CellUserValue, error) {
 // --------------------------------------------------
 
 // Attachment (文件/附件) 字段
-func NewAttachmentValue(name, token, mimeType string, size int64) map[string]any {
+func NewAttachmentValue(name, token string) map[string]any {
 	return map[string]any{
-		"name":     name,
-		"token":    token,
-		"mimeType": mimeType,
-		"size":     size,
+		"name":  name,
+		"token": token,
 	}
 }
+
 // AttachmentValue 是解析后附件的结构体表示
 type AttachmentValue struct {
 	ID       string `json:"id,omitempty"`

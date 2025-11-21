@@ -159,7 +159,8 @@ func TestFileCol(t *testing.T) {
 		}
 		plogger.Debugf("upload response: %+v", upResp.Data)
 
-		att := NewAttachmentValue(upResp.Data.Name, upResp.Data.Token, upResp.Data.MimeType, upResp.Data.Size)
+		// att := NewAttachmentValue(upResp.Data.Name, upResp.Data.Token, upResp.Data.MimeType, upResp.Data.Size)
+		att := NewAttachmentValue("cover.jpg", upResp.Data.Token)
 
 		// 添加一行，附件字段为数组形式
 		row := &AddRecord{Values: map[string]any{
