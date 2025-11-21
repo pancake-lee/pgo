@@ -143,7 +143,7 @@ func TestFileCol(t *testing.T) {
 
 	// 确保附件列存在
 	_, err = doc.SetColList([]*AddField{
-		NewFileCol("测试附件"),
+		NewAttachmentCol("测试附件"),
 	}, false)
 	if err != nil {
 		t.Fatal(err)
