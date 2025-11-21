@@ -319,6 +319,16 @@ func NewSimpleUserCol(colName string, isMultiple bool) *AddField {
 }
 
 // --------------------------------------------------
+// Attachment (文件/附件) 字段
+func NewFileCol(colName string) *AddField {
+	return &AddField{
+		Name:     colName,
+		Type:     FIELD_TYPE_ATTACHMENT,
+		Property: nil,
+	}
+}
+
+// --------------------------------------------------
 
 type SelectFieldOption struct {
 	Id string `json:"id,omitempty"`

@@ -125,3 +125,75 @@ func TestAPITable(t *testing.T) {
 		time.Sleep(10 * time.Millisecond) // 避免请求过快
 	}
 }
+
+func TestFileCol(t *testing.T) {
+	var err error
+	plogger.InitConsoleLogger()
+
+	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+
+	err = InitAPITableByConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	doc := NewMultiTableDoc(
+		pconfig.GetStringM("APITable.spaceId"),
+		pconfig.GetStringM("APITable.datasheetId"))
+
+	// 确保附件列存在
+	_, err = doc.SetColList([]*AddField{
+		NewFileCol("测试附件"),
+	}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if true { // 关闭上传，测试/确认附件字段值的结构
+		filePath := "../../bin/2.jpg"
+		// 上传文件并获取 token
+		upResp, err := doc.UploadAttachmentWithPresignedUrl(filePath)
+		// upResp, err := doc.UploadAttachment(filePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		plogger.Debugf("upload response: %+v", upResp.Data)
+
+		att := NewAttachmentValue(upResp.Data.Name, upResp.Data.Token, upResp.Data.MimeType, upResp.Data.Size)
+
+		// 添加一行，附件字段为数组形式
+		row := &AddRecord{Values: map[string]any{
+			"测试附件": []any{att},
+		}}
+		_, err = doc.AddRow([]*AddRecord{row})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// 读取回数据并验证
+	resp, err := doc.GetRow(&GetRecordRequest{
+		PageNum: 1, PageSize: 10,
+		Fields: []string{"测试附件"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Data.Records) == 0 {
+		t.Fatalf("no records returned")
+	}
+	rec := resp.Data.Records[len(resp.Data.Records)-1] // 只看最后一条
+	v, ok := rec.Fields["测试附件"]
+	if !ok {
+		t.Fatalf("attachment field missing in returned record")
+	}
+
+	// 解析附件字段并打印结构化结果
+	parsed, err := ParseAttachmentValue(v)
+	if err != nil {
+		t.Fatalf("failed to parse attachment value: %v", err)
+	}
+	plogger.Debugf("parsed attachment value: %+v", parsed)
+	if len(parsed) == 0 || parsed[0].Name == "" || parsed[0].Size == 0 {
+		t.Fatalf("parsed attachment value seems incorrect")
+	}
+}

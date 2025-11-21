@@ -100,6 +100,74 @@ func ParseUserValue(value any) ([]CellUserValue, error) {
 }
 
 // --------------------------------------------------
+
+// Attachment (文件/附件) 字段
+func NewAttachmentValue(name, token, mimeType string, size int64) map[string]any {
+	return map[string]any{
+		"name":     name,
+		"token":    token,
+		"mimeType": mimeType,
+		"size":     size,
+	}
+}
+// AttachmentValue 是解析后附件的结构体表示
+type AttachmentValue struct {
+	ID       string `json:"id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Token    string `json:"token,omitempty"`
+	MimeType string `json:"mimeType,omitempty"`
+	Size     int64  `json:"size,omitempty"`
+	Url      string `json:"url,omitempty"`
+	Width    int    `json:"width,omitempty"`
+	Height   int    `json:"height,omitempty"`
+}
+
+// ParseAttachmentValue 将单元格中的附件值解析为 []AttachmentValue
+func ParseAttachmentValue(value any) ([]AttachmentValue, error) {
+	if value == nil {
+		return nil, nil
+	}
+	var result []AttachmentValue
+	// 值通常是 []any，其中每个元素是 map[string]any
+	if arr, ok := value.([]any); ok {
+		for _, item := range arr {
+			if m, ok := item.(map[string]any); ok {
+				av := AttachmentValue{}
+				if id, ok := m["id"].(string); ok {
+					av.ID = id
+				}
+				if name, ok := m["name"].(string); ok {
+					av.Name = name
+				}
+				if token, ok := m["token"].(string); ok {
+					av.Token = token
+				}
+				if mt, ok := m["mimeType"].(string); ok {
+					av.MimeType = mt
+				}
+				if urlStr, ok := m["url"].(string); ok {
+					av.Url = urlStr
+				}
+				if sizeF, ok := m["size"].(float64); ok {
+					av.Size = int64(sizeF)
+				} else if sizeI, ok := m["size"].(int64); ok {
+					av.Size = sizeI
+				}
+				if wF, ok := m["width"].(float64); ok {
+					av.Width = int(wF)
+				}
+				if hF, ok := m["height"].(float64); ok {
+					av.Height = int(hF)
+				}
+				result = append(result, av)
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("invalid attachment cell value type: %T", value)
+}
+
+// --------------------------------------------------
 type CellOption string
 
 func (opt *CellOption) GetKey() string {

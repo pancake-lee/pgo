@@ -1,0 +1,79 @@
+上传附件
+该接口用于上传一个附件，并将该附件绑定到一张维格表。
+
+上传完附件后，附件数据并不会直接插入到表中，需要再调用「创建记录」或「更新记录」接口将附件数据插入到某个类型为「附件」的字段中。
+
+每次请求只可上传一个附件。如果需要上传多份文件，需要重复调用此接口。
+
+请求地址：https://vika.cn/fusion/v1/datasheets/{datasheetId}/attachments
+请求方法：POST
+请求头必须包含：
+Authorization: Bearer {你的 API Token}
+Content-Type：multipart/form-data
+右侧区域提供了 cURL、Javascript SDK 的请求示例，供你参考。
+
+如果你需要更详细的操作指导，可阅读「API 指南」的上传附件操作指南。
+
+如果你有更复杂的接口请求，可参考下列参数，自行组合。
+
+path Parameters
+datasheetId
+required
+string
+Example: dst0Yj5aNeoHldqvf6
+维格表 ID
+
+Request Body schema: multipart/form-data
+请求体结构
+
+file
+required
+string <binary>
+需要上传的附件的本地绝对路径。
+
+Responses
+201
+Response Schema: application/json
+success
+required
+boolean
+全局状态值，如果为 false，则表示发生了业务错误或接口调用错误。
+
+code
+required
+number
+业务状态码，200 表示业务请求成功。
+
+message
+required
+string
+返回信息，执行错误时返回错误信息。
+
+data
+required
+object
+返回的业务数据体。
+
+示例curl请求
+curl -X POST \
+"https://vika.cn/fusion/v1/datasheets/{替换为你的 datasheetId}/attachments" \
+-H  "Authorization: Bearer {替换为你的 API Token}" \
+-H  "Content-Type: multipart/form-data" \
+-F "file=@{替换为你的本地文件路径}"
+
+Response
+{
+  "success": true,
+  "code": 200,
+  "message": "SUCCESS",
+  "data": {
+    "token": "space/2020/07/28/6fdc652231a8480398e302606ae28213",
+    "name": "9d4911932181f254433a86b05797f9a6.jpeg",
+    "size": 7194,
+    "width": 479,
+    "height": 478,
+    "mimeType": "image/jpeg",
+    "preview": "***",
+    "url": "***"
+  }
+}
