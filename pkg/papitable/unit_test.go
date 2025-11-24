@@ -1,6 +1,7 @@
 package papitable
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -151,9 +152,21 @@ func TestFileCol(t *testing.T) {
 
 	if true { // 关闭上传，测试/确认附件字段值的结构
 		filePath := "../../bin/2.jpg"
+		// 打开文件
+		f, err := os.Open(filePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer f.Close()
+
+		fi, err := f.Stat()
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		// 上传文件并获取 token
-		upResp, err := doc.UploadAttachmentWithPresignedUrl(filePath)
-		// upResp, err := doc.UploadAttachment(filePath)
+		upResp, err := doc.UploadAttachmentWithPresignedUrl(
+			filepath.Base(filePath), putil.NewPath(filePath).MIME(), fi.Size(), f)
 		if err != nil {
 			t.Fatal(err)
 		}

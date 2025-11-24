@@ -105,7 +105,9 @@ func (doc *MultiTableDoc) UploadAttachment(filePath string) (*uploadAttachmentRe
 // packages/room-server/src/fusion/vos/attachment.vo.ts
 // packages/room-server/src/fusion/fusion.api.controller.ts
 // backend-server/application/src/main/java/com/apitable/asset/controller/AssetCallbackController.java
-func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(filePath string) (*uploadAttachmentResponse, error) {
+func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
+	fileName, contentType string, fileSize int64, fileReader io.Reader,
+) (*uploadAttachmentResponse, error) {
 	// 1. 请求 presignedUrl
 	reqUrl := fmt.Sprintf("%s/fusion/v1/datasheets/%s/attachments/presignedUrl?count=1", g_baseUrl, doc.DatasheetId)
 	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
@@ -154,19 +156,6 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(filePath string) (*up
 
 	// --------------------------------------------------
 	// 2. 上传到 presigned URL
-	// 打开文件
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	defer f.Close()
-
-	fi, err := f.Stat()
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-
-	// --------------------------------------------------
 	// 因为minio来自于apitable的docker集群
 	// 所以对于外部调用，我们自己要重新替换baseUrl
 	parsedUpload, err := url.Parse(uploadInfo.UploadUrl)
@@ -181,12 +170,12 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(filePath string) (*up
 	targetURL := parsedUpload.String()
 
 	// --------------------------------------------------
-	putReq, err := http.NewRequest(http.MethodPut, targetURL, f)
+	putReq, err := http.NewRequest(http.MethodPut, targetURL, fileReader)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	putReq.Header.Set("Content-Type", putil.NewPath(filePath).MIME())
-	putReq.ContentLength = int64(fi.Size())
+	putReq.Header.Set("Content-Type", contentType)
+	putReq.ContentLength = fileSize
 	// plogger.Debugf("req : %v", putReq)
 
 	respBody, err := putil.HttpDo(putReq)
@@ -247,7 +236,7 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(filePath string) (*up
 	upResp.Success = true
 	upResp.Code = 200
 	upResp.Message = "SUCCESS"
-	upResp.Data.Name = filepath.Base(filePath)
+	upResp.Data.Name = fileName
 	upResp.Data.Token = final.Token
 	upResp.Data.MimeType = final.MimeType
 	upResp.Data.Size = final.Size
