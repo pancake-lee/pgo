@@ -109,31 +109,31 @@ func GetUserList(spaceId string) ([]*User, error) {
 
 // getAllUsersRecursive 递归获取所有用户
 func getAllUsersRecursive(spaceId, unitId string, allUsers map[string]*User) error {
-	// 1. 获取当前小组的子小组列表
-	teams, err := getTeamChildren(spaceId, unitId)
-	if err != nil {
-		return err
-	}
 
-	// 2. 获取当前小组的成员
-	unitId = "cd6a59f835704b59997591137295d91a"
+	// 1. 获取当前小组的成员
 	members, err := getTeamMembers(spaceId, unitId)
 	if err != nil {
 		return err
 	}
 
-	// 3. 将成员添加到总列表中（去重）
+	// 2. 将成员添加到总列表中（去重）
 	for _, member := range members {
 		allUsers[member.UnitId] = member
 	}
 
+	// 3. 获取当前小组的子小组列表
+	// teams, err := getTeamChildren(spaceId, unitId)
+	// if err != nil {
+	// 	return err
+	// }
+
 	// 4. 递归处理每个子小组
-	for _, team := range teams {
-		err = getAllUsersRecursive(spaceId, team.UnitId, allUsers)
-		if err != nil {
-			return err
-		}
-	}
+	// for _, team := range teams {
+	// 	err = getAllUsersRecursive(spaceId, team.UnitId, allUsers)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

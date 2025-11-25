@@ -11,6 +11,35 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
+func TestGetRow(t *testing.T) {
+	var err error
+	plogger.InitConsoleLogger()
+
+	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+
+	err = InitAPITableByConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	doc := NewMultiTableDoc(
+		pconfig.GetStringM("APITable.spaceId"),
+		pconfig.GetStringM("APITable.datasheetId"))
+
+	// 读取数据
+	resp, err := doc.GetRow(&GetRecordRequest{
+		PageNum: 1, PageSize: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Data.Records) == 0 {
+		t.Fatalf("no records returned")
+	}
+	for _, r := range resp.Data.Records {
+		plogger.Debugf("GetRow response: %+v", r)
+	}
+}
+
 func TestAPITable(t *testing.T) {
 	plogger.InitConsoleLogger()
 
@@ -209,5 +238,50 @@ func TestFileCol(t *testing.T) {
 	plogger.Debugf("parsed attachment value: %+v", parsed)
 	if len(parsed) == 0 || parsed[0].Name == "" || parsed[0].Size == 0 {
 		t.Fatalf("parsed attachment value seems incorrect")
+	}
+}
+
+func TestPermission(t *testing.T) {
+	var err error
+	plogger.InitConsoleLogger()
+
+	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+
+	err = InitAPITableByConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	spaceId := pconfig.GetStringM("APITable.spaceId")
+
+	// 用户接口未调通，通过表中成员列赋值后获取数据来拿一个数据进行测试
+	// unitId := "ade4d0eeff634688844fe352e2fab0ea" //l
+	unitId := "545a2a3fc0634e9391db07ea68f04371" //p
+
+	doc := NewMultiTableDoc(
+		spaceId,
+		pconfig.GetStringM("APITable.datasheetId"))
+
+	fieldId := "fldMdfsyw2P70"
+	fieldName := "选项"
+
+	if false {
+		err = doc.EnableFieldPermission(fieldId, true)
+		if err != nil {
+			t.Fatalf("EnableFieldPermission failed: %v", err)
+		}
+	}
+	if true {
+		err = doc.DisableFieldPermission(fieldId)
+		if err != nil {
+			t.Fatalf("DisableFieldPermission failed: %v", err)
+		}
+	}
+
+	if false {
+		err = doc.UpdateFieldPermissionRole(fieldId, []string{unitId}, RoleEditor)
+		if err != nil {
+			t.Fatalf("UpdateFieldPermissionRole failed: %v", err)
+		}
+		plogger.Debugf("Set field %s permission for user %s success", fieldName, unitId)
 	}
 }
