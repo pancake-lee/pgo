@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kataras/iris/v12/x/errors"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -108,6 +109,10 @@ func (doc *MultiTableDoc) UploadAttachment(filePath string) (*uploadAttachmentRe
 func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
 	fileName, contentType string, fileSize int64, fileReader io.Reader,
 ) (*uploadAttachmentResponse, error) {
+	if fileSize == 0 {
+		return nil, plogger.LogErr(errors.New("can not upload an empty file"))
+	}
+
 	// 1. 请求 presignedUrl
 	reqUrl := fmt.Sprintf("%s/fusion/v1/datasheets/%s/attachments/presignedUrl?count=1", g_baseUrl, doc.DatasheetId)
 	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
