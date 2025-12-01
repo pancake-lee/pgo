@@ -11,7 +11,7 @@ import (
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义
-const pbTplPath = "proto/AbandonCode.proto"
+const pbTplPath = "proto/abandonCode.proto"
 const pbOutputPath = "./proto/"
 
 func genProto(

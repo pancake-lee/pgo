@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -74,12 +78,52 @@ func main() {
 
 	rmAllGenFile()
 
-	addTable(&model.User{}, "user")
-	addTable(&model.UserDept{}, "user")
-	addTable(&model.UserDeptAssoc{}, "user")
-	addTable(&model.UserJob{}, "user")
-	addTable(&model.CourseSwapRequest{}, "school")
-	addTable(&model.Task{}, "task")
+	pconfig.MustInitConfig("./configs/pancake.yaml")
+	pdb.MustInitPGByConfig()
+
+	// 通过反射获取所有表
+	q := db.GetPG()
+	qVal := reflect.ValueOf(q).Elem()
+	for i := 0; i < qVal.NumField(); i++ {
+		field := qVal.Type().Field(i)
+		plogger.Debugf("reflect field[%s] Type[%s]", field.Name, field.Type)
+		if field.Name == "db" ||
+			field.Name == putil.StrToCamelCase(
+				(&model.AbandonCode{}).TableName()) {
+			continue
+		}
+		// DAO 对象有 WithContext 方法返回 DO 对象
+		method := qVal.Field(i).Addr().MethodByName("WithContext")
+		if !method.IsValid() {
+			plogger.Debugf("reflect field[%s] not found WithContext func", field.Name)
+			continue
+		}
+
+		// Call WithContext
+		res := method.Call([]reflect.Value{reflect.ValueOf(context.Background())})
+		if len(res) == 0 {
+			continue
+		}
+		doVal := res[0]
+
+		// 获取 Create 方法
+		createMethod := doVal.MethodByName("Create")
+		if !createMethod.IsValid() {
+			plogger.Debugf("reflect field[%s] DO not found Create func", field.Name)
+			continue
+		}
+
+		// 获取 Create 方法的第一个参数类型 ...*model.User
+		// In(0) 是 []*model.User
+		// Elem() 是 *model.User
+		// Elem() 是 model.User
+		modelType := createMethod.Type().In(0).Elem().Elem()
+
+		// 创建实例
+		m := reflect.New(modelType).Interface().(dbModel)
+
+		addTable(m, inferServiceName(m.TableName()))
+	}
 
 	//读取数据库表结构
 	for _, tbl := range tblMap {
@@ -156,4 +200,18 @@ func rmAllGenFile() {
 			}
 			return nil
 		})
+}
+
+// TODO 把sql存储到每个service内部，然后表和模块的对应关系就通过路径分析出来
+func inferServiceName(tableName string) string {
+	if strings.HasPrefix(tableName, "task") {
+		return "task"
+	}
+	if strings.HasPrefix(tableName, "course") {
+		return "school"
+	}
+	if strings.HasPrefix(tableName, "abandon") {
+		return "abandonCode"
+	}
+	return "user"
 }
