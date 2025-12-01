@@ -20,9 +20,35 @@ dbCmd=export PGPASSWORD=${dbPass}; \
 # every developer has a Git. run in GitBash.
 API_PROTO_FILES=$(shell find ./proto -name *.proto)
 
-.PHONY: init
+# --------------------------------------------------
+.PHONY: all
+# generate all
+all: gorm curd build
+
+# show help
+help:
+	@echo ''
+	@echo 'Usage:'
+	@echo ' make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk '/^[a-zA-Z\-_0-9]+:/ { \
+	helpMessage = match(lastLine, /^# (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")); \
+			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
+			printf "\033[36m%-10s\033[0m %s\n", helpCommand,helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+
+# 设置help为默认目标，平时默认目标是第一个目标
+.DEFAULT_GOAL := help
+
+# --------------------------------------------------
+.PHONY: env
 # 安装依赖
-init:
+env:
 # wget https://github.com/protocolbuffers/protobuf/releases/download/v28.1/protoc-28.1-linux-x86_64.zip
 # unzip protoc-28.1-linux-x86_64.zip -d /usr/local
 # go env -w GOPROXY=https://goproxy.cn,direct
@@ -51,20 +77,20 @@ api:
 		$(API_PROTO_FILES) \
 
 	echo servers: >> ./openapi.yaml
-	echo     - description: IN Gen2 Open API >> ./openapi.yaml
+	echo     - description: PGO API >> ./openapi.yaml
 	echo       url: http://127.0.0.1:8080 >> ./openapi.yaml
 
 .PHONY: gorm
 # 通过 gorm-gen 生成数据库访问代码
 gorm:
-	rm -rf ./internal/pkg/db/model/
-	rm -rf ./internal/pkg/db/query/
 	${dbCmd} -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
 	${dbCmd} -d postgres -c "CREATE DATABASE pgo_build;"
 	for file in ./internal/pkg/db/*.sql; do \
 		${dbCmd} -d pgo_build -f $$file; \
 	done
 
+	rm -rf ./internal/pkg/db/model/
+	rm -rf ./internal/pkg/db/query/
 	gentool \
 	-db postgres \
 	-dsn "host=$(dbIP) user=${dbUser} password=${dbPass} dbname=pgo_build port=5432 sslmode=disable" \
@@ -93,30 +119,6 @@ curd:
 # build
 build: 
 	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%dT%H:%M:%S)" -o ./bin/ ./...
-
-.PHONY: all
-# generate all
-all: gorm curd build
-
-# show help
-help:
-	@echo ''
-	@echo 'Usage:'
-	@echo ' make [target]'
-	@echo ''
-	@echo 'Targets:'
-	@awk '/^[a-zA-Z\-_0-9]+:/ { \
-	helpMessage = match(lastLine, /^# (.*)/); \
-		if (helpMessage) { \
-			helpCommand = substr($$1, 0, index($$1, ":")); \
-			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
-			printf "\033[36m%-10s\033[0m %s\n", helpCommand,helpMessage; \
-		} \
-	} \
-	{ lastLine = $$0 }' $(MAKEFILE_LIST)
-
-# 设置help为默认目标，平时默认目标是第一个目标
-.DEFAULT_GOAL := help
 
 .PHONY: precommit
 # 提交生成的代码[*.pb.go, ./client/swagger/*, *.gen.go, *.gen.proto]

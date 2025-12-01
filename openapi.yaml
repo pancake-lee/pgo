@@ -162,6 +162,82 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateCourseSwapRequestResponse'
+    /project:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetProjectList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetProjectListResponse'
+        post:
+            tags:
+                - UserCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : project
+            operationId: UserCURD_AddProject
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddProjectRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddProjectResponse'
+        delete:
+            tags:
+                - UserCURD
+            operationId: UserCURD_DelProjectByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateProject
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateProjectRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateProjectResponse'
     /task:
         get:
             tags:
@@ -396,6 +472,14 @@ paths:
             tags:
                 - UserCURD
             operationId: UserCURD_GetUserDeptAssocList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -446,6 +530,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserDeptAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserDeptAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserDeptAssocResponse'
     /user-job:
         get:
             tags:
@@ -522,6 +623,310 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserJobResponse'
+    /user-project-assoc:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserProjectAssocList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserProjectAssocListResponse'
+        post:
+            tags:
+                - UserCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : user_project_assoc
+            operationId: UserCURD_AddUserProjectAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserProjectAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserProjectAssocResponse'
+        delete:
+            tags:
+                - UserCURD
+            operationId: UserCURD_DelUserProjectAssocByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserProjectAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserProjectAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserProjectAssocResponse'
+    /user-role:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserRoleList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserRoleListResponse'
+        post:
+            tags:
+                - UserCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role
+            operationId: UserCURD_AddUserRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserRoleResponse'
+        delete:
+            tags:
+                - UserCURD
+            operationId: UserCURD_DelUserRoleByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserRoleResponse'
+    /user-role-assoc:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserRoleAssocList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserRoleAssocListResponse'
+        post:
+            tags:
+                - UserCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role_assoc
+            operationId: UserCURD_AddUserRoleAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserRoleAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserRoleAssocResponse'
+        delete:
+            tags:
+                - UserCURD
+            operationId: UserCURD_DelUserRoleAssocByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserRoleAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserRoleAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserRoleAssocResponse'
+    /user-role-permission-assoc:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserRolePermissionAssocList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserRolePermissionAssocListResponse'
+        post:
+            tags:
+                - UserCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role_permission_assoc
+            operationId: UserCURD_AddUserRolePermissionAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddUserRolePermissionAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddUserRolePermissionAssocResponse'
+        delete:
+            tags:
+                - UserCURD
+            operationId: UserCURD_DelUserRolePermissionAssocByIDList
+            parameters:
+                - name: iDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - UserCURD
+            operationId: UserCURD_UpdateUserRolePermissionAssoc
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateUserRolePermissionAssocRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateUserRolePermissionAssocResponse'
     /user/token:
         post:
             tags:
@@ -575,6 +980,16 @@ components:
             properties:
                 courseSwapRequest:
                     $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.AddProjectRequest:
+            type: object
+            properties:
+                project:
+                    $ref: '#/components/schemas/api.ProjectInfo'
+        api.AddProjectResponse:
+            type: object
+            properties:
+                project:
+                    $ref: '#/components/schemas/api.ProjectInfo'
         api.AddTaskRequest:
             type: object
             properties:
@@ -615,6 +1030,16 @@ components:
             properties:
                 userJob:
                     $ref: '#/components/schemas/api.UserJobInfo'
+        api.AddUserProjectAssocRequest:
+            type: object
+            properties:
+                userProjectAssoc:
+                    $ref: '#/components/schemas/api.UserProjectAssocInfo'
+        api.AddUserProjectAssocResponse:
+            type: object
+            properties:
+                userProjectAssoc:
+                    $ref: '#/components/schemas/api.UserProjectAssocInfo'
         api.AddUserRequest:
             type: object
             properties:
@@ -625,6 +1050,36 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+        api.AddUserRoleAssocRequest:
+            type: object
+            properties:
+                userRoleAssoc:
+                    $ref: '#/components/schemas/api.UserRoleAssocInfo'
+        api.AddUserRoleAssocResponse:
+            type: object
+            properties:
+                userRoleAssoc:
+                    $ref: '#/components/schemas/api.UserRoleAssocInfo'
+        api.AddUserRolePermissionAssocRequest:
+            type: object
+            properties:
+                userRolePermissionAssoc:
+                    $ref: '#/components/schemas/api.UserRolePermissionAssocInfo'
+        api.AddUserRolePermissionAssocResponse:
+            type: object
+            properties:
+                userRolePermissionAssoc:
+                    $ref: '#/components/schemas/api.UserRolePermissionAssocInfo'
+        api.AddUserRoleRequest:
+            type: object
+            properties:
+                userRole:
+                    $ref: '#/components/schemas/api.UserRoleInfo'
+        api.AddUserRoleResponse:
+            type: object
+            properties:
+                userRole:
+                    $ref: '#/components/schemas/api.UserRoleInfo'
         api.CourseSwapRequestInfo:
             type: object
             properties:
@@ -686,6 +1141,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.GetProjectListResponse:
+            type: object
+            properties:
+                projectList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ProjectInfo'
         api.GetTaskListResponse:
             type: object
             properties:
@@ -721,6 +1183,34 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserInfo'
+        api.GetUserProjectAssocListResponse:
+            type: object
+            properties:
+                userProjectAssocList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserProjectAssocInfo'
+        api.GetUserRoleAssocListResponse:
+            type: object
+            properties:
+                userRoleAssocList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserRoleAssocInfo'
+        api.GetUserRoleListResponse:
+            type: object
+            properties:
+                userRoleList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserRoleInfo'
+        api.GetUserRolePermissionAssocListResponse:
+            type: object
+            properties:
+                userRolePermissionAssocList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserRolePermissionAssocInfo'
         api.LoginRequest:
             type: object
             properties:
@@ -733,6 +1223,27 @@ components:
                     $ref: '#/components/schemas/api.UserInfo'
                 token:
                     type: string
+        api.ProjectInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
+                projName:
+                    type: string
+            description: |-
+                --------------------------------------------------
+                 tbl : project
         api.TaskInfo:
             type: object
             properties:
@@ -786,6 +1297,16 @@ components:
             properties:
                 courseSwapRequest:
                     $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.UpdateProjectRequest:
+            type: object
+            properties:
+                project:
+                    $ref: '#/components/schemas/api.ProjectInfo'
+        api.UpdateProjectResponse:
+            type: object
+            properties:
+                project:
+                    $ref: '#/components/schemas/api.ProjectInfo'
         api.UpdateTaskRequest:
             type: object
             properties:
@@ -796,6 +1317,16 @@ components:
             properties:
                 task:
                     $ref: '#/components/schemas/api.TaskInfo'
+        api.UpdateUserDeptAssocRequest:
+            type: object
+            properties:
+                userDeptAssoc:
+                    $ref: '#/components/schemas/api.UserDeptAssocInfo'
+        api.UpdateUserDeptAssocResponse:
+            type: object
+            properties:
+                userDeptAssoc:
+                    $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.UpdateUserDeptRequest:
             type: object
             properties:
@@ -816,6 +1347,16 @@ components:
             properties:
                 userJob:
                     $ref: '#/components/schemas/api.UserJobInfo'
+        api.UpdateUserProjectAssocRequest:
+            type: object
+            properties:
+                userProjectAssoc:
+                    $ref: '#/components/schemas/api.UserProjectAssocInfo'
+        api.UpdateUserProjectAssocResponse:
+            type: object
+            properties:
+                userProjectAssoc:
+                    $ref: '#/components/schemas/api.UserProjectAssocInfo'
         api.UpdateUserRequest:
             type: object
             properties:
@@ -826,9 +1367,52 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/api.UserInfo'
+        api.UpdateUserRoleAssocRequest:
+            type: object
+            properties:
+                userRoleAssoc:
+                    $ref: '#/components/schemas/api.UserRoleAssocInfo'
+        api.UpdateUserRoleAssocResponse:
+            type: object
+            properties:
+                userRoleAssoc:
+                    $ref: '#/components/schemas/api.UserRoleAssocInfo'
+        api.UpdateUserRolePermissionAssocRequest:
+            type: object
+            properties:
+                userRolePermissionAssoc:
+                    $ref: '#/components/schemas/api.UserRolePermissionAssocInfo'
+        api.UpdateUserRolePermissionAssocResponse:
+            type: object
+            properties:
+                userRolePermissionAssoc:
+                    $ref: '#/components/schemas/api.UserRolePermissionAssocInfo'
+        api.UpdateUserRoleRequest:
+            type: object
+            properties:
+                userRole:
+                    $ref: '#/components/schemas/api.UserRoleInfo'
+        api.UpdateUserRoleResponse:
+            type: object
+            properties:
+                userRole:
+                    $ref: '#/components/schemas/api.UserRoleInfo'
         api.UserDeptAssocInfo:
             type: object
             properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
                 userID:
                     type: integer
                     format: int32
@@ -847,6 +1431,16 @@ components:
                 iD:
                     type: integer
                     format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
                 deptPath:
                     type: string
                 deptName:
@@ -860,7 +1454,19 @@ components:
                 iD:
                     type: integer
                     format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
                 userName:
+                    type: string
+                password:
                     type: string
             description: |-
                 --------------------------------------------------
@@ -871,11 +1477,109 @@ components:
                 iD:
                     type: integer
                     format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
                 jobName:
                     type: string
             description: |-
                 --------------------------------------------------
                  tbl : user_job
+        api.UserProjectAssocInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                userID:
+                    type: integer
+                    format: int32
+                projID:
+                    type: integer
+                    format: int32
+            description: |-
+                --------------------------------------------------
+                 tbl : user_project_assoc
+        api.UserRoleAssocInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                userID:
+                    type: integer
+                    format: int32
+                roleID:
+                    type: integer
+                    format: int32
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role_assoc
+        api.UserRoleInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                updateTime:
+                    type: string
+                updateUser:
+                    type: integer
+                    format: int32
+                projID:
+                    type: integer
+                    format: int32
+                roleName:
+                    type: string
+                isDefault:
+                    type: integer
+                    format: int32
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role
+        api.UserRolePermissionAssocInfo:
+            type: object
+            properties:
+                iD:
+                    type: integer
+                    format: int32
+                createTime:
+                    type: string
+                createUser:
+                    type: integer
+                    format: int32
+                roleID:
+                    type: integer
+                    format: int32
+                action:
+                    type: string
+                pathPattern:
+                    type: string
+            description: |-
+                --------------------------------------------------
+                 tbl : user_role_permission_assoc
 tags:
     - name: AbandonCodeCURD
       description: '--------------------------------------------------'
@@ -888,5 +1592,5 @@ tags:
     - name: UserCURD
       description: '--------------------------------------------------'
 servers:
-- description: IN Gen2 Open API
+- description: PGO API
 url: http://127.0.0.1:8080

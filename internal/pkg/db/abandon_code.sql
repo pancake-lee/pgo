@@ -11,3 +11,9 @@ CREATE TABLE "abandon_code" (
   PRIMARY KEY ("idx1"),
   CONSTRAINT  "idx_col1" UNIQUE ("col1")
 );
+
+COMMENT ON TABLE "abandon_code" IS 'CURD生成模板';
+COMMENT ON COLUMN "abandon_code"."idx1" IS 'The primary key of the table';
+
+-- xxx_id_seq是pgsql自动为serial字段生成的序列名
+ALTER SEQUENCE abandon_code_idx1_seq RESTART WITH 10;
