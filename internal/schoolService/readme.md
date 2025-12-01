@@ -1,5 +1,9 @@
 # School服务
 
-教师们基于课表，经常因为其他事务占用了时间，需要互相协调上课时间。
+该服务实现了一个“教师课程管理”的功能，主要为了方便教师之间换课。
 
-表 `course_swap_request`存储教师的换课记录，配合换课工具(cli)使用，主要功能都在cli，服务仅存储一下数据
+后端代码仅使用genCURD生成了基础代码，用于保存“换课历史记录”。
+
+而换课等逻辑主要在客户端实现了。所谓的客户端也是go开发的命令行程序而已。`./client/course*.go`
+
+更具体的细节记录在了[docs\backlog\4.md](https://github.com/pancake-lee/pgo/blob/master/docs/backlog/4.md)

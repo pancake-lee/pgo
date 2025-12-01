@@ -144,6 +144,23 @@ func main() {
 				tbl.IdxParmName = putil.StrFirstToLower(putil.StrIdToLower(tbl.IdxColName))
 			}
 		}
+
+		// 尝试从数据库获取索引信息
+		indexes, err := pdb.GetGormDB().Migrator().GetIndexes(tbl.Model)
+		if err != nil {
+			plogger.Errorf("get indexes failed: %v", err)
+		} else {
+			for _, idx := range indexes {
+				pk, _ := idx.PrimaryKey()
+				unique, _ := idx.Unique()
+				plogger.Debugf("Index Name[%s] Primary[%v] Unique[%v]",
+					idx.Name(), pk, unique)
+				for _, col := range idx.Columns() {
+					plogger.Debugf("  Column[%s]", col)
+				}
+			}
+		}
+
 		if isMultiKey { //TODO
 			tbl.IdxColName = ""
 			tbl.IdxColType = ""
