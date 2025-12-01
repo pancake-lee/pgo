@@ -9,6 +9,30 @@ option go_package = "github.com/pancake-lee/pgo/api;api";
 // --------------------------------------------------
 service userCURD { // 该命名应该全文唯一
     // --------------------------------------------------
+    // tbl : project
+    rpc AddProject (AddProjectRequest) returns (AddProjectResponse) {
+        option (google.api.http) = {
+            post: "/project"
+            body: "*"
+        };
+    }
+    rpc GetProjectList (GetProjectListRequest) returns (GetProjectListResponse) {
+        option (google.api.http) = {
+            get: "/project"
+        };
+    }
+    rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {
+        option (google.api.http) = {
+            patch: "/project"
+            body: "*"
+        };
+    }
+    rpc DelProjectByIDList (DelProjectByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/project"
+        };
+    }
+    // --------------------------------------------------
     // tbl : user
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
         option (google.api.http) = {
@@ -69,6 +93,17 @@ service userCURD { // 该命名应该全文唯一
             get: "/user-dept-assoc"
         };
     }
+    rpc UpdateUserDeptAssoc(UpdateUserDeptAssocRequest) returns (UpdateUserDeptAssocResponse) {
+        option (google.api.http) = {
+            patch: "/user-dept-assoc"
+            body: "*"
+        };
+    }
+    rpc DelUserDeptAssocByIDList (DelUserDeptAssocByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-dept-assoc"
+        };
+    }
     // --------------------------------------------------
     // tbl : user_job
     rpc AddUserJob (AddUserJobRequest) returns (AddUserJobResponse) {
@@ -93,6 +128,142 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-job"
         };
     }
+    // --------------------------------------------------
+    // tbl : user_project_assoc
+    rpc AddUserProjectAssoc (AddUserProjectAssocRequest) returns (AddUserProjectAssocResponse) {
+        option (google.api.http) = {
+            post: "/user-project-assoc"
+            body: "*"
+        };
+    }
+    rpc GetUserProjectAssocList (GetUserProjectAssocListRequest) returns (GetUserProjectAssocListResponse) {
+        option (google.api.http) = {
+            get: "/user-project-assoc"
+        };
+    }
+    rpc UpdateUserProjectAssoc(UpdateUserProjectAssocRequest) returns (UpdateUserProjectAssocResponse) {
+        option (google.api.http) = {
+            patch: "/user-project-assoc"
+            body: "*"
+        };
+    }
+    rpc DelUserProjectAssocByIDList (DelUserProjectAssocByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-project-assoc"
+        };
+    }
+    // --------------------------------------------------
+    // tbl : user_role
+    rpc AddUserRole (AddUserRoleRequest) returns (AddUserRoleResponse) {
+        option (google.api.http) = {
+            post: "/user-role"
+            body: "*"
+        };
+    }
+    rpc GetUserRoleList (GetUserRoleListRequest) returns (GetUserRoleListResponse) {
+        option (google.api.http) = {
+            get: "/user-role"
+        };
+    }
+    rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse) {
+        option (google.api.http) = {
+            patch: "/user-role"
+            body: "*"
+        };
+    }
+    rpc DelUserRoleByIDList (DelUserRoleByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-role"
+        };
+    }
+    // --------------------------------------------------
+    // tbl : user_role_assoc
+    rpc AddUserRoleAssoc (AddUserRoleAssocRequest) returns (AddUserRoleAssocResponse) {
+        option (google.api.http) = {
+            post: "/user-role-assoc"
+            body: "*"
+        };
+    }
+    rpc GetUserRoleAssocList (GetUserRoleAssocListRequest) returns (GetUserRoleAssocListResponse) {
+        option (google.api.http) = {
+            get: "/user-role-assoc"
+        };
+    }
+    rpc UpdateUserRoleAssoc(UpdateUserRoleAssocRequest) returns (UpdateUserRoleAssocResponse) {
+        option (google.api.http) = {
+            patch: "/user-role-assoc"
+            body: "*"
+        };
+    }
+    rpc DelUserRoleAssocByIDList (DelUserRoleAssocByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-role-assoc"
+        };
+    }
+    // --------------------------------------------------
+    // tbl : user_role_permission_assoc
+    rpc AddUserRolePermissionAssoc (AddUserRolePermissionAssocRequest) returns (AddUserRolePermissionAssocResponse) {
+        option (google.api.http) = {
+            post: "/user-role-permission-assoc"
+            body: "*"
+        };
+    }
+    rpc GetUserRolePermissionAssocList (GetUserRolePermissionAssocListRequest) returns (GetUserRolePermissionAssocListResponse) {
+        option (google.api.http) = {
+            get: "/user-role-permission-assoc"
+        };
+    }
+    rpc UpdateUserRolePermissionAssoc(UpdateUserRolePermissionAssocRequest) returns (UpdateUserRolePermissionAssocResponse) {
+        option (google.api.http) = {
+            patch: "/user-role-permission-assoc"
+            body: "*"
+        };
+    }
+    rpc DelUserRolePermissionAssocByIDList (DelUserRolePermissionAssocByIDListRequest) returns (Empty) {
+        option (google.api.http) = {
+            delete: "/user-role-permission-assoc"
+        };
+    }
+}
+
+
+// --------------------------------------------------
+// tbl : project
+message ProjectInfo {
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    string projName = 6;
+}
+
+message AddProjectRequest {
+    ProjectInfo project = 1;
+}
+
+message AddProjectResponse {
+    ProjectInfo project = 1;
+}
+
+message GetProjectListRequest {
+    repeated int32 iDList = 1;
+}
+message GetProjectListResponse {
+    repeated ProjectInfo projectList = 1;
+}
+
+
+message UpdateProjectRequest {
+    ProjectInfo project = 1;
+}
+
+message UpdateProjectResponse {
+    ProjectInfo project = 1;
+}
+
+message DelProjectByIDListRequest {
+    repeated int32 iDList = 1;
 }
 
 
@@ -100,7 +271,12 @@ service userCURD { // 该命名应该全文唯一
 // tbl : user
 message UserInfo {
     int32 iD = 1;
-    string userName = 2;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    string userName = 6;
+    string password = 7;
 }
 
 message AddUserRequest {
@@ -136,8 +312,12 @@ message DelUserByIDListRequest {
 // tbl : user_dept
 message UserDeptInfo {
     int32 iD = 1;
-    string deptPath = 2;
-    string deptName = 3;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    string deptPath = 6;
+    string deptName = 7;
 }
 
 message AddUserDeptRequest {
@@ -172,9 +352,14 @@ message DelUserDeptByIDListRequest {
 // --------------------------------------------------
 // tbl : user_dept_assoc
 message UserDeptAssocInfo {
-    int32 userID = 1;
-    int32 deptID = 2;
-    int32 jobID = 3;
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    int32 userID = 6;
+    int32 deptID = 7;
+    int32 jobID = 8;
 }
 
 message AddUserDeptAssocRequest {
@@ -186,18 +371,35 @@ message AddUserDeptAssocResponse {
 }
 
 message GetUserDeptAssocListRequest {
+    repeated int32 iDList = 1;
 }
 message GetUserDeptAssocListResponse {
     repeated UserDeptAssocInfo userDeptAssocList = 1;
 }
 
 
+message UpdateUserDeptAssocRequest {
+    UserDeptAssocInfo userDeptAssoc = 1;
+}
+
+message UpdateUserDeptAssocResponse {
+    UserDeptAssocInfo userDeptAssoc = 1;
+}
+
+message DelUserDeptAssocByIDListRequest {
+    repeated int32 iDList = 1;
+}
+
 
 // --------------------------------------------------
 // tbl : user_job
 message UserJobInfo {
     int32 iD = 1;
-    string jobName = 2;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    string jobName = 6;
 }
 
 message AddUserJobRequest {
@@ -225,6 +427,166 @@ message UpdateUserJobResponse {
 }
 
 message DelUserJobByIDListRequest {
+    repeated int32 iDList = 1;
+}
+
+
+// --------------------------------------------------
+// tbl : user_project_assoc
+message UserProjectAssocInfo {
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int32 userID = 4;
+    int32 projID = 5;
+}
+
+message AddUserProjectAssocRequest {
+    UserProjectAssocInfo userProjectAssoc = 1;
+}
+
+message AddUserProjectAssocResponse {
+    UserProjectAssocInfo userProjectAssoc = 1;
+}
+
+message GetUserProjectAssocListRequest {
+    repeated int32 iDList = 1;
+}
+message GetUserProjectAssocListResponse {
+    repeated UserProjectAssocInfo userProjectAssocList = 1;
+}
+
+
+message UpdateUserProjectAssocRequest {
+    UserProjectAssocInfo userProjectAssoc = 1;
+}
+
+message UpdateUserProjectAssocResponse {
+    UserProjectAssocInfo userProjectAssoc = 1;
+}
+
+message DelUserProjectAssocByIDListRequest {
+    repeated int32 iDList = 1;
+}
+
+
+// --------------------------------------------------
+// tbl : user_role
+message UserRoleInfo {
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int64 updateTime = 4;
+    int32 updateUser = 5;
+    int32 projID = 6;
+    string roleName = 7;
+    int32 isDefault = 8;
+}
+
+message AddUserRoleRequest {
+    UserRoleInfo userRole = 1;
+}
+
+message AddUserRoleResponse {
+    UserRoleInfo userRole = 1;
+}
+
+message GetUserRoleListRequest {
+    repeated int32 iDList = 1;
+}
+message GetUserRoleListResponse {
+    repeated UserRoleInfo userRoleList = 1;
+}
+
+
+message UpdateUserRoleRequest {
+    UserRoleInfo userRole = 1;
+}
+
+message UpdateUserRoleResponse {
+    UserRoleInfo userRole = 1;
+}
+
+message DelUserRoleByIDListRequest {
+    repeated int32 iDList = 1;
+}
+
+
+// --------------------------------------------------
+// tbl : user_role_assoc
+message UserRoleAssocInfo {
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int32 userID = 4;
+    int32 roleID = 5;
+}
+
+message AddUserRoleAssocRequest {
+    UserRoleAssocInfo userRoleAssoc = 1;
+}
+
+message AddUserRoleAssocResponse {
+    UserRoleAssocInfo userRoleAssoc = 1;
+}
+
+message GetUserRoleAssocListRequest {
+    repeated int32 iDList = 1;
+}
+message GetUserRoleAssocListResponse {
+    repeated UserRoleAssocInfo userRoleAssocList = 1;
+}
+
+
+message UpdateUserRoleAssocRequest {
+    UserRoleAssocInfo userRoleAssoc = 1;
+}
+
+message UpdateUserRoleAssocResponse {
+    UserRoleAssocInfo userRoleAssoc = 1;
+}
+
+message DelUserRoleAssocByIDListRequest {
+    repeated int32 iDList = 1;
+}
+
+
+// --------------------------------------------------
+// tbl : user_role_permission_assoc
+message UserRolePermissionAssocInfo {
+    int32 iD = 1;
+    int64 createTime = 2;
+    int32 createUser = 3;
+    int32 roleID = 4;
+    string action = 5;
+    string pathPattern = 6;
+}
+
+message AddUserRolePermissionAssocRequest {
+    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+}
+
+message AddUserRolePermissionAssocResponse {
+    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+}
+
+message GetUserRolePermissionAssocListRequest {
+    repeated int32 iDList = 1;
+}
+message GetUserRolePermissionAssocListResponse {
+    repeated UserRolePermissionAssocInfo userRolePermissionAssocList = 1;
+}
+
+
+message UpdateUserRolePermissionAssocRequest {
+    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+}
+
+message UpdateUserRolePermissionAssocResponse {
+    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+}
+
+message DelUserRolePermissionAssocByIDListRequest {
     repeated int32 iDList = 1;
 }
 

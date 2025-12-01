@@ -18,11 +18,11 @@ type Task struct {
 	Task       string    `gorm:"column:task;not null" json:"task"`
 	Status     int32     `gorm:"column:status;not null" json:"status"`
 	Estimate   int32     `gorm:"column:estimate;not null" json:"estimate"`
-	Start      time.Time `gorm:"column:start;default:CURRENT_TIMESTAMP" json:"start"`
-	End        time.Time `gorm:"column:end;default:CURRENT_TIMESTAMP" json:"end"`
+	Start      time.Time `gorm:"column:start;default:now()" json:"start"`
+	End        time.Time `gorm:"column:end;default:now()" json:"end"`
 	Desc       string    `gorm:"column:desc;not null" json:"desc"`
 	Metadata   string    `gorm:"column:metadata;not null" json:"metadata"`
-	CreateTime time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP" json:"create_time"`
+	CreateTime time.Time `gorm:"column:create_time;default:now()" json:"create_time"`
 }
 
 // TableName Task's table name

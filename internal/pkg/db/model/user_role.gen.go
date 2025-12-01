@@ -8,19 +8,21 @@ import (
 	"time"
 )
 
-const TableNameUserJob = "user_job"
+const TableNameUserRole = "user_role"
 
-// UserJob mapped from table <user_job>
-type UserJob struct {
+// UserRole mapped from table <user_role>
+type UserRole struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
 	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
 	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
 	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
-	JobName    string    `gorm:"column:job_name;not null" json:"job_name"`
+	ProjID     int32     `gorm:"column:proj_id;not null" json:"proj_id"`
+	RoleName   string    `gorm:"column:role_name;not null" json:"role_name"`
+	IsDefault  int32     `gorm:"column:is_default;not null" json:"is_default"`
 }
 
-// TableName UserJob's table name
-func (*UserJob) TableName() string {
-	return TableNameUserJob
+// TableName UserRole's table name
+func (*UserRole) TableName() string {
+	return TableNameUserRole
 }

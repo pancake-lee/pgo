@@ -17,41 +17,56 @@ import (
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                db,
-		AbandonCode:       newAbandonCode(db, opts...),
-		CourseSwapRequest: newCourseSwapRequest(db, opts...),
-		Task:              newTask(db, opts...),
-		User:              newUser(db, opts...),
-		UserDept:          newUserDept(db, opts...),
-		UserDeptAssoc:     newUserDeptAssoc(db, opts...),
-		UserJob:           newUserJob(db, opts...),
+		db:                      db,
+		AbandonCode:             newAbandonCode(db, opts...),
+		CourseSwapRequest:       newCourseSwapRequest(db, opts...),
+		Project:                 newProject(db, opts...),
+		Task:                    newTask(db, opts...),
+		User:                    newUser(db, opts...),
+		UserDept:                newUserDept(db, opts...),
+		UserDeptAssoc:           newUserDeptAssoc(db, opts...),
+		UserJob:                 newUserJob(db, opts...),
+		UserProjectAssoc:        newUserProjectAssoc(db, opts...),
+		UserRole:                newUserRole(db, opts...),
+		UserRoleAssoc:           newUserRoleAssoc(db, opts...),
+		UserRolePermissionAssoc: newUserRolePermissionAssoc(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	AbandonCode       abandonCode
-	CourseSwapRequest courseSwapRequest
-	Task              task
-	User              user
-	UserDept          userDept
-	UserDeptAssoc     userDeptAssoc
-	UserJob           userJob
+	AbandonCode             abandonCode
+	CourseSwapRequest       courseSwapRequest
+	Project                 project
+	Task                    task
+	User                    user
+	UserDept                userDept
+	UserDeptAssoc           userDeptAssoc
+	UserJob                 userJob
+	UserProjectAssoc        userProjectAssoc
+	UserRole                userRole
+	UserRoleAssoc           userRoleAssoc
+	UserRolePermissionAssoc userRolePermissionAssoc
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                db,
-		AbandonCode:       q.AbandonCode.clone(db),
-		CourseSwapRequest: q.CourseSwapRequest.clone(db),
-		Task:              q.Task.clone(db),
-		User:              q.User.clone(db),
-		UserDept:          q.UserDept.clone(db),
-		UserDeptAssoc:     q.UserDeptAssoc.clone(db),
-		UserJob:           q.UserJob.clone(db),
+		db:                      db,
+		AbandonCode:             q.AbandonCode.clone(db),
+		CourseSwapRequest:       q.CourseSwapRequest.clone(db),
+		Project:                 q.Project.clone(db),
+		Task:                    q.Task.clone(db),
+		User:                    q.User.clone(db),
+		UserDept:                q.UserDept.clone(db),
+		UserDeptAssoc:           q.UserDeptAssoc.clone(db),
+		UserJob:                 q.UserJob.clone(db),
+		UserProjectAssoc:        q.UserProjectAssoc.clone(db),
+		UserRole:                q.UserRole.clone(db),
+		UserRoleAssoc:           q.UserRoleAssoc.clone(db),
+		UserRolePermissionAssoc: q.UserRolePermissionAssoc.clone(db),
 	}
 }
 
@@ -65,36 +80,51 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                db,
-		AbandonCode:       q.AbandonCode.replaceDB(db),
-		CourseSwapRequest: q.CourseSwapRequest.replaceDB(db),
-		Task:              q.Task.replaceDB(db),
-		User:              q.User.replaceDB(db),
-		UserDept:          q.UserDept.replaceDB(db),
-		UserDeptAssoc:     q.UserDeptAssoc.replaceDB(db),
-		UserJob:           q.UserJob.replaceDB(db),
+		db:                      db,
+		AbandonCode:             q.AbandonCode.replaceDB(db),
+		CourseSwapRequest:       q.CourseSwapRequest.replaceDB(db),
+		Project:                 q.Project.replaceDB(db),
+		Task:                    q.Task.replaceDB(db),
+		User:                    q.User.replaceDB(db),
+		UserDept:                q.UserDept.replaceDB(db),
+		UserDeptAssoc:           q.UserDeptAssoc.replaceDB(db),
+		UserJob:                 q.UserJob.replaceDB(db),
+		UserProjectAssoc:        q.UserProjectAssoc.replaceDB(db),
+		UserRole:                q.UserRole.replaceDB(db),
+		UserRoleAssoc:           q.UserRoleAssoc.replaceDB(db),
+		UserRolePermissionAssoc: q.UserRolePermissionAssoc.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	AbandonCode       *abandonCodeDo
-	CourseSwapRequest *courseSwapRequestDo
-	Task              *taskDo
-	User              *userDo
-	UserDept          *userDeptDo
-	UserDeptAssoc     *userDeptAssocDo
-	UserJob           *userJobDo
+	AbandonCode             *abandonCodeDo
+	CourseSwapRequest       *courseSwapRequestDo
+	Project                 *projectDo
+	Task                    *taskDo
+	User                    *userDo
+	UserDept                *userDeptDo
+	UserDeptAssoc           *userDeptAssocDo
+	UserJob                 *userJobDo
+	UserProjectAssoc        *userProjectAssocDo
+	UserRole                *userRoleDo
+	UserRoleAssoc           *userRoleAssocDo
+	UserRolePermissionAssoc *userRolePermissionAssocDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		AbandonCode:       q.AbandonCode.WithContext(ctx),
-		CourseSwapRequest: q.CourseSwapRequest.WithContext(ctx),
-		Task:              q.Task.WithContext(ctx),
-		User:              q.User.WithContext(ctx),
-		UserDept:          q.UserDept.WithContext(ctx),
-		UserDeptAssoc:     q.UserDeptAssoc.WithContext(ctx),
-		UserJob:           q.UserJob.WithContext(ctx),
+		AbandonCode:             q.AbandonCode.WithContext(ctx),
+		CourseSwapRequest:       q.CourseSwapRequest.WithContext(ctx),
+		Project:                 q.Project.WithContext(ctx),
+		Task:                    q.Task.WithContext(ctx),
+		User:                    q.User.WithContext(ctx),
+		UserDept:                q.UserDept.WithContext(ctx),
+		UserDeptAssoc:           q.UserDeptAssoc.WithContext(ctx),
+		UserJob:                 q.UserJob.WithContext(ctx),
+		UserProjectAssoc:        q.UserProjectAssoc.WithContext(ctx),
+		UserRole:                q.UserRole.WithContext(ctx),
+		UserRoleAssoc:           q.UserRoleAssoc.WithContext(ctx),
+		UserRolePermissionAssoc: q.UserRolePermissionAssoc.WithContext(ctx),
 	}
 }
 

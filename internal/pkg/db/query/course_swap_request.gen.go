@@ -29,16 +29,16 @@ func newCourseSwapRequest(db *gorm.DB, opts ...gen.DOOption) courseSwapRequest {
 	_courseSwapRequest.ALL = field.NewAsterisk(tableName)
 	_courseSwapRequest.ID = field.NewInt32(tableName, "id")
 	_courseSwapRequest.SrcTeacher = field.NewString(tableName, "src_teacher")
-	_courseSwapRequest.SrcDate = field.NewString(tableName, "src_date")
+	_courseSwapRequest.SrcDate = field.NewTime(tableName, "src_date")
 	_courseSwapRequest.SrcCourseNum = field.NewInt32(tableName, "src_course_num")
 	_courseSwapRequest.SrcCourse = field.NewString(tableName, "src_course")
 	_courseSwapRequest.SrcClass = field.NewString(tableName, "src_class")
 	_courseSwapRequest.DstTeacher = field.NewString(tableName, "dst_teacher")
-	_courseSwapRequest.DstDate = field.NewString(tableName, "dst_date")
+	_courseSwapRequest.DstDate = field.NewTime(tableName, "dst_date")
 	_courseSwapRequest.DstCourseNum = field.NewInt32(tableName, "dst_course_num")
 	_courseSwapRequest.DstCourse = field.NewString(tableName, "dst_course")
 	_courseSwapRequest.DstClass = field.NewString(tableName, "dst_class")
-	_courseSwapRequest.CreateTime = field.NewString(tableName, "create_time")
+	_courseSwapRequest.CreateTime = field.NewTime(tableName, "create_time")
 	_courseSwapRequest.Status = field.NewInt32(tableName, "status")
 
 	_courseSwapRequest.fillFieldMap()
@@ -52,16 +52,16 @@ type courseSwapRequest struct {
 	ALL          field.Asterisk
 	ID           field.Int32
 	SrcTeacher   field.String
-	SrcDate      field.String
+	SrcDate      field.Time
 	SrcCourseNum field.Int32
 	SrcCourse    field.String
 	SrcClass     field.String
 	DstTeacher   field.String
-	DstDate      field.String
+	DstDate      field.Time
 	DstCourseNum field.Int32
 	DstCourse    field.String
 	DstClass     field.String
-	CreateTime   field.String
+	CreateTime   field.Time
 	Status       field.Int32
 
 	fieldMap map[string]field.Expr
@@ -81,16 +81,16 @@ func (c *courseSwapRequest) updateTableName(table string) *courseSwapRequest {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewInt32(table, "id")
 	c.SrcTeacher = field.NewString(table, "src_teacher")
-	c.SrcDate = field.NewString(table, "src_date")
+	c.SrcDate = field.NewTime(table, "src_date")
 	c.SrcCourseNum = field.NewInt32(table, "src_course_num")
 	c.SrcCourse = field.NewString(table, "src_course")
 	c.SrcClass = field.NewString(table, "src_class")
 	c.DstTeacher = field.NewString(table, "dst_teacher")
-	c.DstDate = field.NewString(table, "dst_date")
+	c.DstDate = field.NewTime(table, "dst_date")
 	c.DstCourseNum = field.NewInt32(table, "dst_course_num")
 	c.DstCourse = field.NewString(table, "dst_course")
 	c.DstClass = field.NewString(table, "dst_class")
-	c.CreateTime = field.NewString(table, "create_time")
+	c.CreateTime = field.NewTime(table, "create_time")
 	c.Status = field.NewInt32(table, "status")
 
 	c.fillFieldMap()

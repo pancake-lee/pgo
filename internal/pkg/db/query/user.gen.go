@@ -28,7 +28,12 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
 	_user.ID = field.NewInt32(tableName, "id")
+	_user.CreateTime = field.NewTime(tableName, "create_time")
+	_user.CreateUser = field.NewInt32(tableName, "create_user")
+	_user.UpdateTime = field.NewTime(tableName, "update_time")
+	_user.UpdateUser = field.NewInt32(tableName, "update_user")
 	_user.UserName = field.NewString(tableName, "user_name")
+	_user.Password = field.NewString(tableName, "password")
 
 	_user.fillFieldMap()
 
@@ -38,9 +43,14 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL      field.Asterisk
-	ID       field.Int32  // The primary key of the table
-	UserName field.String // The name of the user
+	ALL        field.Asterisk
+	ID         field.Int32
+	CreateTime field.Time
+	CreateUser field.Int32
+	UpdateTime field.Time
+	UpdateUser field.Int32
+	UserName   field.String
+	Password   field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -58,7 +68,12 @@ func (u user) As(alias string) *user {
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewInt32(table, "id")
+	u.CreateTime = field.NewTime(table, "create_time")
+	u.CreateUser = field.NewInt32(table, "create_user")
+	u.UpdateTime = field.NewTime(table, "update_time")
+	u.UpdateUser = field.NewInt32(table, "update_user")
 	u.UserName = field.NewString(table, "user_name")
+	u.Password = field.NewString(table, "password")
 
 	u.fillFieldMap()
 
@@ -83,9 +98,14 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 2)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["id"] = u.ID
+	u.fieldMap["create_time"] = u.CreateTime
+	u.fieldMap["create_user"] = u.CreateUser
+	u.fieldMap["update_time"] = u.UpdateTime
+	u.fieldMap["update_user"] = u.UpdateUser
 	u.fieldMap["user_name"] = u.UserName
+	u.fieldMap["password"] = u.Password
 }
 
 func (u user) clone(db *gorm.DB) user {

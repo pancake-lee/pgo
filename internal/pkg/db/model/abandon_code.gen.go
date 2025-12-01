@@ -8,7 +8,7 @@ const TableNameAbandonCode = "abandon_code"
 
 // AbandonCode mapped from table <abandon_code>
 type AbandonCode struct {
-	Idx1 int32  `gorm:"column:idx1;primaryKey;autoIncrement:true" json:"idx1"`
+	Idx1 int32  `gorm:"column:idx1;primaryKey;autoIncrement:true;comment:The primary key of the table" json:"idx1"` // The primary key of the table
 	Col1 string `gorm:"column:col1;not null" json:"col1"`
 }
 

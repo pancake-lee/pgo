@@ -2,9 +2,11 @@
 
 package service
 
+import "time"
 
 import (
 	"context"
+
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -16,6 +18,10 @@ func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {
 	}
 	return &api.UserJobInfo{
         ID: do.ID,
+        CreateTime: do.CreateTime.Unix(),
+        CreateUser: do.CreateUser,
+        UpdateTime: do.UpdateTime.Unix(),
+        UpdateUser: do.UpdateUser,
         JobName: do.JobName,
 	}
 }
@@ -25,6 +31,10 @@ func DTO2DO_UserJob(dto *api.UserJobInfo) *data.UserJobDO {
 	}
 	return &data.UserJobDO{
         ID: dto.ID,
+        CreateTime: time.Unix(dto.CreateTime, 0),
+        CreateUser: dto.CreateUser,
+        UpdateTime: time.Unix(dto.UpdateTime, 0),
+        UpdateUser: dto.UpdateUser,
         JobName: dto.JobName,
 	}
 }

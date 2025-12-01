@@ -28,6 +28,10 @@ func newUserDept(db *gorm.DB, opts ...gen.DOOption) userDept {
 	tableName := _userDept.userDeptDo.TableName()
 	_userDept.ALL = field.NewAsterisk(tableName)
 	_userDept.ID = field.NewInt32(tableName, "id")
+	_userDept.CreateTime = field.NewTime(tableName, "create_time")
+	_userDept.CreateUser = field.NewInt32(tableName, "create_user")
+	_userDept.UpdateTime = field.NewTime(tableName, "update_time")
+	_userDept.UpdateUser = field.NewInt32(tableName, "update_user")
 	_userDept.DeptPath = field.NewString(tableName, "dept_path")
 	_userDept.DeptName = field.NewString(tableName, "dept_name")
 
@@ -39,10 +43,14 @@ func newUserDept(db *gorm.DB, opts ...gen.DOOption) userDept {
 type userDept struct {
 	userDeptDo userDeptDo
 
-	ALL      field.Asterisk
-	ID       field.Int32
-	DeptPath field.String
-	DeptName field.String
+	ALL        field.Asterisk
+	ID         field.Int32
+	CreateTime field.Time
+	CreateUser field.Int32
+	UpdateTime field.Time
+	UpdateUser field.Int32
+	DeptPath   field.String
+	DeptName   field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -60,6 +68,10 @@ func (u userDept) As(alias string) *userDept {
 func (u *userDept) updateTableName(table string) *userDept {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewInt32(table, "id")
+	u.CreateTime = field.NewTime(table, "create_time")
+	u.CreateUser = field.NewInt32(table, "create_user")
+	u.UpdateTime = field.NewTime(table, "update_time")
+	u.UpdateUser = field.NewInt32(table, "update_user")
 	u.DeptPath = field.NewString(table, "dept_path")
 	u.DeptName = field.NewString(table, "dept_name")
 
@@ -86,8 +98,12 @@ func (u *userDept) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *userDept) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 3)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["id"] = u.ID
+	u.fieldMap["create_time"] = u.CreateTime
+	u.fieldMap["create_user"] = u.CreateUser
+	u.fieldMap["update_time"] = u.UpdateTime
+	u.fieldMap["update_user"] = u.UpdateUser
 	u.fieldMap["dept_path"] = u.DeptPath
 	u.fieldMap["dept_name"] = u.DeptName
 }

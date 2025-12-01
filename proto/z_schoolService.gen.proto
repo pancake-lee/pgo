@@ -40,16 +40,16 @@ service schoolCURD { // 该命名应该全文唯一
 message CourseSwapRequestInfo {
     int32 iD = 1;
     string srcTeacher = 2;
-    string srcDate = 3;
+    int64 srcDate = 3;
     int32 srcCourseNum = 4;
     string srcCourse = 5;
     string srcClass = 6;
     string dstTeacher = 7;
-    string dstDate = 8;
+    int64 dstDate = 8;
     int32 dstCourseNum = 9;
     string dstCourse = 10;
     string dstClass = 11;
-    string createTime = 12;
+    int64 createTime = 12;
     int32 status = 13;
 }
 

@@ -28,6 +28,10 @@ func newUserJob(db *gorm.DB, opts ...gen.DOOption) userJob {
 	tableName := _userJob.userJobDo.TableName()
 	_userJob.ALL = field.NewAsterisk(tableName)
 	_userJob.ID = field.NewInt32(tableName, "id")
+	_userJob.CreateTime = field.NewTime(tableName, "create_time")
+	_userJob.CreateUser = field.NewInt32(tableName, "create_user")
+	_userJob.UpdateTime = field.NewTime(tableName, "update_time")
+	_userJob.UpdateUser = field.NewInt32(tableName, "update_user")
 	_userJob.JobName = field.NewString(tableName, "job_name")
 
 	_userJob.fillFieldMap()
@@ -38,9 +42,13 @@ func newUserJob(db *gorm.DB, opts ...gen.DOOption) userJob {
 type userJob struct {
 	userJobDo userJobDo
 
-	ALL     field.Asterisk
-	ID      field.Int32
-	JobName field.String
+	ALL        field.Asterisk
+	ID         field.Int32
+	CreateTime field.Time
+	CreateUser field.Int32
+	UpdateTime field.Time
+	UpdateUser field.Int32
+	JobName    field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -58,6 +66,10 @@ func (u userJob) As(alias string) *userJob {
 func (u *userJob) updateTableName(table string) *userJob {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewInt32(table, "id")
+	u.CreateTime = field.NewTime(table, "create_time")
+	u.CreateUser = field.NewInt32(table, "create_user")
+	u.UpdateTime = field.NewTime(table, "update_time")
+	u.UpdateUser = field.NewInt32(table, "update_user")
 	u.JobName = field.NewString(table, "job_name")
 
 	u.fillFieldMap()
@@ -83,8 +95,12 @@ func (u *userJob) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *userJob) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 2)
+	u.fieldMap = make(map[string]field.Expr, 6)
 	u.fieldMap["id"] = u.ID
+	u.fieldMap["create_time"] = u.CreateTime
+	u.fieldMap["create_user"] = u.CreateUser
+	u.fieldMap["update_time"] = u.UpdateTime
+	u.fieldMap["update_user"] = u.UpdateUser
 	u.fieldMap["job_name"] = u.JobName
 }
 

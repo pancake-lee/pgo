@@ -4,6 +4,7 @@ package data
 
 import (
 	"context"
+
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
@@ -36,5 +37,76 @@ func (*userDeptAssocDAO) GetAll(ctx context.Context,
 		return nil, plogger.LogErr(err)
 	}
 	return userDeptAssocList, nil
+}
+
+func (*userDeptAssocDAO) UpdateByID(ctx context.Context, do *UserDeptAssocDO) error {
+	if do.ID == 0 {
+		return plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserDeptAssoc
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
+}
+
+func (*userDeptAssocDAO) DelByID(ctx context.Context, iD int32) error {
+	if iD == 0 {
+		return plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserDeptAssoc
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
+}
+
+func (*userDeptAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+	if len(iDList) == 0 {
+		return nil
+	}
+	q := db.GetPG().UserDeptAssoc
+	_, err := q.WithContext(ctx).
+		Where(q.ID.In(iDList...)).Delete()
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
+}
+
+func (*userDeptAssocDAO) GetByID(ctx context.Context, iD int32,
+) (userDeptAssoc *UserDeptAssocDO, err error) {
+	if iD == 0 {
+		return userDeptAssoc, plogger.LogErr(perr.ErrParamInvalid)
+	}
+
+	q := db.GetPG().UserDeptAssoc
+	userDeptAssoc, err = q.WithContext(ctx).
+		Where(q.ID.Eq(iD)).First()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return userDeptAssoc, nil
+}
+
+func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
+) (userDeptAssocMap map[int32]*UserDeptAssocDO, err error) {
+	if len(iDList) == 0 {
+		return nil, nil
+	}
+
+	q := db.GetPG().UserDeptAssoc
+	l, err := q.WithContext(ctx).
+		Where(q.ID.In(iDList...)).Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	userDeptAssocMap = make(map[int32]*UserDeptAssocDO)
+	for _, i := range l {
+		userDeptAssocMap[i.ID] = i
+	}
+	return userDeptAssocMap, nil
 }
 

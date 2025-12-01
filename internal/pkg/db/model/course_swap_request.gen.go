@@ -4,23 +4,27 @@
 
 package model
 
+import (
+	"time"
+)
+
 const TableNameCourseSwapRequest = "course_swap_request"
 
 // CourseSwapRequest mapped from table <course_swap_request>
 type CourseSwapRequest struct {
-	ID           int32  `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	SrcTeacher   string `gorm:"column:src_teacher;not null" json:"src_teacher"`
-	SrcDate      string `gorm:"column:src_date;not null" json:"src_date"`
-	SrcCourseNum int32  `gorm:"column:src_course_num;not null" json:"src_course_num"`
-	SrcCourse    string `gorm:"column:src_course;not null" json:"src_course"`
-	SrcClass     string `gorm:"column:src_class;not null" json:"src_class"`
-	DstTeacher   string `gorm:"column:dst_teacher;not null" json:"dst_teacher"`
-	DstDate      string `gorm:"column:dst_date;not null" json:"dst_date"`
-	DstCourseNum int32  `gorm:"column:dst_course_num;not null" json:"dst_course_num"`
-	DstCourse    string `gorm:"column:dst_course;not null" json:"dst_course"`
-	DstClass     string `gorm:"column:dst_class;not null" json:"dst_class"`
-	CreateTime   string `gorm:"column:create_time;default:CURRENT_TIMESTAMP" json:"create_time"`
-	Status       int32  `gorm:"column:status;not null" json:"status"`
+	ID           int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	SrcTeacher   string    `gorm:"column:src_teacher;not null" json:"src_teacher"`
+	SrcDate      time.Time `gorm:"column:src_date;not null" json:"src_date"`
+	SrcCourseNum int32     `gorm:"column:src_course_num;not null" json:"src_course_num"`
+	SrcCourse    string    `gorm:"column:src_course;not null" json:"src_course"`
+	SrcClass     string    `gorm:"column:src_class;not null" json:"src_class"`
+	DstTeacher   string    `gorm:"column:dst_teacher;not null" json:"dst_teacher"`
+	DstDate      time.Time `gorm:"column:dst_date;not null" json:"dst_date"`
+	DstCourseNum int32     `gorm:"column:dst_course_num;not null" json:"dst_course_num"`
+	DstCourse    string    `gorm:"column:dst_course;not null" json:"dst_course"`
+	DstClass     string    `gorm:"column:dst_class;not null" json:"dst_class"`
+	CreateTime   time.Time `gorm:"column:create_time;default:now()" json:"create_time"`
+	Status       int32     `gorm:"column:status;not null" json:"status"`
 }
 
 // TableName CourseSwapRequest's table name

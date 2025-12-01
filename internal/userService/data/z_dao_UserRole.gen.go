@@ -11,39 +11,39 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
-type UserJobDO = model.UserJob
+type UserRoleDO = model.UserRole
 
-type userJobDAO struct{}
+type userRoleDAO struct{}
 
-var UserJobDAO userJobDAO
+var UserRoleDAO userRoleDAO
 
-func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
-	if userJob == nil {
+func (*userRoleDAO) Add(ctx context.Context, userRole *UserRoleDO) error {
+	if userRole == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
-	err := q.WithContext(ctx).Create(userJob)
+	q := db.GetPG().UserRole
+	err := q.WithContext(ctx).Create(userRole)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) GetAll(ctx context.Context,
-) (userJobList []*UserJobDO, err error) {
-	q := db.GetPG().UserJob
-	userJobList, err = q.WithContext(ctx).Find()
+func (*userRoleDAO) GetAll(ctx context.Context,
+) (userRoleList []*UserRoleDO, err error) {
+	q := db.GetPG().UserRole
+	userRoleList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	return userJobList, nil
+	return userRoleList, nil
 }
 
-func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
+func (*userRoleDAO) UpdateByID(ctx context.Context, do *UserRoleDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -51,11 +51,11 @@ func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	return nil
 }
 
-func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userRoleDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -63,11 +63,11 @@ func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	return nil
 }
 
-func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userRoleDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().UserRole
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -76,37 +76,37 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	return nil
 }
 
-func (*userJobDAO) GetByID(ctx context.Context, iD int32,
-) (userJob *UserJobDO, err error) {
+func (*userRoleDAO) GetByID(ctx context.Context, iD int32,
+) (userRole *UserRoleDO, err error) {
 	if iD == 0 {
-		return userJob, plogger.LogErr(perr.ErrParamInvalid)
+		return userRole, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserJob
-	userJob, err = q.WithContext(ctx).
+	q := db.GetPG().UserRole
+	userRole, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	return userJob, nil
+	return userRole, nil
 }
 
-func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
-) (userJobMap map[int32]*UserJobDO, err error) {
+func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
+) (userRoleMap map[int32]*UserRoleDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
 	}
 
-	q := db.GetPG().UserJob
+	q := db.GetPG().UserRole
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	userJobMap = make(map[int32]*UserJobDO)
+	userRoleMap = make(map[int32]*UserRoleDO)
 	for _, i := range l {
-		userJobMap[i.ID] = i
+		userRoleMap[i.ID] = i
 	}
-	return userJobMap, nil
+	return userRoleMap, nil
 }
 

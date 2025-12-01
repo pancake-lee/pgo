@@ -8,19 +8,19 @@ import (
 	"time"
 )
 
-const TableNameUserJob = "user_job"
+const TableNameProject = "project"
 
-// UserJob mapped from table <user_job>
-type UserJob struct {
+// Project mapped from table <project>
+type Project struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
 	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
 	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
 	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
-	JobName    string    `gorm:"column:job_name;not null" json:"job_name"`
+	ProjName   string    `gorm:"column:proj_name;not null" json:"proj_name"`
 }
 
-// TableName UserJob's table name
-func (*UserJob) TableName() string {
-	return TableNameUserJob
+// TableName Project's table name
+func (*Project) TableName() string {
+	return TableNameProject
 }

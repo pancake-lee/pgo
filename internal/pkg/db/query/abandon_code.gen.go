@@ -39,7 +39,7 @@ type abandonCode struct {
 	abandonCodeDo abandonCodeDo
 
 	ALL  field.Asterisk
-	Idx1 field.Int32
+	Idx1 field.Int32 // The primary key of the table
 	Col1 field.String
 
 	fieldMap map[string]field.Expr

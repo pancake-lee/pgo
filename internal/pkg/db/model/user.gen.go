@@ -4,12 +4,21 @@
 
 package model
 
+import (
+	"time"
+)
+
 const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID       int32  `gorm:"column:id;primaryKey;autoIncrement:true;comment:The primary key of the table" json:"id"` // The primary key of the table
-	UserName string `gorm:"column:user_name;not null;comment:The name of the user" json:"user_name"`                // The name of the user
+	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
+	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
+	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
+	UserName   string    `gorm:"column:user_name;not null" json:"user_name"`
+	Password   string    `gorm:"column:password;not null" json:"password"`
 }
 
 // TableName User's table name

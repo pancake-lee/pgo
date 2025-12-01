@@ -11,39 +11,39 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
-type UserJobDO = model.UserJob
+type ProjectDO = model.Project
 
-type userJobDAO struct{}
+type projectDAO struct{}
 
-var UserJobDAO userJobDAO
+var ProjectDAO projectDAO
 
-func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
-	if userJob == nil {
+func (*projectDAO) Add(ctx context.Context, project *ProjectDO) error {
+	if project == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
-	err := q.WithContext(ctx).Create(userJob)
+	q := db.GetPG().Project
+	err := q.WithContext(ctx).Create(project)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) GetAll(ctx context.Context,
-) (userJobList []*UserJobDO, err error) {
-	q := db.GetPG().UserJob
-	userJobList, err = q.WithContext(ctx).Find()
+func (*projectDAO) GetAll(ctx context.Context,
+) (projectList []*ProjectDO, err error) {
+	q := db.GetPG().Project
+	projectList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	return userJobList, nil
+	return projectList, nil
 }
 
-func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
+func (*projectDAO) UpdateByID(ctx context.Context, do *ProjectDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -51,11 +51,11 @@ func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	return nil
 }
 
-func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
+func (*projectDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -63,11 +63,11 @@ func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	return nil
 }
 
-func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*projectDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserJob
+	q := db.GetPG().Project
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -76,37 +76,37 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	return nil
 }
 
-func (*userJobDAO) GetByID(ctx context.Context, iD int32,
-) (userJob *UserJobDO, err error) {
+func (*projectDAO) GetByID(ctx context.Context, iD int32,
+) (project *ProjectDO, err error) {
 	if iD == 0 {
-		return userJob, plogger.LogErr(perr.ErrParamInvalid)
+		return project, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserJob
-	userJob, err = q.WithContext(ctx).
+	q := db.GetPG().Project
+	project, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	return userJob, nil
+	return project, nil
 }
 
-func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
-) (userJobMap map[int32]*UserJobDO, err error) {
+func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
+) (projectMap map[int32]*ProjectDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
 	}
 
-	q := db.GetPG().UserJob
+	q := db.GetPG().Project
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	userJobMap = make(map[int32]*UserJobDO)
+	projectMap = make(map[int32]*ProjectDO)
 	for _, i := range l {
-		userJobMap[i.ID] = i
+		projectMap[i.ID] = i
 	}
-	return userJobMap, nil
+	return projectMap, nil
 }
 

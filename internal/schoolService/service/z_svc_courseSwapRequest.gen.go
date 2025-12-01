@@ -2,9 +2,11 @@
 
 package service
 
+import "time"
 
 import (
 	"context"
+
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/schoolService/data"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -17,16 +19,16 @@ func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapReque
 	return &api.CourseSwapRequestInfo{
         ID: do.ID,
         SrcTeacher: do.SrcTeacher,
-        SrcDate: do.SrcDate,
+        SrcDate: do.SrcDate.Unix(),
         SrcCourseNum: do.SrcCourseNum,
         SrcCourse: do.SrcCourse,
         SrcClass: do.SrcClass,
         DstTeacher: do.DstTeacher,
-        DstDate: do.DstDate,
+        DstDate: do.DstDate.Unix(),
         DstCourseNum: do.DstCourseNum,
         DstCourse: do.DstCourse,
         DstClass: do.DstClass,
-        CreateTime: do.CreateTime,
+        CreateTime: do.CreateTime.Unix(),
         Status: do.Status,
 	}
 }
@@ -37,16 +39,16 @@ func DTO2DO_CourseSwapRequest(dto *api.CourseSwapRequestInfo) *data.CourseSwapRe
 	return &data.CourseSwapRequestDO{
         ID: dto.ID,
         SrcTeacher: dto.SrcTeacher,
-        SrcDate: dto.SrcDate,
+        SrcDate: time.Unix(dto.SrcDate, 0),
         SrcCourseNum: dto.SrcCourseNum,
         SrcCourse: dto.SrcCourse,
         SrcClass: dto.SrcClass,
         DstTeacher: dto.DstTeacher,
-        DstDate: dto.DstDate,
+        DstDate: time.Unix(dto.DstDate, 0),
         DstCourseNum: dto.DstCourseNum,
         DstCourse: dto.DstCourse,
         DstClass: dto.DstClass,
-        CreateTime: dto.CreateTime,
+        CreateTime: time.Unix(dto.CreateTime, 0),
         Status: dto.Status,
 	}
 }

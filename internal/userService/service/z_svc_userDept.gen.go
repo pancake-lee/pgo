@@ -2,9 +2,11 @@
 
 package service
 
+import "time"
 
 import (
 	"context"
+
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -16,6 +18,10 @@ func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {
 	}
 	return &api.UserDeptInfo{
         ID: do.ID,
+        CreateTime: do.CreateTime.Unix(),
+        CreateUser: do.CreateUser,
+        UpdateTime: do.UpdateTime.Unix(),
+        UpdateUser: do.UpdateUser,
         DeptPath: do.DeptPath,
         DeptName: do.DeptName,
 	}
@@ -26,6 +32,10 @@ func DTO2DO_UserDept(dto *api.UserDeptInfo) *data.UserDeptDO {
 	}
 	return &data.UserDeptDO{
         ID: dto.ID,
+        CreateTime: time.Unix(dto.CreateTime, 0),
+        CreateUser: dto.CreateUser,
+        UpdateTime: time.Unix(dto.UpdateTime, 0),
+        UpdateUser: dto.UpdateUser,
         DeptPath: dto.DeptPath,
         DeptName: dto.DeptName,
 	}

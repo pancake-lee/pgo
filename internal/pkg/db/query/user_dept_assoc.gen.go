@@ -27,6 +27,11 @@ func newUserDeptAssoc(db *gorm.DB, opts ...gen.DOOption) userDeptAssoc {
 
 	tableName := _userDeptAssoc.userDeptAssocDo.TableName()
 	_userDeptAssoc.ALL = field.NewAsterisk(tableName)
+	_userDeptAssoc.ID = field.NewInt32(tableName, "id")
+	_userDeptAssoc.CreateTime = field.NewTime(tableName, "create_time")
+	_userDeptAssoc.CreateUser = field.NewInt32(tableName, "create_user")
+	_userDeptAssoc.UpdateTime = field.NewTime(tableName, "update_time")
+	_userDeptAssoc.UpdateUser = field.NewInt32(tableName, "update_user")
 	_userDeptAssoc.UserID = field.NewInt32(tableName, "user_id")
 	_userDeptAssoc.DeptID = field.NewInt32(tableName, "dept_id")
 	_userDeptAssoc.JobID = field.NewInt32(tableName, "job_id")
@@ -39,10 +44,15 @@ func newUserDeptAssoc(db *gorm.DB, opts ...gen.DOOption) userDeptAssoc {
 type userDeptAssoc struct {
 	userDeptAssocDo userDeptAssocDo
 
-	ALL    field.Asterisk
-	UserID field.Int32
-	DeptID field.Int32
-	JobID  field.Int32
+	ALL        field.Asterisk
+	ID         field.Int32
+	CreateTime field.Time
+	CreateUser field.Int32
+	UpdateTime field.Time
+	UpdateUser field.Int32
+	UserID     field.Int32
+	DeptID     field.Int32
+	JobID      field.Int32
 
 	fieldMap map[string]field.Expr
 }
@@ -59,6 +69,11 @@ func (u userDeptAssoc) As(alias string) *userDeptAssoc {
 
 func (u *userDeptAssoc) updateTableName(table string) *userDeptAssoc {
 	u.ALL = field.NewAsterisk(table)
+	u.ID = field.NewInt32(table, "id")
+	u.CreateTime = field.NewTime(table, "create_time")
+	u.CreateUser = field.NewInt32(table, "create_user")
+	u.UpdateTime = field.NewTime(table, "update_time")
+	u.UpdateUser = field.NewInt32(table, "update_user")
 	u.UserID = field.NewInt32(table, "user_id")
 	u.DeptID = field.NewInt32(table, "dept_id")
 	u.JobID = field.NewInt32(table, "job_id")
@@ -90,7 +105,12 @@ func (u *userDeptAssoc) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (u *userDeptAssoc) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 3)
+	u.fieldMap = make(map[string]field.Expr, 8)
+	u.fieldMap["id"] = u.ID
+	u.fieldMap["create_time"] = u.CreateTime
+	u.fieldMap["create_user"] = u.CreateUser
+	u.fieldMap["update_time"] = u.UpdateTime
+	u.fieldMap["update_user"] = u.UpdateUser
 	u.fieldMap["user_id"] = u.UserID
 	u.fieldMap["dept_id"] = u.DeptID
 	u.fieldMap["job_id"] = u.JobID
