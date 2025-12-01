@@ -130,3 +130,21 @@ func (s *UserCURDServer) DelUserRoleAssocByIDList(
 	return nil, nil
 }
 
+
+
+func (s *UserCURDServer) GetUserRoleAssocByUserRole(
+	ctx context.Context, req *api.GetUserRoleAssocByUserRoleRequest,
+) (resp *api.GetUserRoleAssocByUserRoleResponse, err error) {
+	if len(req.UserIDList) == 0 && len(req.RoleIDList) == 0 {
+		return nil, api.ErrorInvalidArgument("params cannot be all empty")
+	}
+	list, err := data.UserRoleAssocDAO.GetByUserRole(ctx, req.UserIDList, req.RoleIDList)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	resp = new(api.GetUserRoleAssocByUserRoleResponse)
+	for _, v := range list {
+		resp.Data = append(resp.Data, DO2DTO_UserRoleAssoc(v))
+	}
+	return resp, nil
+}

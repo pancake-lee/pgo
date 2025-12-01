@@ -39,6 +39,26 @@ func (*userDeptAssocDAO) GetAll(ctx context.Context,
 	return userDeptAssocList, nil
 }
 
+
+func (*userDeptAssocDAO) GetByUserDept(ctx context.Context, userIDList []int32, deptIDList []int32) ([]*UserDeptAssocDO, error) {
+	if len(userIDList) == 0 && len(deptIDList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserDeptAssoc
+	do := q.WithContext(ctx)
+	if len(userIDList) > 0 {
+		do = do.Where(q.UserID.In(userIDList...))
+	}
+	if len(deptIDList) > 0 {
+		do = do.Where(q.DeptID.In(deptIDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userDeptAssocDAO) UpdateByID(ctx context.Context, do *UserDeptAssocDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

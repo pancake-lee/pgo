@@ -6,8 +6,10 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义
@@ -124,7 +126,67 @@ func pbReplace(
 		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
 	}
 
+	// 处理唯一索引生成的 API 代码
+	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX API", codeStr, len(tbl.IdxList),
+		func(idx int, content string) string {
+			indexInfo := tbl.IdxList[idx]
+			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
+
+			rpcName := "Get" + tbl.UpperCamelName + funcSuffix
+			reqName := rpcName + "Request"
+			respName := rpcName + "Response"
+			httpPath := fmt.Sprintf("/%s/%s", tbl.HyphenName, camelToHyphen(funcSuffix))
+
+			return fmt.Sprintf(`
+    rpc %s (%s) returns (%s) {
+        option (google.api.http) = {
+            get: "%s"
+        };
+    }
+`, rpcName, reqName, respName, httpPath)
+		})
+
+	// 处理唯一索引生成的 MSG 代码
+	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX MSG", codeStr, len(tbl.IdxList),
+		func(idx int, content string) string {
+			indexInfo := tbl.IdxList[idx]
+			idxFields := indexInfo.Fields
+			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
+			reqFields := ""
+
+			for i, f := range idxFields {
+				reqFields += fmt.Sprintf("    repeated %s %s_list = %d;\n",
+					f.IdxColType, putil.StrIdToLower(f.IdxColName), i+1)
+			}
+
+			reqName := "Get" + tbl.UpperCamelName + funcSuffix + "Request"
+			respName := "Get" + tbl.UpperCamelName + funcSuffix + "Response"
+
+			return fmt.Sprintf(`
+message %s {
+%s}
+message %s {
+    repeated %sInfo data = 1;
+}
+`, reqName, reqFields, respName, tbl.UpperCamelName)
+		})
+
 	codeStr = tblNameReplace(codeStr, tplTable, tbl)
 
 	return codeStr
+}
+
+func camelToHyphen(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result.WriteRune('-')
+			}
+			result.WriteRune(unicode.ToLower(r))
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
 }

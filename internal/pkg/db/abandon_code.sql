@@ -8,8 +8,12 @@ DROP TABLE IF EXISTS "abandon_code";
 CREATE TABLE "abandon_code" (
   "idx1" serial NOT NULL,
   "col1" varchar(32)  NOT NULL,
+
+  "idx2" int NOT NULL,
+  "idx3" int NOT NULL,
+
   PRIMARY KEY ("idx1"),
-  CONSTRAINT  "idx_col1" UNIQUE ("col1")
+  CONSTRAINT "idx_2_3" UNIQUE ("idx2", "idx3")
 );
 
 COMMENT ON TABLE "abandon_code" IS 'CURD生成模板';

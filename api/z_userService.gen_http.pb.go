@@ -37,12 +37,19 @@ const OperationUserCURDDelUserProjectAssocByIDList = "/api.userCURD/DelUserProje
 const OperationUserCURDDelUserRoleAssocByIDList = "/api.userCURD/DelUserRoleAssocByIDList"
 const OperationUserCURDDelUserRoleByIDList = "/api.userCURD/DelUserRoleByIDList"
 const OperationUserCURDDelUserRolePermissionAssocByIDList = "/api.userCURD/DelUserRolePermissionAssocByIDList"
+const OperationUserCURDGetProjectByProjName = "/api.userCURD/GetProjectByProjName"
 const OperationUserCURDGetProjectList = "/api.userCURD/GetProjectList"
+const OperationUserCURDGetUserByUserName = "/api.userCURD/GetUserByUserName"
+const OperationUserCURDGetUserDeptAssocByUserDept = "/api.userCURD/GetUserDeptAssocByUserDept"
 const OperationUserCURDGetUserDeptAssocList = "/api.userCURD/GetUserDeptAssocList"
+const OperationUserCURDGetUserDeptByDeptPath = "/api.userCURD/GetUserDeptByDeptPath"
 const OperationUserCURDGetUserDeptList = "/api.userCURD/GetUserDeptList"
+const OperationUserCURDGetUserJobByJobName = "/api.userCURD/GetUserJobByJobName"
 const OperationUserCURDGetUserJobList = "/api.userCURD/GetUserJobList"
 const OperationUserCURDGetUserList = "/api.userCURD/GetUserList"
+const OperationUserCURDGetUserProjectAssocByUserProj = "/api.userCURD/GetUserProjectAssocByUserProj"
 const OperationUserCURDGetUserProjectAssocList = "/api.userCURD/GetUserProjectAssocList"
+const OperationUserCURDGetUserRoleAssocByUserRole = "/api.userCURD/GetUserRoleAssocByUserRole"
 const OperationUserCURDGetUserRoleAssocList = "/api.userCURD/GetUserRoleAssocList"
 const OperationUserCURDGetUserRoleList = "/api.userCURD/GetUserRoleList"
 const OperationUserCURDGetUserRolePermissionAssocList = "/api.userCURD/GetUserRolePermissionAssocList"
@@ -93,12 +100,19 @@ type UserCURDHTTPServer interface {
 	DelUserRoleAssocByIDList(context.Context, *DelUserRoleAssocByIDListRequest) (*Empty, error)
 	DelUserRoleByIDList(context.Context, *DelUserRoleByIDListRequest) (*Empty, error)
 	DelUserRolePermissionAssocByIDList(context.Context, *DelUserRolePermissionAssocByIDListRequest) (*Empty, error)
+	GetProjectByProjName(context.Context, *GetProjectByProjNameRequest) (*GetProjectByProjNameResponse, error)
 	GetProjectList(context.Context, *GetProjectListRequest) (*GetProjectListResponse, error)
+	GetUserByUserName(context.Context, *GetUserByUserNameRequest) (*GetUserByUserNameResponse, error)
+	GetUserDeptAssocByUserDept(context.Context, *GetUserDeptAssocByUserDeptRequest) (*GetUserDeptAssocByUserDeptResponse, error)
 	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
+	GetUserDeptByDeptPath(context.Context, *GetUserDeptByDeptPathRequest) (*GetUserDeptByDeptPathResponse, error)
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
+	GetUserJobByJobName(context.Context, *GetUserJobByJobNameRequest) (*GetUserJobByJobNameResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
+	GetUserProjectAssocByUserProj(context.Context, *GetUserProjectAssocByUserProjRequest) (*GetUserProjectAssocByUserProjResponse, error)
 	GetUserProjectAssocList(context.Context, *GetUserProjectAssocListRequest) (*GetUserProjectAssocListResponse, error)
+	GetUserRoleAssocByUserRole(context.Context, *GetUserRoleAssocByUserRoleRequest) (*GetUserRoleAssocByUserRoleResponse, error)
 	GetUserRoleAssocList(context.Context, *GetUserRoleAssocListRequest) (*GetUserRoleAssocListResponse, error)
 	GetUserRoleList(context.Context, *GetUserRoleListRequest) (*GetUserRoleListResponse, error)
 	GetUserRolePermissionAssocList(context.Context, *GetUserRolePermissionAssocListRequest) (*GetUserRolePermissionAssocListResponse, error)
@@ -119,26 +133,32 @@ func RegisterUserCURDHTTPServer(s *http.Server, srv UserCURDHTTPServer) {
 	r.GET("/project", _UserCURD_GetProjectList0_HTTP_Handler(srv))
 	r.PATCH("/project", _UserCURD_UpdateProject0_HTTP_Handler(srv))
 	r.DELETE("/project", _UserCURD_DelProjectByIDList0_HTTP_Handler(srv))
+	r.GET("/project/by-proj-name", _UserCURD_GetProjectByProjName0_HTTP_Handler(srv))
 	r.POST("/user", _UserCURD_AddUser0_HTTP_Handler(srv))
 	r.GET("/user", _UserCURD_GetUserList0_HTTP_Handler(srv))
 	r.PATCH("/user", _UserCURD_UpdateUser0_HTTP_Handler(srv))
 	r.DELETE("/user", _UserCURD_DelUserByIDList0_HTTP_Handler(srv))
+	r.GET("/user/by-user-name", _UserCURD_GetUserByUserName0_HTTP_Handler(srv))
 	r.POST("/user-dept", _UserCURD_AddUserDept0_HTTP_Handler(srv))
 	r.GET("/user-dept", _UserCURD_GetUserDeptList0_HTTP_Handler(srv))
 	r.PATCH("/user-dept", _UserCURD_UpdateUserDept0_HTTP_Handler(srv))
 	r.DELETE("/user-dept", _UserCURD_DelUserDeptByIDList0_HTTP_Handler(srv))
+	r.GET("/user-dept/by-dept-path", _UserCURD_GetUserDeptByDeptPath0_HTTP_Handler(srv))
 	r.POST("/user-dept-assoc", _UserCURD_AddUserDeptAssoc0_HTTP_Handler(srv))
 	r.GET("/user-dept-assoc", _UserCURD_GetUserDeptAssocList0_HTTP_Handler(srv))
 	r.PATCH("/user-dept-assoc", _UserCURD_UpdateUserDeptAssoc0_HTTP_Handler(srv))
 	r.DELETE("/user-dept-assoc", _UserCURD_DelUserDeptAssocByIDList0_HTTP_Handler(srv))
+	r.GET("/user-dept-assoc/by-user-dept", _UserCURD_GetUserDeptAssocByUserDept0_HTTP_Handler(srv))
 	r.POST("/user-job", _UserCURD_AddUserJob0_HTTP_Handler(srv))
 	r.GET("/user-job", _UserCURD_GetUserJobList0_HTTP_Handler(srv))
 	r.PATCH("/user-job", _UserCURD_UpdateUserJob0_HTTP_Handler(srv))
 	r.DELETE("/user-job", _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv))
+	r.GET("/user-job/by-job-name", _UserCURD_GetUserJobByJobName0_HTTP_Handler(srv))
 	r.POST("/user-project-assoc", _UserCURD_AddUserProjectAssoc0_HTTP_Handler(srv))
 	r.GET("/user-project-assoc", _UserCURD_GetUserProjectAssocList0_HTTP_Handler(srv))
 	r.PATCH("/user-project-assoc", _UserCURD_UpdateUserProjectAssoc0_HTTP_Handler(srv))
 	r.DELETE("/user-project-assoc", _UserCURD_DelUserProjectAssocByIDList0_HTTP_Handler(srv))
+	r.GET("/user-project-assoc/by-user-proj", _UserCURD_GetUserProjectAssocByUserProj0_HTTP_Handler(srv))
 	r.POST("/user-role", _UserCURD_AddUserRole0_HTTP_Handler(srv))
 	r.GET("/user-role", _UserCURD_GetUserRoleList0_HTTP_Handler(srv))
 	r.PATCH("/user-role", _UserCURD_UpdateUserRole0_HTTP_Handler(srv))
@@ -147,6 +167,7 @@ func RegisterUserCURDHTTPServer(s *http.Server, srv UserCURDHTTPServer) {
 	r.GET("/user-role-assoc", _UserCURD_GetUserRoleAssocList0_HTTP_Handler(srv))
 	r.PATCH("/user-role-assoc", _UserCURD_UpdateUserRoleAssoc0_HTTP_Handler(srv))
 	r.DELETE("/user-role-assoc", _UserCURD_DelUserRoleAssocByIDList0_HTTP_Handler(srv))
+	r.GET("/user-role-assoc/by-user-role", _UserCURD_GetUserRoleAssocByUserRole0_HTTP_Handler(srv))
 	r.POST("/user-role-permission-assoc", _UserCURD_AddUserRolePermissionAssoc0_HTTP_Handler(srv))
 	r.GET("/user-role-permission-assoc", _UserCURD_GetUserRolePermissionAssocList0_HTTP_Handler(srv))
 	r.PATCH("/user-role-permission-assoc", _UserCURD_UpdateUserRolePermissionAssoc0_HTTP_Handler(srv))
@@ -235,6 +256,25 @@ func _UserCURD_DelProjectByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx
 	}
 }
 
+func _UserCURD_GetProjectByProjName0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetProjectByProjNameRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetProjectByProjName)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetProjectByProjName(ctx, req.(*GetProjectByProjNameRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetProjectByProjNameResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _UserCURD_AddUser0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddUserRequest
@@ -313,6 +353,25 @@ func _UserCURD_DelUserByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx ht
 			return err
 		}
 		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserByUserName0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserByUserNameRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserByUserName)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserByUserName(ctx, req.(*GetUserByUserNameRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserByUserNameResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -399,6 +458,25 @@ func _UserCURD_DelUserDeptByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ct
 	}
 }
 
+func _UserCURD_GetUserDeptByDeptPath0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserDeptByDeptPathRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserDeptByDeptPath)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserDeptByDeptPath(ctx, req.(*GetUserDeptByDeptPathRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserDeptByDeptPathResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _UserCURD_AddUserDeptAssoc0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddUserDeptAssocRequest
@@ -477,6 +555,25 @@ func _UserCURD_DelUserDeptAssocByIDList0_HTTP_Handler(srv UserCURDHTTPServer) fu
 			return err
 		}
 		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserDeptAssocByUserDept0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserDeptAssocByUserDeptRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserDeptAssocByUserDept)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserDeptAssocByUserDept(ctx, req.(*GetUserDeptAssocByUserDeptRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserDeptAssocByUserDeptResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -563,6 +660,25 @@ func _UserCURD_DelUserJobByIDList0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx
 	}
 }
 
+func _UserCURD_GetUserJobByJobName0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserJobByJobNameRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserJobByJobName)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserJobByJobName(ctx, req.(*GetUserJobByJobNameRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserJobByJobNameResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _UserCURD_AddUserProjectAssoc0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddUserProjectAssocRequest
@@ -641,6 +757,25 @@ func _UserCURD_DelUserProjectAssocByIDList0_HTTP_Handler(srv UserCURDHTTPServer)
 			return err
 		}
 		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserCURD_GetUserProjectAssocByUserProj0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserProjectAssocByUserProjRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserProjectAssocByUserProj)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserProjectAssocByUserProj(ctx, req.(*GetUserProjectAssocByUserProjRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserProjectAssocByUserProjResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -809,6 +944,25 @@ func _UserCURD_DelUserRoleAssocByIDList0_HTTP_Handler(srv UserCURDHTTPServer) fu
 	}
 }
 
+func _UserCURD_GetUserRoleAssocByUserRole0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserRoleAssocByUserRoleRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCURDGetUserRoleAssocByUserRole)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserRoleAssocByUserRole(ctx, req.(*GetUserRoleAssocByUserRoleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserRoleAssocByUserRoleResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _UserCURD_AddUserRolePermissionAssoc0_HTTP_Handler(srv UserCURDHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddUserRolePermissionAssocRequest
@@ -928,12 +1082,19 @@ type UserCURDHTTPClient interface {
 	DelUserRoleAssocByIDList(ctx context.Context, req *DelUserRoleAssocByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	DelUserRoleByIDList(ctx context.Context, req *DelUserRoleByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	DelUserRolePermissionAssocByIDList(ctx context.Context, req *DelUserRolePermissionAssocByIDListRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	GetProjectByProjName(ctx context.Context, req *GetProjectByProjNameRequest, opts ...http.CallOption) (rsp *GetProjectByProjNameResponse, err error)
 	GetProjectList(ctx context.Context, req *GetProjectListRequest, opts ...http.CallOption) (rsp *GetProjectListResponse, err error)
+	GetUserByUserName(ctx context.Context, req *GetUserByUserNameRequest, opts ...http.CallOption) (rsp *GetUserByUserNameResponse, err error)
+	GetUserDeptAssocByUserDept(ctx context.Context, req *GetUserDeptAssocByUserDeptRequest, opts ...http.CallOption) (rsp *GetUserDeptAssocByUserDeptResponse, err error)
 	GetUserDeptAssocList(ctx context.Context, req *GetUserDeptAssocListRequest, opts ...http.CallOption) (rsp *GetUserDeptAssocListResponse, err error)
+	GetUserDeptByDeptPath(ctx context.Context, req *GetUserDeptByDeptPathRequest, opts ...http.CallOption) (rsp *GetUserDeptByDeptPathResponse, err error)
 	GetUserDeptList(ctx context.Context, req *GetUserDeptListRequest, opts ...http.CallOption) (rsp *GetUserDeptListResponse, err error)
+	GetUserJobByJobName(ctx context.Context, req *GetUserJobByJobNameRequest, opts ...http.CallOption) (rsp *GetUserJobByJobNameResponse, err error)
 	GetUserJobList(ctx context.Context, req *GetUserJobListRequest, opts ...http.CallOption) (rsp *GetUserJobListResponse, err error)
 	GetUserList(ctx context.Context, req *GetUserListRequest, opts ...http.CallOption) (rsp *GetUserListResponse, err error)
+	GetUserProjectAssocByUserProj(ctx context.Context, req *GetUserProjectAssocByUserProjRequest, opts ...http.CallOption) (rsp *GetUserProjectAssocByUserProjResponse, err error)
 	GetUserProjectAssocList(ctx context.Context, req *GetUserProjectAssocListRequest, opts ...http.CallOption) (rsp *GetUserProjectAssocListResponse, err error)
+	GetUserRoleAssocByUserRole(ctx context.Context, req *GetUserRoleAssocByUserRoleRequest, opts ...http.CallOption) (rsp *GetUserRoleAssocByUserRoleResponse, err error)
 	GetUserRoleAssocList(ctx context.Context, req *GetUserRoleAssocListRequest, opts ...http.CallOption) (rsp *GetUserRoleAssocListResponse, err error)
 	GetUserRoleList(ctx context.Context, req *GetUserRoleListRequest, opts ...http.CallOption) (rsp *GetUserRoleListResponse, err error)
 	GetUserRolePermissionAssocList(ctx context.Context, req *GetUserRolePermissionAssocListRequest, opts ...http.CallOption) (rsp *GetUserRolePermissionAssocListResponse, err error)
@@ -1208,11 +1369,50 @@ func (c *UserCURDHTTPClientImpl) DelUserRolePermissionAssocByIDList(ctx context.
 	return &out, nil
 }
 
+func (c *UserCURDHTTPClientImpl) GetProjectByProjName(ctx context.Context, in *GetProjectByProjNameRequest, opts ...http.CallOption) (*GetProjectByProjNameResponse, error) {
+	var out GetProjectByProjNameResponse
+	pattern := "/project/by-proj-name"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetProjectByProjName))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *UserCURDHTTPClientImpl) GetProjectList(ctx context.Context, in *GetProjectListRequest, opts ...http.CallOption) (*GetProjectListResponse, error) {
 	var out GetProjectListResponse
 	pattern := "/project"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserCURDGetProjectList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserByUserName(ctx context.Context, in *GetUserByUserNameRequest, opts ...http.CallOption) (*GetUserByUserNameResponse, error) {
+	var out GetUserByUserNameResponse
+	pattern := "/user/by-user-name"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserByUserName))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserDeptAssocByUserDept(ctx context.Context, in *GetUserDeptAssocByUserDeptRequest, opts ...http.CallOption) (*GetUserDeptAssocByUserDeptResponse, error) {
+	var out GetUserDeptAssocByUserDeptResponse
+	pattern := "/user-dept-assoc/by-user-dept"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserDeptAssocByUserDept))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1234,11 +1434,37 @@ func (c *UserCURDHTTPClientImpl) GetUserDeptAssocList(ctx context.Context, in *G
 	return &out, nil
 }
 
+func (c *UserCURDHTTPClientImpl) GetUserDeptByDeptPath(ctx context.Context, in *GetUserDeptByDeptPathRequest, opts ...http.CallOption) (*GetUserDeptByDeptPathResponse, error) {
+	var out GetUserDeptByDeptPathResponse
+	pattern := "/user-dept/by-dept-path"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserDeptByDeptPath))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *UserCURDHTTPClientImpl) GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...http.CallOption) (*GetUserDeptListResponse, error) {
 	var out GetUserDeptListResponse
 	pattern := "/user-dept"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserCURDGetUserDeptList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserJobByJobName(ctx context.Context, in *GetUserJobByJobNameRequest, opts ...http.CallOption) (*GetUserJobByJobNameResponse, error) {
+	var out GetUserJobByJobNameResponse
+	pattern := "/user-job/by-job-name"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserJobByJobName))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1273,11 +1499,37 @@ func (c *UserCURDHTTPClientImpl) GetUserList(ctx context.Context, in *GetUserLis
 	return &out, nil
 }
 
+func (c *UserCURDHTTPClientImpl) GetUserProjectAssocByUserProj(ctx context.Context, in *GetUserProjectAssocByUserProjRequest, opts ...http.CallOption) (*GetUserProjectAssocByUserProjResponse, error) {
+	var out GetUserProjectAssocByUserProjResponse
+	pattern := "/user-project-assoc/by-user-proj"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserProjectAssocByUserProj))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *UserCURDHTTPClientImpl) GetUserProjectAssocList(ctx context.Context, in *GetUserProjectAssocListRequest, opts ...http.CallOption) (*GetUserProjectAssocListResponse, error) {
 	var out GetUserProjectAssocListResponse
 	pattern := "/user-project-assoc"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserCURDGetUserProjectAssocList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserCURDHTTPClientImpl) GetUserRoleAssocByUserRole(ctx context.Context, in *GetUserRoleAssocByUserRoleRequest, opts ...http.CallOption) (*GetUserRoleAssocByUserRoleResponse, error) {
+	var out GetUserRoleAssocByUserRoleResponse
+	pattern := "/user-role-assoc/by-user-role"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCURDGetUserRoleAssocByUserRole))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

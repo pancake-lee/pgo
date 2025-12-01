@@ -135,3 +135,23 @@ func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
 }
 
 // MARK REMOVE IF NO PRIMARY KEY END
+
+// MARK REPEAT INDEX API START
+func (s *AbandonCodeCURDServer) GetAbandonCodeByIdx23(
+	ctx context.Context, req *api.GetAbandonCodeByIdx23Request,
+) (resp *api.GetAbandonCodeByIdx23Response, err error) {
+	if len(req.Idx2List) == 0 && len(req.Idx3List) == 0 {
+		return nil, api.ErrorInvalidArgument("Idx2List and Idx3List cannot be both empty")
+	}
+	list, err := data.AbandonCodeDAO.GetByIdx23(ctx, req.Idx2List, req.Idx3List)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	resp = new(api.GetAbandonCodeByIdx23Response)
+	for _, v := range list {
+		resp.Data = append(resp.Data, DO2DTO_AbandonCode(v))
+	}
+	return resp, nil
+}
+
+// MARK REPEAT INDEX API END

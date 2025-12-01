@@ -132,3 +132,21 @@ func (s *UserCURDServer) DelUserJobByIDList(
 	return nil, nil
 }
 
+
+
+func (s *UserCURDServer) GetUserJobByJobName(
+	ctx context.Context, req *api.GetUserJobByJobNameRequest,
+) (resp *api.GetUserJobByJobNameResponse, err error) {
+	if len(req.JobNameList) == 0 {
+		return nil, api.ErrorInvalidArgument("params cannot be all empty")
+	}
+	list, err := data.UserJobDAO.GetByJobName(ctx, req.JobNameList)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	resp = new(api.GetUserJobByJobNameResponse)
+	for _, v := range list {
+		resp.Data = append(resp.Data, DO2DTO_UserJob(v))
+	}
+	return resp, nil
+}

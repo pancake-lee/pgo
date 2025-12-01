@@ -79,7 +79,7 @@ func (x *AbandonCodeInfo) GetCol1() string {
 
 type AddAbandonCodeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AbandonCode   *AbandonCodeInfo       `protobuf:"bytes,1,opt,name=abandonCode,proto3" json:"abandonCode,omitempty"`
+	AbandonCode   *AbandonCodeInfo       `protobuf:"bytes,1,opt,name=abandon_code,json=abandonCode,proto3" json:"abandon_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -121,16 +121,113 @@ func (x *AddAbandonCodeRequest) GetAbandonCode() *AbandonCodeInfo {
 	return nil
 }
 
+// MARK REPEAT INDEX MSG START
+type GetAbandonCodeByIdx23Request struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Idx2List      []int32                `protobuf:"varint,1,rep,packed,name=idx2_list,json=idx2List,proto3" json:"idx2_list,omitempty"`
+	Idx3List      []int32                `protobuf:"varint,2,rep,packed,name=idx3_list,json=idx3List,proto3" json:"idx3_list,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAbandonCodeByIdx23Request) Reset() {
+	*x = GetAbandonCodeByIdx23Request{}
+	mi := &file_abandonCode_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAbandonCodeByIdx23Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAbandonCodeByIdx23Request) ProtoMessage() {}
+
+func (x *GetAbandonCodeByIdx23Request) ProtoReflect() protoreflect.Message {
+	mi := &file_abandonCode_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAbandonCodeByIdx23Request.ProtoReflect.Descriptor instead.
+func (*GetAbandonCodeByIdx23Request) Descriptor() ([]byte, []int) {
+	return file_abandonCode_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetAbandonCodeByIdx23Request) GetIdx2List() []int32 {
+	if x != nil {
+		return x.Idx2List
+	}
+	return nil
+}
+
+func (x *GetAbandonCodeByIdx23Request) GetIdx3List() []int32 {
+	if x != nil {
+		return x.Idx3List
+	}
+	return nil
+}
+
+type GetAbandonCodeByIdx23Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*AbandonCodeInfo     `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAbandonCodeByIdx23Response) Reset() {
+	*x = GetAbandonCodeByIdx23Response{}
+	mi := &file_abandonCode_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAbandonCodeByIdx23Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAbandonCodeByIdx23Response) ProtoMessage() {}
+
+func (x *GetAbandonCodeByIdx23Response) ProtoReflect() protoreflect.Message {
+	mi := &file_abandonCode_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAbandonCodeByIdx23Response.ProtoReflect.Descriptor instead.
+func (*GetAbandonCodeByIdx23Response) Descriptor() ([]byte, []int) {
+	return file_abandonCode_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetAbandonCodeByIdx23Response) GetData() []*AbandonCodeInfo {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type AddAbandonCodeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AbandonCode   *AbandonCodeInfo       `protobuf:"bytes,1,opt,name=abandonCode,proto3" json:"abandonCode,omitempty"`
+	AbandonCode   *AbandonCodeInfo       `protobuf:"bytes,1,opt,name=abandon_code,json=abandonCode,proto3" json:"abandon_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AddAbandonCodeResponse) Reset() {
 	*x = AddAbandonCodeResponse{}
-	mi := &file_abandonCode_proto_msgTypes[2]
+	mi := &file_abandonCode_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -142,7 +239,7 @@ func (x *AddAbandonCodeResponse) String() string {
 func (*AddAbandonCodeResponse) ProtoMessage() {}
 
 func (x *AddAbandonCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[2]
+	mi := &file_abandonCode_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -155,7 +252,7 @@ func (x *AddAbandonCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddAbandonCodeResponse.ProtoReflect.Descriptor instead.
 func (*AddAbandonCodeResponse) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{2}
+	return file_abandonCode_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AddAbandonCodeResponse) GetAbandonCode() *AbandonCodeInfo {
@@ -175,7 +272,7 @@ type GetAbandonCodeListRequest struct {
 
 func (x *GetAbandonCodeListRequest) Reset() {
 	*x = GetAbandonCodeListRequest{}
-	mi := &file_abandonCode_proto_msgTypes[3]
+	mi := &file_abandonCode_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +284,7 @@ func (x *GetAbandonCodeListRequest) String() string {
 func (*GetAbandonCodeListRequest) ProtoMessage() {}
 
 func (x *GetAbandonCodeListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[3]
+	mi := &file_abandonCode_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +297,7 @@ func (x *GetAbandonCodeListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAbandonCodeListRequest.ProtoReflect.Descriptor instead.
 func (*GetAbandonCodeListRequest) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{3}
+	return file_abandonCode_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetAbandonCodeListRequest) GetIdx1List() []int32 {
@@ -219,7 +316,7 @@ type GetAbandonCodeListResponse struct {
 
 func (x *GetAbandonCodeListResponse) Reset() {
 	*x = GetAbandonCodeListResponse{}
-	mi := &file_abandonCode_proto_msgTypes[4]
+	mi := &file_abandonCode_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +328,7 @@ func (x *GetAbandonCodeListResponse) String() string {
 func (*GetAbandonCodeListResponse) ProtoMessage() {}
 
 func (x *GetAbandonCodeListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[4]
+	mi := &file_abandonCode_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +341,7 @@ func (x *GetAbandonCodeListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAbandonCodeListResponse.ProtoReflect.Descriptor instead.
 func (*GetAbandonCodeListResponse) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{4}
+	return file_abandonCode_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetAbandonCodeListResponse) GetAbandonCodeList() []*AbandonCodeInfo {
@@ -263,7 +360,7 @@ type UpdateAbandonCodeRequest struct {
 
 func (x *UpdateAbandonCodeRequest) Reset() {
 	*x = UpdateAbandonCodeRequest{}
-	mi := &file_abandonCode_proto_msgTypes[5]
+	mi := &file_abandonCode_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -275,7 +372,7 @@ func (x *UpdateAbandonCodeRequest) String() string {
 func (*UpdateAbandonCodeRequest) ProtoMessage() {}
 
 func (x *UpdateAbandonCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[5]
+	mi := &file_abandonCode_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -288,7 +385,7 @@ func (x *UpdateAbandonCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAbandonCodeRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAbandonCodeRequest) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{5}
+	return file_abandonCode_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateAbandonCodeRequest) GetAbandonCode() *AbandonCodeInfo {
@@ -307,7 +404,7 @@ type UpdateAbandonCodeResponse struct {
 
 func (x *UpdateAbandonCodeResponse) Reset() {
 	*x = UpdateAbandonCodeResponse{}
-	mi := &file_abandonCode_proto_msgTypes[6]
+	mi := &file_abandonCode_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +416,7 @@ func (x *UpdateAbandonCodeResponse) String() string {
 func (*UpdateAbandonCodeResponse) ProtoMessage() {}
 
 func (x *UpdateAbandonCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[6]
+	mi := &file_abandonCode_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +429,7 @@ func (x *UpdateAbandonCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAbandonCodeResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAbandonCodeResponse) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{6}
+	return file_abandonCode_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateAbandonCodeResponse) GetAbandonCode() *AbandonCodeInfo {
@@ -352,7 +449,7 @@ type DelAbandonCodeByIdx1ListRequest struct {
 
 func (x *DelAbandonCodeByIdx1ListRequest) Reset() {
 	*x = DelAbandonCodeByIdx1ListRequest{}
-	mi := &file_abandonCode_proto_msgTypes[7]
+	mi := &file_abandonCode_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -364,7 +461,7 @@ func (x *DelAbandonCodeByIdx1ListRequest) String() string {
 func (*DelAbandonCodeByIdx1ListRequest) ProtoMessage() {}
 
 func (x *DelAbandonCodeByIdx1ListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_abandonCode_proto_msgTypes[7]
+	mi := &file_abandonCode_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -377,7 +474,7 @@ func (x *DelAbandonCodeByIdx1ListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelAbandonCodeByIdx1ListRequest.ProtoReflect.Descriptor instead.
 func (*DelAbandonCodeByIdx1ListRequest) Descriptor() ([]byte, []int) {
-	return file_abandonCode_proto_rawDescGZIP(), []int{7}
+	return file_abandonCode_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DelAbandonCodeByIdx1ListRequest) GetIdx1List() []int32 {
@@ -394,11 +491,16 @@ const file_abandonCode_proto_rawDesc = "" +
 	"\x11abandonCode.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"9\n" +
 	"\x0fAbandonCodeInfo\x12\x12\n" +
 	"\x04idx1\x18\x01 \x01(\x05R\x04idx1\x12\x12\n" +
-	"\x04col1\x18\x02 \x01(\tR\x04col1\"O\n" +
-	"\x15AddAbandonCodeRequest\x126\n" +
-	"\vabandonCode\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"P\n" +
-	"\x16AddAbandonCodeResponse\x126\n" +
-	"\vabandonCode\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"7\n" +
+	"\x04col1\x18\x02 \x01(\tR\x04col1\"P\n" +
+	"\x15AddAbandonCodeRequest\x127\n" +
+	"\fabandon_code\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"X\n" +
+	"\x1cGetAbandonCodeByIdx23Request\x12\x1b\n" +
+	"\tidx2_list\x18\x01 \x03(\x05R\bidx2List\x12\x1b\n" +
+	"\tidx3_list\x18\x02 \x03(\x05R\bidx3List\"I\n" +
+	"\x1dGetAbandonCodeByIdx23Response\x12(\n" +
+	"\x04data\x18\x01 \x03(\v2\x14.api.AbandonCodeInfoR\x04data\"Q\n" +
+	"\x16AddAbandonCodeResponse\x127\n" +
+	"\fabandon_code\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"7\n" +
 	"\x19GetAbandonCodeListRequest\x12\x1a\n" +
 	"\bidx1List\x18\x01 \x03(\x05R\bidx1List\"\\\n" +
 	"\x1aGetAbandonCodeListResponse\x12>\n" +
@@ -408,13 +510,14 @@ const file_abandonCode_proto_rawDesc = "" +
 	"\x19UpdateAbandonCodeResponse\x126\n" +
 	"\vabandonCode\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"=\n" +
 	"\x1fDelAbandonCodeByIdx1ListRequest\x12\x1a\n" +
-	"\bidx1List\x18\x01 \x03(\x05R\bidx1List2\xb7\x03\n" +
+	"\bidx1List\x18\x01 \x03(\x05R\bidx1List2\xb7\x04\n" +
 	"\x0fabandonCodeCURD\x12c\n" +
 	"\x0eAddAbandonCode\x12\x1a.api.AddAbandonCodeRequest\x1a\x1b.api.AddAbandonCodeResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/abandon-code\x12l\n" +
 	"\x12GetAbandonCodeList\x12\x1e.api.GetAbandonCodeListRequest\x1a\x1f.api.GetAbandonCodeListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/abandon-code\x12l\n" +
 	"\x11UpdateAbandonCode\x12\x1d.api.UpdateAbandonCodeRequest\x1a\x1e.api.UpdateAbandonCodeResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*2\r/abandon-code\x12c\n" +
 	"\x18DelAbandonCodeByIdx1List\x12$.api.DelAbandonCodeByIdx1ListRequest\x1a\n" +
-	".api.Empty\"\x15\x82\xd3\xe4\x93\x02\x0f*\r/abandon-codeB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
+	".api.Empty\"\x15\x82\xd3\xe4\x93\x02\x0f*\r/abandon-code\x12~\n" +
+	"\x15GetAbandonCodeByIdx23\x12!.api.GetAbandonCodeByIdx23Request\x1a\".api.GetAbandonCodeByIdx23Response\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/abandon-code/by-idx23B$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
 
 var (
 	file_abandonCode_proto_rawDescOnce sync.Once
@@ -428,37 +531,42 @@ func file_abandonCode_proto_rawDescGZIP() []byte {
 	return file_abandonCode_proto_rawDescData
 }
 
-var file_abandonCode_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_abandonCode_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_abandonCode_proto_goTypes = []any{
 	(*AbandonCodeInfo)(nil),                 // 0: api.AbandonCodeInfo
 	(*AddAbandonCodeRequest)(nil),           // 1: api.AddAbandonCodeRequest
-	(*AddAbandonCodeResponse)(nil),          // 2: api.AddAbandonCodeResponse
-	(*GetAbandonCodeListRequest)(nil),       // 3: api.GetAbandonCodeListRequest
-	(*GetAbandonCodeListResponse)(nil),      // 4: api.GetAbandonCodeListResponse
-	(*UpdateAbandonCodeRequest)(nil),        // 5: api.UpdateAbandonCodeRequest
-	(*UpdateAbandonCodeResponse)(nil),       // 6: api.UpdateAbandonCodeResponse
-	(*DelAbandonCodeByIdx1ListRequest)(nil), // 7: api.DelAbandonCodeByIdx1ListRequest
-	(*Empty)(nil),                           // 8: api.Empty
+	(*GetAbandonCodeByIdx23Request)(nil),    // 2: api.GetAbandonCodeByIdx23Request
+	(*GetAbandonCodeByIdx23Response)(nil),   // 3: api.GetAbandonCodeByIdx23Response
+	(*AddAbandonCodeResponse)(nil),          // 4: api.AddAbandonCodeResponse
+	(*GetAbandonCodeListRequest)(nil),       // 5: api.GetAbandonCodeListRequest
+	(*GetAbandonCodeListResponse)(nil),      // 6: api.GetAbandonCodeListResponse
+	(*UpdateAbandonCodeRequest)(nil),        // 7: api.UpdateAbandonCodeRequest
+	(*UpdateAbandonCodeResponse)(nil),       // 8: api.UpdateAbandonCodeResponse
+	(*DelAbandonCodeByIdx1ListRequest)(nil), // 9: api.DelAbandonCodeByIdx1ListRequest
+	(*Empty)(nil),                           // 10: api.Empty
 }
 var file_abandonCode_proto_depIdxs = []int32{
-	0, // 0: api.AddAbandonCodeRequest.abandonCode:type_name -> api.AbandonCodeInfo
-	0, // 1: api.AddAbandonCodeResponse.abandonCode:type_name -> api.AbandonCodeInfo
-	0, // 2: api.GetAbandonCodeListResponse.abandonCodeList:type_name -> api.AbandonCodeInfo
-	0, // 3: api.UpdateAbandonCodeRequest.abandonCode:type_name -> api.AbandonCodeInfo
-	0, // 4: api.UpdateAbandonCodeResponse.abandonCode:type_name -> api.AbandonCodeInfo
-	1, // 5: api.abandonCodeCURD.AddAbandonCode:input_type -> api.AddAbandonCodeRequest
-	3, // 6: api.abandonCodeCURD.GetAbandonCodeList:input_type -> api.GetAbandonCodeListRequest
-	5, // 7: api.abandonCodeCURD.UpdateAbandonCode:input_type -> api.UpdateAbandonCodeRequest
-	7, // 8: api.abandonCodeCURD.DelAbandonCodeByIdx1List:input_type -> api.DelAbandonCodeByIdx1ListRequest
-	2, // 9: api.abandonCodeCURD.AddAbandonCode:output_type -> api.AddAbandonCodeResponse
-	4, // 10: api.abandonCodeCURD.GetAbandonCodeList:output_type -> api.GetAbandonCodeListResponse
-	6, // 11: api.abandonCodeCURD.UpdateAbandonCode:output_type -> api.UpdateAbandonCodeResponse
-	8, // 12: api.abandonCodeCURD.DelAbandonCodeByIdx1List:output_type -> api.Empty
-	9, // [9:13] is the sub-list for method output_type
-	5, // [5:9] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0,  // 0: api.AddAbandonCodeRequest.abandon_code:type_name -> api.AbandonCodeInfo
+	0,  // 1: api.GetAbandonCodeByIdx23Response.data:type_name -> api.AbandonCodeInfo
+	0,  // 2: api.AddAbandonCodeResponse.abandon_code:type_name -> api.AbandonCodeInfo
+	0,  // 3: api.GetAbandonCodeListResponse.abandonCodeList:type_name -> api.AbandonCodeInfo
+	0,  // 4: api.UpdateAbandonCodeRequest.abandonCode:type_name -> api.AbandonCodeInfo
+	0,  // 5: api.UpdateAbandonCodeResponse.abandonCode:type_name -> api.AbandonCodeInfo
+	1,  // 6: api.abandonCodeCURD.AddAbandonCode:input_type -> api.AddAbandonCodeRequest
+	5,  // 7: api.abandonCodeCURD.GetAbandonCodeList:input_type -> api.GetAbandonCodeListRequest
+	7,  // 8: api.abandonCodeCURD.UpdateAbandonCode:input_type -> api.UpdateAbandonCodeRequest
+	9,  // 9: api.abandonCodeCURD.DelAbandonCodeByIdx1List:input_type -> api.DelAbandonCodeByIdx1ListRequest
+	2,  // 10: api.abandonCodeCURD.GetAbandonCodeByIdx23:input_type -> api.GetAbandonCodeByIdx23Request
+	4,  // 11: api.abandonCodeCURD.AddAbandonCode:output_type -> api.AddAbandonCodeResponse
+	6,  // 12: api.abandonCodeCURD.GetAbandonCodeList:output_type -> api.GetAbandonCodeListResponse
+	8,  // 13: api.abandonCodeCURD.UpdateAbandonCode:output_type -> api.UpdateAbandonCodeResponse
+	10, // 14: api.abandonCodeCURD.DelAbandonCodeByIdx1List:output_type -> api.Empty
+	3,  // 15: api.abandonCodeCURD.GetAbandonCodeByIdx23:output_type -> api.GetAbandonCodeByIdx23Response
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_abandonCode_proto_init() }
@@ -473,7 +581,7 @@ func file_abandonCode_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_abandonCode_proto_rawDesc), len(file_abandonCode_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

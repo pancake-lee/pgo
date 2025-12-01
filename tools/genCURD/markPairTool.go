@@ -10,10 +10,32 @@ type iMarkPairTool interface {
 	ReplaceAll(mark, fileStr, replaceStr string) string
 	RemoveMarkSelf(mark, fileStr string) string
 	GetContent(fileStr string, mark string) string
+	ReplaceLoop(mark, fileStr string, count int, replaceFunc func(int, string) string) string
 }
 type _markPairTool struct{}
 
 var markPairTool iMarkPairTool = new(_markPairTool)
+
+// --------------------------------------------------
+// 循环替换
+func (r *_markPairTool) ReplaceLoop(mark, fileStr string, count int, replaceFunc func(int, string) string) string {
+	if count == 0 {
+		return r.ReplaceAll(mark, fileStr, "")
+	}
+
+	// 获取标记内的原始内容
+	content := r.GetContent(fileStr, mark)
+	if content == "" {
+		return fileStr
+	}
+
+	newContent := ""
+	for i := 0; i < count; i++ {
+		newContent += replaceFunc(i, content)
+	}
+
+	return r.ReplaceAll(mark, fileStr, newContent)
+}
 
 // --------------------------------------------------
 // 替换标记的内容

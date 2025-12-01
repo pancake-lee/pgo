@@ -32,6 +32,12 @@ service userCURD { // 该命名应该全文唯一
             delete: "/project"
         };
     }
+
+    rpc GetProjectByProjName (GetProjectByProjNameRequest) returns (GetProjectByProjNameResponse) {
+        option (google.api.http) = {
+            get: "/project/by-proj-name"
+        };
+    }
     // --------------------------------------------------
     // tbl : user
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
@@ -54,6 +60,12 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserByIDList (DelUserByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user"
+        };
+    }
+
+    rpc GetUserByUserName (GetUserByUserNameRequest) returns (GetUserByUserNameResponse) {
+        option (google.api.http) = {
+            get: "/user/by-user-name"
         };
     }
     // --------------------------------------------------
@@ -80,6 +92,12 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-dept"
         };
     }
+
+    rpc GetUserDeptByDeptPath (GetUserDeptByDeptPathRequest) returns (GetUserDeptByDeptPathResponse) {
+        option (google.api.http) = {
+            get: "/user-dept/by-dept-path"
+        };
+    }
     // --------------------------------------------------
     // tbl : user_dept_assoc
     rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
@@ -102,6 +120,12 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserDeptAssocByIDList (DelUserDeptAssocByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-dept-assoc"
+        };
+    }
+
+    rpc GetUserDeptAssocByUserDept (GetUserDeptAssocByUserDeptRequest) returns (GetUserDeptAssocByUserDeptResponse) {
+        option (google.api.http) = {
+            get: "/user-dept-assoc/by-user-dept"
         };
     }
     // --------------------------------------------------
@@ -128,6 +152,12 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-job"
         };
     }
+
+    rpc GetUserJobByJobName (GetUserJobByJobNameRequest) returns (GetUserJobByJobNameResponse) {
+        option (google.api.http) = {
+            get: "/user-job/by-job-name"
+        };
+    }
     // --------------------------------------------------
     // tbl : user_project_assoc
     rpc AddUserProjectAssoc (AddUserProjectAssocRequest) returns (AddUserProjectAssocResponse) {
@@ -150,6 +180,12 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserProjectAssocByIDList (DelUserProjectAssocByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-project-assoc"
+        };
+    }
+
+    rpc GetUserProjectAssocByUserProj (GetUserProjectAssocByUserProjRequest) returns (GetUserProjectAssocByUserProjResponse) {
+        option (google.api.http) = {
+            get: "/user-project-assoc/by-user-proj"
         };
     }
     // --------------------------------------------------
@@ -200,6 +236,12 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-role-assoc"
         };
     }
+
+    rpc GetUserRoleAssocByUserRole (GetUserRoleAssocByUserRoleRequest) returns (GetUserRoleAssocByUserRoleResponse) {
+        option (google.api.http) = {
+            get: "/user-role-assoc/by-user-role"
+        };
+    }
     // --------------------------------------------------
     // tbl : user_role_permission_assoc
     rpc AddUserRolePermissionAssoc (AddUserRolePermissionAssocRequest) returns (AddUserRolePermissionAssocResponse) {
@@ -240,6 +282,14 @@ message ProjectInfo {
 
 message AddProjectRequest {
     ProjectInfo project = 1;
+}
+
+
+message GetProjectByProjNameRequest {
+    repeated string ProjName_list = 1;
+}
+message GetProjectByProjNameResponse {
+    repeated ProjectInfo data = 1;
 }
 
 message AddProjectResponse {
@@ -283,6 +333,14 @@ message AddUserRequest {
     UserInfo user = 1;
 }
 
+
+message GetUserByUserNameRequest {
+    repeated string UserName_list = 1;
+}
+message GetUserByUserNameResponse {
+    repeated UserInfo data = 1;
+}
+
 message AddUserResponse {
     UserInfo user = 1;
 }
@@ -321,11 +379,19 @@ message UserDeptInfo {
 }
 
 message AddUserDeptRequest {
-    UserDeptInfo userDept = 1;
+    UserDeptInfo user_dept = 1;
+}
+
+
+message GetUserDeptByDeptPathRequest {
+    repeated string DeptPath_list = 1;
+}
+message GetUserDeptByDeptPathResponse {
+    repeated UserDeptInfo data = 1;
 }
 
 message AddUserDeptResponse {
-    UserDeptInfo userDept = 1;
+    UserDeptInfo user_dept = 1;
 }
 
 message GetUserDeptListRequest {
@@ -363,11 +429,20 @@ message UserDeptAssocInfo {
 }
 
 message AddUserDeptAssocRequest {
-    UserDeptAssocInfo userDeptAssoc = 1;
+    UserDeptAssocInfo user_dept_assoc = 1;
+}
+
+
+message GetUserDeptAssocByUserDeptRequest {
+    repeated int32 UserID_list = 1;
+    repeated int32 DeptID_list = 2;
+}
+message GetUserDeptAssocByUserDeptResponse {
+    repeated UserDeptAssocInfo data = 1;
 }
 
 message AddUserDeptAssocResponse {
-    UserDeptAssocInfo userDeptAssoc = 1;
+    UserDeptAssocInfo user_dept_assoc = 1;
 }
 
 message GetUserDeptAssocListRequest {
@@ -403,11 +478,19 @@ message UserJobInfo {
 }
 
 message AddUserJobRequest {
-    UserJobInfo userJob = 1;
+    UserJobInfo user_job = 1;
+}
+
+
+message GetUserJobByJobNameRequest {
+    repeated string JobName_list = 1;
+}
+message GetUserJobByJobNameResponse {
+    repeated UserJobInfo data = 1;
 }
 
 message AddUserJobResponse {
-    UserJobInfo userJob = 1;
+    UserJobInfo user_job = 1;
 }
 
 message GetUserJobListRequest {
@@ -442,11 +525,20 @@ message UserProjectAssocInfo {
 }
 
 message AddUserProjectAssocRequest {
-    UserProjectAssocInfo userProjectAssoc = 1;
+    UserProjectAssocInfo user_project_assoc = 1;
+}
+
+
+message GetUserProjectAssocByUserProjRequest {
+    repeated int32 UserID_list = 1;
+    repeated int32 ProjID_list = 2;
+}
+message GetUserProjectAssocByUserProjResponse {
+    repeated UserProjectAssocInfo data = 1;
 }
 
 message AddUserProjectAssocResponse {
-    UserProjectAssocInfo userProjectAssoc = 1;
+    UserProjectAssocInfo user_project_assoc = 1;
 }
 
 message GetUserProjectAssocListRequest {
@@ -484,11 +576,12 @@ message UserRoleInfo {
 }
 
 message AddUserRoleRequest {
-    UserRoleInfo userRole = 1;
+    UserRoleInfo user_role = 1;
 }
 
+
 message AddUserRoleResponse {
-    UserRoleInfo userRole = 1;
+    UserRoleInfo user_role = 1;
 }
 
 message GetUserRoleListRequest {
@@ -523,11 +616,20 @@ message UserRoleAssocInfo {
 }
 
 message AddUserRoleAssocRequest {
-    UserRoleAssocInfo userRoleAssoc = 1;
+    UserRoleAssocInfo user_role_assoc = 1;
+}
+
+
+message GetUserRoleAssocByUserRoleRequest {
+    repeated int32 UserID_list = 1;
+    repeated int32 RoleID_list = 2;
+}
+message GetUserRoleAssocByUserRoleResponse {
+    repeated UserRoleAssocInfo data = 1;
 }
 
 message AddUserRoleAssocResponse {
-    UserRoleAssocInfo userRoleAssoc = 1;
+    UserRoleAssocInfo user_role_assoc = 1;
 }
 
 message GetUserRoleAssocListRequest {
@@ -563,11 +665,12 @@ message UserRolePermissionAssocInfo {
 }
 
 message AddUserRolePermissionAssocRequest {
-    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+    UserRolePermissionAssocInfo user_role_permission_assoc = 1;
 }
 
+
 message AddUserRolePermissionAssocResponse {
-    UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
+    UserRolePermissionAssocInfo user_role_permission_assoc = 1;
 }
 
 message GetUserRolePermissionAssocListRequest {

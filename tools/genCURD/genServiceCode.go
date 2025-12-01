@@ -151,6 +151,52 @@ func svcReplace(
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
 		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
 	}
+
+	// 处理唯一索引生成的 API 代码
+	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX API", codeStr, len(tbl.IdxList),
+		func(idx int, content string) string {
+			indexInfo := tbl.IdxList[idx]
+			idxFields := indexInfo.Fields
+			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
+			paramCheck := ""
+			daoCallParams := ""
+
+			for i, f := range idxFields {
+				goFieldName := putil.StrToCamelCase(putil.StrIdToLower(f.IdxColName)) + "List"
+
+				paramCheck += fmt.Sprintf("len(req.%s) == 0", goFieldName)
+				daoCallParams += fmt.Sprintf("req.%s", goFieldName)
+
+				if i < len(idxFields)-1 {
+					paramCheck += " && "
+					daoCallParams += ", "
+				}
+			}
+
+			rpcName := "Get" + tbl.UpperCamelName + funcSuffix
+			reqName := rpcName + "Request"
+			respName := rpcName + "Response"
+
+			return fmt.Sprintf(`
+func (s *%sCURDServer) %s(
+	ctx context.Context, req *api.%s,
+) (resp *api.%s, err error) {
+	if %s {
+		return nil, api.ErrorInvalidArgument("params cannot be all empty")
+	}
+	list, err := data.%sDAO.Get%s(ctx, %s)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	resp = new(api.%s)
+	for _, v := range list {
+		resp.Data = append(resp.Data, DO2DTO_%s(v))
+	}
+	return resp, nil
+}
+`, putil.StrToCamelCase(tbl.ServiceName), rpcName, reqName, respName, paramCheck, tbl.UpperCamelName, funcSuffix, daoCallParams, respName, tbl.UpperCamelName)
+		})
+
 	codeStr = svcNameReplace(codeStr,
 		tplTable.ServiceName, tbl.ServiceName)
 

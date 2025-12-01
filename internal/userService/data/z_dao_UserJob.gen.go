@@ -39,6 +39,23 @@ func (*userJobDAO) GetAll(ctx context.Context,
 	return userJobList, nil
 }
 
+
+func (*userJobDAO) GetByJobName(ctx context.Context, jobNameList []string) ([]*UserJobDO, error) {
+	if len(jobNameList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserJob
+	do := q.WithContext(ctx)
+	if len(jobNameList) > 0 {
+		do = do.Where(q.JobName.In(jobNameList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

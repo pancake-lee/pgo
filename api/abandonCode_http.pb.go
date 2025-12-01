@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationAbandonCodeCURDAddAbandonCode = "/api.abandonCodeCURD/AddAbandonCode"
 const OperationAbandonCodeCURDDelAbandonCodeByIdx1List = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
+const OperationAbandonCodeCURDGetAbandonCodeByIdx23 = "/api.abandonCodeCURD/GetAbandonCodeByIdx23"
 const OperationAbandonCodeCURDGetAbandonCodeList = "/api.abandonCodeCURD/GetAbandonCodeList"
 const OperationAbandonCodeCURDUpdateAbandonCode = "/api.abandonCodeCURD/UpdateAbandonCode"
 
@@ -30,6 +31,9 @@ type AbandonCodeCURDHTTPServer interface {
 	// tbl : abandon_code
 	AddAbandonCode(context.Context, *AddAbandonCodeRequest) (*AddAbandonCodeResponse, error)
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
+	// GetAbandonCodeByIdx23 MARK REMOVE IF NO PRIMARY KEY END
+	// MARK REPEAT INDEX API START
+	GetAbandonCodeByIdx23(context.Context, *GetAbandonCodeByIdx23Request) (*GetAbandonCodeByIdx23Response, error)
 	GetAbandonCodeList(context.Context, *GetAbandonCodeListRequest) (*GetAbandonCodeListResponse, error)
 	// UpdateAbandonCode MARK REMOVE IF NO PRIMARY KEY START
 	UpdateAbandonCode(context.Context, *UpdateAbandonCodeRequest) (*UpdateAbandonCodeResponse, error)
@@ -41,6 +45,7 @@ func RegisterAbandonCodeCURDHTTPServer(s *http.Server, srv AbandonCodeCURDHTTPSe
 	r.GET("/abandon-code", _AbandonCodeCURD_GetAbandonCodeList0_HTTP_Handler(srv))
 	r.PATCH("/abandon-code", _AbandonCodeCURD_UpdateAbandonCode0_HTTP_Handler(srv))
 	r.DELETE("/abandon-code", _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv))
+	r.GET("/abandon-code/by-idx23", _AbandonCodeCURD_GetAbandonCodeByIdx230_HTTP_Handler(srv))
 }
 
 func _AbandonCodeCURD_AddAbandonCode0_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
@@ -125,12 +130,34 @@ func _AbandonCodeCURD_DelAbandonCodeByIdx1List0_HTTP_Handler(srv AbandonCodeCURD
 	}
 }
 
+func _AbandonCodeCURD_GetAbandonCodeByIdx230_HTTP_Handler(srv AbandonCodeCURDHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAbandonCodeByIdx23Request
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAbandonCodeCURDGetAbandonCodeByIdx23)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAbandonCodeByIdx23(ctx, req.(*GetAbandonCodeByIdx23Request))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAbandonCodeByIdx23Response)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AbandonCodeCURDHTTPClient interface {
 	// AddAbandonCode MARK REPEAT API START 一个表的接口定义
 	// --------------------------------------------------
 	// tbl : abandon_code
 	AddAbandonCode(ctx context.Context, req *AddAbandonCodeRequest, opts ...http.CallOption) (rsp *AddAbandonCodeResponse, err error)
 	DelAbandonCodeByIdx1List(ctx context.Context, req *DelAbandonCodeByIdx1ListRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	// GetAbandonCodeByIdx23 MARK REMOVE IF NO PRIMARY KEY END
+	// MARK REPEAT INDEX API START
+	GetAbandonCodeByIdx23(ctx context.Context, req *GetAbandonCodeByIdx23Request, opts ...http.CallOption) (rsp *GetAbandonCodeByIdx23Response, err error)
 	GetAbandonCodeList(ctx context.Context, req *GetAbandonCodeListRequest, opts ...http.CallOption) (rsp *GetAbandonCodeListResponse, err error)
 	// UpdateAbandonCode MARK REMOVE IF NO PRIMARY KEY START
 	UpdateAbandonCode(ctx context.Context, req *UpdateAbandonCodeRequest, opts ...http.CallOption) (rsp *UpdateAbandonCodeResponse, err error)
@@ -167,6 +194,21 @@ func (c *AbandonCodeCURDHTTPClientImpl) DelAbandonCodeByIdx1List(ctx context.Con
 	opts = append(opts, http.Operation(OperationAbandonCodeCURDDelAbandonCodeByIdx1List))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAbandonCodeByIdx23 MARK REMOVE IF NO PRIMARY KEY END
+// MARK REPEAT INDEX API START
+func (c *AbandonCodeCURDHTTPClientImpl) GetAbandonCodeByIdx23(ctx context.Context, in *GetAbandonCodeByIdx23Request, opts ...http.CallOption) (*GetAbandonCodeByIdx23Response, error) {
+	var out GetAbandonCodeByIdx23Response
+	pattern := "/abandon-code/by-idx23"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAbandonCodeCURDGetAbandonCodeByIdx23))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

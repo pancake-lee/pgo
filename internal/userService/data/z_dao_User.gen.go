@@ -39,6 +39,23 @@ func (*userDAO) GetAll(ctx context.Context,
 	return userList, nil
 }
 
+
+func (*userDAO) GetByUserName(ctx context.Context, userNameList []string) ([]*UserDO, error) {
+	if len(userNameList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().User
+	do := q.WithContext(ctx)
+	if len(userNameList) > 0 {
+		do = do.Where(q.UserName.In(userNameList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userDAO) UpdateByID(ctx context.Context, do *UserDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

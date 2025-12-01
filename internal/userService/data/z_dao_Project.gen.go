@@ -39,6 +39,23 @@ func (*projectDAO) GetAll(ctx context.Context,
 	return projectList, nil
 }
 
+
+func (*projectDAO) GetByProjName(ctx context.Context, projNameList []string) ([]*ProjectDO, error) {
+	if len(projNameList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().Project
+	do := q.WithContext(ctx)
+	if len(projNameList) > 0 {
+		do = do.Where(q.ProjName.In(projNameList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*projectDAO) UpdateByID(ctx context.Context, do *ProjectDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

@@ -54,11 +54,12 @@ message CourseSwapRequestInfo {
 }
 
 message AddCourseSwapRequestRequest {
-    CourseSwapRequestInfo courseSwapRequest = 1;
+    CourseSwapRequestInfo course_swap_request = 1;
 }
 
+
 message AddCourseSwapRequestResponse {
-    CourseSwapRequestInfo courseSwapRequest = 1;
+    CourseSwapRequestInfo course_swap_request = 1;
 }
 
 message GetCourseSwapRequestListRequest {

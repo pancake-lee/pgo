@@ -39,6 +39,26 @@ func (*userProjectAssocDAO) GetAll(ctx context.Context,
 	return userProjectAssocList, nil
 }
 
+
+func (*userProjectAssocDAO) GetByUserProj(ctx context.Context, userIDList []int32, projIDList []int32) ([]*UserProjectAssocDO, error) {
+	if len(userIDList) == 0 && len(projIDList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserProjectAssoc
+	do := q.WithContext(ctx)
+	if len(userIDList) > 0 {
+		do = do.Where(q.UserID.In(userIDList...))
+	}
+	if len(projIDList) > 0 {
+		do = do.Where(q.ProjID.In(projIDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userProjectAssocDAO) UpdateByID(ctx context.Context, do *UserProjectAssocDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

@@ -86,6 +86,36 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateAbandonCodeResponse'
+    /abandon-code/by-idx23:
+        get:
+            tags:
+                - AbandonCodeCURD
+            description: |-
+                MARK REMOVE IF NO PRIMARY KEY END
+                 MARK REPEAT INDEX API START
+            operationId: AbandonCodeCURD_GetAbandonCodeByIdx23
+            parameters:
+                - name: idx2List
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: idx3List
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetAbandonCodeByIdx23Response'
     /course-swap-request:
         get:
             tags:
@@ -238,6 +268,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateProjectResponse'
+    /project/by-proj-name:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetProjectByProjName
+            parameters:
+                - name: ProjNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetProjectByProjNameResponse'
     /task:
         get:
             tags:
@@ -547,6 +596,52 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserDeptAssocResponse'
+    /user-dept-assoc/by-user-dept:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserDeptAssocByUserDept
+            parameters:
+                - name: UserIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: DeptIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserDeptAssocByUserDeptResponse'
+    /user-dept/by-dept-path:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserDeptByDeptPath
+            parameters:
+                - name: DeptPathList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserDeptByDeptPathResponse'
     /user-job:
         get:
             tags:
@@ -623,6 +718,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserJobResponse'
+    /user-job/by-job-name:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserJobByJobName
+            parameters:
+                - name: JobNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserJobByJobNameResponse'
     /user-project-assoc:
         get:
             tags:
@@ -699,6 +813,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserProjectAssocResponse'
+    /user-project-assoc/by-user-proj:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserProjectAssocByUserProj
+            parameters:
+                - name: UserIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: ProjIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserProjectAssocByUserProjResponse'
     /user-role:
         get:
             tags:
@@ -851,6 +992,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserRoleAssocResponse'
+    /user-role-assoc/by-user-role:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserRoleAssocByUserRole
+            parameters:
+                - name: UserIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: RoleIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserRoleAssocByUserRoleResponse'
     /user-role-permission-assoc:
         get:
             tags:
@@ -927,6 +1095,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserRolePermissionAssocResponse'
+    /user/by-user-name:
+        get:
+            tags:
+                - UserCURD
+            operationId: UserCURD_GetUserByUserName
+            parameters:
+                - name: UserNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserByUserNameResponse'
     /user/permissions:
         get:
             tags:
@@ -1153,6 +1340,13 @@ components:
         api.Empty:
             type: object
             properties: {}
+        api.GetAbandonCodeByIdx23Response:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.AbandonCodeInfo'
         api.GetAbandonCodeListResponse:
             type: object
             properties:
@@ -1167,6 +1361,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+        api.GetProjectByProjNameResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ProjectInfo'
         api.GetProjectListResponse:
             type: object
             properties:
@@ -1181,6 +1382,20 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.TaskInfo'
+        api.GetUserByUserNameResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserInfo'
+        api.GetUserDeptAssocByUserDeptResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
@@ -1188,6 +1403,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptAssocInfo'
+        api.GetUserDeptByDeptPathResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserDeptInfo'
         api.GetUserDeptListResponse:
             type: object
             properties:
@@ -1195,6 +1417,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptInfo'
+        api.GetUserJobByJobNameResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserJobInfo'
         api.GetUserJobListResponse:
             type: object
             properties:
@@ -1216,6 +1445,13 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        api.GetUserProjectAssocByUserProjResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserProjectAssocInfo'
         api.GetUserProjectAssocListResponse:
             type: object
             properties:
@@ -1223,6 +1459,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserProjectAssocInfo'
+        api.GetUserRoleAssocByUserRoleResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserRoleAssocInfo'
         api.GetUserRoleAssocListResponse:
             type: object
             properties:

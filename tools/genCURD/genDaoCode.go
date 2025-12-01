@@ -50,6 +50,54 @@ func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
 	}
 
+	// 处理唯一索引生成的代码
+	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX DAO", codeStr, len(tbl.IdxList),
+		func(idx int, content string) string {
+			indexInfo := tbl.IdxList[idx]
+			idxFields := indexInfo.Fields
+
+			// 构造函数名后缀，例如 ByIdx2Idx3
+			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
+			// 构造参数列表，例如 idx2List []int32, idx3List []int32
+			paramList := ""
+			// 构造参数检查，例如 len(idx2List) == 0 && len(idx3List) == 0
+			paramCheck := ""
+			// 构造查询条件
+			queryCond := ""
+
+			for i, f := range idxFields {
+				paramList += fmt.Sprintf("%sList []%s", f.IdxParmName, f.IdxColType)
+				paramCheck += fmt.Sprintf("len(%sList) == 0", f.IdxParmName)
+
+				queryCond += fmt.Sprintf(`
+	if len(%sList) > 0 {
+		do = do.Where(q.%s.In(%sList...))
+	}`, f.IdxParmName, f.IdxColName, f.IdxParmName)
+
+				if i < len(idxFields)-1 {
+					paramList += ", "
+					paramCheck += " && "
+				}
+			}
+
+			newContent := fmt.Sprintf(`
+func (*%sDAO) Get%s(ctx context.Context, %s) ([]*%sDO, error) {
+	if %s {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().%s
+	do := q.WithContext(ctx)%s
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+`, tbl.LowerCamelName, funcSuffix, paramList, tbl.UpperCamelName, paramCheck, tbl.UpperCamelName, queryCond)
+
+			return newContent
+		})
+
 	return tblNameReplace(codeStr, tplTable, tbl)
 }
 

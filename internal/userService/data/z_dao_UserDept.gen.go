@@ -39,6 +39,23 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	return userDeptList, nil
 }
 
+
+func (*userDeptDAO) GetByDeptPath(ctx context.Context, deptPathList []string) ([]*UserDeptDO, error) {
+	if len(deptPathList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserDept
+	do := q.WithContext(ctx)
+	if len(deptPathList) > 0 {
+		do = do.Where(q.DeptPath.In(deptPathList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

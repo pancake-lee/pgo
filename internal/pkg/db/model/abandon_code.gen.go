@@ -10,6 +10,8 @@ const TableNameAbandonCode = "abandon_code"
 type AbandonCode struct {
 	Idx1 int32  `gorm:"column:idx1;primaryKey;autoIncrement:true;comment:The primary key of the table" json:"idx1"` // The primary key of the table
 	Col1 string `gorm:"column:col1;not null" json:"col1"`
+	Idx2 int32  `gorm:"column:idx2;not null" json:"idx2"`
+	Idx3 int32  `gorm:"column:idx3;not null" json:"idx3"`
 }
 
 // TableName AbandonCode's table name

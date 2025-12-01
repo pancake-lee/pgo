@@ -39,6 +39,7 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 	return courseSwapRequestList, nil
 }
 
+
 func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapRequestDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

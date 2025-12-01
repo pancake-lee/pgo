@@ -37,6 +37,28 @@ func (*abandonCodeDAO) GetAll(ctx context.Context,
 	return abandonCodeList, nil
 }
 
+// MARK REPEAT INDEX DAO START
+func (*abandonCodeDAO) GetByIdx23(ctx context.Context, idx2List []int32, idx3List []int32) ([]*AbandonCodeDO, error) {
+	if len(idx2List) == 0 && len(idx3List) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().AbandonCode
+	do := q.WithContext(ctx)
+	if len(idx2List) > 0 {
+		do = do.Where(q.Idx2.In(idx2List...))
+	}
+	if len(idx3List) > 0 {
+		do = do.Where(q.Idx3.In(idx3List...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
+// MARK REPEAT INDEX DAO END
+
 // MARK REMOVE IF NO PRIMARY KEY START
 func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) error {
 	if do.Idx1 == 0 {

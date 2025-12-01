@@ -33,6 +33,13 @@ service abandonCodeCURD { // 该命名应该全文唯一
         };
     }
     // MARK REMOVE IF NO PRIMARY KEY END
+    // MARK REPEAT INDEX API START
+    rpc GetAbandonCodeByIdx23 (GetAbandonCodeByIdx23Request) returns (GetAbandonCodeByIdx23Response) {
+        option (google.api.http) = {
+            get: "/abandon-code/by-idx23"
+        };
+    }
+    // MARK REPEAT INDEX API END
 // MARK REPEAT API END
 }
 
@@ -48,11 +55,21 @@ message AbandonCodeInfo {
 }
 
 message AddAbandonCodeRequest {
-    AbandonCodeInfo abandonCode = 1;
+    AbandonCodeInfo abandon_code = 1;
 }
 
+// MARK REPEAT INDEX MSG START
+message GetAbandonCodeByIdx23Request {
+    repeated int32 idx2_list = 1;
+    repeated int32 idx3_list = 2;
+}
+message GetAbandonCodeByIdx23Response {
+    repeated AbandonCodeInfo data = 1;
+}
+// MARK REPEAT INDEX MSG END
+
 message AddAbandonCodeResponse {
-    AbandonCodeInfo abandonCode = 1;
+    AbandonCodeInfo abandon_code = 1;
 }
 
 message GetAbandonCodeListRequest {

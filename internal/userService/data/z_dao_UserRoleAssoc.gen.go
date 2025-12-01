@@ -39,6 +39,26 @@ func (*userRoleAssocDAO) GetAll(ctx context.Context,
 	return userRoleAssocList, nil
 }
 
+
+func (*userRoleAssocDAO) GetByUserRole(ctx context.Context, userIDList []int32, roleIDList []int32) ([]*UserRoleAssocDO, error) {
+	if len(userIDList) == 0 && len(roleIDList) == 0 {
+		return nil, plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetPG().UserRoleAssoc
+	do := q.WithContext(ctx)
+	if len(userIDList) > 0 {
+		do = do.Where(q.UserID.In(userIDList...))
+	}
+	if len(roleIDList) > 0 {
+		do = do.Where(q.RoleID.In(roleIDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
+
 func (*userRoleAssocDAO) UpdateByID(ctx context.Context, do *UserRoleAssocDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

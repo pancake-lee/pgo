@@ -25,26 +25,32 @@ const (
 	UserCURD_GetProjectList_FullMethodName                     = "/api.userCURD/GetProjectList"
 	UserCURD_UpdateProject_FullMethodName                      = "/api.userCURD/UpdateProject"
 	UserCURD_DelProjectByIDList_FullMethodName                 = "/api.userCURD/DelProjectByIDList"
+	UserCURD_GetProjectByProjName_FullMethodName               = "/api.userCURD/GetProjectByProjName"
 	UserCURD_AddUser_FullMethodName                            = "/api.userCURD/AddUser"
 	UserCURD_GetUserList_FullMethodName                        = "/api.userCURD/GetUserList"
 	UserCURD_UpdateUser_FullMethodName                         = "/api.userCURD/UpdateUser"
 	UserCURD_DelUserByIDList_FullMethodName                    = "/api.userCURD/DelUserByIDList"
+	UserCURD_GetUserByUserName_FullMethodName                  = "/api.userCURD/GetUserByUserName"
 	UserCURD_AddUserDept_FullMethodName                        = "/api.userCURD/AddUserDept"
 	UserCURD_GetUserDeptList_FullMethodName                    = "/api.userCURD/GetUserDeptList"
 	UserCURD_UpdateUserDept_FullMethodName                     = "/api.userCURD/UpdateUserDept"
 	UserCURD_DelUserDeptByIDList_FullMethodName                = "/api.userCURD/DelUserDeptByIDList"
+	UserCURD_GetUserDeptByDeptPath_FullMethodName              = "/api.userCURD/GetUserDeptByDeptPath"
 	UserCURD_AddUserDeptAssoc_FullMethodName                   = "/api.userCURD/AddUserDeptAssoc"
 	UserCURD_GetUserDeptAssocList_FullMethodName               = "/api.userCURD/GetUserDeptAssocList"
 	UserCURD_UpdateUserDeptAssoc_FullMethodName                = "/api.userCURD/UpdateUserDeptAssoc"
 	UserCURD_DelUserDeptAssocByIDList_FullMethodName           = "/api.userCURD/DelUserDeptAssocByIDList"
+	UserCURD_GetUserDeptAssocByUserDept_FullMethodName         = "/api.userCURD/GetUserDeptAssocByUserDept"
 	UserCURD_AddUserJob_FullMethodName                         = "/api.userCURD/AddUserJob"
 	UserCURD_GetUserJobList_FullMethodName                     = "/api.userCURD/GetUserJobList"
 	UserCURD_UpdateUserJob_FullMethodName                      = "/api.userCURD/UpdateUserJob"
 	UserCURD_DelUserJobByIDList_FullMethodName                 = "/api.userCURD/DelUserJobByIDList"
+	UserCURD_GetUserJobByJobName_FullMethodName                = "/api.userCURD/GetUserJobByJobName"
 	UserCURD_AddUserProjectAssoc_FullMethodName                = "/api.userCURD/AddUserProjectAssoc"
 	UserCURD_GetUserProjectAssocList_FullMethodName            = "/api.userCURD/GetUserProjectAssocList"
 	UserCURD_UpdateUserProjectAssoc_FullMethodName             = "/api.userCURD/UpdateUserProjectAssoc"
 	UserCURD_DelUserProjectAssocByIDList_FullMethodName        = "/api.userCURD/DelUserProjectAssocByIDList"
+	UserCURD_GetUserProjectAssocByUserProj_FullMethodName      = "/api.userCURD/GetUserProjectAssocByUserProj"
 	UserCURD_AddUserRole_FullMethodName                        = "/api.userCURD/AddUserRole"
 	UserCURD_GetUserRoleList_FullMethodName                    = "/api.userCURD/GetUserRoleList"
 	UserCURD_UpdateUserRole_FullMethodName                     = "/api.userCURD/UpdateUserRole"
@@ -53,6 +59,7 @@ const (
 	UserCURD_GetUserRoleAssocList_FullMethodName               = "/api.userCURD/GetUserRoleAssocList"
 	UserCURD_UpdateUserRoleAssoc_FullMethodName                = "/api.userCURD/UpdateUserRoleAssoc"
 	UserCURD_DelUserRoleAssocByIDList_FullMethodName           = "/api.userCURD/DelUserRoleAssocByIDList"
+	UserCURD_GetUserRoleAssocByUserRole_FullMethodName         = "/api.userCURD/GetUserRoleAssocByUserRole"
 	UserCURD_AddUserRolePermissionAssoc_FullMethodName         = "/api.userCURD/AddUserRolePermissionAssoc"
 	UserCURD_GetUserRolePermissionAssocList_FullMethodName     = "/api.userCURD/GetUserRolePermissionAssocList"
 	UserCURD_UpdateUserRolePermissionAssoc_FullMethodName      = "/api.userCURD/UpdateUserRolePermissionAssoc"
@@ -71,36 +78,42 @@ type UserCURDClient interface {
 	GetProjectList(ctx context.Context, in *GetProjectListRequest, opts ...grpc.CallOption) (*GetProjectListResponse, error)
 	UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error)
 	DelProjectByIDList(ctx context.Context, in *DelProjectByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetProjectByProjName(ctx context.Context, in *GetProjectByProjNameRequest, opts ...grpc.CallOption) (*GetProjectByProjNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	DelUserByIDList(ctx context.Context, in *DelUserByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserByUserName(ctx context.Context, in *GetUserByUserNameRequest, opts ...grpc.CallOption) (*GetUserByUserNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(ctx context.Context, in *AddUserDeptRequest, opts ...grpc.CallOption) (*AddUserDeptResponse, error)
 	GetUserDeptList(ctx context.Context, in *GetUserDeptListRequest, opts ...grpc.CallOption) (*GetUserDeptListResponse, error)
 	UpdateUserDept(ctx context.Context, in *UpdateUserDeptRequest, opts ...grpc.CallOption) (*UpdateUserDeptResponse, error)
 	DelUserDeptByIDList(ctx context.Context, in *DelUserDeptByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserDeptByDeptPath(ctx context.Context, in *GetUserDeptByDeptPathRequest, opts ...grpc.CallOption) (*GetUserDeptByDeptPathResponse, error)
 	// --------------------------------------------------
 	// tbl : user_dept_assoc
 	AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(ctx context.Context, in *GetUserDeptAssocListRequest, opts ...grpc.CallOption) (*GetUserDeptAssocListResponse, error)
 	UpdateUserDeptAssoc(ctx context.Context, in *UpdateUserDeptAssocRequest, opts ...grpc.CallOption) (*UpdateUserDeptAssocResponse, error)
 	DelUserDeptAssocByIDList(ctx context.Context, in *DelUserDeptAssocByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserDeptAssocByUserDept(ctx context.Context, in *GetUserDeptAssocByUserDeptRequest, opts ...grpc.CallOption) (*GetUserDeptAssocByUserDeptResponse, error)
 	// --------------------------------------------------
 	// tbl : user_job
 	AddUserJob(ctx context.Context, in *AddUserJobRequest, opts ...grpc.CallOption) (*AddUserJobResponse, error)
 	GetUserJobList(ctx context.Context, in *GetUserJobListRequest, opts ...grpc.CallOption) (*GetUserJobListResponse, error)
 	UpdateUserJob(ctx context.Context, in *UpdateUserJobRequest, opts ...grpc.CallOption) (*UpdateUserJobResponse, error)
 	DelUserJobByIDList(ctx context.Context, in *DelUserJobByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserJobByJobName(ctx context.Context, in *GetUserJobByJobNameRequest, opts ...grpc.CallOption) (*GetUserJobByJobNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user_project_assoc
 	AddUserProjectAssoc(ctx context.Context, in *AddUserProjectAssocRequest, opts ...grpc.CallOption) (*AddUserProjectAssocResponse, error)
 	GetUserProjectAssocList(ctx context.Context, in *GetUserProjectAssocListRequest, opts ...grpc.CallOption) (*GetUserProjectAssocListResponse, error)
 	UpdateUserProjectAssoc(ctx context.Context, in *UpdateUserProjectAssocRequest, opts ...grpc.CallOption) (*UpdateUserProjectAssocResponse, error)
 	DelUserProjectAssocByIDList(ctx context.Context, in *DelUserProjectAssocByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserProjectAssocByUserProj(ctx context.Context, in *GetUserProjectAssocByUserProjRequest, opts ...grpc.CallOption) (*GetUserProjectAssocByUserProjResponse, error)
 	// --------------------------------------------------
 	// tbl : user_role
 	AddUserRole(ctx context.Context, in *AddUserRoleRequest, opts ...grpc.CallOption) (*AddUserRoleResponse, error)
@@ -113,6 +126,7 @@ type UserCURDClient interface {
 	GetUserRoleAssocList(ctx context.Context, in *GetUserRoleAssocListRequest, opts ...grpc.CallOption) (*GetUserRoleAssocListResponse, error)
 	UpdateUserRoleAssoc(ctx context.Context, in *UpdateUserRoleAssocRequest, opts ...grpc.CallOption) (*UpdateUserRoleAssocResponse, error)
 	DelUserRoleAssocByIDList(ctx context.Context, in *DelUserRoleAssocByIDListRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetUserRoleAssocByUserRole(ctx context.Context, in *GetUserRoleAssocByUserRoleRequest, opts ...grpc.CallOption) (*GetUserRoleAssocByUserRoleResponse, error)
 	// --------------------------------------------------
 	// tbl : user_role_permission_assoc
 	AddUserRolePermissionAssoc(ctx context.Context, in *AddUserRolePermissionAssocRequest, opts ...grpc.CallOption) (*AddUserRolePermissionAssocResponse, error)
@@ -169,6 +183,16 @@ func (c *userCURDClient) DelProjectByIDList(ctx context.Context, in *DelProjectB
 	return out, nil
 }
 
+func (c *userCURDClient) GetProjectByProjName(ctx context.Context, in *GetProjectByProjNameRequest, opts ...grpc.CallOption) (*GetProjectByProjNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProjectByProjNameResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetProjectByProjName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddUserResponse)
@@ -203,6 +227,16 @@ func (c *userCURDClient) DelUserByIDList(ctx context.Context, in *DelUserByIDLis
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, UserCURD_DelUserByIDList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userCURDClient) GetUserByUserName(ctx context.Context, in *GetUserByUserNameRequest, opts ...grpc.CallOption) (*GetUserByUserNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserByUserNameResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserByUserName_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -249,6 +283,16 @@ func (c *userCURDClient) DelUserDeptByIDList(ctx context.Context, in *DelUserDep
 	return out, nil
 }
 
+func (c *userCURDClient) GetUserDeptByDeptPath(ctx context.Context, in *GetUserDeptByDeptPathRequest, opts ...grpc.CallOption) (*GetUserDeptByDeptPathResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserDeptByDeptPathResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserDeptByDeptPath_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) AddUserDeptAssoc(ctx context.Context, in *AddUserDeptAssocRequest, opts ...grpc.CallOption) (*AddUserDeptAssocResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddUserDeptAssocResponse)
@@ -283,6 +327,16 @@ func (c *userCURDClient) DelUserDeptAssocByIDList(ctx context.Context, in *DelUs
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, UserCURD_DelUserDeptAssocByIDList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userCURDClient) GetUserDeptAssocByUserDept(ctx context.Context, in *GetUserDeptAssocByUserDeptRequest, opts ...grpc.CallOption) (*GetUserDeptAssocByUserDeptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserDeptAssocByUserDeptResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserDeptAssocByUserDept_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -329,6 +383,16 @@ func (c *userCURDClient) DelUserJobByIDList(ctx context.Context, in *DelUserJobB
 	return out, nil
 }
 
+func (c *userCURDClient) GetUserJobByJobName(ctx context.Context, in *GetUserJobByJobNameRequest, opts ...grpc.CallOption) (*GetUserJobByJobNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserJobByJobNameResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserJobByJobName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) AddUserProjectAssoc(ctx context.Context, in *AddUserProjectAssocRequest, opts ...grpc.CallOption) (*AddUserProjectAssocResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddUserProjectAssocResponse)
@@ -363,6 +427,16 @@ func (c *userCURDClient) DelUserProjectAssocByIDList(ctx context.Context, in *De
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, UserCURD_DelUserProjectAssocByIDList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userCURDClient) GetUserProjectAssocByUserProj(ctx context.Context, in *GetUserProjectAssocByUserProjRequest, opts ...grpc.CallOption) (*GetUserProjectAssocByUserProjResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserProjectAssocByUserProjResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserProjectAssocByUserProj_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -449,6 +523,16 @@ func (c *userCURDClient) DelUserRoleAssocByIDList(ctx context.Context, in *DelUs
 	return out, nil
 }
 
+func (c *userCURDClient) GetUserRoleAssocByUserRole(ctx context.Context, in *GetUserRoleAssocByUserRoleRequest, opts ...grpc.CallOption) (*GetUserRoleAssocByUserRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserRoleAssocByUserRoleResponse)
+	err := c.cc.Invoke(ctx, UserCURD_GetUserRoleAssocByUserRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userCURDClient) AddUserRolePermissionAssoc(ctx context.Context, in *AddUserRolePermissionAssocRequest, opts ...grpc.CallOption) (*AddUserRolePermissionAssocResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddUserRolePermissionAssocResponse)
@@ -501,36 +585,42 @@ type UserCURDServer interface {
 	GetProjectList(context.Context, *GetProjectListRequest) (*GetProjectListResponse, error)
 	UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error)
 	DelProjectByIDList(context.Context, *DelProjectByIDListRequest) (*Empty, error)
+	GetProjectByProjName(context.Context, *GetProjectByProjNameRequest) (*GetProjectByProjNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error)
+	GetUserByUserName(context.Context, *GetUserByUserNameRequest) (*GetUserByUserNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user_dept
 	AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error)
 	GetUserDeptList(context.Context, *GetUserDeptListRequest) (*GetUserDeptListResponse, error)
 	UpdateUserDept(context.Context, *UpdateUserDeptRequest) (*UpdateUserDeptResponse, error)
 	DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error)
+	GetUserDeptByDeptPath(context.Context, *GetUserDeptByDeptPathRequest) (*GetUserDeptByDeptPathResponse, error)
 	// --------------------------------------------------
 	// tbl : user_dept_assoc
 	AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error)
 	GetUserDeptAssocList(context.Context, *GetUserDeptAssocListRequest) (*GetUserDeptAssocListResponse, error)
 	UpdateUserDeptAssoc(context.Context, *UpdateUserDeptAssocRequest) (*UpdateUserDeptAssocResponse, error)
 	DelUserDeptAssocByIDList(context.Context, *DelUserDeptAssocByIDListRequest) (*Empty, error)
+	GetUserDeptAssocByUserDept(context.Context, *GetUserDeptAssocByUserDeptRequest) (*GetUserDeptAssocByUserDeptResponse, error)
 	// --------------------------------------------------
 	// tbl : user_job
 	AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error)
 	GetUserJobList(context.Context, *GetUserJobListRequest) (*GetUserJobListResponse, error)
 	UpdateUserJob(context.Context, *UpdateUserJobRequest) (*UpdateUserJobResponse, error)
 	DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error)
+	GetUserJobByJobName(context.Context, *GetUserJobByJobNameRequest) (*GetUserJobByJobNameResponse, error)
 	// --------------------------------------------------
 	// tbl : user_project_assoc
 	AddUserProjectAssoc(context.Context, *AddUserProjectAssocRequest) (*AddUserProjectAssocResponse, error)
 	GetUserProjectAssocList(context.Context, *GetUserProjectAssocListRequest) (*GetUserProjectAssocListResponse, error)
 	UpdateUserProjectAssoc(context.Context, *UpdateUserProjectAssocRequest) (*UpdateUserProjectAssocResponse, error)
 	DelUserProjectAssocByIDList(context.Context, *DelUserProjectAssocByIDListRequest) (*Empty, error)
+	GetUserProjectAssocByUserProj(context.Context, *GetUserProjectAssocByUserProjRequest) (*GetUserProjectAssocByUserProjResponse, error)
 	// --------------------------------------------------
 	// tbl : user_role
 	AddUserRole(context.Context, *AddUserRoleRequest) (*AddUserRoleResponse, error)
@@ -543,6 +633,7 @@ type UserCURDServer interface {
 	GetUserRoleAssocList(context.Context, *GetUserRoleAssocListRequest) (*GetUserRoleAssocListResponse, error)
 	UpdateUserRoleAssoc(context.Context, *UpdateUserRoleAssocRequest) (*UpdateUserRoleAssocResponse, error)
 	DelUserRoleAssocByIDList(context.Context, *DelUserRoleAssocByIDListRequest) (*Empty, error)
+	GetUserRoleAssocByUserRole(context.Context, *GetUserRoleAssocByUserRoleRequest) (*GetUserRoleAssocByUserRoleResponse, error)
 	// --------------------------------------------------
 	// tbl : user_role_permission_assoc
 	AddUserRolePermissionAssoc(context.Context, *AddUserRolePermissionAssocRequest) (*AddUserRolePermissionAssocResponse, error)
@@ -571,6 +662,9 @@ func (UnimplementedUserCURDServer) UpdateProject(context.Context, *UpdateProject
 func (UnimplementedUserCURDServer) DelProjectByIDList(context.Context, *DelProjectByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelProjectByIDList not implemented")
 }
+func (UnimplementedUserCURDServer) GetProjectByProjName(context.Context, *GetProjectByProjNameRequest) (*GetProjectByProjNameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProjectByProjName not implemented")
+}
 func (UnimplementedUserCURDServer) AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUser not implemented")
 }
@@ -582,6 +676,9 @@ func (UnimplementedUserCURDServer) UpdateUser(context.Context, *UpdateUserReques
 }
 func (UnimplementedUserCURDServer) DelUserByIDList(context.Context, *DelUserByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserByIDList not implemented")
+}
+func (UnimplementedUserCURDServer) GetUserByUserName(context.Context, *GetUserByUserNameRequest) (*GetUserByUserNameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserByUserName not implemented")
 }
 func (UnimplementedUserCURDServer) AddUserDept(context.Context, *AddUserDeptRequest) (*AddUserDeptResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserDept not implemented")
@@ -595,6 +692,9 @@ func (UnimplementedUserCURDServer) UpdateUserDept(context.Context, *UpdateUserDe
 func (UnimplementedUserCURDServer) DelUserDeptByIDList(context.Context, *DelUserDeptByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserDeptByIDList not implemented")
 }
+func (UnimplementedUserCURDServer) GetUserDeptByDeptPath(context.Context, *GetUserDeptByDeptPathRequest) (*GetUserDeptByDeptPathResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserDeptByDeptPath not implemented")
+}
 func (UnimplementedUserCURDServer) AddUserDeptAssoc(context.Context, *AddUserDeptAssocRequest) (*AddUserDeptAssocResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserDeptAssoc not implemented")
 }
@@ -606,6 +706,9 @@ func (UnimplementedUserCURDServer) UpdateUserDeptAssoc(context.Context, *UpdateU
 }
 func (UnimplementedUserCURDServer) DelUserDeptAssocByIDList(context.Context, *DelUserDeptAssocByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserDeptAssocByIDList not implemented")
+}
+func (UnimplementedUserCURDServer) GetUserDeptAssocByUserDept(context.Context, *GetUserDeptAssocByUserDeptRequest) (*GetUserDeptAssocByUserDeptResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserDeptAssocByUserDept not implemented")
 }
 func (UnimplementedUserCURDServer) AddUserJob(context.Context, *AddUserJobRequest) (*AddUserJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserJob not implemented")
@@ -619,6 +722,9 @@ func (UnimplementedUserCURDServer) UpdateUserJob(context.Context, *UpdateUserJob
 func (UnimplementedUserCURDServer) DelUserJobByIDList(context.Context, *DelUserJobByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserJobByIDList not implemented")
 }
+func (UnimplementedUserCURDServer) GetUserJobByJobName(context.Context, *GetUserJobByJobNameRequest) (*GetUserJobByJobNameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserJobByJobName not implemented")
+}
 func (UnimplementedUserCURDServer) AddUserProjectAssoc(context.Context, *AddUserProjectAssocRequest) (*AddUserProjectAssocResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserProjectAssoc not implemented")
 }
@@ -630,6 +736,9 @@ func (UnimplementedUserCURDServer) UpdateUserProjectAssoc(context.Context, *Upda
 }
 func (UnimplementedUserCURDServer) DelUserProjectAssocByIDList(context.Context, *DelUserProjectAssocByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserProjectAssocByIDList not implemented")
+}
+func (UnimplementedUserCURDServer) GetUserProjectAssocByUserProj(context.Context, *GetUserProjectAssocByUserProjRequest) (*GetUserProjectAssocByUserProjResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserProjectAssocByUserProj not implemented")
 }
 func (UnimplementedUserCURDServer) AddUserRole(context.Context, *AddUserRoleRequest) (*AddUserRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserRole not implemented")
@@ -654,6 +763,9 @@ func (UnimplementedUserCURDServer) UpdateUserRoleAssoc(context.Context, *UpdateU
 }
 func (UnimplementedUserCURDServer) DelUserRoleAssocByIDList(context.Context, *DelUserRoleAssocByIDListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserRoleAssocByIDList not implemented")
+}
+func (UnimplementedUserCURDServer) GetUserRoleAssocByUserRole(context.Context, *GetUserRoleAssocByUserRoleRequest) (*GetUserRoleAssocByUserRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserRoleAssocByUserRole not implemented")
 }
 func (UnimplementedUserCURDServer) AddUserRolePermissionAssoc(context.Context, *AddUserRolePermissionAssocRequest) (*AddUserRolePermissionAssocResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserRolePermissionAssoc not implemented")
@@ -760,6 +872,24 @@ func _UserCURD_DelProjectByIDList_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_GetProjectByProjName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectByProjNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetProjectByProjName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetProjectByProjName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetProjectByProjName(ctx, req.(*GetProjectByProjNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserRequest)
 	if err := dec(in); err != nil {
@@ -828,6 +958,24 @@ func _UserCURD_DelUserByIDList_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserCURDServer).DelUserByIDList(ctx, req.(*DelUserByIDListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserCURD_GetUserByUserName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByUserNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserByUserName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserByUserName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserByUserName(ctx, req.(*GetUserByUserNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -904,6 +1052,24 @@ func _UserCURD_DelUserDeptByIDList_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_GetUserDeptByDeptPath_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDeptByDeptPathRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserDeptByDeptPath(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserDeptByDeptPath_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserDeptByDeptPath(ctx, req.(*GetUserDeptByDeptPathRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_AddUserDeptAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserDeptAssocRequest)
 	if err := dec(in); err != nil {
@@ -972,6 +1138,24 @@ func _UserCURD_DelUserDeptAssocByIDList_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserCURDServer).DelUserDeptAssocByIDList(ctx, req.(*DelUserDeptAssocByIDListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserCURD_GetUserDeptAssocByUserDept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDeptAssocByUserDeptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserDeptAssocByUserDept(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserDeptAssocByUserDept_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserDeptAssocByUserDept(ctx, req.(*GetUserDeptAssocByUserDeptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1048,6 +1232,24 @@ func _UserCURD_DelUserJobByIDList_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_GetUserJobByJobName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserJobByJobNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserJobByJobName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserJobByJobName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserJobByJobName(ctx, req.(*GetUserJobByJobNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_AddUserProjectAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserProjectAssocRequest)
 	if err := dec(in); err != nil {
@@ -1116,6 +1318,24 @@ func _UserCURD_DelUserProjectAssocByIDList_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserCURDServer).DelUserProjectAssocByIDList(ctx, req.(*DelUserProjectAssocByIDListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserCURD_GetUserProjectAssocByUserProj_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserProjectAssocByUserProjRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserProjectAssocByUserProj(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserProjectAssocByUserProj_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserProjectAssocByUserProj(ctx, req.(*GetUserProjectAssocByUserProjRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1264,6 +1484,24 @@ func _UserCURD_DelUserRoleAssocByIDList_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCURD_GetUserRoleAssocByUserRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRoleAssocByUserRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCURDServer).GetUserRoleAssocByUserRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserCURD_GetUserRoleAssocByUserRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCURDServer).GetUserRoleAssocByUserRole(ctx, req.(*GetUserRoleAssocByUserRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserCURD_AddUserRolePermissionAssoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserRolePermissionAssocRequest)
 	if err := dec(in); err != nil {
@@ -1360,6 +1598,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserCURD_DelProjectByIDList_Handler,
 		},
 		{
+			MethodName: "GetProjectByProjName",
+			Handler:    _UserCURD_GetProjectByProjName_Handler,
+		},
+		{
 			MethodName: "AddUser",
 			Handler:    _UserCURD_AddUser_Handler,
 		},
@@ -1374,6 +1616,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelUserByIDList",
 			Handler:    _UserCURD_DelUserByIDList_Handler,
+		},
+		{
+			MethodName: "GetUserByUserName",
+			Handler:    _UserCURD_GetUserByUserName_Handler,
 		},
 		{
 			MethodName: "AddUserDept",
@@ -1392,6 +1638,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserCURD_DelUserDeptByIDList_Handler,
 		},
 		{
+			MethodName: "GetUserDeptByDeptPath",
+			Handler:    _UserCURD_GetUserDeptByDeptPath_Handler,
+		},
+		{
 			MethodName: "AddUserDeptAssoc",
 			Handler:    _UserCURD_AddUserDeptAssoc_Handler,
 		},
@@ -1406,6 +1656,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelUserDeptAssocByIDList",
 			Handler:    _UserCURD_DelUserDeptAssocByIDList_Handler,
+		},
+		{
+			MethodName: "GetUserDeptAssocByUserDept",
+			Handler:    _UserCURD_GetUserDeptAssocByUserDept_Handler,
 		},
 		{
 			MethodName: "AddUserJob",
@@ -1424,6 +1678,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserCURD_DelUserJobByIDList_Handler,
 		},
 		{
+			MethodName: "GetUserJobByJobName",
+			Handler:    _UserCURD_GetUserJobByJobName_Handler,
+		},
+		{
 			MethodName: "AddUserProjectAssoc",
 			Handler:    _UserCURD_AddUserProjectAssoc_Handler,
 		},
@@ -1438,6 +1696,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelUserProjectAssocByIDList",
 			Handler:    _UserCURD_DelUserProjectAssocByIDList_Handler,
+		},
+		{
+			MethodName: "GetUserProjectAssocByUserProj",
+			Handler:    _UserCURD_GetUserProjectAssocByUserProj_Handler,
 		},
 		{
 			MethodName: "AddUserRole",
@@ -1470,6 +1732,10 @@ var UserCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelUserRoleAssocByIDList",
 			Handler:    _UserCURD_DelUserRoleAssocByIDList_Handler,
+		},
+		{
+			MethodName: "GetUserRoleAssocByUserRole",
+			Handler:    _UserCURD_GetUserRoleAssocByUserRole_Handler,
 		},
 		{
 			MethodName: "AddUserRolePermissionAssoc",

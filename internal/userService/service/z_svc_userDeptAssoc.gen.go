@@ -136,3 +136,21 @@ func (s *UserCURDServer) DelUserDeptAssocByIDList(
 	return nil, nil
 }
 
+
+
+func (s *UserCURDServer) GetUserDeptAssocByUserDept(
+	ctx context.Context, req *api.GetUserDeptAssocByUserDeptRequest,
+) (resp *api.GetUserDeptAssocByUserDeptResponse, err error) {
+	if len(req.UserIDList) == 0 && len(req.DeptIDList) == 0 {
+		return nil, api.ErrorInvalidArgument("params cannot be all empty")
+	}
+	list, err := data.UserDeptAssocDAO.GetByUserDept(ctx, req.UserIDList, req.DeptIDList)
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	resp = new(api.GetUserDeptAssocByUserDeptResponse)
+	for _, v := range list {
+		resp.Data = append(resp.Data, DO2DTO_UserDeptAssoc(v))
+	}
+	return resp, nil
+}

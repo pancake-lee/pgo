@@ -29,6 +29,8 @@ func newAbandonCode(db *gorm.DB, opts ...gen.DOOption) abandonCode {
 	_abandonCode.ALL = field.NewAsterisk(tableName)
 	_abandonCode.Idx1 = field.NewInt32(tableName, "idx1")
 	_abandonCode.Col1 = field.NewString(tableName, "col1")
+	_abandonCode.Idx2 = field.NewInt32(tableName, "idx2")
+	_abandonCode.Idx3 = field.NewInt32(tableName, "idx3")
 
 	_abandonCode.fillFieldMap()
 
@@ -41,6 +43,8 @@ type abandonCode struct {
 	ALL  field.Asterisk
 	Idx1 field.Int32 // The primary key of the table
 	Col1 field.String
+	Idx2 field.Int32
+	Idx3 field.Int32
 
 	fieldMap map[string]field.Expr
 }
@@ -59,6 +63,8 @@ func (a *abandonCode) updateTableName(table string) *abandonCode {
 	a.ALL = field.NewAsterisk(table)
 	a.Idx1 = field.NewInt32(table, "idx1")
 	a.Col1 = field.NewString(table, "col1")
+	a.Idx2 = field.NewInt32(table, "idx2")
+	a.Idx3 = field.NewInt32(table, "idx3")
 
 	a.fillFieldMap()
 
@@ -85,9 +91,11 @@ func (a *abandonCode) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *abandonCode) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 2)
+	a.fieldMap = make(map[string]field.Expr, 4)
 	a.fieldMap["idx1"] = a.Idx1
 	a.fieldMap["col1"] = a.Col1
+	a.fieldMap["idx2"] = a.Idx2
+	a.fieldMap["idx3"] = a.Idx3
 }
 
 func (a abandonCode) clone(db *gorm.DB) abandonCode {

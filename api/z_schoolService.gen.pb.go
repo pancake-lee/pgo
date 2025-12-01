@@ -168,7 +168,7 @@ func (x *CourseSwapRequestInfo) GetStatus() int32 {
 
 type AddCourseSwapRequestRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=courseSwapRequest,proto3" json:"courseSwapRequest,omitempty"`
+	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=course_swap_request,json=courseSwapRequest,proto3" json:"course_swap_request,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -212,7 +212,7 @@ func (x *AddCourseSwapRequestRequest) GetCourseSwapRequest() *CourseSwapRequestI
 
 type AddCourseSwapRequestResponse struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=courseSwapRequest,proto3" json:"courseSwapRequest,omitempty"`
+	CourseSwapRequest *CourseSwapRequestInfo `protobuf:"bytes,1,opt,name=course_swap_request,json=courseSwapRequest,proto3" json:"course_swap_request,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -499,11 +499,11 @@ const file_z_schoolService_gen_proto_rawDesc = "" +
 	"\n" +
 	"createTime\x18\f \x01(\x03R\n" +
 	"createTime\x12\x16\n" +
-	"\x06status\x18\r \x01(\x05R\x06status\"g\n" +
-	"\x1bAddCourseSwapRequestRequest\x12H\n" +
-	"\x11courseSwapRequest\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"h\n" +
-	"\x1cAddCourseSwapRequestResponse\x12H\n" +
-	"\x11courseSwapRequest\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"9\n" +
+	"\x06status\x18\r \x01(\x05R\x06status\"i\n" +
+	"\x1bAddCourseSwapRequestRequest\x12J\n" +
+	"\x13course_swap_request\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"j\n" +
+	"\x1cAddCourseSwapRequestResponse\x12J\n" +
+	"\x13course_swap_request\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"9\n" +
 	"\x1fGetCourseSwapRequestListRequest\x12\x16\n" +
 	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"t\n" +
 	" GetCourseSwapRequestListResponse\x12P\n" +
@@ -547,8 +547,8 @@ var file_z_schoolService_gen_proto_goTypes = []any{
 	(*Empty)(nil), // 8: api.Empty
 }
 var file_z_schoolService_gen_proto_depIdxs = []int32{
-	0, // 0: api.AddCourseSwapRequestRequest.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
-	0, // 1: api.AddCourseSwapRequestResponse.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
+	0, // 0: api.AddCourseSwapRequestRequest.course_swap_request:type_name -> api.CourseSwapRequestInfo
+	0, // 1: api.AddCourseSwapRequestResponse.course_swap_request:type_name -> api.CourseSwapRequestInfo
 	0, // 2: api.GetCourseSwapRequestListResponse.courseSwapRequestList:type_name -> api.CourseSwapRequestInfo
 	0, // 3: api.UpdateCourseSwapRequestRequest.courseSwapRequest:type_name -> api.CourseSwapRequestInfo
 	0, // 4: api.UpdateCourseSwapRequestResponse.courseSwapRequest:type_name -> api.CourseSwapRequestInfo

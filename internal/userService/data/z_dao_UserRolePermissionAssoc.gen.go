@@ -39,6 +39,7 @@ func (*userRolePermissionAssocDAO) GetAll(ctx context.Context,
 	return userRolePermissionAssocList, nil
 }
 
+
 func (*userRolePermissionAssocDAO) UpdateByID(ctx context.Context, do *UserRolePermissionAssocDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)

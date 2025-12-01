@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
@@ -22,12 +23,17 @@ type dbModel interface {
 	TableName() string
 }
 
-// 处理复合键、多个索引的情况，可能要重构了，只是字符串替换的话，不太好处理
-// type IndexField struct {
-// 	IdxColName  string // 索引列名，model字段名
-// 	IdxColType  string // 索引列类型，model字段类型
-// 	IdxParmName string // 索引列名，读写值的参数名
-// }
+// 处理复合键、多个索引的情况
+type IndexField struct {
+	IdxColName  string // 索引列名，model字段名
+	IdxColType  string // 索引列类型，model字段类型
+	IdxParmName string // 索引列名，读写值的参数名
+}
+
+type IndexInfo struct {
+	Name   string        // 索引名
+	Fields []*IndexField // 索引包含的字段
+}
 
 type Table struct {
 	ServiceName string
@@ -43,6 +49,8 @@ type Table struct {
 	IdxColName  string // 索引列名，model字段名
 	IdxColType  string // 索引列类型，model字段类型
 	IdxParmName string // 索引列名，读写值的参数名
+
+	IdxList []*IndexInfo // 存储所有唯一索引
 
 	FieldList []*reflect.StructField
 }
@@ -92,6 +100,7 @@ func main() {
 				(&model.AbandonCode{}).TableName()) {
 			continue
 		}
+
 		// DAO 对象有 WithContext 方法返回 DO 对象
 		method := qVal.Field(i).Addr().MethodByName("WithContext")
 		if !method.IsValid() {
@@ -155,8 +164,35 @@ func main() {
 				unique, _ := idx.Unique()
 				plogger.Debugf("Index Name[%s] Primary[%v] Unique[%v]",
 					idx.Name(), pk, unique)
-				for _, col := range idx.Columns() {
-					plogger.Debugf("  Column[%s]", col)
+
+				if unique && !pk {
+					var idxFields []*IndexField
+					for _, col := range idx.Columns() {
+						// 找到对应的 model 字段
+						for _, f := range tbl.FieldList {
+							// 简单的匹配逻辑，可能需要根据实际情况调整
+							// GORM tag 中通常包含 column:xxx
+							gormTag := f.Tag.Get("gorm")
+							colTag := "column:" + col
+							if strings.Contains(gormTag, colTag) ||
+								strings.Contains(gormTag, colTag+";") ||
+								f.Name == putil.StrToCamelCase(col) {
+
+								idxFields = append(idxFields, &IndexField{
+									IdxColName:  f.Name,
+									IdxColType:  f.Type.String(),
+									IdxParmName: putil.StrFirstToLower(putil.StrIdToLower(f.Name)),
+								})
+								break
+							}
+						}
+					}
+					if len(idxFields) > 0 {
+						tbl.IdxList = append(tbl.IdxList, &IndexInfo{
+							Name:   idx.Name(),
+							Fields: idxFields,
+						})
+					}
 				}
 			}
 		}
@@ -231,4 +267,21 @@ func inferServiceName(tableName string) string {
 		return "abandonCode"
 	}
 	return "user"
+}
+
+// idxNameToCamelCase 索引名转驼峰，特殊处理 idx_ 前缀
+// idx_user_dept -> UserDept
+// idx_2_3 -> Idx23
+func idxNameToCamelCase(str string) string {
+	camel := putil.StrToCamelCase(str)
+	if strings.HasPrefix(camel, "Idx") {
+		// 如果去掉 Idx 后剩余部分首字母不是数字，则去掉 Idx
+		// IdxUserDept -> UserDept
+		// Idx23 -> Idx23
+		rest := camel[3:]
+		if len(rest) > 0 && !unicode.IsDigit(rune(rest[0])) {
+			return rest
+		}
+	}
+	return camel
 }
