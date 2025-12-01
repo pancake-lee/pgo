@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationUserDelUserDeptAssoc = "/api.User/DelUserDeptAssoc"
 const OperationUserEditUserName = "/api.User/EditUserName"
+const OperationUserGetUserPermissions = "/api.User/GetUserPermissions"
 const OperationUserLogin = "/api.User/Login"
 
 type UserHTTPServer interface {
@@ -28,6 +29,9 @@ type UserHTTPServer interface {
 	DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error)
 	// EditUserName 修改用户名
 	EditUserName(context.Context, *EditUserNameRequest) (*Empty, error)
+	// GetUserPermissions --------------------------------------------------
+	// 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+	GetUserPermissions(context.Context, *GetUserPermissionsRequest) (*GetUserPermissionsResponse, error)
 	// Login 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 }
@@ -37,6 +41,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.POST("/user/token", _User_Login0_HTTP_Handler(srv))
 	r.PATCH("/user", _User_EditUserName0_HTTP_Handler(srv))
 	r.DELETE("/user-dept-assoc", _User_DelUserDeptAssoc0_HTTP_Handler(srv))
+	r.GET("/user/permissions", _User_GetUserPermissions0_HTTP_Handler(srv))
 }
 
 func _User_Login0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -102,11 +107,33 @@ func _User_DelUserDeptAssoc0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Cont
 	}
 }
 
+func _User_GetUserPermissions0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserPermissionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserGetUserPermissions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserPermissions(ctx, req.(*GetUserPermissionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserPermissionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
 	// DelUserDeptAssoc 从部门中移除用户
 	DelUserDeptAssoc(ctx context.Context, req *DelUserDeptAssocRequest, opts ...http.CallOption) (rsp *Empty, err error)
 	// EditUserName 修改用户名
 	EditUserName(ctx context.Context, req *EditUserNameRequest, opts ...http.CallOption) (rsp *Empty, err error)
+	// GetUserPermissions --------------------------------------------------
+	// 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+	GetUserPermissions(ctx context.Context, req *GetUserPermissionsRequest, opts ...http.CallOption) (rsp *GetUserPermissionsResponse, err error)
 	// Login 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 }
@@ -141,6 +168,21 @@ func (c *UserHTTPClientImpl) EditUserName(ctx context.Context, in *EditUserNameR
 	opts = append(opts, http.Operation(OperationUserEditUserName))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetUserPermissions --------------------------------------------------
+// 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+func (c *UserHTTPClientImpl) GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...http.CallOption) (*GetUserPermissionsResponse, error) {
+	var out GetUserPermissionsResponse
+	pattern := "/user/permissions"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserGetUserPermissions))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

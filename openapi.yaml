@@ -927,6 +927,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserRolePermissionAssocResponse'
+    /user/permissions:
+        get:
+            tags:
+                - User
+            description: |-
+                --------------------------------------------------
+                 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+            operationId: User_GetUserPermissions
+            parameters:
+                - name: userID
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: projectID
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetUserPermissionsResponse'
     /user/token:
         post:
             tags:
@@ -1183,6 +1209,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserInfo'
+        api.GetUserPermissionsResponse:
+            type: object
+            properties:
+                actionToPathPattern:
+                    type: object
+                    additionalProperties:
+                        type: string
         api.GetUserProjectAssocListResponse:
             type: object
             properties:

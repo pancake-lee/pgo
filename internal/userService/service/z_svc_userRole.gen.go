@@ -2,10 +2,9 @@
 
 package service
 
-import "time"
-
 import (
 	"context"
+	"time"
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
@@ -17,14 +16,14 @@ func DO2DTO_UserRole(do *data.UserRoleDO) *api.UserRoleInfo {
 		return nil
 	}
 	return &api.UserRoleInfo{
-        ID: do.ID,
-        CreateTime: do.CreateTime.Unix(),
-        CreateUser: do.CreateUser,
-        UpdateTime: do.UpdateTime.Unix(),
-        UpdateUser: do.UpdateUser,
-        ProjID: do.ProjID,
-        RoleName: do.RoleName,
-        IsDefault: do.IsDefault,
+		ID:         do.ID,
+		CreateTime: do.CreateTime.Unix(),
+		CreateUser: do.CreateUser,
+		UpdateTime: do.UpdateTime.Unix(),
+		UpdateUser: do.UpdateUser,
+		ProjID:     do.ProjID,
+		RoleName:   do.RoleName,
+		IsDefault:  do.IsDefault,
 	}
 }
 func DTO2DO_UserRole(dto *api.UserRoleInfo) *data.UserRoleDO {
@@ -32,14 +31,14 @@ func DTO2DO_UserRole(dto *api.UserRoleInfo) *data.UserRoleDO {
 		return nil
 	}
 	return &data.UserRoleDO{
-        ID: dto.ID,
-        CreateTime: time.Unix(dto.CreateTime, 0),
-        CreateUser: dto.CreateUser,
-        UpdateTime: time.Unix(dto.UpdateTime, 0),
-        UpdateUser: dto.UpdateUser,
-        ProjID: dto.ProjID,
-        RoleName: dto.RoleName,
-        IsDefault: dto.IsDefault,
+		ID:         dto.ID,
+		CreateTime: time.Unix(dto.CreateTime, 0),
+		CreateUser: dto.CreateUser,
+		UpdateTime: time.Unix(dto.UpdateTime, 0),
+		UpdateUser: dto.UpdateUser,
+		ProjID:     dto.ProjID,
+		RoleName:   dto.RoleName,
+		IsDefault:  dto.IsDefault,
 	}
 }
 
@@ -98,7 +97,6 @@ func (s *UserCURDServer) GetUserRoleList(
 	return resp, nil
 }
 
-
 func (s *UserCURDServer) UpdateUserRole(
 	ctx context.Context, req *api.UpdateUserRoleRequest,
 ) (resp *api.UpdateUserRoleResponse, err error) {
@@ -135,4 +133,3 @@ func (s *UserCURDServer) DelUserRoleByIDList(
 	plogger.Debugf("DelUserRoleByIDList %v", req.IDList)
 	return nil, nil
 }
-

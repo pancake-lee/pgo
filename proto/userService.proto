@@ -31,6 +31,15 @@ service User {
             delete: "/user-dept-assoc"
         };
     }
+
+    // --------------------------------------------------
+    // 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+    rpc GetUserPermissions (GetUserPermissionsRequest) returns (GetUserPermissionsResponse) {
+        option (google.api.http) = {
+            get: "/user/permissions"
+        };
+    }
+
 }
 
 message LoginRequest {
@@ -50,4 +59,13 @@ message EditUserNameRequest {
 message DelUserDeptAssocRequest {
     int32 userID = 1;
     int32 deptID = 2;
+}
+
+message GetUserPermissionsRequest {
+    int32 userID = 1;
+    int32 projectID = 2;
+}
+
+message GetUserPermissionsResponse {
+    map<string, string> actionToPathPattern = 1;
 }

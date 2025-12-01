@@ -222,6 +222,102 @@ func (x *DelUserDeptAssocRequest) GetDeptID() int32 {
 	return 0
 }
 
+type GetUserPermissionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserID        int32                  `protobuf:"varint,1,opt,name=userID,proto3" json:"userID,omitempty"`
+	ProjectID     int32                  `protobuf:"varint,2,opt,name=projectID,proto3" json:"projectID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserPermissionsRequest) Reset() {
+	*x = GetUserPermissionsRequest{}
+	mi := &file_userService_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserPermissionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserPermissionsRequest) ProtoMessage() {}
+
+func (x *GetUserPermissionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserPermissionsRequest.ProtoReflect.Descriptor instead.
+func (*GetUserPermissionsRequest) Descriptor() ([]byte, []int) {
+	return file_userService_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetUserPermissionsRequest) GetUserID() int32 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *GetUserPermissionsRequest) GetProjectID() int32 {
+	if x != nil {
+		return x.ProjectID
+	}
+	return 0
+}
+
+type GetUserPermissionsResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	ActionToPathPattern map[string]string      `protobuf:"bytes,1,rep,name=actionToPathPattern,proto3" json:"actionToPathPattern,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetUserPermissionsResponse) Reset() {
+	*x = GetUserPermissionsResponse{}
+	mi := &file_userService_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserPermissionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserPermissionsResponse) ProtoMessage() {}
+
+func (x *GetUserPermissionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_userService_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserPermissionsResponse.ProtoReflect.Descriptor instead.
+func (*GetUserPermissionsResponse) Descriptor() ([]byte, []int) {
+	return file_userService_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetUserPermissionsResponse) GetActionToPathPattern() map[string]string {
+	if x != nil {
+		return x.ActionToPathPattern
+	}
+	return nil
+}
+
 var File_userService_proto protoreflect.FileDescriptor
 
 const file_userService_proto_rawDesc = "" +
@@ -237,14 +333,23 @@ const file_userService_proto_rawDesc = "" +
 	"\buserName\x18\x02 \x01(\tR\buserName\"I\n" +
 	"\x17DelUserDeptAssocRequest\x12\x16\n" +
 	"\x06userID\x18\x01 \x01(\x05R\x06userID\x12\x16\n" +
-	"\x06deptID\x18\x02 \x01(\x05R\x06deptID2\xee\x01\n" +
+	"\x06deptID\x18\x02 \x01(\x05R\x06deptID\"Q\n" +
+	"\x19GetUserPermissionsRequest\x12\x16\n" +
+	"\x06userID\x18\x01 \x01(\x05R\x06userID\x12\x1c\n" +
+	"\tprojectID\x18\x02 \x01(\x05R\tprojectID\"\xd0\x01\n" +
+	"\x1aGetUserPermissionsResponse\x12j\n" +
+	"\x13actionToPathPattern\x18\x01 \x03(\v28.api.GetUserPermissionsResponse.ActionToPathPatternEntryR\x13actionToPathPattern\x1aF\n" +
+	"\x18ActionToPathPatternEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xe0\x02\n" +
 	"\x04User\x12F\n" +
 	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/user/token\x12F\n" +
 	"\fEditUserName\x12\x18.api.EditUserNameRequest\x1a\n" +
 	".api.Empty\"\x10\x82\xd3\xe4\x93\x02\n" +
 	":\x01*2\x05/user\x12V\n" +
 	"\x10DelUserDeptAssoc\x12\x1c.api.DelUserDeptAssocRequest\x1a\n" +
-	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-dept-assocB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
+	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-dept-assoc\x12p\n" +
+	"\x12GetUserPermissions\x12\x1e.api.GetUserPermissionsRequest\x1a\x1f.api.GetUserPermissionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/user/permissionsB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
 
 var (
 	file_userService_proto_rawDescOnce sync.Once
@@ -258,28 +363,34 @@ func file_userService_proto_rawDescGZIP() []byte {
 	return file_userService_proto_rawDescData
 }
 
-var file_userService_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_userService_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_userService_proto_goTypes = []any{
-	(*LoginRequest)(nil),            // 0: api.LoginRequest
-	(*LoginResponse)(nil),           // 1: api.LoginResponse
-	(*EditUserNameRequest)(nil),     // 2: api.EditUserNameRequest
-	(*DelUserDeptAssocRequest)(nil), // 3: api.DelUserDeptAssocRequest
-	(*UserInfo)(nil),                // 4: api.UserInfo
-	(*Empty)(nil),                   // 5: api.Empty
+	(*LoginRequest)(nil),               // 0: api.LoginRequest
+	(*LoginResponse)(nil),              // 1: api.LoginResponse
+	(*EditUserNameRequest)(nil),        // 2: api.EditUserNameRequest
+	(*DelUserDeptAssocRequest)(nil),    // 3: api.DelUserDeptAssocRequest
+	(*GetUserPermissionsRequest)(nil),  // 4: api.GetUserPermissionsRequest
+	(*GetUserPermissionsResponse)(nil), // 5: api.GetUserPermissionsResponse
+	nil,                                // 6: api.GetUserPermissionsResponse.ActionToPathPatternEntry
+	(*UserInfo)(nil),                   // 7: api.UserInfo
+	(*Empty)(nil),                      // 8: api.Empty
 }
 var file_userService_proto_depIdxs = []int32{
-	4, // 0: api.LoginResponse.user:type_name -> api.UserInfo
-	0, // 1: api.User.Login:input_type -> api.LoginRequest
-	2, // 2: api.User.EditUserName:input_type -> api.EditUserNameRequest
-	3, // 3: api.User.DelUserDeptAssoc:input_type -> api.DelUserDeptAssocRequest
-	1, // 4: api.User.Login:output_type -> api.LoginResponse
-	5, // 5: api.User.EditUserName:output_type -> api.Empty
-	5, // 6: api.User.DelUserDeptAssoc:output_type -> api.Empty
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	7, // 0: api.LoginResponse.user:type_name -> api.UserInfo
+	6, // 1: api.GetUserPermissionsResponse.actionToPathPattern:type_name -> api.GetUserPermissionsResponse.ActionToPathPatternEntry
+	0, // 2: api.User.Login:input_type -> api.LoginRequest
+	2, // 3: api.User.EditUserName:input_type -> api.EditUserNameRequest
+	3, // 4: api.User.DelUserDeptAssoc:input_type -> api.DelUserDeptAssocRequest
+	4, // 5: api.User.GetUserPermissions:input_type -> api.GetUserPermissionsRequest
+	1, // 6: api.User.Login:output_type -> api.LoginResponse
+	8, // 7: api.User.EditUserName:output_type -> api.Empty
+	8, // 8: api.User.DelUserDeptAssoc:output_type -> api.Empty
+	5, // 9: api.User.GetUserPermissions:output_type -> api.GetUserPermissionsResponse
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_userService_proto_init() }
@@ -295,7 +406,7 @@ func file_userService_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_userService_proto_rawDesc), len(file_userService_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

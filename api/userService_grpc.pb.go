@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	User_Login_FullMethodName            = "/api.User/Login"
-	User_EditUserName_FullMethodName     = "/api.User/EditUserName"
-	User_DelUserDeptAssoc_FullMethodName = "/api.User/DelUserDeptAssoc"
+	User_Login_FullMethodName              = "/api.User/Login"
+	User_EditUserName_FullMethodName       = "/api.User/EditUserName"
+	User_DelUserDeptAssoc_FullMethodName   = "/api.User/DelUserDeptAssoc"
+	User_GetUserPermissions_FullMethodName = "/api.User/GetUserPermissions"
 )
 
 // UserClient is the client API for User service.
@@ -36,6 +37,9 @@ type UserClient interface {
 	EditUserName(ctx context.Context, in *EditUserNameRequest, opts ...grpc.CallOption) (*Empty, error)
 	// 从部门中移除用户
 	DelUserDeptAssoc(ctx context.Context, in *DelUserDeptAssocRequest, opts ...grpc.CallOption) (*Empty, error)
+	// --------------------------------------------------
+	// 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+	GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...grpc.CallOption) (*GetUserPermissionsResponse, error)
 }
 
 type userClient struct {
@@ -76,6 +80,16 @@ func (c *userClient) DelUserDeptAssoc(ctx context.Context, in *DelUserDeptAssocR
 	return out, nil
 }
 
+func (c *userClient) GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...grpc.CallOption) (*GetUserPermissionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserPermissionsResponse)
+	err := c.cc.Invoke(ctx, User_GetUserPermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -88,6 +102,9 @@ type UserServer interface {
 	EditUserName(context.Context, *EditUserNameRequest) (*Empty, error)
 	// 从部门中移除用户
 	DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error)
+	// --------------------------------------------------
+	// 查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+	GetUserPermissions(context.Context, *GetUserPermissionsRequest) (*GetUserPermissionsResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -106,6 +123,9 @@ func (UnimplementedUserServer) EditUserName(context.Context, *EditUserNameReques
 }
 func (UnimplementedUserServer) DelUserDeptAssoc(context.Context, *DelUserDeptAssocRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelUserDeptAssoc not implemented")
+}
+func (UnimplementedUserServer) GetUserPermissions(context.Context, *GetUserPermissionsRequest) (*GetUserPermissionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserPermissions not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -182,6 +202,24 @@ func _User_DelUserDeptAssoc_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_GetUserPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserPermissions(ctx, req.(*GetUserPermissionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +238,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelUserDeptAssoc",
 			Handler:    _User_DelUserDeptAssoc_Handler,
+		},
+		{
+			MethodName: "GetUserPermissions",
+			Handler:    _User_GetUserPermissions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
