@@ -38,7 +38,7 @@ service schoolCURD { // 该命名应该全文唯一
 // --------------------------------------------------
 // tbl : course_swap_request
 message CourseSwapRequestInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     string srcTeacher = 2;
     int64 srcDate = 3;
     int32 srcCourseNum = 4;
@@ -57,18 +57,16 @@ message AddCourseSwapRequestRequest {
     CourseSwapRequestInfo course_swap_request = 1;
 }
 
-
 message AddCourseSwapRequestResponse {
     CourseSwapRequestInfo course_swap_request = 1;
 }
 
 message GetCourseSwapRequestListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetCourseSwapRequestListResponse {
     repeated CourseSwapRequestInfo courseSwapRequestList = 1;
 }
-
 
 message UpdateCourseSwapRequestRequest {
     CourseSwapRequestInfo courseSwapRequest = 1;
@@ -79,6 +77,6 @@ message UpdateCourseSwapRequestResponse {
 }
 
 message DelCourseSwapRequestByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 

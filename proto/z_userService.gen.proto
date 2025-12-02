@@ -32,12 +32,6 @@ service userCURD { // 该命名应该全文唯一
             delete: "/project"
         };
     }
-
-    rpc GetProjectByProjName (GetProjectByProjNameRequest) returns (GetProjectByProjNameResponse) {
-        option (google.api.http) = {
-            get: "/project/by-proj-name"
-        };
-    }
     // --------------------------------------------------
     // tbl : user
     rpc AddUser (AddUserRequest) returns (AddUserResponse) {
@@ -60,12 +54,6 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserByIDList (DelUserByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user"
-        };
-    }
-
-    rpc GetUserByUserName (GetUserByUserNameRequest) returns (GetUserByUserNameResponse) {
-        option (google.api.http) = {
-            get: "/user/by-user-name"
         };
     }
     // --------------------------------------------------
@@ -92,12 +80,6 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-dept"
         };
     }
-
-    rpc GetUserDeptByDeptPath (GetUserDeptByDeptPathRequest) returns (GetUserDeptByDeptPathResponse) {
-        option (google.api.http) = {
-            get: "/user-dept/by-dept-path"
-        };
-    }
     // --------------------------------------------------
     // tbl : user_dept_assoc
     rpc AddUserDeptAssoc (AddUserDeptAssocRequest) returns (AddUserDeptAssocResponse) {
@@ -120,12 +102,6 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserDeptAssocByIDList (DelUserDeptAssocByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-dept-assoc"
-        };
-    }
-
-    rpc GetUserDeptAssocByUserDept (GetUserDeptAssocByUserDeptRequest) returns (GetUserDeptAssocByUserDeptResponse) {
-        option (google.api.http) = {
-            get: "/user-dept-assoc/by-user-dept"
         };
     }
     // --------------------------------------------------
@@ -152,12 +128,6 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-job"
         };
     }
-
-    rpc GetUserJobByJobName (GetUserJobByJobNameRequest) returns (GetUserJobByJobNameResponse) {
-        option (google.api.http) = {
-            get: "/user-job/by-job-name"
-        };
-    }
     // --------------------------------------------------
     // tbl : user_project_assoc
     rpc AddUserProjectAssoc (AddUserProjectAssocRequest) returns (AddUserProjectAssocResponse) {
@@ -180,12 +150,6 @@ service userCURD { // 该命名应该全文唯一
     rpc DelUserProjectAssocByIDList (DelUserProjectAssocByIDListRequest) returns (Empty) {
         option (google.api.http) = {
             delete: "/user-project-assoc"
-        };
-    }
-
-    rpc GetUserProjectAssocByUserProj (GetUserProjectAssocByUserProjRequest) returns (GetUserProjectAssocByUserProjResponse) {
-        option (google.api.http) = {
-            get: "/user-project-assoc/by-user-proj"
         };
     }
     // --------------------------------------------------
@@ -236,12 +200,6 @@ service userCURD { // 该命名应该全文唯一
             delete: "/user-role-assoc"
         };
     }
-
-    rpc GetUserRoleAssocByUserRole (GetUserRoleAssocByUserRoleRequest) returns (GetUserRoleAssocByUserRoleResponse) {
-        option (google.api.http) = {
-            get: "/user-role-assoc/by-user-role"
-        };
-    }
     // --------------------------------------------------
     // tbl : user_role_permission_assoc
     rpc AddUserRolePermissionAssoc (AddUserRolePermissionAssocRequest) returns (AddUserRolePermissionAssocResponse) {
@@ -272,7 +230,7 @@ service userCURD { // 该命名应该全文唯一
 // --------------------------------------------------
 // tbl : project
 message ProjectInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -284,25 +242,16 @@ message AddProjectRequest {
     ProjectInfo project = 1;
 }
 
-
-message GetProjectByProjNameRequest {
-    repeated string ProjName_list = 1;
-}
-message GetProjectByProjNameResponse {
-    repeated ProjectInfo data = 1;
-}
-
 message AddProjectResponse {
     ProjectInfo project = 1;
 }
 
 message GetProjectListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetProjectListResponse {
     repeated ProjectInfo projectList = 1;
 }
-
 
 message UpdateProjectRequest {
     ProjectInfo project = 1;
@@ -313,14 +262,14 @@ message UpdateProjectResponse {
 }
 
 message DelProjectByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user
 message UserInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -333,25 +282,16 @@ message AddUserRequest {
     UserInfo user = 1;
 }
 
-
-message GetUserByUserNameRequest {
-    repeated string UserName_list = 1;
-}
-message GetUserByUserNameResponse {
-    repeated UserInfo data = 1;
-}
-
 message AddUserResponse {
     UserInfo user = 1;
 }
 
 message GetUserListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserListResponse {
     repeated UserInfo userList = 1;
 }
-
 
 message UpdateUserRequest {
     UserInfo user = 1;
@@ -362,14 +302,14 @@ message UpdateUserResponse {
 }
 
 message DelUserByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_dept
 message UserDeptInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -382,25 +322,16 @@ message AddUserDeptRequest {
     UserDeptInfo user_dept = 1;
 }
 
-
-message GetUserDeptByDeptPathRequest {
-    repeated string DeptPath_list = 1;
-}
-message GetUserDeptByDeptPathResponse {
-    repeated UserDeptInfo data = 1;
-}
-
 message AddUserDeptResponse {
     UserDeptInfo user_dept = 1;
 }
 
 message GetUserDeptListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserDeptListResponse {
     repeated UserDeptInfo userDeptList = 1;
 }
-
 
 message UpdateUserDeptRequest {
     UserDeptInfo userDept = 1;
@@ -411,14 +342,14 @@ message UpdateUserDeptResponse {
 }
 
 message DelUserDeptByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_dept_assoc
 message UserDeptAssocInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -432,26 +363,16 @@ message AddUserDeptAssocRequest {
     UserDeptAssocInfo user_dept_assoc = 1;
 }
 
-
-message GetUserDeptAssocByUserDeptRequest {
-    repeated int32 UserID_list = 1;
-    repeated int32 DeptID_list = 2;
-}
-message GetUserDeptAssocByUserDeptResponse {
-    repeated UserDeptAssocInfo data = 1;
-}
-
 message AddUserDeptAssocResponse {
     UserDeptAssocInfo user_dept_assoc = 1;
 }
 
 message GetUserDeptAssocListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserDeptAssocListResponse {
     repeated UserDeptAssocInfo userDeptAssocList = 1;
 }
-
 
 message UpdateUserDeptAssocRequest {
     UserDeptAssocInfo userDeptAssoc = 1;
@@ -462,14 +383,14 @@ message UpdateUserDeptAssocResponse {
 }
 
 message DelUserDeptAssocByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_job
 message UserJobInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -481,25 +402,16 @@ message AddUserJobRequest {
     UserJobInfo user_job = 1;
 }
 
-
-message GetUserJobByJobNameRequest {
-    repeated string JobName_list = 1;
-}
-message GetUserJobByJobNameResponse {
-    repeated UserJobInfo data = 1;
-}
-
 message AddUserJobResponse {
     UserJobInfo user_job = 1;
 }
 
 message GetUserJobListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserJobListResponse {
     repeated UserJobInfo userJobList = 1;
 }
-
 
 message UpdateUserJobRequest {
     UserJobInfo userJob = 1;
@@ -510,14 +422,14 @@ message UpdateUserJobResponse {
 }
 
 message DelUserJobByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_project_assoc
 message UserProjectAssocInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int32 userID = 4;
@@ -528,26 +440,16 @@ message AddUserProjectAssocRequest {
     UserProjectAssocInfo user_project_assoc = 1;
 }
 
-
-message GetUserProjectAssocByUserProjRequest {
-    repeated int32 UserID_list = 1;
-    repeated int32 ProjID_list = 2;
-}
-message GetUserProjectAssocByUserProjResponse {
-    repeated UserProjectAssocInfo data = 1;
-}
-
 message AddUserProjectAssocResponse {
     UserProjectAssocInfo user_project_assoc = 1;
 }
 
 message GetUserProjectAssocListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserProjectAssocListResponse {
     repeated UserProjectAssocInfo userProjectAssocList = 1;
 }
-
 
 message UpdateUserProjectAssocRequest {
     UserProjectAssocInfo userProjectAssoc = 1;
@@ -558,14 +460,14 @@ message UpdateUserProjectAssocResponse {
 }
 
 message DelUserProjectAssocByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_role
 message UserRoleInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int64 updateTime = 4;
@@ -579,18 +481,16 @@ message AddUserRoleRequest {
     UserRoleInfo user_role = 1;
 }
 
-
 message AddUserRoleResponse {
     UserRoleInfo user_role = 1;
 }
 
 message GetUserRoleListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserRoleListResponse {
     repeated UserRoleInfo userRoleList = 1;
 }
-
 
 message UpdateUserRoleRequest {
     UserRoleInfo userRole = 1;
@@ -601,14 +501,14 @@ message UpdateUserRoleResponse {
 }
 
 message DelUserRoleByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_role_assoc
 message UserRoleAssocInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int32 userID = 4;
@@ -619,26 +519,16 @@ message AddUserRoleAssocRequest {
     UserRoleAssocInfo user_role_assoc = 1;
 }
 
-
-message GetUserRoleAssocByUserRoleRequest {
-    repeated int32 UserID_list = 1;
-    repeated int32 RoleID_list = 2;
-}
-message GetUserRoleAssocByUserRoleResponse {
-    repeated UserRoleAssocInfo data = 1;
-}
-
 message AddUserRoleAssocResponse {
     UserRoleAssocInfo user_role_assoc = 1;
 }
 
 message GetUserRoleAssocListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserRoleAssocListResponse {
     repeated UserRoleAssocInfo userRoleAssocList = 1;
 }
-
 
 message UpdateUserRoleAssocRequest {
     UserRoleAssocInfo userRoleAssoc = 1;
@@ -649,14 +539,14 @@ message UpdateUserRoleAssocResponse {
 }
 
 message DelUserRoleAssocByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
 
 // --------------------------------------------------
 // tbl : user_role_permission_assoc
 message UserRolePermissionAssocInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int64 createTime = 2;
     int32 createUser = 3;
     int32 roleID = 4;
@@ -668,18 +558,16 @@ message AddUserRolePermissionAssocRequest {
     UserRolePermissionAssocInfo user_role_permission_assoc = 1;
 }
 
-
 message AddUserRolePermissionAssocResponse {
     UserRolePermissionAssocInfo user_role_permission_assoc = 1;
 }
 
 message GetUserRolePermissionAssocListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetUserRolePermissionAssocListResponse {
     repeated UserRolePermissionAssocInfo userRolePermissionAssocList = 1;
 }
-
 
 message UpdateUserRolePermissionAssocRequest {
     UserRolePermissionAssocInfo userRolePermissionAssoc = 1;
@@ -690,6 +578,6 @@ message UpdateUserRolePermissionAssocResponse {
 }
 
 message DelUserRolePermissionAssocByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 

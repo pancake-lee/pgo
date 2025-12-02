@@ -28,7 +28,7 @@ const (
 // tbl : task
 type TaskInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	ParentID      int32                  `protobuf:"varint,2,opt,name=parentID,proto3" json:"parentID,omitempty"`
 	PrevID        int32                  `protobuf:"varint,3,opt,name=prevID,proto3" json:"prevID,omitempty"`
 	Task          string                 `protobuf:"bytes,4,opt,name=task,proto3" json:"task,omitempty"`
@@ -240,7 +240,7 @@ func (x *AddTaskResponse) GetTask() *TaskInfo {
 
 type GetTaskListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -416,7 +416,7 @@ func (x *UpdateTaskResponse) GetTask() *TaskInfo {
 
 type DelTaskByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -464,7 +464,7 @@ const file_z_taskService_gen_proto_rawDesc = "" +
 	"\n" +
 	"\x17z_taskService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\x8e\x02\n" +
 	"\bTaskInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1a\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1a\n" +
 	"\bparentID\x18\x02 \x01(\x05R\bparentID\x12\x16\n" +
 	"\x06prevID\x18\x03 \x01(\x05R\x06prevID\x12\x12\n" +
 	"\x04task\x18\x04 \x01(\tR\x04task\x12\x16\n" +
@@ -483,7 +483,7 @@ const file_z_taskService_gen_proto_rawDesc = "" +
 	"\x0fAddTaskResponse\x12!\n" +
 	"\x04task\x18\x01 \x01(\v2\r.api.TaskInfoR\x04task\",\n" +
 	"\x12GetTaskListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"@\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"@\n" +
 	"\x13GetTaskListResponse\x12)\n" +
 	"\btaskList\x18\x01 \x03(\v2\r.api.TaskInfoR\btaskList\"6\n" +
 	"\x11UpdateTaskRequest\x12!\n" +
@@ -491,7 +491,7 @@ const file_z_taskService_gen_proto_rawDesc = "" +
 	"\x12UpdateTaskResponse\x12!\n" +
 	"\x04task\x18\x01 \x01(\v2\r.api.TaskInfoR\x04task\"0\n" +
 	"\x16DelTaskByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\xbf\x02\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList2\xbf\x02\n" +
 	"\btaskCURD\x12F\n" +
 	"\aAddTask\x12\x13.api.AddTaskRequest\x1a\x14.api.AddTaskResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
 	":\x01*\"\x05/task\x12O\n" +

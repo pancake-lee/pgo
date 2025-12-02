@@ -68,12 +68,11 @@ func (s *UserCURDServer) GetUserRolePermissionAssocList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetUserRolePermissionAssocList: %v", req.IDList)
 
-		dataMap, err := data.UserRolePermissionAssocDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.UserRolePermissionAssocDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -131,5 +130,4 @@ func (s *UserCURDServer) DelUserRolePermissionAssocByIDList(
 	plogger.Debugf("DelUserRolePermissionAssocByIDList %v", req.IDList)
 	return nil, nil
 }
-
 

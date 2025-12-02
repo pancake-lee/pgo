@@ -39,15 +39,14 @@ func (*userDAO) GetAll(ctx context.Context,
 	return userList, nil
 }
 
-
-func (*userDAO) GetByUserName(ctx context.Context, userNameList []string) ([]*UserDO, error) {
-	if len(userNameList) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
+func (*userDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserDO, error) {
 	q := db.GetPG().User
 	do := q.WithContext(ctx)
-	if len(userNameList) > 0 {
-		do = do.Where(q.UserName.In(userNameList...))
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
 	}
 	list, err := do.Find()
 	if err != nil {

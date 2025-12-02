@@ -68,12 +68,11 @@ func (s *UserCURDServer) GetProjectList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetProjectList: %v", req.IDList)
 
-		dataMap, err := data.ProjectDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.ProjectDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -132,21 +131,3 @@ func (s *UserCURDServer) DelProjectByIDList(
 	return nil, nil
 }
 
-
-
-func (s *UserCURDServer) GetProjectByProjName(
-	ctx context.Context, req *api.GetProjectByProjNameRequest,
-) (resp *api.GetProjectByProjNameResponse, err error) {
-	if len(req.ProjNameList) == 0 {
-		return nil, api.ErrorInvalidArgument("params cannot be all empty")
-	}
-	list, err := data.ProjectDAO.GetByProjName(ctx, req.ProjNameList)
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	resp = new(api.GetProjectByProjNameResponse)
-	for _, v := range list {
-		resp.Data = append(resp.Data, DO2DTO_Project(v))
-	}
-	return resp, nil
-}

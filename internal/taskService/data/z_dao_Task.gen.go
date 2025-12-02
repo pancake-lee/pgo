@@ -39,6 +39,21 @@ func (*taskDAO) GetAll(ctx context.Context,
 	return taskList, nil
 }
 
+func (*taskDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*TaskDO, error) {
+	q := db.GetPG().Task
+	do := q.WithContext(ctx)
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
 
 func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
 	if do.ID == 0 {

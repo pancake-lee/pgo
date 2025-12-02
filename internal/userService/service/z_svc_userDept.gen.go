@@ -70,12 +70,11 @@ func (s *UserCURDServer) GetUserDeptList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetUserDeptList: %v", req.IDList)
 
-		dataMap, err := data.UserDeptDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.UserDeptDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -134,21 +133,3 @@ func (s *UserCURDServer) DelUserDeptByIDList(
 	return nil, nil
 }
 
-
-
-func (s *UserCURDServer) GetUserDeptByDeptPath(
-	ctx context.Context, req *api.GetUserDeptByDeptPathRequest,
-) (resp *api.GetUserDeptByDeptPathResponse, err error) {
-	if len(req.DeptPathList) == 0 {
-		return nil, api.ErrorInvalidArgument("params cannot be all empty")
-	}
-	list, err := data.UserDeptDAO.GetByDeptPath(ctx, req.DeptPathList)
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	resp = new(api.GetUserDeptByDeptPathResponse)
-	for _, v := range list {
-		resp.Data = append(resp.Data, DO2DTO_UserDept(v))
-	}
-	return resp, nil
-}

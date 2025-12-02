@@ -39,15 +39,14 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 	return userDeptList, nil
 }
 
-
-func (*userDeptDAO) GetByDeptPath(ctx context.Context, deptPathList []string) ([]*UserDeptDO, error) {
-	if len(deptPathList) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
+func (*userDeptDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserDeptDO, error) {
 	q := db.GetPG().UserDept
 	do := q.WithContext(ctx)
-	if len(deptPathList) > 0 {
-		do = do.Where(q.DeptPath.In(deptPathList...))
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
 	}
 	list, err := do.Find()
 	if err != nil {

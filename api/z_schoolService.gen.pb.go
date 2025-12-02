@@ -28,7 +28,7 @@ const (
 // tbl : course_swap_request
 type CourseSwapRequestInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	SrcTeacher    string                 `protobuf:"bytes,2,opt,name=srcTeacher,proto3" json:"srcTeacher,omitempty"`
 	SrcDate       int64                  `protobuf:"varint,3,opt,name=srcDate,proto3" json:"srcDate,omitempty"`
 	SrcCourseNum  int32                  `protobuf:"varint,4,opt,name=srcCourseNum,proto3" json:"srcCourseNum,omitempty"`
@@ -256,7 +256,7 @@ func (x *AddCourseSwapRequestResponse) GetCourseSwapRequest() *CourseSwapRequest
 
 type GetCourseSwapRequestListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -432,7 +432,7 @@ func (x *UpdateCourseSwapRequestResponse) GetCourseSwapRequest() *CourseSwapRequ
 
 type DelCourseSwapRequestByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -480,7 +480,7 @@ const file_z_schoolService_gen_proto_rawDesc = "" +
 	"\n" +
 	"\x19z_schoolService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\x8f\x03\n" +
 	"\x15CourseSwapRequestInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"srcTeacher\x18\x02 \x01(\tR\n" +
 	"srcTeacher\x12\x18\n" +
@@ -505,7 +505,7 @@ const file_z_schoolService_gen_proto_rawDesc = "" +
 	"\x1cAddCourseSwapRequestResponse\x12J\n" +
 	"\x13course_swap_request\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"9\n" +
 	"\x1fGetCourseSwapRequestListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"t\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"t\n" +
 	" GetCourseSwapRequestListResponse\x12P\n" +
 	"\x15courseSwapRequestList\x18\x01 \x03(\v2\x1a.api.CourseSwapRequestInfoR\x15courseSwapRequestList\"j\n" +
 	"\x1eUpdateCourseSwapRequestRequest\x12H\n" +
@@ -513,7 +513,7 @@ const file_z_schoolService_gen_proto_rawDesc = "" +
 	"\x1fUpdateCourseSwapRequestResponse\x12H\n" +
 	"\x11courseSwapRequest\x18\x01 \x01(\v2\x1a.api.CourseSwapRequestInfoR\x11courseSwapRequest\"=\n" +
 	"#DelCourseSwapRequestByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\x8e\x04\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList2\x8e\x04\n" +
 	"\n" +
 	"schoolCURD\x12|\n" +
 	"\x14AddCourseSwapRequest\x12 .api.AddCourseSwapRequestRequest\x1a!.api.AddCourseSwapRequestResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/course-swap-request\x12\x85\x01\n" +

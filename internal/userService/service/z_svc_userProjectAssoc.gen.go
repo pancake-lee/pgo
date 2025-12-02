@@ -66,12 +66,11 @@ func (s *UserCURDServer) GetUserProjectAssocList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetUserProjectAssocList: %v", req.IDList)
 
-		dataMap, err := data.UserProjectAssocDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.UserProjectAssocDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -130,21 +129,3 @@ func (s *UserCURDServer) DelUserProjectAssocByIDList(
 	return nil, nil
 }
 
-
-
-func (s *UserCURDServer) GetUserProjectAssocByUserProj(
-	ctx context.Context, req *api.GetUserProjectAssocByUserProjRequest,
-) (resp *api.GetUserProjectAssocByUserProjResponse, err error) {
-	if len(req.UserIDList) == 0 && len(req.ProjIDList) == 0 {
-		return nil, api.ErrorInvalidArgument("params cannot be all empty")
-	}
-	list, err := data.UserProjectAssocDAO.GetByUserProj(ctx, req.UserIDList, req.ProjIDList)
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	resp = new(api.GetUserProjectAssocByUserProjResponse)
-	for _, v := range list {
-		resp.Data = append(resp.Data, DO2DTO_UserProjectAssoc(v))
-	}
-	return resp, nil
-}

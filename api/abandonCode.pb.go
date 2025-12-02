@@ -167,10 +167,10 @@ func (x *AddAbandonCodeResponse) GetAbandonCode() *AbandonCodeInfo {
 
 type GetAbandonCodeListRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// MARK REPLACE REQUEST IDX START 替换内容，索引字段
+	// MARK REPLACE IDX COL START 替换内容，索引字段
 	Idx1List      []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"`
 	Idx2List      []int32 `protobuf:"varint,2,rep,packed,name=idx2List,proto3" json:"idx2List,omitempty"`
-	Idx3List      []int32 `protobuf:"varint,3,rep,packed,name=idx3List,proto3" json:"idx3List,omitempty"` // MARK REPLACE REQUEST IDX END
+	Idx3List      []int32 `protobuf:"varint,3,rep,packed,name=idx3List,proto3" json:"idx3List,omitempty"` // MARK REPLACE IDX COL END
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -270,6 +270,7 @@ func (x *GetAbandonCodeListResponse) GetAbandonCodeList() []*AbandonCodeInfo {
 	return nil
 }
 
+// MARK REMOVE IF NO PRIMARY KEY START
 type UpdateAbandonCodeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AbandonCode   *AbandonCodeInfo       `protobuf:"bytes,1,opt,name=abandonCode,proto3" json:"abandonCode,omitempty"`
@@ -360,8 +361,8 @@ func (x *UpdateAbandonCodeResponse) GetAbandonCode() *AbandonCodeInfo {
 
 type DelAbandonCodeByIdx1ListRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// MARK REPLACE REQUEST IDX START 替换内容，索引字段
-	Idx1List      []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK REPLACE REQUEST IDX END
+	// MARK REPLACE PRIMARY IDX START
+	Idx1List      []int32 `protobuf:"varint,1,rep,packed,name=idx1List,proto3" json:"idx1List,omitempty"` // MARK REPLACE PRIMARY IDX END
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -39,18 +39,14 @@ func (*userRoleAssocDAO) GetAll(ctx context.Context,
 	return userRoleAssocList, nil
 }
 
-
-func (*userRoleAssocDAO) GetByUserRole(ctx context.Context, userIDList []int32, roleIDList []int32) ([]*UserRoleAssocDO, error) {
-	if len(userIDList) == 0 && len(roleIDList) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
+func (*userRoleAssocDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserRoleAssocDO, error) {
 	q := db.GetPG().UserRoleAssoc
 	do := q.WithContext(ctx)
-	if len(userIDList) > 0 {
-		do = do.Where(q.UserID.In(userIDList...))
-	}
-	if len(roleIDList) > 0 {
-		do = do.Where(q.RoleID.In(roleIDList...))
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
 	}
 	list, err := do.Find()
 	if err != nil {

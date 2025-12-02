@@ -72,12 +72,11 @@ func (s *UserCURDServer) GetUserRoleList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetUserRoleList: %v", req.IDList)
 
-		dataMap, err := data.UserRoleDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.UserRoleDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -135,5 +134,4 @@ func (s *UserCURDServer) DelUserRoleByIDList(
 	plogger.Debugf("DelUserRoleByIDList %v", req.IDList)
 	return nil, nil
 }
-
 

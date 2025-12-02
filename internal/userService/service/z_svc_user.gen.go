@@ -70,12 +70,11 @@ func (s *UserCURDServer) GetUserList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetUserList: %v", req.IDList)
 
-		dataMap, err := data.UserDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.UserDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -134,21 +133,3 @@ func (s *UserCURDServer) DelUserByIDList(
 	return nil, nil
 }
 
-
-
-func (s *UserCURDServer) GetUserByUserName(
-	ctx context.Context, req *api.GetUserByUserNameRequest,
-) (resp *api.GetUserByUserNameResponse, err error) {
-	if len(req.UserNameList) == 0 {
-		return nil, api.ErrorInvalidArgument("params cannot be all empty")
-	}
-	list, err := data.UserDAO.GetByUserName(ctx, req.UserNameList)
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	resp = new(api.GetUserByUserNameResponse)
-	for _, v := range list {
-		resp.Data = append(resp.Data, DO2DTO_User(v))
-	}
-	return resp, nil
-}

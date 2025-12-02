@@ -78,12 +78,11 @@ func (s *TaskCURDServer) GetTaskList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetTaskList: %v", req.IDList)
 
-		dataMap, err := data.TaskDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.TaskDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -141,5 +140,4 @@ func (s *TaskCURDServer) DelTaskByIDList(
 	plogger.Debugf("DelTaskByIDList %v", req.IDList)
 	return nil, nil
 }
-
 

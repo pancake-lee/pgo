@@ -28,7 +28,7 @@ const (
 // tbl : project
 type ProjectInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -154,94 +154,6 @@ func (x *AddProjectRequest) GetProject() *ProjectInfo {
 	return nil
 }
 
-type GetProjectByProjNameRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProjNameList  []string               `protobuf:"bytes,1,rep,name=ProjName_list,json=ProjNameList,proto3" json:"ProjName_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetProjectByProjNameRequest) Reset() {
-	*x = GetProjectByProjNameRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetProjectByProjNameRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetProjectByProjNameRequest) ProtoMessage() {}
-
-func (x *GetProjectByProjNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetProjectByProjNameRequest.ProtoReflect.Descriptor instead.
-func (*GetProjectByProjNameRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *GetProjectByProjNameRequest) GetProjNameList() []string {
-	if x != nil {
-		return x.ProjNameList
-	}
-	return nil
-}
-
-type GetProjectByProjNameResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*ProjectInfo         `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetProjectByProjNameResponse) Reset() {
-	*x = GetProjectByProjNameResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetProjectByProjNameResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetProjectByProjNameResponse) ProtoMessage() {}
-
-func (x *GetProjectByProjNameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetProjectByProjNameResponse.ProtoReflect.Descriptor instead.
-func (*GetProjectByProjNameResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *GetProjectByProjNameResponse) GetData() []*ProjectInfo {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
 type AddProjectResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Project       *ProjectInfo           `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
@@ -251,7 +163,7 @@ type AddProjectResponse struct {
 
 func (x *AddProjectResponse) Reset() {
 	*x = AddProjectResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[4]
+	mi := &file_z_userService_gen_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +175,7 @@ func (x *AddProjectResponse) String() string {
 func (*AddProjectResponse) ProtoMessage() {}
 
 func (x *AddProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[4]
+	mi := &file_z_userService_gen_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +188,7 @@ func (x *AddProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddProjectResponse.ProtoReflect.Descriptor instead.
 func (*AddProjectResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{4}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AddProjectResponse) GetProject() *ProjectInfo {
@@ -288,14 +200,14 @@ func (x *AddProjectResponse) GetProject() *ProjectInfo {
 
 type GetProjectListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetProjectListRequest) Reset() {
 	*x = GetProjectListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[5]
+	mi := &file_z_userService_gen_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -307,7 +219,7 @@ func (x *GetProjectListRequest) String() string {
 func (*GetProjectListRequest) ProtoMessage() {}
 
 func (x *GetProjectListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[5]
+	mi := &file_z_userService_gen_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +232,7 @@ func (x *GetProjectListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectListRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{5}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetProjectListRequest) GetIDList() []int32 {
@@ -339,7 +251,7 @@ type GetProjectListResponse struct {
 
 func (x *GetProjectListResponse) Reset() {
 	*x = GetProjectListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[6]
+	mi := &file_z_userService_gen_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -351,7 +263,7 @@ func (x *GetProjectListResponse) String() string {
 func (*GetProjectListResponse) ProtoMessage() {}
 
 func (x *GetProjectListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[6]
+	mi := &file_z_userService_gen_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +276,7 @@ func (x *GetProjectListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectListResponse.ProtoReflect.Descriptor instead.
 func (*GetProjectListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{6}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetProjectListResponse) GetProjectList() []*ProjectInfo {
@@ -383,7 +295,7 @@ type UpdateProjectRequest struct {
 
 func (x *UpdateProjectRequest) Reset() {
 	*x = UpdateProjectRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[7]
+	mi := &file_z_userService_gen_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +307,7 @@ func (x *UpdateProjectRequest) String() string {
 func (*UpdateProjectRequest) ProtoMessage() {}
 
 func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[7]
+	mi := &file_z_userService_gen_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +320,7 @@ func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{7}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateProjectRequest) GetProject() *ProjectInfo {
@@ -427,7 +339,7 @@ type UpdateProjectResponse struct {
 
 func (x *UpdateProjectResponse) Reset() {
 	*x = UpdateProjectResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[8]
+	mi := &file_z_userService_gen_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -439,7 +351,7 @@ func (x *UpdateProjectResponse) String() string {
 func (*UpdateProjectResponse) ProtoMessage() {}
 
 func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[8]
+	mi := &file_z_userService_gen_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -452,7 +364,7 @@ func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{8}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateProjectResponse) GetProject() *ProjectInfo {
@@ -464,14 +376,14 @@ func (x *UpdateProjectResponse) GetProject() *ProjectInfo {
 
 type DelProjectByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelProjectByIDListRequest) Reset() {
 	*x = DelProjectByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[9]
+	mi := &file_z_userService_gen_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -483,7 +395,7 @@ func (x *DelProjectByIDListRequest) String() string {
 func (*DelProjectByIDListRequest) ProtoMessage() {}
 
 func (x *DelProjectByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[9]
+	mi := &file_z_userService_gen_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -496,7 +408,7 @@ func (x *DelProjectByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelProjectByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelProjectByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{9}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DelProjectByIDListRequest) GetIDList() []int32 {
@@ -510,7 +422,7 @@ func (x *DelProjectByIDListRequest) GetIDList() []int32 {
 // tbl : user
 type UserInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -523,7 +435,7 @@ type UserInfo struct {
 
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[10]
+	mi := &file_z_userService_gen_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +447,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[10]
+	mi := &file_z_userService_gen_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +460,7 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{10}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UserInfo) GetID() int32 {
@@ -609,7 +521,7 @@ type AddUserRequest struct {
 
 func (x *AddUserRequest) Reset() {
 	*x = AddUserRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[11]
+	mi := &file_z_userService_gen_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -621,7 +533,7 @@ func (x *AddUserRequest) String() string {
 func (*AddUserRequest) ProtoMessage() {}
 
 func (x *AddUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[11]
+	mi := &file_z_userService_gen_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -634,100 +546,12 @@ func (x *AddUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRequest.ProtoReflect.Descriptor instead.
 func (*AddUserRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{11}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AddUserRequest) GetUser() *UserInfo {
 	if x != nil {
 		return x.User
-	}
-	return nil
-}
-
-type GetUserByUserNameRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserNameList  []string               `protobuf:"bytes,1,rep,name=UserName_list,json=UserNameList,proto3" json:"UserName_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserByUserNameRequest) Reset() {
-	*x = GetUserByUserNameRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserByUserNameRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserByUserNameRequest) ProtoMessage() {}
-
-func (x *GetUserByUserNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserByUserNameRequest.ProtoReflect.Descriptor instead.
-func (*GetUserByUserNameRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *GetUserByUserNameRequest) GetUserNameList() []string {
-	if x != nil {
-		return x.UserNameList
-	}
-	return nil
-}
-
-type GetUserByUserNameResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*UserInfo            `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserByUserNameResponse) Reset() {
-	*x = GetUserByUserNameResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserByUserNameResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserByUserNameResponse) ProtoMessage() {}
-
-func (x *GetUserByUserNameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserByUserNameResponse.ProtoReflect.Descriptor instead.
-func (*GetUserByUserNameResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *GetUserByUserNameResponse) GetData() []*UserInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -741,7 +565,7 @@ type AddUserResponse struct {
 
 func (x *AddUserResponse) Reset() {
 	*x = AddUserResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[14]
+	mi := &file_z_userService_gen_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +577,7 @@ func (x *AddUserResponse) String() string {
 func (*AddUserResponse) ProtoMessage() {}
 
 func (x *AddUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[14]
+	mi := &file_z_userService_gen_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +590,7 @@ func (x *AddUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserResponse.ProtoReflect.Descriptor instead.
 func (*AddUserResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{14}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AddUserResponse) GetUser() *UserInfo {
@@ -778,14 +602,14 @@ func (x *AddUserResponse) GetUser() *UserInfo {
 
 type GetUserListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserListRequest) Reset() {
 	*x = GetUserListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[15]
+	mi := &file_z_userService_gen_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -797,7 +621,7 @@ func (x *GetUserListRequest) String() string {
 func (*GetUserListRequest) ProtoMessage() {}
 
 func (x *GetUserListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[15]
+	mi := &file_z_userService_gen_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -810,7 +634,7 @@ func (x *GetUserListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{15}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetUserListRequest) GetIDList() []int32 {
@@ -829,7 +653,7 @@ type GetUserListResponse struct {
 
 func (x *GetUserListResponse) Reset() {
 	*x = GetUserListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[16]
+	mi := &file_z_userService_gen_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -841,7 +665,7 @@ func (x *GetUserListResponse) String() string {
 func (*GetUserListResponse) ProtoMessage() {}
 
 func (x *GetUserListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[16]
+	mi := &file_z_userService_gen_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -854,7 +678,7 @@ func (x *GetUserListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{16}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUserListResponse) GetUserList() []*UserInfo {
@@ -873,7 +697,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[17]
+	mi := &file_z_userService_gen_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -885,7 +709,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[17]
+	mi := &file_z_userService_gen_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -898,7 +722,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{17}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpdateUserRequest) GetUser() *UserInfo {
@@ -917,7 +741,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[18]
+	mi := &file_z_userService_gen_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +753,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[18]
+	mi := &file_z_userService_gen_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +766,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{18}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateUserResponse) GetUser() *UserInfo {
@@ -954,14 +778,14 @@ func (x *UpdateUserResponse) GetUser() *UserInfo {
 
 type DelUserByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserByIDListRequest) Reset() {
 	*x = DelUserByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[19]
+	mi := &file_z_userService_gen_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +797,7 @@ func (x *DelUserByIDListRequest) String() string {
 func (*DelUserByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[19]
+	mi := &file_z_userService_gen_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +810,7 @@ func (x *DelUserByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{19}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DelUserByIDListRequest) GetIDList() []int32 {
@@ -1000,7 +824,7 @@ func (x *DelUserByIDListRequest) GetIDList() []int32 {
 // tbl : user_dept
 type UserDeptInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -1013,7 +837,7 @@ type UserDeptInfo struct {
 
 func (x *UserDeptInfo) Reset() {
 	*x = UserDeptInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[20]
+	mi := &file_z_userService_gen_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1025,7 +849,7 @@ func (x *UserDeptInfo) String() string {
 func (*UserDeptInfo) ProtoMessage() {}
 
 func (x *UserDeptInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[20]
+	mi := &file_z_userService_gen_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1038,7 +862,7 @@ func (x *UserDeptInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDeptInfo.ProtoReflect.Descriptor instead.
 func (*UserDeptInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{20}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UserDeptInfo) GetID() int32 {
@@ -1099,7 +923,7 @@ type AddUserDeptRequest struct {
 
 func (x *AddUserDeptRequest) Reset() {
 	*x = AddUserDeptRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[21]
+	mi := &file_z_userService_gen_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +935,7 @@ func (x *AddUserDeptRequest) String() string {
 func (*AddUserDeptRequest) ProtoMessage() {}
 
 func (x *AddUserDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[21]
+	mi := &file_z_userService_gen_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,100 +948,12 @@ func (x *AddUserDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptRequest.ProtoReflect.Descriptor instead.
 func (*AddUserDeptRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{21}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AddUserDeptRequest) GetUserDept() *UserDeptInfo {
 	if x != nil {
 		return x.UserDept
-	}
-	return nil
-}
-
-type GetUserDeptByDeptPathRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DeptPathList  []string               `protobuf:"bytes,1,rep,name=DeptPath_list,json=DeptPathList,proto3" json:"DeptPath_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserDeptByDeptPathRequest) Reset() {
-	*x = GetUserDeptByDeptPathRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserDeptByDeptPathRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserDeptByDeptPathRequest) ProtoMessage() {}
-
-func (x *GetUserDeptByDeptPathRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserDeptByDeptPathRequest.ProtoReflect.Descriptor instead.
-func (*GetUserDeptByDeptPathRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *GetUserDeptByDeptPathRequest) GetDeptPathList() []string {
-	if x != nil {
-		return x.DeptPathList
-	}
-	return nil
-}
-
-type GetUserDeptByDeptPathResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*UserDeptInfo        `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserDeptByDeptPathResponse) Reset() {
-	*x = GetUserDeptByDeptPathResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserDeptByDeptPathResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserDeptByDeptPathResponse) ProtoMessage() {}
-
-func (x *GetUserDeptByDeptPathResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserDeptByDeptPathResponse.ProtoReflect.Descriptor instead.
-func (*GetUserDeptByDeptPathResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *GetUserDeptByDeptPathResponse) GetData() []*UserDeptInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -1231,7 +967,7 @@ type AddUserDeptResponse struct {
 
 func (x *AddUserDeptResponse) Reset() {
 	*x = AddUserDeptResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[24]
+	mi := &file_z_userService_gen_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1243,7 +979,7 @@ func (x *AddUserDeptResponse) String() string {
 func (*AddUserDeptResponse) ProtoMessage() {}
 
 func (x *AddUserDeptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[24]
+	mi := &file_z_userService_gen_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1256,7 +992,7 @@ func (x *AddUserDeptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptResponse.ProtoReflect.Descriptor instead.
 func (*AddUserDeptResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{24}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AddUserDeptResponse) GetUserDept() *UserDeptInfo {
@@ -1268,14 +1004,14 @@ func (x *AddUserDeptResponse) GetUserDept() *UserDeptInfo {
 
 type GetUserDeptListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserDeptListRequest) Reset() {
 	*x = GetUserDeptListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[25]
+	mi := &file_z_userService_gen_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1287,7 +1023,7 @@ func (x *GetUserDeptListRequest) String() string {
 func (*GetUserDeptListRequest) ProtoMessage() {}
 
 func (x *GetUserDeptListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[25]
+	mi := &file_z_userService_gen_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1300,7 +1036,7 @@ func (x *GetUserDeptListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{25}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetUserDeptListRequest) GetIDList() []int32 {
@@ -1319,7 +1055,7 @@ type GetUserDeptListResponse struct {
 
 func (x *GetUserDeptListResponse) Reset() {
 	*x = GetUserDeptListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[26]
+	mi := &file_z_userService_gen_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1331,7 +1067,7 @@ func (x *GetUserDeptListResponse) String() string {
 func (*GetUserDeptListResponse) ProtoMessage() {}
 
 func (x *GetUserDeptListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[26]
+	mi := &file_z_userService_gen_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1344,7 +1080,7 @@ func (x *GetUserDeptListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserDeptListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{26}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetUserDeptListResponse) GetUserDeptList() []*UserDeptInfo {
@@ -1363,7 +1099,7 @@ type UpdateUserDeptRequest struct {
 
 func (x *UpdateUserDeptRequest) Reset() {
 	*x = UpdateUserDeptRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[27]
+	mi := &file_z_userService_gen_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1375,7 +1111,7 @@ func (x *UpdateUserDeptRequest) String() string {
 func (*UpdateUserDeptRequest) ProtoMessage() {}
 
 func (x *UpdateUserDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[27]
+	mi := &file_z_userService_gen_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1388,7 +1124,7 @@ func (x *UpdateUserDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserDeptRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserDeptRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{27}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateUserDeptRequest) GetUserDept() *UserDeptInfo {
@@ -1407,7 +1143,7 @@ type UpdateUserDeptResponse struct {
 
 func (x *UpdateUserDeptResponse) Reset() {
 	*x = UpdateUserDeptResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[28]
+	mi := &file_z_userService_gen_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1419,7 +1155,7 @@ func (x *UpdateUserDeptResponse) String() string {
 func (*UpdateUserDeptResponse) ProtoMessage() {}
 
 func (x *UpdateUserDeptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[28]
+	mi := &file_z_userService_gen_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1168,7 @@ func (x *UpdateUserDeptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserDeptResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserDeptResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{28}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateUserDeptResponse) GetUserDept() *UserDeptInfo {
@@ -1444,14 +1180,14 @@ func (x *UpdateUserDeptResponse) GetUserDept() *UserDeptInfo {
 
 type DelUserDeptByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserDeptByIDListRequest) Reset() {
 	*x = DelUserDeptByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[29]
+	mi := &file_z_userService_gen_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1463,7 +1199,7 @@ func (x *DelUserDeptByIDListRequest) String() string {
 func (*DelUserDeptByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserDeptByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[29]
+	mi := &file_z_userService_gen_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1476,7 +1212,7 @@ func (x *DelUserDeptByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserDeptByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserDeptByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{29}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DelUserDeptByIDListRequest) GetIDList() []int32 {
@@ -1490,7 +1226,7 @@ func (x *DelUserDeptByIDListRequest) GetIDList() []int32 {
 // tbl : user_dept_assoc
 type UserDeptAssocInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -1504,7 +1240,7 @@ type UserDeptAssocInfo struct {
 
 func (x *UserDeptAssocInfo) Reset() {
 	*x = UserDeptAssocInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[30]
+	mi := &file_z_userService_gen_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1516,7 +1252,7 @@ func (x *UserDeptAssocInfo) String() string {
 func (*UserDeptAssocInfo) ProtoMessage() {}
 
 func (x *UserDeptAssocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[30]
+	mi := &file_z_userService_gen_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1529,7 +1265,7 @@ func (x *UserDeptAssocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDeptAssocInfo.ProtoReflect.Descriptor instead.
 func (*UserDeptAssocInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{30}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UserDeptAssocInfo) GetID() int32 {
@@ -1597,7 +1333,7 @@ type AddUserDeptAssocRequest struct {
 
 func (x *AddUserDeptAssocRequest) Reset() {
 	*x = AddUserDeptAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[31]
+	mi := &file_z_userService_gen_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1609,7 +1345,7 @@ func (x *AddUserDeptAssocRequest) String() string {
 func (*AddUserDeptAssocRequest) ProtoMessage() {}
 
 func (x *AddUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[31]
+	mi := &file_z_userService_gen_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1622,108 +1358,12 @@ func (x *AddUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptAssocRequest.ProtoReflect.Descriptor instead.
 func (*AddUserDeptAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{31}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AddUserDeptAssocRequest) GetUserDeptAssoc() *UserDeptAssocInfo {
 	if x != nil {
 		return x.UserDeptAssoc
-	}
-	return nil
-}
-
-type GetUserDeptAssocByUserDeptRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=UserID_list,json=UserIDList,proto3" json:"UserID_list,omitempty"`
-	DeptIDList    []int32                `protobuf:"varint,2,rep,packed,name=DeptID_list,json=DeptIDList,proto3" json:"DeptID_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserDeptAssocByUserDeptRequest) Reset() {
-	*x = GetUserDeptAssocByUserDeptRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[32]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserDeptAssocByUserDeptRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserDeptAssocByUserDeptRequest) ProtoMessage() {}
-
-func (x *GetUserDeptAssocByUserDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[32]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserDeptAssocByUserDeptRequest.ProtoReflect.Descriptor instead.
-func (*GetUserDeptAssocByUserDeptRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{32}
-}
-
-func (x *GetUserDeptAssocByUserDeptRequest) GetUserIDList() []int32 {
-	if x != nil {
-		return x.UserIDList
-	}
-	return nil
-}
-
-func (x *GetUserDeptAssocByUserDeptRequest) GetDeptIDList() []int32 {
-	if x != nil {
-		return x.DeptIDList
-	}
-	return nil
-}
-
-type GetUserDeptAssocByUserDeptResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*UserDeptAssocInfo   `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserDeptAssocByUserDeptResponse) Reset() {
-	*x = GetUserDeptAssocByUserDeptResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[33]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserDeptAssocByUserDeptResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserDeptAssocByUserDeptResponse) ProtoMessage() {}
-
-func (x *GetUserDeptAssocByUserDeptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[33]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserDeptAssocByUserDeptResponse.ProtoReflect.Descriptor instead.
-func (*GetUserDeptAssocByUserDeptResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{33}
-}
-
-func (x *GetUserDeptAssocByUserDeptResponse) GetData() []*UserDeptAssocInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -1737,7 +1377,7 @@ type AddUserDeptAssocResponse struct {
 
 func (x *AddUserDeptAssocResponse) Reset() {
 	*x = AddUserDeptAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[34]
+	mi := &file_z_userService_gen_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1749,7 +1389,7 @@ func (x *AddUserDeptAssocResponse) String() string {
 func (*AddUserDeptAssocResponse) ProtoMessage() {}
 
 func (x *AddUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[34]
+	mi := &file_z_userService_gen_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1762,7 +1402,7 @@ func (x *AddUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserDeptAssocResponse.ProtoReflect.Descriptor instead.
 func (*AddUserDeptAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{34}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AddUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
@@ -1774,14 +1414,14 @@ func (x *AddUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
 
 type GetUserDeptAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserDeptAssocListRequest) Reset() {
 	*x = GetUserDeptAssocListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[35]
+	mi := &file_z_userService_gen_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1793,7 +1433,7 @@ func (x *GetUserDeptAssocListRequest) String() string {
 func (*GetUserDeptAssocListRequest) ProtoMessage() {}
 
 func (x *GetUserDeptAssocListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[35]
+	mi := &file_z_userService_gen_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1806,7 +1446,7 @@ func (x *GetUserDeptAssocListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptAssocListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{35}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetUserDeptAssocListRequest) GetIDList() []int32 {
@@ -1825,7 +1465,7 @@ type GetUserDeptAssocListResponse struct {
 
 func (x *GetUserDeptAssocListResponse) Reset() {
 	*x = GetUserDeptAssocListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[36]
+	mi := &file_z_userService_gen_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1837,7 +1477,7 @@ func (x *GetUserDeptAssocListResponse) String() string {
 func (*GetUserDeptAssocListResponse) ProtoMessage() {}
 
 func (x *GetUserDeptAssocListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[36]
+	mi := &file_z_userService_gen_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1850,7 +1490,7 @@ func (x *GetUserDeptAssocListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserDeptAssocListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserDeptAssocListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{36}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetUserDeptAssocListResponse) GetUserDeptAssocList() []*UserDeptAssocInfo {
@@ -1869,7 +1509,7 @@ type UpdateUserDeptAssocRequest struct {
 
 func (x *UpdateUserDeptAssocRequest) Reset() {
 	*x = UpdateUserDeptAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[37]
+	mi := &file_z_userService_gen_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1881,7 +1521,7 @@ func (x *UpdateUserDeptAssocRequest) String() string {
 func (*UpdateUserDeptAssocRequest) ProtoMessage() {}
 
 func (x *UpdateUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[37]
+	mi := &file_z_userService_gen_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1894,7 +1534,7 @@ func (x *UpdateUserDeptAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserDeptAssocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserDeptAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{37}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateUserDeptAssocRequest) GetUserDeptAssoc() *UserDeptAssocInfo {
@@ -1913,7 +1553,7 @@ type UpdateUserDeptAssocResponse struct {
 
 func (x *UpdateUserDeptAssocResponse) Reset() {
 	*x = UpdateUserDeptAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[38]
+	mi := &file_z_userService_gen_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1925,7 +1565,7 @@ func (x *UpdateUserDeptAssocResponse) String() string {
 func (*UpdateUserDeptAssocResponse) ProtoMessage() {}
 
 func (x *UpdateUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[38]
+	mi := &file_z_userService_gen_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1938,7 +1578,7 @@ func (x *UpdateUserDeptAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserDeptAssocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserDeptAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{38}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
@@ -1950,14 +1590,14 @@ func (x *UpdateUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
 
 type DelUserDeptAssocByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserDeptAssocByIDListRequest) Reset() {
 	*x = DelUserDeptAssocByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[39]
+	mi := &file_z_userService_gen_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1969,7 +1609,7 @@ func (x *DelUserDeptAssocByIDListRequest) String() string {
 func (*DelUserDeptAssocByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserDeptAssocByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[39]
+	mi := &file_z_userService_gen_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1982,7 +1622,7 @@ func (x *DelUserDeptAssocByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserDeptAssocByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserDeptAssocByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{39}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DelUserDeptAssocByIDListRequest) GetIDList() []int32 {
@@ -1996,7 +1636,7 @@ func (x *DelUserDeptAssocByIDListRequest) GetIDList() []int32 {
 // tbl : user_job
 type UserJobInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -2008,7 +1648,7 @@ type UserJobInfo struct {
 
 func (x *UserJobInfo) Reset() {
 	*x = UserJobInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[40]
+	mi := &file_z_userService_gen_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2020,7 +1660,7 @@ func (x *UserJobInfo) String() string {
 func (*UserJobInfo) ProtoMessage() {}
 
 func (x *UserJobInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[40]
+	mi := &file_z_userService_gen_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2033,7 +1673,7 @@ func (x *UserJobInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserJobInfo.ProtoReflect.Descriptor instead.
 func (*UserJobInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{40}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *UserJobInfo) GetID() int32 {
@@ -2087,7 +1727,7 @@ type AddUserJobRequest struct {
 
 func (x *AddUserJobRequest) Reset() {
 	*x = AddUserJobRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[41]
+	mi := &file_z_userService_gen_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2099,7 +1739,7 @@ func (x *AddUserJobRequest) String() string {
 func (*AddUserJobRequest) ProtoMessage() {}
 
 func (x *AddUserJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[41]
+	mi := &file_z_userService_gen_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2112,100 +1752,12 @@ func (x *AddUserJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserJobRequest.ProtoReflect.Descriptor instead.
 func (*AddUserJobRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{41}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *AddUserJobRequest) GetUserJob() *UserJobInfo {
 	if x != nil {
 		return x.UserJob
-	}
-	return nil
-}
-
-type GetUserJobByJobNameRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	JobNameList   []string               `protobuf:"bytes,1,rep,name=JobName_list,json=JobNameList,proto3" json:"JobName_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserJobByJobNameRequest) Reset() {
-	*x = GetUserJobByJobNameRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[42]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserJobByJobNameRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserJobByJobNameRequest) ProtoMessage() {}
-
-func (x *GetUserJobByJobNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[42]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserJobByJobNameRequest.ProtoReflect.Descriptor instead.
-func (*GetUserJobByJobNameRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{42}
-}
-
-func (x *GetUserJobByJobNameRequest) GetJobNameList() []string {
-	if x != nil {
-		return x.JobNameList
-	}
-	return nil
-}
-
-type GetUserJobByJobNameResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*UserJobInfo         `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserJobByJobNameResponse) Reset() {
-	*x = GetUserJobByJobNameResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[43]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserJobByJobNameResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserJobByJobNameResponse) ProtoMessage() {}
-
-func (x *GetUserJobByJobNameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[43]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserJobByJobNameResponse.ProtoReflect.Descriptor instead.
-func (*GetUserJobByJobNameResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{43}
-}
-
-func (x *GetUserJobByJobNameResponse) GetData() []*UserJobInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -2219,7 +1771,7 @@ type AddUserJobResponse struct {
 
 func (x *AddUserJobResponse) Reset() {
 	*x = AddUserJobResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[44]
+	mi := &file_z_userService_gen_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2231,7 +1783,7 @@ func (x *AddUserJobResponse) String() string {
 func (*AddUserJobResponse) ProtoMessage() {}
 
 func (x *AddUserJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[44]
+	mi := &file_z_userService_gen_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2244,7 +1796,7 @@ func (x *AddUserJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserJobResponse.ProtoReflect.Descriptor instead.
 func (*AddUserJobResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{44}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AddUserJobResponse) GetUserJob() *UserJobInfo {
@@ -2256,14 +1808,14 @@ func (x *AddUserJobResponse) GetUserJob() *UserJobInfo {
 
 type GetUserJobListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserJobListRequest) Reset() {
 	*x = GetUserJobListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[45]
+	mi := &file_z_userService_gen_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2275,7 +1827,7 @@ func (x *GetUserJobListRequest) String() string {
 func (*GetUserJobListRequest) ProtoMessage() {}
 
 func (x *GetUserJobListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[45]
+	mi := &file_z_userService_gen_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2288,7 +1840,7 @@ func (x *GetUserJobListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserJobListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserJobListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{45}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetUserJobListRequest) GetIDList() []int32 {
@@ -2307,7 +1859,7 @@ type GetUserJobListResponse struct {
 
 func (x *GetUserJobListResponse) Reset() {
 	*x = GetUserJobListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[46]
+	mi := &file_z_userService_gen_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2319,7 +1871,7 @@ func (x *GetUserJobListResponse) String() string {
 func (*GetUserJobListResponse) ProtoMessage() {}
 
 func (x *GetUserJobListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[46]
+	mi := &file_z_userService_gen_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2332,7 +1884,7 @@ func (x *GetUserJobListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserJobListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserJobListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{46}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetUserJobListResponse) GetUserJobList() []*UserJobInfo {
@@ -2351,7 +1903,7 @@ type UpdateUserJobRequest struct {
 
 func (x *UpdateUserJobRequest) Reset() {
 	*x = UpdateUserJobRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[47]
+	mi := &file_z_userService_gen_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2363,7 +1915,7 @@ func (x *UpdateUserJobRequest) String() string {
 func (*UpdateUserJobRequest) ProtoMessage() {}
 
 func (x *UpdateUserJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[47]
+	mi := &file_z_userService_gen_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2376,7 +1928,7 @@ func (x *UpdateUserJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserJobRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserJobRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{47}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *UpdateUserJobRequest) GetUserJob() *UserJobInfo {
@@ -2395,7 +1947,7 @@ type UpdateUserJobResponse struct {
 
 func (x *UpdateUserJobResponse) Reset() {
 	*x = UpdateUserJobResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[48]
+	mi := &file_z_userService_gen_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2407,7 +1959,7 @@ func (x *UpdateUserJobResponse) String() string {
 func (*UpdateUserJobResponse) ProtoMessage() {}
 
 func (x *UpdateUserJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[48]
+	mi := &file_z_userService_gen_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2420,7 +1972,7 @@ func (x *UpdateUserJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserJobResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserJobResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{48}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *UpdateUserJobResponse) GetUserJob() *UserJobInfo {
@@ -2432,14 +1984,14 @@ func (x *UpdateUserJobResponse) GetUserJob() *UserJobInfo {
 
 type DelUserJobByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserJobByIDListRequest) Reset() {
 	*x = DelUserJobByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[49]
+	mi := &file_z_userService_gen_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2451,7 +2003,7 @@ func (x *DelUserJobByIDListRequest) String() string {
 func (*DelUserJobByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserJobByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[49]
+	mi := &file_z_userService_gen_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2464,7 +2016,7 @@ func (x *DelUserJobByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserJobByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserJobByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{49}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DelUserJobByIDListRequest) GetIDList() []int32 {
@@ -2478,7 +2030,7 @@ func (x *DelUserJobByIDListRequest) GetIDList() []int32 {
 // tbl : user_project_assoc
 type UserProjectAssocInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UserID        int32                  `protobuf:"varint,4,opt,name=userID,proto3" json:"userID,omitempty"`
@@ -2489,7 +2041,7 @@ type UserProjectAssocInfo struct {
 
 func (x *UserProjectAssocInfo) Reset() {
 	*x = UserProjectAssocInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[50]
+	mi := &file_z_userService_gen_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2501,7 +2053,7 @@ func (x *UserProjectAssocInfo) String() string {
 func (*UserProjectAssocInfo) ProtoMessage() {}
 
 func (x *UserProjectAssocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[50]
+	mi := &file_z_userService_gen_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2514,7 +2066,7 @@ func (x *UserProjectAssocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserProjectAssocInfo.ProtoReflect.Descriptor instead.
 func (*UserProjectAssocInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{50}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *UserProjectAssocInfo) GetID() int32 {
@@ -2561,7 +2113,7 @@ type AddUserProjectAssocRequest struct {
 
 func (x *AddUserProjectAssocRequest) Reset() {
 	*x = AddUserProjectAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[51]
+	mi := &file_z_userService_gen_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2573,7 +2125,7 @@ func (x *AddUserProjectAssocRequest) String() string {
 func (*AddUserProjectAssocRequest) ProtoMessage() {}
 
 func (x *AddUserProjectAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[51]
+	mi := &file_z_userService_gen_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2586,108 +2138,12 @@ func (x *AddUserProjectAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserProjectAssocRequest.ProtoReflect.Descriptor instead.
 func (*AddUserProjectAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{51}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *AddUserProjectAssocRequest) GetUserProjectAssoc() *UserProjectAssocInfo {
 	if x != nil {
 		return x.UserProjectAssoc
-	}
-	return nil
-}
-
-type GetUserProjectAssocByUserProjRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=UserID_list,json=UserIDList,proto3" json:"UserID_list,omitempty"`
-	ProjIDList    []int32                `protobuf:"varint,2,rep,packed,name=ProjID_list,json=ProjIDList,proto3" json:"ProjID_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserProjectAssocByUserProjRequest) Reset() {
-	*x = GetUserProjectAssocByUserProjRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[52]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserProjectAssocByUserProjRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserProjectAssocByUserProjRequest) ProtoMessage() {}
-
-func (x *GetUserProjectAssocByUserProjRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[52]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserProjectAssocByUserProjRequest.ProtoReflect.Descriptor instead.
-func (*GetUserProjectAssocByUserProjRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{52}
-}
-
-func (x *GetUserProjectAssocByUserProjRequest) GetUserIDList() []int32 {
-	if x != nil {
-		return x.UserIDList
-	}
-	return nil
-}
-
-func (x *GetUserProjectAssocByUserProjRequest) GetProjIDList() []int32 {
-	if x != nil {
-		return x.ProjIDList
-	}
-	return nil
-}
-
-type GetUserProjectAssocByUserProjResponse struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Data          []*UserProjectAssocInfo `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserProjectAssocByUserProjResponse) Reset() {
-	*x = GetUserProjectAssocByUserProjResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[53]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserProjectAssocByUserProjResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserProjectAssocByUserProjResponse) ProtoMessage() {}
-
-func (x *GetUserProjectAssocByUserProjResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[53]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserProjectAssocByUserProjResponse.ProtoReflect.Descriptor instead.
-func (*GetUserProjectAssocByUserProjResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{53}
-}
-
-func (x *GetUserProjectAssocByUserProjResponse) GetData() []*UserProjectAssocInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -2701,7 +2157,7 @@ type AddUserProjectAssocResponse struct {
 
 func (x *AddUserProjectAssocResponse) Reset() {
 	*x = AddUserProjectAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[54]
+	mi := &file_z_userService_gen_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2713,7 +2169,7 @@ func (x *AddUserProjectAssocResponse) String() string {
 func (*AddUserProjectAssocResponse) ProtoMessage() {}
 
 func (x *AddUserProjectAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[54]
+	mi := &file_z_userService_gen_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2726,7 +2182,7 @@ func (x *AddUserProjectAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserProjectAssocResponse.ProtoReflect.Descriptor instead.
 func (*AddUserProjectAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{54}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AddUserProjectAssocResponse) GetUserProjectAssoc() *UserProjectAssocInfo {
@@ -2738,14 +2194,14 @@ func (x *AddUserProjectAssocResponse) GetUserProjectAssoc() *UserProjectAssocInf
 
 type GetUserProjectAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserProjectAssocListRequest) Reset() {
 	*x = GetUserProjectAssocListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[55]
+	mi := &file_z_userService_gen_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2757,7 +2213,7 @@ func (x *GetUserProjectAssocListRequest) String() string {
 func (*GetUserProjectAssocListRequest) ProtoMessage() {}
 
 func (x *GetUserProjectAssocListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[55]
+	mi := &file_z_userService_gen_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2770,7 +2226,7 @@ func (x *GetUserProjectAssocListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserProjectAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserProjectAssocListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{55}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetUserProjectAssocListRequest) GetIDList() []int32 {
@@ -2789,7 +2245,7 @@ type GetUserProjectAssocListResponse struct {
 
 func (x *GetUserProjectAssocListResponse) Reset() {
 	*x = GetUserProjectAssocListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[56]
+	mi := &file_z_userService_gen_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2801,7 +2257,7 @@ func (x *GetUserProjectAssocListResponse) String() string {
 func (*GetUserProjectAssocListResponse) ProtoMessage() {}
 
 func (x *GetUserProjectAssocListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[56]
+	mi := &file_z_userService_gen_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2814,7 +2270,7 @@ func (x *GetUserProjectAssocListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserProjectAssocListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserProjectAssocListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{56}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetUserProjectAssocListResponse) GetUserProjectAssocList() []*UserProjectAssocInfo {
@@ -2833,7 +2289,7 @@ type UpdateUserProjectAssocRequest struct {
 
 func (x *UpdateUserProjectAssocRequest) Reset() {
 	*x = UpdateUserProjectAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[57]
+	mi := &file_z_userService_gen_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2845,7 +2301,7 @@ func (x *UpdateUserProjectAssocRequest) String() string {
 func (*UpdateUserProjectAssocRequest) ProtoMessage() {}
 
 func (x *UpdateUserProjectAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[57]
+	mi := &file_z_userService_gen_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2858,7 +2314,7 @@ func (x *UpdateUserProjectAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserProjectAssocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserProjectAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{57}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *UpdateUserProjectAssocRequest) GetUserProjectAssoc() *UserProjectAssocInfo {
@@ -2877,7 +2333,7 @@ type UpdateUserProjectAssocResponse struct {
 
 func (x *UpdateUserProjectAssocResponse) Reset() {
 	*x = UpdateUserProjectAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[58]
+	mi := &file_z_userService_gen_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2889,7 +2345,7 @@ func (x *UpdateUserProjectAssocResponse) String() string {
 func (*UpdateUserProjectAssocResponse) ProtoMessage() {}
 
 func (x *UpdateUserProjectAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[58]
+	mi := &file_z_userService_gen_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2902,7 +2358,7 @@ func (x *UpdateUserProjectAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserProjectAssocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserProjectAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{58}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *UpdateUserProjectAssocResponse) GetUserProjectAssoc() *UserProjectAssocInfo {
@@ -2914,14 +2370,14 @@ func (x *UpdateUserProjectAssocResponse) GetUserProjectAssoc() *UserProjectAssoc
 
 type DelUserProjectAssocByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserProjectAssocByIDListRequest) Reset() {
 	*x = DelUserProjectAssocByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[59]
+	mi := &file_z_userService_gen_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2933,7 +2389,7 @@ func (x *DelUserProjectAssocByIDListRequest) String() string {
 func (*DelUserProjectAssocByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserProjectAssocByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[59]
+	mi := &file_z_userService_gen_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2946,7 +2402,7 @@ func (x *DelUserProjectAssocByIDListRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DelUserProjectAssocByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserProjectAssocByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{59}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *DelUserProjectAssocByIDListRequest) GetIDList() []int32 {
@@ -2960,7 +2416,7 @@ func (x *DelUserProjectAssocByIDListRequest) GetIDList() []int32 {
 // tbl : user_role
 type UserRoleInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
@@ -2974,7 +2430,7 @@ type UserRoleInfo struct {
 
 func (x *UserRoleInfo) Reset() {
 	*x = UserRoleInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[60]
+	mi := &file_z_userService_gen_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2986,7 +2442,7 @@ func (x *UserRoleInfo) String() string {
 func (*UserRoleInfo) ProtoMessage() {}
 
 func (x *UserRoleInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[60]
+	mi := &file_z_userService_gen_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2999,7 +2455,7 @@ func (x *UserRoleInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRoleInfo.ProtoReflect.Descriptor instead.
 func (*UserRoleInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{60}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *UserRoleInfo) GetID() int32 {
@@ -3067,7 +2523,7 @@ type AddUserRoleRequest struct {
 
 func (x *AddUserRoleRequest) Reset() {
 	*x = AddUserRoleRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[61]
+	mi := &file_z_userService_gen_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3079,7 +2535,7 @@ func (x *AddUserRoleRequest) String() string {
 func (*AddUserRoleRequest) ProtoMessage() {}
 
 func (x *AddUserRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[61]
+	mi := &file_z_userService_gen_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3092,7 +2548,7 @@ func (x *AddUserRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRoleRequest.ProtoReflect.Descriptor instead.
 func (*AddUserRoleRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{61}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *AddUserRoleRequest) GetUserRole() *UserRoleInfo {
@@ -3111,7 +2567,7 @@ type AddUserRoleResponse struct {
 
 func (x *AddUserRoleResponse) Reset() {
 	*x = AddUserRoleResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[62]
+	mi := &file_z_userService_gen_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3123,7 +2579,7 @@ func (x *AddUserRoleResponse) String() string {
 func (*AddUserRoleResponse) ProtoMessage() {}
 
 func (x *AddUserRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[62]
+	mi := &file_z_userService_gen_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3136,7 +2592,7 @@ func (x *AddUserRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRoleResponse.ProtoReflect.Descriptor instead.
 func (*AddUserRoleResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{62}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *AddUserRoleResponse) GetUserRole() *UserRoleInfo {
@@ -3148,14 +2604,14 @@ func (x *AddUserRoleResponse) GetUserRole() *UserRoleInfo {
 
 type GetUserRoleListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserRoleListRequest) Reset() {
 	*x = GetUserRoleListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[63]
+	mi := &file_z_userService_gen_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3167,7 +2623,7 @@ func (x *GetUserRoleListRequest) String() string {
 func (*GetUserRoleListRequest) ProtoMessage() {}
 
 func (x *GetUserRoleListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[63]
+	mi := &file_z_userService_gen_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3180,7 +2636,7 @@ func (x *GetUserRoleListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRoleListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRoleListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{63}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetUserRoleListRequest) GetIDList() []int32 {
@@ -3199,7 +2655,7 @@ type GetUserRoleListResponse struct {
 
 func (x *GetUserRoleListResponse) Reset() {
 	*x = GetUserRoleListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[64]
+	mi := &file_z_userService_gen_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3211,7 +2667,7 @@ func (x *GetUserRoleListResponse) String() string {
 func (*GetUserRoleListResponse) ProtoMessage() {}
 
 func (x *GetUserRoleListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[64]
+	mi := &file_z_userService_gen_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3224,7 +2680,7 @@ func (x *GetUserRoleListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRoleListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserRoleListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{64}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetUserRoleListResponse) GetUserRoleList() []*UserRoleInfo {
@@ -3243,7 +2699,7 @@ type UpdateUserRoleRequest struct {
 
 func (x *UpdateUserRoleRequest) Reset() {
 	*x = UpdateUserRoleRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[65]
+	mi := &file_z_userService_gen_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3255,7 +2711,7 @@ func (x *UpdateUserRoleRequest) String() string {
 func (*UpdateUserRoleRequest) ProtoMessage() {}
 
 func (x *UpdateUserRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[65]
+	mi := &file_z_userService_gen_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3268,7 +2724,7 @@ func (x *UpdateUserRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRoleRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{65}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *UpdateUserRoleRequest) GetUserRole() *UserRoleInfo {
@@ -3287,7 +2743,7 @@ type UpdateUserRoleResponse struct {
 
 func (x *UpdateUserRoleResponse) Reset() {
 	*x = UpdateUserRoleResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[66]
+	mi := &file_z_userService_gen_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3299,7 +2755,7 @@ func (x *UpdateUserRoleResponse) String() string {
 func (*UpdateUserRoleResponse) ProtoMessage() {}
 
 func (x *UpdateUserRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[66]
+	mi := &file_z_userService_gen_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3312,7 +2768,7 @@ func (x *UpdateUserRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserRoleResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{66}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UpdateUserRoleResponse) GetUserRole() *UserRoleInfo {
@@ -3324,14 +2780,14 @@ func (x *UpdateUserRoleResponse) GetUserRole() *UserRoleInfo {
 
 type DelUserRoleByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserRoleByIDListRequest) Reset() {
 	*x = DelUserRoleByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[67]
+	mi := &file_z_userService_gen_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3343,7 +2799,7 @@ func (x *DelUserRoleByIDListRequest) String() string {
 func (*DelUserRoleByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserRoleByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[67]
+	mi := &file_z_userService_gen_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3356,7 +2812,7 @@ func (x *DelUserRoleByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserRoleByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserRoleByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{67}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *DelUserRoleByIDListRequest) GetIDList() []int32 {
@@ -3370,7 +2826,7 @@ func (x *DelUserRoleByIDListRequest) GetIDList() []int32 {
 // tbl : user_role_assoc
 type UserRoleAssocInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	UserID        int32                  `protobuf:"varint,4,opt,name=userID,proto3" json:"userID,omitempty"`
@@ -3381,7 +2837,7 @@ type UserRoleAssocInfo struct {
 
 func (x *UserRoleAssocInfo) Reset() {
 	*x = UserRoleAssocInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[68]
+	mi := &file_z_userService_gen_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3393,7 +2849,7 @@ func (x *UserRoleAssocInfo) String() string {
 func (*UserRoleAssocInfo) ProtoMessage() {}
 
 func (x *UserRoleAssocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[68]
+	mi := &file_z_userService_gen_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3406,7 +2862,7 @@ func (x *UserRoleAssocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRoleAssocInfo.ProtoReflect.Descriptor instead.
 func (*UserRoleAssocInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{68}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UserRoleAssocInfo) GetID() int32 {
@@ -3453,7 +2909,7 @@ type AddUserRoleAssocRequest struct {
 
 func (x *AddUserRoleAssocRequest) Reset() {
 	*x = AddUserRoleAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[69]
+	mi := &file_z_userService_gen_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3465,7 +2921,7 @@ func (x *AddUserRoleAssocRequest) String() string {
 func (*AddUserRoleAssocRequest) ProtoMessage() {}
 
 func (x *AddUserRoleAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[69]
+	mi := &file_z_userService_gen_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3478,108 +2934,12 @@ func (x *AddUserRoleAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRoleAssocRequest.ProtoReflect.Descriptor instead.
 func (*AddUserRoleAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{69}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *AddUserRoleAssocRequest) GetUserRoleAssoc() *UserRoleAssocInfo {
 	if x != nil {
 		return x.UserRoleAssoc
-	}
-	return nil
-}
-
-type GetUserRoleAssocByUserRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=UserID_list,json=UserIDList,proto3" json:"UserID_list,omitempty"`
-	RoleIDList    []int32                `protobuf:"varint,2,rep,packed,name=RoleID_list,json=RoleIDList,proto3" json:"RoleID_list,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserRoleAssocByUserRoleRequest) Reset() {
-	*x = GetUserRoleAssocByUserRoleRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[70]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserRoleAssocByUserRoleRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserRoleAssocByUserRoleRequest) ProtoMessage() {}
-
-func (x *GetUserRoleAssocByUserRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[70]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserRoleAssocByUserRoleRequest.ProtoReflect.Descriptor instead.
-func (*GetUserRoleAssocByUserRoleRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{70}
-}
-
-func (x *GetUserRoleAssocByUserRoleRequest) GetUserIDList() []int32 {
-	if x != nil {
-		return x.UserIDList
-	}
-	return nil
-}
-
-func (x *GetUserRoleAssocByUserRoleRequest) GetRoleIDList() []int32 {
-	if x != nil {
-		return x.RoleIDList
-	}
-	return nil
-}
-
-type GetUserRoleAssocByUserRoleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*UserRoleAssocInfo   `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserRoleAssocByUserRoleResponse) Reset() {
-	*x = GetUserRoleAssocByUserRoleResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[71]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserRoleAssocByUserRoleResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserRoleAssocByUserRoleResponse) ProtoMessage() {}
-
-func (x *GetUserRoleAssocByUserRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[71]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserRoleAssocByUserRoleResponse.ProtoReflect.Descriptor instead.
-func (*GetUserRoleAssocByUserRoleResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{71}
-}
-
-func (x *GetUserRoleAssocByUserRoleResponse) GetData() []*UserRoleAssocInfo {
-	if x != nil {
-		return x.Data
 	}
 	return nil
 }
@@ -3593,7 +2953,7 @@ type AddUserRoleAssocResponse struct {
 
 func (x *AddUserRoleAssocResponse) Reset() {
 	*x = AddUserRoleAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[72]
+	mi := &file_z_userService_gen_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3605,7 +2965,7 @@ func (x *AddUserRoleAssocResponse) String() string {
 func (*AddUserRoleAssocResponse) ProtoMessage() {}
 
 func (x *AddUserRoleAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[72]
+	mi := &file_z_userService_gen_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3618,7 +2978,7 @@ func (x *AddUserRoleAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRoleAssocResponse.ProtoReflect.Descriptor instead.
 func (*AddUserRoleAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{72}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *AddUserRoleAssocResponse) GetUserRoleAssoc() *UserRoleAssocInfo {
@@ -3630,14 +2990,14 @@ func (x *AddUserRoleAssocResponse) GetUserRoleAssoc() *UserRoleAssocInfo {
 
 type GetUserRoleAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserRoleAssocListRequest) Reset() {
 	*x = GetUserRoleAssocListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[73]
+	mi := &file_z_userService_gen_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3649,7 +3009,7 @@ func (x *GetUserRoleAssocListRequest) String() string {
 func (*GetUserRoleAssocListRequest) ProtoMessage() {}
 
 func (x *GetUserRoleAssocListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[73]
+	mi := &file_z_userService_gen_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3662,7 +3022,7 @@ func (x *GetUserRoleAssocListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRoleAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRoleAssocListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{73}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetUserRoleAssocListRequest) GetIDList() []int32 {
@@ -3681,7 +3041,7 @@ type GetUserRoleAssocListResponse struct {
 
 func (x *GetUserRoleAssocListResponse) Reset() {
 	*x = GetUserRoleAssocListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[74]
+	mi := &file_z_userService_gen_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3693,7 +3053,7 @@ func (x *GetUserRoleAssocListResponse) String() string {
 func (*GetUserRoleAssocListResponse) ProtoMessage() {}
 
 func (x *GetUserRoleAssocListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[74]
+	mi := &file_z_userService_gen_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3706,7 +3066,7 @@ func (x *GetUserRoleAssocListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRoleAssocListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserRoleAssocListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{74}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetUserRoleAssocListResponse) GetUserRoleAssocList() []*UserRoleAssocInfo {
@@ -3725,7 +3085,7 @@ type UpdateUserRoleAssocRequest struct {
 
 func (x *UpdateUserRoleAssocRequest) Reset() {
 	*x = UpdateUserRoleAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[75]
+	mi := &file_z_userService_gen_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3737,7 +3097,7 @@ func (x *UpdateUserRoleAssocRequest) String() string {
 func (*UpdateUserRoleAssocRequest) ProtoMessage() {}
 
 func (x *UpdateUserRoleAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[75]
+	mi := &file_z_userService_gen_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3750,7 +3110,7 @@ func (x *UpdateUserRoleAssocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRoleAssocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRoleAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{75}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *UpdateUserRoleAssocRequest) GetUserRoleAssoc() *UserRoleAssocInfo {
@@ -3769,7 +3129,7 @@ type UpdateUserRoleAssocResponse struct {
 
 func (x *UpdateUserRoleAssocResponse) Reset() {
 	*x = UpdateUserRoleAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[76]
+	mi := &file_z_userService_gen_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3781,7 +3141,7 @@ func (x *UpdateUserRoleAssocResponse) String() string {
 func (*UpdateUserRoleAssocResponse) ProtoMessage() {}
 
 func (x *UpdateUserRoleAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[76]
+	mi := &file_z_userService_gen_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3794,7 +3154,7 @@ func (x *UpdateUserRoleAssocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRoleAssocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserRoleAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{76}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *UpdateUserRoleAssocResponse) GetUserRoleAssoc() *UserRoleAssocInfo {
@@ -3806,14 +3166,14 @@ func (x *UpdateUserRoleAssocResponse) GetUserRoleAssoc() *UserRoleAssocInfo {
 
 type DelUserRoleAssocByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserRoleAssocByIDListRequest) Reset() {
 	*x = DelUserRoleAssocByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[77]
+	mi := &file_z_userService_gen_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3825,7 +3185,7 @@ func (x *DelUserRoleAssocByIDListRequest) String() string {
 func (*DelUserRoleAssocByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserRoleAssocByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[77]
+	mi := &file_z_userService_gen_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3838,7 +3198,7 @@ func (x *DelUserRoleAssocByIDListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelUserRoleAssocByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserRoleAssocByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{77}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *DelUserRoleAssocByIDListRequest) GetIDList() []int32 {
@@ -3852,7 +3212,7 @@ func (x *DelUserRoleAssocByIDListRequest) GetIDList() []int32 {
 // tbl : user_role_permission_assoc
 type UserRolePermissionAssocInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int32                  `protobuf:"varint,1,opt,name=iD,proto3" json:"iD,omitempty"`
+	ID            int32                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	CreateTime    int64                  `protobuf:"varint,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	CreateUser    int32                  `protobuf:"varint,3,opt,name=createUser,proto3" json:"createUser,omitempty"`
 	RoleID        int32                  `protobuf:"varint,4,opt,name=roleID,proto3" json:"roleID,omitempty"`
@@ -3864,7 +3224,7 @@ type UserRolePermissionAssocInfo struct {
 
 func (x *UserRolePermissionAssocInfo) Reset() {
 	*x = UserRolePermissionAssocInfo{}
-	mi := &file_z_userService_gen_proto_msgTypes[78]
+	mi := &file_z_userService_gen_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3876,7 +3236,7 @@ func (x *UserRolePermissionAssocInfo) String() string {
 func (*UserRolePermissionAssocInfo) ProtoMessage() {}
 
 func (x *UserRolePermissionAssocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[78]
+	mi := &file_z_userService_gen_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3889,7 +3249,7 @@ func (x *UserRolePermissionAssocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRolePermissionAssocInfo.ProtoReflect.Descriptor instead.
 func (*UserRolePermissionAssocInfo) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{78}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *UserRolePermissionAssocInfo) GetID() int32 {
@@ -3943,7 +3303,7 @@ type AddUserRolePermissionAssocRequest struct {
 
 func (x *AddUserRolePermissionAssocRequest) Reset() {
 	*x = AddUserRolePermissionAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[79]
+	mi := &file_z_userService_gen_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3955,7 +3315,7 @@ func (x *AddUserRolePermissionAssocRequest) String() string {
 func (*AddUserRolePermissionAssocRequest) ProtoMessage() {}
 
 func (x *AddUserRolePermissionAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[79]
+	mi := &file_z_userService_gen_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3968,7 +3328,7 @@ func (x *AddUserRolePermissionAssocRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use AddUserRolePermissionAssocRequest.ProtoReflect.Descriptor instead.
 func (*AddUserRolePermissionAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{79}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *AddUserRolePermissionAssocRequest) GetUserRolePermissionAssoc() *UserRolePermissionAssocInfo {
@@ -3987,7 +3347,7 @@ type AddUserRolePermissionAssocResponse struct {
 
 func (x *AddUserRolePermissionAssocResponse) Reset() {
 	*x = AddUserRolePermissionAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[80]
+	mi := &file_z_userService_gen_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3999,7 +3359,7 @@ func (x *AddUserRolePermissionAssocResponse) String() string {
 func (*AddUserRolePermissionAssocResponse) ProtoMessage() {}
 
 func (x *AddUserRolePermissionAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[80]
+	mi := &file_z_userService_gen_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4012,7 +3372,7 @@ func (x *AddUserRolePermissionAssocResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use AddUserRolePermissionAssocResponse.ProtoReflect.Descriptor instead.
 func (*AddUserRolePermissionAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{80}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *AddUserRolePermissionAssocResponse) GetUserRolePermissionAssoc() *UserRolePermissionAssocInfo {
@@ -4024,14 +3384,14 @@ func (x *AddUserRolePermissionAssocResponse) GetUserRolePermissionAssoc() *UserR
 
 type GetUserRolePermissionAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetUserRolePermissionAssocListRequest) Reset() {
 	*x = GetUserRolePermissionAssocListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[81]
+	mi := &file_z_userService_gen_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4043,7 +3403,7 @@ func (x *GetUserRolePermissionAssocListRequest) String() string {
 func (*GetUserRolePermissionAssocListRequest) ProtoMessage() {}
 
 func (x *GetUserRolePermissionAssocListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[81]
+	mi := &file_z_userService_gen_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4056,7 +3416,7 @@ func (x *GetUserRolePermissionAssocListRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use GetUserRolePermissionAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRolePermissionAssocListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{81}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetUserRolePermissionAssocListRequest) GetIDList() []int32 {
@@ -4075,7 +3435,7 @@ type GetUserRolePermissionAssocListResponse struct {
 
 func (x *GetUserRolePermissionAssocListResponse) Reset() {
 	*x = GetUserRolePermissionAssocListResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[82]
+	mi := &file_z_userService_gen_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4087,7 +3447,7 @@ func (x *GetUserRolePermissionAssocListResponse) String() string {
 func (*GetUserRolePermissionAssocListResponse) ProtoMessage() {}
 
 func (x *GetUserRolePermissionAssocListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[82]
+	mi := &file_z_userService_gen_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4100,7 +3460,7 @@ func (x *GetUserRolePermissionAssocListResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetUserRolePermissionAssocListResponse.ProtoReflect.Descriptor instead.
 func (*GetUserRolePermissionAssocListResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{82}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetUserRolePermissionAssocListResponse) GetUserRolePermissionAssocList() []*UserRolePermissionAssocInfo {
@@ -4119,7 +3479,7 @@ type UpdateUserRolePermissionAssocRequest struct {
 
 func (x *UpdateUserRolePermissionAssocRequest) Reset() {
 	*x = UpdateUserRolePermissionAssocRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[83]
+	mi := &file_z_userService_gen_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4131,7 +3491,7 @@ func (x *UpdateUserRolePermissionAssocRequest) String() string {
 func (*UpdateUserRolePermissionAssocRequest) ProtoMessage() {}
 
 func (x *UpdateUserRolePermissionAssocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[83]
+	mi := &file_z_userService_gen_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4144,7 +3504,7 @@ func (x *UpdateUserRolePermissionAssocRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use UpdateUserRolePermissionAssocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRolePermissionAssocRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{83}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *UpdateUserRolePermissionAssocRequest) GetUserRolePermissionAssoc() *UserRolePermissionAssocInfo {
@@ -4163,7 +3523,7 @@ type UpdateUserRolePermissionAssocResponse struct {
 
 func (x *UpdateUserRolePermissionAssocResponse) Reset() {
 	*x = UpdateUserRolePermissionAssocResponse{}
-	mi := &file_z_userService_gen_proto_msgTypes[84]
+	mi := &file_z_userService_gen_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4175,7 +3535,7 @@ func (x *UpdateUserRolePermissionAssocResponse) String() string {
 func (*UpdateUserRolePermissionAssocResponse) ProtoMessage() {}
 
 func (x *UpdateUserRolePermissionAssocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[84]
+	mi := &file_z_userService_gen_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4188,7 +3548,7 @@ func (x *UpdateUserRolePermissionAssocResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use UpdateUserRolePermissionAssocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserRolePermissionAssocResponse) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{84}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *UpdateUserRolePermissionAssocResponse) GetUserRolePermissionAssoc() *UserRolePermissionAssocInfo {
@@ -4200,14 +3560,14 @@ func (x *UpdateUserRolePermissionAssocResponse) GetUserRolePermissionAssoc() *Us
 
 type DelUserRolePermissionAssocByIDListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=iDList,proto3" json:"iDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelUserRolePermissionAssocByIDListRequest) Reset() {
 	*x = DelUserRolePermissionAssocByIDListRequest{}
-	mi := &file_z_userService_gen_proto_msgTypes[85]
+	mi := &file_z_userService_gen_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4219,7 +3579,7 @@ func (x *DelUserRolePermissionAssocByIDListRequest) String() string {
 func (*DelUserRolePermissionAssocByIDListRequest) ProtoMessage() {}
 
 func (x *DelUserRolePermissionAssocByIDListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_z_userService_gen_proto_msgTypes[85]
+	mi := &file_z_userService_gen_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4232,7 +3592,7 @@ func (x *DelUserRolePermissionAssocByIDListRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use DelUserRolePermissionAssocByIDListRequest.ProtoReflect.Descriptor instead.
 func (*DelUserRolePermissionAssocByIDListRequest) Descriptor() ([]byte, []int) {
-	return file_z_userService_gen_proto_rawDescGZIP(), []int{85}
+	return file_z_userService_gen_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *DelUserRolePermissionAssocByIDListRequest) GetIDList() []int32 {
@@ -4248,7 +3608,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\n" +
 	"\x17z_userService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\xb9\x01\n" +
 	"\vProjectInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4263,15 +3623,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"updateUser\x12\x1a\n" +
 	"\bprojName\x18\x06 \x01(\tR\bprojName\"?\n" +
 	"\x11AddProjectRequest\x12*\n" +
-	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"B\n" +
-	"\x1bGetProjectByProjNameRequest\x12#\n" +
-	"\rProjName_list\x18\x01 \x03(\tR\fProjNameList\"D\n" +
-	"\x1cGetProjectByProjNameResponse\x12$\n" +
-	"\x04data\x18\x01 \x03(\v2\x10.api.ProjectInfoR\x04data\"@\n" +
+	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"@\n" +
 	"\x12AddProjectResponse\x12*\n" +
 	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"/\n" +
 	"\x15GetProjectListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"L\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"L\n" +
 	"\x16GetProjectListResponse\x122\n" +
 	"\vprojectList\x18\x01 \x03(\v2\x10.api.ProjectInfoR\vprojectList\"B\n" +
 	"\x14UpdateProjectRequest\x12*\n" +
@@ -4279,9 +3635,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x15UpdateProjectResponse\x12*\n" +
 	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"3\n" +
 	"\x19DelProjectByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xd2\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xd2\x01\n" +
 	"\bUserInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4297,15 +3653,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\buserName\x18\x06 \x01(\tR\buserName\x12\x1a\n" +
 	"\bpassword\x18\a \x01(\tR\bpassword\"3\n" +
 	"\x0eAddUserRequest\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"?\n" +
-	"\x18GetUserByUserNameRequest\x12#\n" +
-	"\rUserName_list\x18\x01 \x03(\tR\fUserNameList\">\n" +
-	"\x19GetUserByUserNameResponse\x12!\n" +
-	"\x04data\x18\x01 \x03(\v2\r.api.UserInfoR\x04data\"4\n" +
+	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"4\n" +
 	"\x0fAddUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\",\n" +
 	"\x12GetUserListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"@\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"@\n" +
 	"\x13GetUserListResponse\x12)\n" +
 	"\buserList\x18\x01 \x03(\v2\r.api.UserInfoR\buserList\"6\n" +
 	"\x11UpdateUserRequest\x12!\n" +
@@ -4313,9 +3665,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x12UpdateUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"0\n" +
 	"\x16DelUserByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xd6\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xd6\x01\n" +
 	"\fUserDeptInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4331,15 +3683,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\bdeptPath\x18\x06 \x01(\tR\bdeptPath\x12\x1a\n" +
 	"\bdeptName\x18\a \x01(\tR\bdeptName\"D\n" +
 	"\x12AddUserDeptRequest\x12.\n" +
-	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"C\n" +
-	"\x1cGetUserDeptByDeptPathRequest\x12#\n" +
-	"\rDeptPath_list\x18\x01 \x03(\tR\fDeptPathList\"F\n" +
-	"\x1dGetUserDeptByDeptPathResponse\x12%\n" +
-	"\x04data\x18\x01 \x03(\v2\x11.api.UserDeptInfoR\x04data\"E\n" +
+	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"E\n" +
 	"\x13AddUserDeptResponse\x12.\n" +
 	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"0\n" +
 	"\x16GetUserDeptListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"P\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"P\n" +
 	"\x17GetUserDeptListResponse\x125\n" +
 	"\fuserDeptList\x18\x01 \x03(\v2\x11.api.UserDeptInfoR\fuserDeptList\"F\n" +
 	"\x15UpdateUserDeptRequest\x12-\n" +
@@ -4347,9 +3695,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x16UpdateUserDeptResponse\x12-\n" +
 	"\buserDept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"4\n" +
 	"\x1aDelUserDeptByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xe9\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xe9\x01\n" +
 	"\x11UserDeptAssocInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4366,18 +3714,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x06deptID\x18\a \x01(\x05R\x06deptID\x12\x14\n" +
 	"\x05jobID\x18\b \x01(\x05R\x05jobID\"Y\n" +
 	"\x17AddUserDeptAssocRequest\x12>\n" +
-	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"e\n" +
-	"!GetUserDeptAssocByUserDeptRequest\x12\x1f\n" +
-	"\vUserID_list\x18\x01 \x03(\x05R\n" +
-	"UserIDList\x12\x1f\n" +
-	"\vDeptID_list\x18\x02 \x03(\x05R\n" +
-	"DeptIDList\"P\n" +
-	"\"GetUserDeptAssocByUserDeptResponse\x12*\n" +
-	"\x04data\x18\x01 \x03(\v2\x16.api.UserDeptAssocInfoR\x04data\"Z\n" +
+	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"Z\n" +
 	"\x18AddUserDeptAssocResponse\x12>\n" +
 	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"5\n" +
 	"\x1bGetUserDeptAssocListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"d\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"d\n" +
 	"\x1cGetUserDeptAssocListResponse\x12D\n" +
 	"\x11userDeptAssocList\x18\x01 \x03(\v2\x16.api.UserDeptAssocInfoR\x11userDeptAssocList\"Z\n" +
 	"\x1aUpdateUserDeptAssocRequest\x12<\n" +
@@ -4385,9 +3726,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x1bUpdateUserDeptAssocResponse\x12<\n" +
 	"\ruserDeptAssoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"9\n" +
 	"\x1fDelUserDeptAssocByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xb7\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xb7\x01\n" +
 	"\vUserJobInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4402,15 +3743,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"updateUser\x12\x18\n" +
 	"\ajobName\x18\x06 \x01(\tR\ajobName\"@\n" +
 	"\x11AddUserJobRequest\x12+\n" +
-	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"?\n" +
-	"\x1aGetUserJobByJobNameRequest\x12!\n" +
-	"\fJobName_list\x18\x01 \x03(\tR\vJobNameList\"C\n" +
-	"\x1bGetUserJobByJobNameResponse\x12$\n" +
-	"\x04data\x18\x01 \x03(\v2\x10.api.UserJobInfoR\x04data\"A\n" +
+	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"A\n" +
 	"\x12AddUserJobResponse\x12+\n" +
 	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"/\n" +
 	"\x15GetUserJobListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"L\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"L\n" +
 	"\x16GetUserJobListResponse\x122\n" +
 	"\vuserJobList\x18\x01 \x03(\v2\x10.api.UserJobInfoR\vuserJobList\"B\n" +
 	"\x14UpdateUserJobRequest\x12*\n" +
@@ -4418,9 +3755,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x15UpdateUserJobResponse\x12*\n" +
 	"\auserJob\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"3\n" +
 	"\x19DelUserJobByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\x96\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\x96\x01\n" +
 	"\x14UserProjectAssocInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4430,18 +3767,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x06userID\x18\x04 \x01(\x05R\x06userID\x12\x16\n" +
 	"\x06projID\x18\x05 \x01(\x05R\x06projID\"e\n" +
 	"\x1aAddUserProjectAssocRequest\x12G\n" +
-	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"h\n" +
-	"$GetUserProjectAssocByUserProjRequest\x12\x1f\n" +
-	"\vUserID_list\x18\x01 \x03(\x05R\n" +
-	"UserIDList\x12\x1f\n" +
-	"\vProjID_list\x18\x02 \x03(\x05R\n" +
-	"ProjIDList\"V\n" +
-	"%GetUserProjectAssocByUserProjResponse\x12-\n" +
-	"\x04data\x18\x01 \x03(\v2\x19.api.UserProjectAssocInfoR\x04data\"f\n" +
+	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"f\n" +
 	"\x1bAddUserProjectAssocResponse\x12G\n" +
 	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"8\n" +
 	"\x1eGetUserProjectAssocListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"p\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"p\n" +
 	"\x1fGetUserProjectAssocListResponse\x12M\n" +
 	"\x14userProjectAssocList\x18\x01 \x03(\v2\x19.api.UserProjectAssocInfoR\x14userProjectAssocList\"f\n" +
 	"\x1dUpdateUserProjectAssocRequest\x12E\n" +
@@ -4449,9 +3779,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x1eUpdateUserProjectAssocResponse\x12E\n" +
 	"\x10userProjectAssoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"<\n" +
 	"\"DelUserProjectAssocByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xf0\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xf0\x01\n" +
 	"\fUserRoleInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4472,7 +3802,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x13AddUserRoleResponse\x12.\n" +
 	"\tuser_role\x18\x01 \x01(\v2\x11.api.UserRoleInfoR\buserRole\"0\n" +
 	"\x16GetUserRoleListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"P\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"P\n" +
 	"\x17GetUserRoleListResponse\x125\n" +
 	"\fuserRoleList\x18\x01 \x03(\v2\x11.api.UserRoleInfoR\fuserRoleList\"F\n" +
 	"\x15UpdateUserRoleRequest\x12-\n" +
@@ -4480,9 +3810,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x16UpdateUserRoleResponse\x12-\n" +
 	"\buserRole\x18\x01 \x01(\v2\x11.api.UserRoleInfoR\buserRole\"4\n" +
 	"\x1aDelUserRoleByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\x93\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\x93\x01\n" +
 	"\x11UserRoleAssocInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4492,18 +3822,11 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x06userID\x18\x04 \x01(\x05R\x06userID\x12\x16\n" +
 	"\x06roleID\x18\x05 \x01(\x05R\x06roleID\"Y\n" +
 	"\x17AddUserRoleAssocRequest\x12>\n" +
-	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"e\n" +
-	"!GetUserRoleAssocByUserRoleRequest\x12\x1f\n" +
-	"\vUserID_list\x18\x01 \x03(\x05R\n" +
-	"UserIDList\x12\x1f\n" +
-	"\vRoleID_list\x18\x02 \x03(\x05R\n" +
-	"RoleIDList\"P\n" +
-	"\"GetUserRoleAssocByUserRoleResponse\x12*\n" +
-	"\x04data\x18\x01 \x03(\v2\x16.api.UserRoleAssocInfoR\x04data\"Z\n" +
+	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"Z\n" +
 	"\x18AddUserRoleAssocResponse\x12>\n" +
 	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"5\n" +
 	"\x1bGetUserRoleAssocListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"d\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"d\n" +
 	"\x1cGetUserRoleAssocListResponse\x12D\n" +
 	"\x11userRoleAssocList\x18\x01 \x03(\v2\x16.api.UserRoleAssocInfoR\x11userRoleAssocList\"Z\n" +
 	"\x1aUpdateUserRoleAssocRequest\x12<\n" +
@@ -4511,9 +3834,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x1bUpdateUserRoleAssocResponse\x12<\n" +
 	"\ruserRoleAssoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"9\n" +
 	"\x1fDelUserRoleAssocByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\xbf\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xbf\x01\n" +
 	"\x1bUserRolePermissionAssocInfo\x12\x0e\n" +
-	"\x02iD\x18\x01 \x01(\x05R\x02iD\x12\x1e\n" +
+	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
 	"createTime\x18\x02 \x01(\x03R\n" +
 	"createTime\x12\x1e\n" +
@@ -4528,7 +3851,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\"AddUserRolePermissionAssocResponse\x12]\n" +
 	"\x1auser_role_permission_assoc\x18\x01 \x01(\v2 .api.UserRolePermissionAssocInfoR\x17userRolePermissionAssoc\"?\n" +
 	"%GetUserRolePermissionAssocListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList\"\x8c\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\x8c\x01\n" +
 	"&GetUserRolePermissionAssocListResponse\x12b\n" +
 	"\x1buserRolePermissionAssocList\x18\x01 \x03(\v2 .api.UserRolePermissionAssocInfoR\x1buserRolePermissionAssocList\"\x82\x01\n" +
 	"$UpdateUserRolePermissionAssocRequest\x12Z\n" +
@@ -4536,7 +3859,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"%UpdateUserRolePermissionAssocResponse\x12Z\n" +
 	"\x17userRolePermissionAssoc\x18\x01 \x01(\v2 .api.UserRolePermissionAssocInfoR\x17userRolePermissionAssoc\"C\n" +
 	")DelUserRolePermissionAssocByIDListRequest\x12\x16\n" +
-	"\x06iDList\x18\x01 \x03(\x05R\x06iDList2\x85%\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList2\xce\x1d\n" +
 	"\buserCURD\x12R\n" +
 	"\n" +
 	"AddProject\x12\x16.api.AddProjectRequest\x1a\x17.api.AddProjectResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/project\x12[\n" +
@@ -4545,8 +3868,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\rUpdateProject\x12\x19.api.UpdateProjectRequest\x1a\x1a.api.UpdateProjectResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*2\b/project\x12R\n" +
 	"\x12DelProjectByIDList\x12\x1e.api.DelProjectByIDListRequest\x1a\n" +
 	".api.Empty\"\x10\x82\xd3\xe4\x93\x02\n" +
-	"*\b/project\x12z\n" +
-	"\x14GetProjectByProjName\x12 .api.GetProjectByProjNameRequest\x1a!.api.GetProjectByProjNameResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/project/by-proj-name\x12F\n" +
+	"*\b/project\x12F\n" +
 	"\aAddUser\x12\x13.api.AddUserRequest\x1a\x14.api.AddUserResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
 	":\x01*\"\x05/user\x12O\n" +
 	"\vGetUserList\x12\x17.api.GetUserListRequest\x1a\x18.api.GetUserListResponse\"\r\x82\xd3\xe4\x93\x02\a\x12\x05/user\x12O\n" +
@@ -4554,8 +3876,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"UpdateUser\x12\x16.api.UpdateUserRequest\x1a\x17.api.UpdateUserResponse\"\x10\x82\xd3\xe4\x93\x02\n" +
 	":\x01*2\x05/user\x12I\n" +
 	"\x0fDelUserByIDList\x12\x1b.api.DelUserByIDListRequest\x1a\n" +
-	".api.Empty\"\r\x82\xd3\xe4\x93\x02\a*\x05/user\x12n\n" +
-	"\x11GetUserByUserName\x12\x1d.api.GetUserByUserNameRequest\x1a\x1e.api.GetUserByUserNameResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/user/by-user-name\x12W\n" +
+	".api.Empty\"\r\x82\xd3\xe4\x93\x02\a*\x05/user\x12W\n" +
 	"\vAddUserDept\x12\x17.api.AddUserDeptRequest\x1a\x18.api.AddUserDeptResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/user-dept\x12`\n" +
 	"\x0fGetUserDeptList\x12\x1b.api.GetUserDeptListRequest\x1a\x1c.api.GetUserDeptListResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
@@ -4564,27 +3885,23 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"/user-dept\x12V\n" +
 	"\x13DelUserDeptByIDList\x12\x1f.api.DelUserDeptByIDListRequest\x1a\n" +
 	".api.Empty\"\x12\x82\xd3\xe4\x93\x02\f*\n" +
-	"/user-dept\x12\x7f\n" +
-	"\x15GetUserDeptByDeptPath\x12!.api.GetUserDeptByDeptPathRequest\x1a\".api.GetUserDeptByDeptPathResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/user-dept/by-dept-path\x12l\n" +
+	"/user-dept\x12l\n" +
 	"\x10AddUserDeptAssoc\x12\x1c.api.AddUserDeptAssocRequest\x1a\x1d.api.AddUserDeptAssocResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/user-dept-assoc\x12u\n" +
 	"\x14GetUserDeptAssocList\x12 .api.GetUserDeptAssocListRequest\x1a!.api.GetUserDeptAssocListResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/user-dept-assoc\x12u\n" +
 	"\x13UpdateUserDeptAssoc\x12\x1f.api.UpdateUserDeptAssocRequest\x1a .api.UpdateUserDeptAssocResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*2\x10/user-dept-assoc\x12f\n" +
 	"\x18DelUserDeptAssocByIDList\x12$.api.DelUserDeptAssocByIDListRequest\x1a\n" +
-	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-dept-assoc\x12\x94\x01\n" +
-	"\x1aGetUserDeptAssocByUserDept\x12&.api.GetUserDeptAssocByUserDeptRequest\x1a'.api.GetUserDeptAssocByUserDeptResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/user-dept-assoc/by-user-dept\x12S\n" +
+	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-dept-assoc\x12S\n" +
 	"\n" +
 	"AddUserJob\x12\x16.api.AddUserJobRequest\x1a\x17.api.AddUserJobResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/user-job\x12\\\n" +
 	"\x0eGetUserJobList\x12\x1a.api.GetUserJobListRequest\x1a\x1b.api.GetUserJobListResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/user-job\x12\\\n" +
 	"\rUpdateUserJob\x12\x19.api.UpdateUserJobRequest\x1a\x1a.api.UpdateUserJobResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*2\t/user-job\x12S\n" +
 	"\x12DelUserJobByIDList\x12\x1e.api.DelUserJobByIDListRequest\x1a\n" +
-	".api.Empty\"\x11\x82\xd3\xe4\x93\x02\v*\t/user-job\x12w\n" +
-	"\x13GetUserJobByJobName\x12\x1f.api.GetUserJobByJobNameRequest\x1a .api.GetUserJobByJobNameResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/user-job/by-job-name\x12x\n" +
+	".api.Empty\"\x11\x82\xd3\xe4\x93\x02\v*\t/user-job\x12x\n" +
 	"\x13AddUserProjectAssoc\x12\x1f.api.AddUserProjectAssocRequest\x1a .api.AddUserProjectAssocResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/user-project-assoc\x12\x81\x01\n" +
 	"\x17GetUserProjectAssocList\x12#.api.GetUserProjectAssocListRequest\x1a$.api.GetUserProjectAssocListResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/user-project-assoc\x12\x81\x01\n" +
 	"\x16UpdateUserProjectAssoc\x12\".api.UpdateUserProjectAssocRequest\x1a#.api.UpdateUserProjectAssocResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*2\x13/user-project-assoc\x12o\n" +
 	"\x1bDelUserProjectAssocByIDList\x12'.api.DelUserProjectAssocByIDListRequest\x1a\n" +
-	".api.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/user-project-assoc\x12\xa0\x01\n" +
-	"\x1dGetUserProjectAssocByUserProj\x12).api.GetUserProjectAssocByUserProjRequest\x1a*.api.GetUserProjectAssocByUserProjResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /user-project-assoc/by-user-proj\x12W\n" +
+	".api.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/user-project-assoc\x12W\n" +
 	"\vAddUserRole\x12\x17.api.AddUserRoleRequest\x1a\x18.api.AddUserRoleResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/user-role\x12`\n" +
 	"\x0fGetUserRoleList\x12\x1b.api.GetUserRoleListRequest\x1a\x1c.api.GetUserRoleListResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
@@ -4598,8 +3915,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x14GetUserRoleAssocList\x12 .api.GetUserRoleAssocListRequest\x1a!.api.GetUserRoleAssocListResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/user-role-assoc\x12u\n" +
 	"\x13UpdateUserRoleAssoc\x12\x1f.api.UpdateUserRoleAssocRequest\x1a .api.UpdateUserRoleAssocResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*2\x10/user-role-assoc\x12f\n" +
 	"\x18DelUserRoleAssocByIDList\x12$.api.DelUserRoleAssocByIDListRequest\x1a\n" +
-	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-role-assoc\x12\x94\x01\n" +
-	"\x1aGetUserRoleAssocByUserRole\x12&.api.GetUserRoleAssocByUserRoleRequest\x1a'.api.GetUserRoleAssocByUserRoleResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/user-role-assoc/by-user-role\x12\x95\x01\n" +
+	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-role-assoc\x12\x95\x01\n" +
 	"\x1aAddUserRolePermissionAssoc\x12&.api.AddUserRolePermissionAssocRequest\x1a'.api.AddUserRolePermissionAssocResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/user-role-permission-assoc\x12\x9e\x01\n" +
 	"\x1eGetUserRolePermissionAssocList\x12*.api.GetUserRolePermissionAssocListRequest\x1a+.api.GetUserRolePermissionAssocListResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/user-role-permission-assoc\x12\x9e\x01\n" +
 	"\x1dUpdateUserRolePermissionAssoc\x12).api.UpdateUserRolePermissionAssocRequest\x1a*.api.UpdateUserRolePermissionAssocResponse\"&\x82\xd3\xe4\x93\x02 :\x01*2\x1b/user-role-permission-assoc\x12\x85\x01\n" +
@@ -4618,240 +3934,205 @@ func file_z_userService_gen_proto_rawDescGZIP() []byte {
 	return file_z_userService_gen_proto_rawDescData
 }
 
-var file_z_userService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 86)
+var file_z_userService_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
 var file_z_userService_gen_proto_goTypes = []any{
 	(*ProjectInfo)(nil),                               // 0: api.ProjectInfo
 	(*AddProjectRequest)(nil),                         // 1: api.AddProjectRequest
-	(*GetProjectByProjNameRequest)(nil),               // 2: api.GetProjectByProjNameRequest
-	(*GetProjectByProjNameResponse)(nil),              // 3: api.GetProjectByProjNameResponse
-	(*AddProjectResponse)(nil),                        // 4: api.AddProjectResponse
-	(*GetProjectListRequest)(nil),                     // 5: api.GetProjectListRequest
-	(*GetProjectListResponse)(nil),                    // 6: api.GetProjectListResponse
-	(*UpdateProjectRequest)(nil),                      // 7: api.UpdateProjectRequest
-	(*UpdateProjectResponse)(nil),                     // 8: api.UpdateProjectResponse
-	(*DelProjectByIDListRequest)(nil),                 // 9: api.DelProjectByIDListRequest
-	(*UserInfo)(nil),                                  // 10: api.UserInfo
-	(*AddUserRequest)(nil),                            // 11: api.AddUserRequest
-	(*GetUserByUserNameRequest)(nil),                  // 12: api.GetUserByUserNameRequest
-	(*GetUserByUserNameResponse)(nil),                 // 13: api.GetUserByUserNameResponse
-	(*AddUserResponse)(nil),                           // 14: api.AddUserResponse
-	(*GetUserListRequest)(nil),                        // 15: api.GetUserListRequest
-	(*GetUserListResponse)(nil),                       // 16: api.GetUserListResponse
-	(*UpdateUserRequest)(nil),                         // 17: api.UpdateUserRequest
-	(*UpdateUserResponse)(nil),                        // 18: api.UpdateUserResponse
-	(*DelUserByIDListRequest)(nil),                    // 19: api.DelUserByIDListRequest
-	(*UserDeptInfo)(nil),                              // 20: api.UserDeptInfo
-	(*AddUserDeptRequest)(nil),                        // 21: api.AddUserDeptRequest
-	(*GetUserDeptByDeptPathRequest)(nil),              // 22: api.GetUserDeptByDeptPathRequest
-	(*GetUserDeptByDeptPathResponse)(nil),             // 23: api.GetUserDeptByDeptPathResponse
-	(*AddUserDeptResponse)(nil),                       // 24: api.AddUserDeptResponse
-	(*GetUserDeptListRequest)(nil),                    // 25: api.GetUserDeptListRequest
-	(*GetUserDeptListResponse)(nil),                   // 26: api.GetUserDeptListResponse
-	(*UpdateUserDeptRequest)(nil),                     // 27: api.UpdateUserDeptRequest
-	(*UpdateUserDeptResponse)(nil),                    // 28: api.UpdateUserDeptResponse
-	(*DelUserDeptByIDListRequest)(nil),                // 29: api.DelUserDeptByIDListRequest
-	(*UserDeptAssocInfo)(nil),                         // 30: api.UserDeptAssocInfo
-	(*AddUserDeptAssocRequest)(nil),                   // 31: api.AddUserDeptAssocRequest
-	(*GetUserDeptAssocByUserDeptRequest)(nil),         // 32: api.GetUserDeptAssocByUserDeptRequest
-	(*GetUserDeptAssocByUserDeptResponse)(nil),        // 33: api.GetUserDeptAssocByUserDeptResponse
-	(*AddUserDeptAssocResponse)(nil),                  // 34: api.AddUserDeptAssocResponse
-	(*GetUserDeptAssocListRequest)(nil),               // 35: api.GetUserDeptAssocListRequest
-	(*GetUserDeptAssocListResponse)(nil),              // 36: api.GetUserDeptAssocListResponse
-	(*UpdateUserDeptAssocRequest)(nil),                // 37: api.UpdateUserDeptAssocRequest
-	(*UpdateUserDeptAssocResponse)(nil),               // 38: api.UpdateUserDeptAssocResponse
-	(*DelUserDeptAssocByIDListRequest)(nil),           // 39: api.DelUserDeptAssocByIDListRequest
-	(*UserJobInfo)(nil),                               // 40: api.UserJobInfo
-	(*AddUserJobRequest)(nil),                         // 41: api.AddUserJobRequest
-	(*GetUserJobByJobNameRequest)(nil),                // 42: api.GetUserJobByJobNameRequest
-	(*GetUserJobByJobNameResponse)(nil),               // 43: api.GetUserJobByJobNameResponse
-	(*AddUserJobResponse)(nil),                        // 44: api.AddUserJobResponse
-	(*GetUserJobListRequest)(nil),                     // 45: api.GetUserJobListRequest
-	(*GetUserJobListResponse)(nil),                    // 46: api.GetUserJobListResponse
-	(*UpdateUserJobRequest)(nil),                      // 47: api.UpdateUserJobRequest
-	(*UpdateUserJobResponse)(nil),                     // 48: api.UpdateUserJobResponse
-	(*DelUserJobByIDListRequest)(nil),                 // 49: api.DelUserJobByIDListRequest
-	(*UserProjectAssocInfo)(nil),                      // 50: api.UserProjectAssocInfo
-	(*AddUserProjectAssocRequest)(nil),                // 51: api.AddUserProjectAssocRequest
-	(*GetUserProjectAssocByUserProjRequest)(nil),      // 52: api.GetUserProjectAssocByUserProjRequest
-	(*GetUserProjectAssocByUserProjResponse)(nil),     // 53: api.GetUserProjectAssocByUserProjResponse
-	(*AddUserProjectAssocResponse)(nil),               // 54: api.AddUserProjectAssocResponse
-	(*GetUserProjectAssocListRequest)(nil),            // 55: api.GetUserProjectAssocListRequest
-	(*GetUserProjectAssocListResponse)(nil),           // 56: api.GetUserProjectAssocListResponse
-	(*UpdateUserProjectAssocRequest)(nil),             // 57: api.UpdateUserProjectAssocRequest
-	(*UpdateUserProjectAssocResponse)(nil),            // 58: api.UpdateUserProjectAssocResponse
-	(*DelUserProjectAssocByIDListRequest)(nil),        // 59: api.DelUserProjectAssocByIDListRequest
-	(*UserRoleInfo)(nil),                              // 60: api.UserRoleInfo
-	(*AddUserRoleRequest)(nil),                        // 61: api.AddUserRoleRequest
-	(*AddUserRoleResponse)(nil),                       // 62: api.AddUserRoleResponse
-	(*GetUserRoleListRequest)(nil),                    // 63: api.GetUserRoleListRequest
-	(*GetUserRoleListResponse)(nil),                   // 64: api.GetUserRoleListResponse
-	(*UpdateUserRoleRequest)(nil),                     // 65: api.UpdateUserRoleRequest
-	(*UpdateUserRoleResponse)(nil),                    // 66: api.UpdateUserRoleResponse
-	(*DelUserRoleByIDListRequest)(nil),                // 67: api.DelUserRoleByIDListRequest
-	(*UserRoleAssocInfo)(nil),                         // 68: api.UserRoleAssocInfo
-	(*AddUserRoleAssocRequest)(nil),                   // 69: api.AddUserRoleAssocRequest
-	(*GetUserRoleAssocByUserRoleRequest)(nil),         // 70: api.GetUserRoleAssocByUserRoleRequest
-	(*GetUserRoleAssocByUserRoleResponse)(nil),        // 71: api.GetUserRoleAssocByUserRoleResponse
-	(*AddUserRoleAssocResponse)(nil),                  // 72: api.AddUserRoleAssocResponse
-	(*GetUserRoleAssocListRequest)(nil),               // 73: api.GetUserRoleAssocListRequest
-	(*GetUserRoleAssocListResponse)(nil),              // 74: api.GetUserRoleAssocListResponse
-	(*UpdateUserRoleAssocRequest)(nil),                // 75: api.UpdateUserRoleAssocRequest
-	(*UpdateUserRoleAssocResponse)(nil),               // 76: api.UpdateUserRoleAssocResponse
-	(*DelUserRoleAssocByIDListRequest)(nil),           // 77: api.DelUserRoleAssocByIDListRequest
-	(*UserRolePermissionAssocInfo)(nil),               // 78: api.UserRolePermissionAssocInfo
-	(*AddUserRolePermissionAssocRequest)(nil),         // 79: api.AddUserRolePermissionAssocRequest
-	(*AddUserRolePermissionAssocResponse)(nil),        // 80: api.AddUserRolePermissionAssocResponse
-	(*GetUserRolePermissionAssocListRequest)(nil),     // 81: api.GetUserRolePermissionAssocListRequest
-	(*GetUserRolePermissionAssocListResponse)(nil),    // 82: api.GetUserRolePermissionAssocListResponse
-	(*UpdateUserRolePermissionAssocRequest)(nil),      // 83: api.UpdateUserRolePermissionAssocRequest
-	(*UpdateUserRolePermissionAssocResponse)(nil),     // 84: api.UpdateUserRolePermissionAssocResponse
-	(*DelUserRolePermissionAssocByIDListRequest)(nil), // 85: api.DelUserRolePermissionAssocByIDListRequest
-	(*Empty)(nil),                                     // 86: api.Empty
+	(*AddProjectResponse)(nil),                        // 2: api.AddProjectResponse
+	(*GetProjectListRequest)(nil),                     // 3: api.GetProjectListRequest
+	(*GetProjectListResponse)(nil),                    // 4: api.GetProjectListResponse
+	(*UpdateProjectRequest)(nil),                      // 5: api.UpdateProjectRequest
+	(*UpdateProjectResponse)(nil),                     // 6: api.UpdateProjectResponse
+	(*DelProjectByIDListRequest)(nil),                 // 7: api.DelProjectByIDListRequest
+	(*UserInfo)(nil),                                  // 8: api.UserInfo
+	(*AddUserRequest)(nil),                            // 9: api.AddUserRequest
+	(*AddUserResponse)(nil),                           // 10: api.AddUserResponse
+	(*GetUserListRequest)(nil),                        // 11: api.GetUserListRequest
+	(*GetUserListResponse)(nil),                       // 12: api.GetUserListResponse
+	(*UpdateUserRequest)(nil),                         // 13: api.UpdateUserRequest
+	(*UpdateUserResponse)(nil),                        // 14: api.UpdateUserResponse
+	(*DelUserByIDListRequest)(nil),                    // 15: api.DelUserByIDListRequest
+	(*UserDeptInfo)(nil),                              // 16: api.UserDeptInfo
+	(*AddUserDeptRequest)(nil),                        // 17: api.AddUserDeptRequest
+	(*AddUserDeptResponse)(nil),                       // 18: api.AddUserDeptResponse
+	(*GetUserDeptListRequest)(nil),                    // 19: api.GetUserDeptListRequest
+	(*GetUserDeptListResponse)(nil),                   // 20: api.GetUserDeptListResponse
+	(*UpdateUserDeptRequest)(nil),                     // 21: api.UpdateUserDeptRequest
+	(*UpdateUserDeptResponse)(nil),                    // 22: api.UpdateUserDeptResponse
+	(*DelUserDeptByIDListRequest)(nil),                // 23: api.DelUserDeptByIDListRequest
+	(*UserDeptAssocInfo)(nil),                         // 24: api.UserDeptAssocInfo
+	(*AddUserDeptAssocRequest)(nil),                   // 25: api.AddUserDeptAssocRequest
+	(*AddUserDeptAssocResponse)(nil),                  // 26: api.AddUserDeptAssocResponse
+	(*GetUserDeptAssocListRequest)(nil),               // 27: api.GetUserDeptAssocListRequest
+	(*GetUserDeptAssocListResponse)(nil),              // 28: api.GetUserDeptAssocListResponse
+	(*UpdateUserDeptAssocRequest)(nil),                // 29: api.UpdateUserDeptAssocRequest
+	(*UpdateUserDeptAssocResponse)(nil),               // 30: api.UpdateUserDeptAssocResponse
+	(*DelUserDeptAssocByIDListRequest)(nil),           // 31: api.DelUserDeptAssocByIDListRequest
+	(*UserJobInfo)(nil),                               // 32: api.UserJobInfo
+	(*AddUserJobRequest)(nil),                         // 33: api.AddUserJobRequest
+	(*AddUserJobResponse)(nil),                        // 34: api.AddUserJobResponse
+	(*GetUserJobListRequest)(nil),                     // 35: api.GetUserJobListRequest
+	(*GetUserJobListResponse)(nil),                    // 36: api.GetUserJobListResponse
+	(*UpdateUserJobRequest)(nil),                      // 37: api.UpdateUserJobRequest
+	(*UpdateUserJobResponse)(nil),                     // 38: api.UpdateUserJobResponse
+	(*DelUserJobByIDListRequest)(nil),                 // 39: api.DelUserJobByIDListRequest
+	(*UserProjectAssocInfo)(nil),                      // 40: api.UserProjectAssocInfo
+	(*AddUserProjectAssocRequest)(nil),                // 41: api.AddUserProjectAssocRequest
+	(*AddUserProjectAssocResponse)(nil),               // 42: api.AddUserProjectAssocResponse
+	(*GetUserProjectAssocListRequest)(nil),            // 43: api.GetUserProjectAssocListRequest
+	(*GetUserProjectAssocListResponse)(nil),           // 44: api.GetUserProjectAssocListResponse
+	(*UpdateUserProjectAssocRequest)(nil),             // 45: api.UpdateUserProjectAssocRequest
+	(*UpdateUserProjectAssocResponse)(nil),            // 46: api.UpdateUserProjectAssocResponse
+	(*DelUserProjectAssocByIDListRequest)(nil),        // 47: api.DelUserProjectAssocByIDListRequest
+	(*UserRoleInfo)(nil),                              // 48: api.UserRoleInfo
+	(*AddUserRoleRequest)(nil),                        // 49: api.AddUserRoleRequest
+	(*AddUserRoleResponse)(nil),                       // 50: api.AddUserRoleResponse
+	(*GetUserRoleListRequest)(nil),                    // 51: api.GetUserRoleListRequest
+	(*GetUserRoleListResponse)(nil),                   // 52: api.GetUserRoleListResponse
+	(*UpdateUserRoleRequest)(nil),                     // 53: api.UpdateUserRoleRequest
+	(*UpdateUserRoleResponse)(nil),                    // 54: api.UpdateUserRoleResponse
+	(*DelUserRoleByIDListRequest)(nil),                // 55: api.DelUserRoleByIDListRequest
+	(*UserRoleAssocInfo)(nil),                         // 56: api.UserRoleAssocInfo
+	(*AddUserRoleAssocRequest)(nil),                   // 57: api.AddUserRoleAssocRequest
+	(*AddUserRoleAssocResponse)(nil),                  // 58: api.AddUserRoleAssocResponse
+	(*GetUserRoleAssocListRequest)(nil),               // 59: api.GetUserRoleAssocListRequest
+	(*GetUserRoleAssocListResponse)(nil),              // 60: api.GetUserRoleAssocListResponse
+	(*UpdateUserRoleAssocRequest)(nil),                // 61: api.UpdateUserRoleAssocRequest
+	(*UpdateUserRoleAssocResponse)(nil),               // 62: api.UpdateUserRoleAssocResponse
+	(*DelUserRoleAssocByIDListRequest)(nil),           // 63: api.DelUserRoleAssocByIDListRequest
+	(*UserRolePermissionAssocInfo)(nil),               // 64: api.UserRolePermissionAssocInfo
+	(*AddUserRolePermissionAssocRequest)(nil),         // 65: api.AddUserRolePermissionAssocRequest
+	(*AddUserRolePermissionAssocResponse)(nil),        // 66: api.AddUserRolePermissionAssocResponse
+	(*GetUserRolePermissionAssocListRequest)(nil),     // 67: api.GetUserRolePermissionAssocListRequest
+	(*GetUserRolePermissionAssocListResponse)(nil),    // 68: api.GetUserRolePermissionAssocListResponse
+	(*UpdateUserRolePermissionAssocRequest)(nil),      // 69: api.UpdateUserRolePermissionAssocRequest
+	(*UpdateUserRolePermissionAssocResponse)(nil),     // 70: api.UpdateUserRolePermissionAssocResponse
+	(*DelUserRolePermissionAssocByIDListRequest)(nil), // 71: api.DelUserRolePermissionAssocByIDListRequest
+	(*Empty)(nil),                                     // 72: api.Empty
 }
 var file_z_userService_gen_proto_depIdxs = []int32{
 	0,  // 0: api.AddProjectRequest.project:type_name -> api.ProjectInfo
-	0,  // 1: api.GetProjectByProjNameResponse.data:type_name -> api.ProjectInfo
-	0,  // 2: api.AddProjectResponse.project:type_name -> api.ProjectInfo
-	0,  // 3: api.GetProjectListResponse.projectList:type_name -> api.ProjectInfo
-	0,  // 4: api.UpdateProjectRequest.project:type_name -> api.ProjectInfo
-	0,  // 5: api.UpdateProjectResponse.project:type_name -> api.ProjectInfo
-	10, // 6: api.AddUserRequest.user:type_name -> api.UserInfo
-	10, // 7: api.GetUserByUserNameResponse.data:type_name -> api.UserInfo
-	10, // 8: api.AddUserResponse.user:type_name -> api.UserInfo
-	10, // 9: api.GetUserListResponse.userList:type_name -> api.UserInfo
-	10, // 10: api.UpdateUserRequest.user:type_name -> api.UserInfo
-	10, // 11: api.UpdateUserResponse.user:type_name -> api.UserInfo
-	20, // 12: api.AddUserDeptRequest.user_dept:type_name -> api.UserDeptInfo
-	20, // 13: api.GetUserDeptByDeptPathResponse.data:type_name -> api.UserDeptInfo
-	20, // 14: api.AddUserDeptResponse.user_dept:type_name -> api.UserDeptInfo
-	20, // 15: api.GetUserDeptListResponse.userDeptList:type_name -> api.UserDeptInfo
-	20, // 16: api.UpdateUserDeptRequest.userDept:type_name -> api.UserDeptInfo
-	20, // 17: api.UpdateUserDeptResponse.userDept:type_name -> api.UserDeptInfo
-	30, // 18: api.AddUserDeptAssocRequest.user_dept_assoc:type_name -> api.UserDeptAssocInfo
-	30, // 19: api.GetUserDeptAssocByUserDeptResponse.data:type_name -> api.UserDeptAssocInfo
-	30, // 20: api.AddUserDeptAssocResponse.user_dept_assoc:type_name -> api.UserDeptAssocInfo
-	30, // 21: api.GetUserDeptAssocListResponse.userDeptAssocList:type_name -> api.UserDeptAssocInfo
-	30, // 22: api.UpdateUserDeptAssocRequest.userDeptAssoc:type_name -> api.UserDeptAssocInfo
-	30, // 23: api.UpdateUserDeptAssocResponse.userDeptAssoc:type_name -> api.UserDeptAssocInfo
-	40, // 24: api.AddUserJobRequest.user_job:type_name -> api.UserJobInfo
-	40, // 25: api.GetUserJobByJobNameResponse.data:type_name -> api.UserJobInfo
-	40, // 26: api.AddUserJobResponse.user_job:type_name -> api.UserJobInfo
-	40, // 27: api.GetUserJobListResponse.userJobList:type_name -> api.UserJobInfo
-	40, // 28: api.UpdateUserJobRequest.userJob:type_name -> api.UserJobInfo
-	40, // 29: api.UpdateUserJobResponse.userJob:type_name -> api.UserJobInfo
-	50, // 30: api.AddUserProjectAssocRequest.user_project_assoc:type_name -> api.UserProjectAssocInfo
-	50, // 31: api.GetUserProjectAssocByUserProjResponse.data:type_name -> api.UserProjectAssocInfo
-	50, // 32: api.AddUserProjectAssocResponse.user_project_assoc:type_name -> api.UserProjectAssocInfo
-	50, // 33: api.GetUserProjectAssocListResponse.userProjectAssocList:type_name -> api.UserProjectAssocInfo
-	50, // 34: api.UpdateUserProjectAssocRequest.userProjectAssoc:type_name -> api.UserProjectAssocInfo
-	50, // 35: api.UpdateUserProjectAssocResponse.userProjectAssoc:type_name -> api.UserProjectAssocInfo
-	60, // 36: api.AddUserRoleRequest.user_role:type_name -> api.UserRoleInfo
-	60, // 37: api.AddUserRoleResponse.user_role:type_name -> api.UserRoleInfo
-	60, // 38: api.GetUserRoleListResponse.userRoleList:type_name -> api.UserRoleInfo
-	60, // 39: api.UpdateUserRoleRequest.userRole:type_name -> api.UserRoleInfo
-	60, // 40: api.UpdateUserRoleResponse.userRole:type_name -> api.UserRoleInfo
-	68, // 41: api.AddUserRoleAssocRequest.user_role_assoc:type_name -> api.UserRoleAssocInfo
-	68, // 42: api.GetUserRoleAssocByUserRoleResponse.data:type_name -> api.UserRoleAssocInfo
-	68, // 43: api.AddUserRoleAssocResponse.user_role_assoc:type_name -> api.UserRoleAssocInfo
-	68, // 44: api.GetUserRoleAssocListResponse.userRoleAssocList:type_name -> api.UserRoleAssocInfo
-	68, // 45: api.UpdateUserRoleAssocRequest.userRoleAssoc:type_name -> api.UserRoleAssocInfo
-	68, // 46: api.UpdateUserRoleAssocResponse.userRoleAssoc:type_name -> api.UserRoleAssocInfo
-	78, // 47: api.AddUserRolePermissionAssocRequest.user_role_permission_assoc:type_name -> api.UserRolePermissionAssocInfo
-	78, // 48: api.AddUserRolePermissionAssocResponse.user_role_permission_assoc:type_name -> api.UserRolePermissionAssocInfo
-	78, // 49: api.GetUserRolePermissionAssocListResponse.userRolePermissionAssocList:type_name -> api.UserRolePermissionAssocInfo
-	78, // 50: api.UpdateUserRolePermissionAssocRequest.userRolePermissionAssoc:type_name -> api.UserRolePermissionAssocInfo
-	78, // 51: api.UpdateUserRolePermissionAssocResponse.userRolePermissionAssoc:type_name -> api.UserRolePermissionAssocInfo
-	1,  // 52: api.userCURD.AddProject:input_type -> api.AddProjectRequest
-	5,  // 53: api.userCURD.GetProjectList:input_type -> api.GetProjectListRequest
-	7,  // 54: api.userCURD.UpdateProject:input_type -> api.UpdateProjectRequest
-	9,  // 55: api.userCURD.DelProjectByIDList:input_type -> api.DelProjectByIDListRequest
-	2,  // 56: api.userCURD.GetProjectByProjName:input_type -> api.GetProjectByProjNameRequest
-	11, // 57: api.userCURD.AddUser:input_type -> api.AddUserRequest
-	15, // 58: api.userCURD.GetUserList:input_type -> api.GetUserListRequest
-	17, // 59: api.userCURD.UpdateUser:input_type -> api.UpdateUserRequest
-	19, // 60: api.userCURD.DelUserByIDList:input_type -> api.DelUserByIDListRequest
-	12, // 61: api.userCURD.GetUserByUserName:input_type -> api.GetUserByUserNameRequest
-	21, // 62: api.userCURD.AddUserDept:input_type -> api.AddUserDeptRequest
-	25, // 63: api.userCURD.GetUserDeptList:input_type -> api.GetUserDeptListRequest
-	27, // 64: api.userCURD.UpdateUserDept:input_type -> api.UpdateUserDeptRequest
-	29, // 65: api.userCURD.DelUserDeptByIDList:input_type -> api.DelUserDeptByIDListRequest
-	22, // 66: api.userCURD.GetUserDeptByDeptPath:input_type -> api.GetUserDeptByDeptPathRequest
-	31, // 67: api.userCURD.AddUserDeptAssoc:input_type -> api.AddUserDeptAssocRequest
-	35, // 68: api.userCURD.GetUserDeptAssocList:input_type -> api.GetUserDeptAssocListRequest
-	37, // 69: api.userCURD.UpdateUserDeptAssoc:input_type -> api.UpdateUserDeptAssocRequest
-	39, // 70: api.userCURD.DelUserDeptAssocByIDList:input_type -> api.DelUserDeptAssocByIDListRequest
-	32, // 71: api.userCURD.GetUserDeptAssocByUserDept:input_type -> api.GetUserDeptAssocByUserDeptRequest
-	41, // 72: api.userCURD.AddUserJob:input_type -> api.AddUserJobRequest
-	45, // 73: api.userCURD.GetUserJobList:input_type -> api.GetUserJobListRequest
-	47, // 74: api.userCURD.UpdateUserJob:input_type -> api.UpdateUserJobRequest
-	49, // 75: api.userCURD.DelUserJobByIDList:input_type -> api.DelUserJobByIDListRequest
-	42, // 76: api.userCURD.GetUserJobByJobName:input_type -> api.GetUserJobByJobNameRequest
-	51, // 77: api.userCURD.AddUserProjectAssoc:input_type -> api.AddUserProjectAssocRequest
-	55, // 78: api.userCURD.GetUserProjectAssocList:input_type -> api.GetUserProjectAssocListRequest
-	57, // 79: api.userCURD.UpdateUserProjectAssoc:input_type -> api.UpdateUserProjectAssocRequest
-	59, // 80: api.userCURD.DelUserProjectAssocByIDList:input_type -> api.DelUserProjectAssocByIDListRequest
-	52, // 81: api.userCURD.GetUserProjectAssocByUserProj:input_type -> api.GetUserProjectAssocByUserProjRequest
-	61, // 82: api.userCURD.AddUserRole:input_type -> api.AddUserRoleRequest
-	63, // 83: api.userCURD.GetUserRoleList:input_type -> api.GetUserRoleListRequest
-	65, // 84: api.userCURD.UpdateUserRole:input_type -> api.UpdateUserRoleRequest
-	67, // 85: api.userCURD.DelUserRoleByIDList:input_type -> api.DelUserRoleByIDListRequest
-	69, // 86: api.userCURD.AddUserRoleAssoc:input_type -> api.AddUserRoleAssocRequest
-	73, // 87: api.userCURD.GetUserRoleAssocList:input_type -> api.GetUserRoleAssocListRequest
-	75, // 88: api.userCURD.UpdateUserRoleAssoc:input_type -> api.UpdateUserRoleAssocRequest
-	77, // 89: api.userCURD.DelUserRoleAssocByIDList:input_type -> api.DelUserRoleAssocByIDListRequest
-	70, // 90: api.userCURD.GetUserRoleAssocByUserRole:input_type -> api.GetUserRoleAssocByUserRoleRequest
-	79, // 91: api.userCURD.AddUserRolePermissionAssoc:input_type -> api.AddUserRolePermissionAssocRequest
-	81, // 92: api.userCURD.GetUserRolePermissionAssocList:input_type -> api.GetUserRolePermissionAssocListRequest
-	83, // 93: api.userCURD.UpdateUserRolePermissionAssoc:input_type -> api.UpdateUserRolePermissionAssocRequest
-	85, // 94: api.userCURD.DelUserRolePermissionAssocByIDList:input_type -> api.DelUserRolePermissionAssocByIDListRequest
-	4,  // 95: api.userCURD.AddProject:output_type -> api.AddProjectResponse
-	6,  // 96: api.userCURD.GetProjectList:output_type -> api.GetProjectListResponse
-	8,  // 97: api.userCURD.UpdateProject:output_type -> api.UpdateProjectResponse
-	86, // 98: api.userCURD.DelProjectByIDList:output_type -> api.Empty
-	3,  // 99: api.userCURD.GetProjectByProjName:output_type -> api.GetProjectByProjNameResponse
-	14, // 100: api.userCURD.AddUser:output_type -> api.AddUserResponse
-	16, // 101: api.userCURD.GetUserList:output_type -> api.GetUserListResponse
-	18, // 102: api.userCURD.UpdateUser:output_type -> api.UpdateUserResponse
-	86, // 103: api.userCURD.DelUserByIDList:output_type -> api.Empty
-	13, // 104: api.userCURD.GetUserByUserName:output_type -> api.GetUserByUserNameResponse
-	24, // 105: api.userCURD.AddUserDept:output_type -> api.AddUserDeptResponse
-	26, // 106: api.userCURD.GetUserDeptList:output_type -> api.GetUserDeptListResponse
-	28, // 107: api.userCURD.UpdateUserDept:output_type -> api.UpdateUserDeptResponse
-	86, // 108: api.userCURD.DelUserDeptByIDList:output_type -> api.Empty
-	23, // 109: api.userCURD.GetUserDeptByDeptPath:output_type -> api.GetUserDeptByDeptPathResponse
-	34, // 110: api.userCURD.AddUserDeptAssoc:output_type -> api.AddUserDeptAssocResponse
-	36, // 111: api.userCURD.GetUserDeptAssocList:output_type -> api.GetUserDeptAssocListResponse
-	38, // 112: api.userCURD.UpdateUserDeptAssoc:output_type -> api.UpdateUserDeptAssocResponse
-	86, // 113: api.userCURD.DelUserDeptAssocByIDList:output_type -> api.Empty
-	33, // 114: api.userCURD.GetUserDeptAssocByUserDept:output_type -> api.GetUserDeptAssocByUserDeptResponse
-	44, // 115: api.userCURD.AddUserJob:output_type -> api.AddUserJobResponse
-	46, // 116: api.userCURD.GetUserJobList:output_type -> api.GetUserJobListResponse
-	48, // 117: api.userCURD.UpdateUserJob:output_type -> api.UpdateUserJobResponse
-	86, // 118: api.userCURD.DelUserJobByIDList:output_type -> api.Empty
-	43, // 119: api.userCURD.GetUserJobByJobName:output_type -> api.GetUserJobByJobNameResponse
-	54, // 120: api.userCURD.AddUserProjectAssoc:output_type -> api.AddUserProjectAssocResponse
-	56, // 121: api.userCURD.GetUserProjectAssocList:output_type -> api.GetUserProjectAssocListResponse
-	58, // 122: api.userCURD.UpdateUserProjectAssoc:output_type -> api.UpdateUserProjectAssocResponse
-	86, // 123: api.userCURD.DelUserProjectAssocByIDList:output_type -> api.Empty
-	53, // 124: api.userCURD.GetUserProjectAssocByUserProj:output_type -> api.GetUserProjectAssocByUserProjResponse
-	62, // 125: api.userCURD.AddUserRole:output_type -> api.AddUserRoleResponse
-	64, // 126: api.userCURD.GetUserRoleList:output_type -> api.GetUserRoleListResponse
-	66, // 127: api.userCURD.UpdateUserRole:output_type -> api.UpdateUserRoleResponse
-	86, // 128: api.userCURD.DelUserRoleByIDList:output_type -> api.Empty
-	72, // 129: api.userCURD.AddUserRoleAssoc:output_type -> api.AddUserRoleAssocResponse
-	74, // 130: api.userCURD.GetUserRoleAssocList:output_type -> api.GetUserRoleAssocListResponse
-	76, // 131: api.userCURD.UpdateUserRoleAssoc:output_type -> api.UpdateUserRoleAssocResponse
-	86, // 132: api.userCURD.DelUserRoleAssocByIDList:output_type -> api.Empty
-	71, // 133: api.userCURD.GetUserRoleAssocByUserRole:output_type -> api.GetUserRoleAssocByUserRoleResponse
-	80, // 134: api.userCURD.AddUserRolePermissionAssoc:output_type -> api.AddUserRolePermissionAssocResponse
-	82, // 135: api.userCURD.GetUserRolePermissionAssocList:output_type -> api.GetUserRolePermissionAssocListResponse
-	84, // 136: api.userCURD.UpdateUserRolePermissionAssoc:output_type -> api.UpdateUserRolePermissionAssocResponse
-	86, // 137: api.userCURD.DelUserRolePermissionAssocByIDList:output_type -> api.Empty
-	95, // [95:138] is the sub-list for method output_type
-	52, // [52:95] is the sub-list for method input_type
-	52, // [52:52] is the sub-list for extension type_name
-	52, // [52:52] is the sub-list for extension extendee
-	0,  // [0:52] is the sub-list for field type_name
+	0,  // 1: api.AddProjectResponse.project:type_name -> api.ProjectInfo
+	0,  // 2: api.GetProjectListResponse.projectList:type_name -> api.ProjectInfo
+	0,  // 3: api.UpdateProjectRequest.project:type_name -> api.ProjectInfo
+	0,  // 4: api.UpdateProjectResponse.project:type_name -> api.ProjectInfo
+	8,  // 5: api.AddUserRequest.user:type_name -> api.UserInfo
+	8,  // 6: api.AddUserResponse.user:type_name -> api.UserInfo
+	8,  // 7: api.GetUserListResponse.userList:type_name -> api.UserInfo
+	8,  // 8: api.UpdateUserRequest.user:type_name -> api.UserInfo
+	8,  // 9: api.UpdateUserResponse.user:type_name -> api.UserInfo
+	16, // 10: api.AddUserDeptRequest.user_dept:type_name -> api.UserDeptInfo
+	16, // 11: api.AddUserDeptResponse.user_dept:type_name -> api.UserDeptInfo
+	16, // 12: api.GetUserDeptListResponse.userDeptList:type_name -> api.UserDeptInfo
+	16, // 13: api.UpdateUserDeptRequest.userDept:type_name -> api.UserDeptInfo
+	16, // 14: api.UpdateUserDeptResponse.userDept:type_name -> api.UserDeptInfo
+	24, // 15: api.AddUserDeptAssocRequest.user_dept_assoc:type_name -> api.UserDeptAssocInfo
+	24, // 16: api.AddUserDeptAssocResponse.user_dept_assoc:type_name -> api.UserDeptAssocInfo
+	24, // 17: api.GetUserDeptAssocListResponse.userDeptAssocList:type_name -> api.UserDeptAssocInfo
+	24, // 18: api.UpdateUserDeptAssocRequest.userDeptAssoc:type_name -> api.UserDeptAssocInfo
+	24, // 19: api.UpdateUserDeptAssocResponse.userDeptAssoc:type_name -> api.UserDeptAssocInfo
+	32, // 20: api.AddUserJobRequest.user_job:type_name -> api.UserJobInfo
+	32, // 21: api.AddUserJobResponse.user_job:type_name -> api.UserJobInfo
+	32, // 22: api.GetUserJobListResponse.userJobList:type_name -> api.UserJobInfo
+	32, // 23: api.UpdateUserJobRequest.userJob:type_name -> api.UserJobInfo
+	32, // 24: api.UpdateUserJobResponse.userJob:type_name -> api.UserJobInfo
+	40, // 25: api.AddUserProjectAssocRequest.user_project_assoc:type_name -> api.UserProjectAssocInfo
+	40, // 26: api.AddUserProjectAssocResponse.user_project_assoc:type_name -> api.UserProjectAssocInfo
+	40, // 27: api.GetUserProjectAssocListResponse.userProjectAssocList:type_name -> api.UserProjectAssocInfo
+	40, // 28: api.UpdateUserProjectAssocRequest.userProjectAssoc:type_name -> api.UserProjectAssocInfo
+	40, // 29: api.UpdateUserProjectAssocResponse.userProjectAssoc:type_name -> api.UserProjectAssocInfo
+	48, // 30: api.AddUserRoleRequest.user_role:type_name -> api.UserRoleInfo
+	48, // 31: api.AddUserRoleResponse.user_role:type_name -> api.UserRoleInfo
+	48, // 32: api.GetUserRoleListResponse.userRoleList:type_name -> api.UserRoleInfo
+	48, // 33: api.UpdateUserRoleRequest.userRole:type_name -> api.UserRoleInfo
+	48, // 34: api.UpdateUserRoleResponse.userRole:type_name -> api.UserRoleInfo
+	56, // 35: api.AddUserRoleAssocRequest.user_role_assoc:type_name -> api.UserRoleAssocInfo
+	56, // 36: api.AddUserRoleAssocResponse.user_role_assoc:type_name -> api.UserRoleAssocInfo
+	56, // 37: api.GetUserRoleAssocListResponse.userRoleAssocList:type_name -> api.UserRoleAssocInfo
+	56, // 38: api.UpdateUserRoleAssocRequest.userRoleAssoc:type_name -> api.UserRoleAssocInfo
+	56, // 39: api.UpdateUserRoleAssocResponse.userRoleAssoc:type_name -> api.UserRoleAssocInfo
+	64, // 40: api.AddUserRolePermissionAssocRequest.user_role_permission_assoc:type_name -> api.UserRolePermissionAssocInfo
+	64, // 41: api.AddUserRolePermissionAssocResponse.user_role_permission_assoc:type_name -> api.UserRolePermissionAssocInfo
+	64, // 42: api.GetUserRolePermissionAssocListResponse.userRolePermissionAssocList:type_name -> api.UserRolePermissionAssocInfo
+	64, // 43: api.UpdateUserRolePermissionAssocRequest.userRolePermissionAssoc:type_name -> api.UserRolePermissionAssocInfo
+	64, // 44: api.UpdateUserRolePermissionAssocResponse.userRolePermissionAssoc:type_name -> api.UserRolePermissionAssocInfo
+	1,  // 45: api.userCURD.AddProject:input_type -> api.AddProjectRequest
+	3,  // 46: api.userCURD.GetProjectList:input_type -> api.GetProjectListRequest
+	5,  // 47: api.userCURD.UpdateProject:input_type -> api.UpdateProjectRequest
+	7,  // 48: api.userCURD.DelProjectByIDList:input_type -> api.DelProjectByIDListRequest
+	9,  // 49: api.userCURD.AddUser:input_type -> api.AddUserRequest
+	11, // 50: api.userCURD.GetUserList:input_type -> api.GetUserListRequest
+	13, // 51: api.userCURD.UpdateUser:input_type -> api.UpdateUserRequest
+	15, // 52: api.userCURD.DelUserByIDList:input_type -> api.DelUserByIDListRequest
+	17, // 53: api.userCURD.AddUserDept:input_type -> api.AddUserDeptRequest
+	19, // 54: api.userCURD.GetUserDeptList:input_type -> api.GetUserDeptListRequest
+	21, // 55: api.userCURD.UpdateUserDept:input_type -> api.UpdateUserDeptRequest
+	23, // 56: api.userCURD.DelUserDeptByIDList:input_type -> api.DelUserDeptByIDListRequest
+	25, // 57: api.userCURD.AddUserDeptAssoc:input_type -> api.AddUserDeptAssocRequest
+	27, // 58: api.userCURD.GetUserDeptAssocList:input_type -> api.GetUserDeptAssocListRequest
+	29, // 59: api.userCURD.UpdateUserDeptAssoc:input_type -> api.UpdateUserDeptAssocRequest
+	31, // 60: api.userCURD.DelUserDeptAssocByIDList:input_type -> api.DelUserDeptAssocByIDListRequest
+	33, // 61: api.userCURD.AddUserJob:input_type -> api.AddUserJobRequest
+	35, // 62: api.userCURD.GetUserJobList:input_type -> api.GetUserJobListRequest
+	37, // 63: api.userCURD.UpdateUserJob:input_type -> api.UpdateUserJobRequest
+	39, // 64: api.userCURD.DelUserJobByIDList:input_type -> api.DelUserJobByIDListRequest
+	41, // 65: api.userCURD.AddUserProjectAssoc:input_type -> api.AddUserProjectAssocRequest
+	43, // 66: api.userCURD.GetUserProjectAssocList:input_type -> api.GetUserProjectAssocListRequest
+	45, // 67: api.userCURD.UpdateUserProjectAssoc:input_type -> api.UpdateUserProjectAssocRequest
+	47, // 68: api.userCURD.DelUserProjectAssocByIDList:input_type -> api.DelUserProjectAssocByIDListRequest
+	49, // 69: api.userCURD.AddUserRole:input_type -> api.AddUserRoleRequest
+	51, // 70: api.userCURD.GetUserRoleList:input_type -> api.GetUserRoleListRequest
+	53, // 71: api.userCURD.UpdateUserRole:input_type -> api.UpdateUserRoleRequest
+	55, // 72: api.userCURD.DelUserRoleByIDList:input_type -> api.DelUserRoleByIDListRequest
+	57, // 73: api.userCURD.AddUserRoleAssoc:input_type -> api.AddUserRoleAssocRequest
+	59, // 74: api.userCURD.GetUserRoleAssocList:input_type -> api.GetUserRoleAssocListRequest
+	61, // 75: api.userCURD.UpdateUserRoleAssoc:input_type -> api.UpdateUserRoleAssocRequest
+	63, // 76: api.userCURD.DelUserRoleAssocByIDList:input_type -> api.DelUserRoleAssocByIDListRequest
+	65, // 77: api.userCURD.AddUserRolePermissionAssoc:input_type -> api.AddUserRolePermissionAssocRequest
+	67, // 78: api.userCURD.GetUserRolePermissionAssocList:input_type -> api.GetUserRolePermissionAssocListRequest
+	69, // 79: api.userCURD.UpdateUserRolePermissionAssoc:input_type -> api.UpdateUserRolePermissionAssocRequest
+	71, // 80: api.userCURD.DelUserRolePermissionAssocByIDList:input_type -> api.DelUserRolePermissionAssocByIDListRequest
+	2,  // 81: api.userCURD.AddProject:output_type -> api.AddProjectResponse
+	4,  // 82: api.userCURD.GetProjectList:output_type -> api.GetProjectListResponse
+	6,  // 83: api.userCURD.UpdateProject:output_type -> api.UpdateProjectResponse
+	72, // 84: api.userCURD.DelProjectByIDList:output_type -> api.Empty
+	10, // 85: api.userCURD.AddUser:output_type -> api.AddUserResponse
+	12, // 86: api.userCURD.GetUserList:output_type -> api.GetUserListResponse
+	14, // 87: api.userCURD.UpdateUser:output_type -> api.UpdateUserResponse
+	72, // 88: api.userCURD.DelUserByIDList:output_type -> api.Empty
+	18, // 89: api.userCURD.AddUserDept:output_type -> api.AddUserDeptResponse
+	20, // 90: api.userCURD.GetUserDeptList:output_type -> api.GetUserDeptListResponse
+	22, // 91: api.userCURD.UpdateUserDept:output_type -> api.UpdateUserDeptResponse
+	72, // 92: api.userCURD.DelUserDeptByIDList:output_type -> api.Empty
+	26, // 93: api.userCURD.AddUserDeptAssoc:output_type -> api.AddUserDeptAssocResponse
+	28, // 94: api.userCURD.GetUserDeptAssocList:output_type -> api.GetUserDeptAssocListResponse
+	30, // 95: api.userCURD.UpdateUserDeptAssoc:output_type -> api.UpdateUserDeptAssocResponse
+	72, // 96: api.userCURD.DelUserDeptAssocByIDList:output_type -> api.Empty
+	34, // 97: api.userCURD.AddUserJob:output_type -> api.AddUserJobResponse
+	36, // 98: api.userCURD.GetUserJobList:output_type -> api.GetUserJobListResponse
+	38, // 99: api.userCURD.UpdateUserJob:output_type -> api.UpdateUserJobResponse
+	72, // 100: api.userCURD.DelUserJobByIDList:output_type -> api.Empty
+	42, // 101: api.userCURD.AddUserProjectAssoc:output_type -> api.AddUserProjectAssocResponse
+	44, // 102: api.userCURD.GetUserProjectAssocList:output_type -> api.GetUserProjectAssocListResponse
+	46, // 103: api.userCURD.UpdateUserProjectAssoc:output_type -> api.UpdateUserProjectAssocResponse
+	72, // 104: api.userCURD.DelUserProjectAssocByIDList:output_type -> api.Empty
+	50, // 105: api.userCURD.AddUserRole:output_type -> api.AddUserRoleResponse
+	52, // 106: api.userCURD.GetUserRoleList:output_type -> api.GetUserRoleListResponse
+	54, // 107: api.userCURD.UpdateUserRole:output_type -> api.UpdateUserRoleResponse
+	72, // 108: api.userCURD.DelUserRoleByIDList:output_type -> api.Empty
+	58, // 109: api.userCURD.AddUserRoleAssoc:output_type -> api.AddUserRoleAssocResponse
+	60, // 110: api.userCURD.GetUserRoleAssocList:output_type -> api.GetUserRoleAssocListResponse
+	62, // 111: api.userCURD.UpdateUserRoleAssoc:output_type -> api.UpdateUserRoleAssocResponse
+	72, // 112: api.userCURD.DelUserRoleAssocByIDList:output_type -> api.Empty
+	66, // 113: api.userCURD.AddUserRolePermissionAssoc:output_type -> api.AddUserRolePermissionAssocResponse
+	68, // 114: api.userCURD.GetUserRolePermissionAssocList:output_type -> api.GetUserRolePermissionAssocListResponse
+	70, // 115: api.userCURD.UpdateUserRolePermissionAssoc:output_type -> api.UpdateUserRolePermissionAssocResponse
+	72, // 116: api.userCURD.DelUserRolePermissionAssocByIDList:output_type -> api.Empty
+	81, // [81:117] is the sub-list for method output_type
+	45, // [45:81] is the sub-list for method input_type
+	45, // [45:45] is the sub-list for extension type_name
+	45, // [45:45] is the sub-list for extension extendee
+	0,  // [0:45] is the sub-list for field type_name
 }
 
 func init() { file_z_userService_gen_proto_init() }
@@ -4866,7 +4147,7 @@ func file_z_userService_gen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_z_userService_gen_proto_rawDesc), len(file_z_userService_gen_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   86,
+			NumMessages:   72,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

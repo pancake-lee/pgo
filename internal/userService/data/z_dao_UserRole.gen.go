@@ -39,6 +39,21 @@ func (*userRoleDAO) GetAll(ctx context.Context,
 	return userRoleList, nil
 }
 
+func (*userRoleDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserRoleDO, error) {
+	q := db.GetPG().UserRole
+	do := q.WithContext(ctx)
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
 
 func (*userRoleDAO) UpdateByID(ctx context.Context, do *UserRoleDO) error {
 	if do.ID == 0 {

@@ -14,7 +14,7 @@ paths:
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+                  description: MARK REPLACE IDX COL START 替换内容，索引字段
                   schema:
                     type: array
                     items:
@@ -69,7 +69,7 @@ paths:
             parameters:
                 - name: idx1List
                   in: query
-                  description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+                  description: MARK REPLACE PRIMARY IDX START
                   schema:
                     type: array
                     items:
@@ -106,7 +106,7 @@ paths:
                 - SchoolCURD
             operationId: SchoolCURD_GetCourseSwapRequestList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -145,7 +145,7 @@ paths:
                 - SchoolCURD
             operationId: SchoolCURD_DelCourseSwapRequestByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -182,7 +182,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetProjectList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -221,7 +221,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelProjectByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -252,32 +252,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateProjectResponse'
-    /project/by-proj-name:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetProjectByProjName
-            parameters:
-                - name: ProjNameList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetProjectByProjNameResponse'
     /task:
         get:
             tags:
                 - TaskCURD
             operationId: TaskCURD_GetTaskList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -316,7 +297,7 @@ paths:
                 - TaskCURD
             operationId: TaskCURD_DelTaskByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -353,7 +334,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -392,7 +373,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -430,7 +411,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserDeptList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -469,7 +450,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserDeptByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -506,7 +487,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserDeptAssocList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -580,59 +561,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserDeptAssocResponse'
-    /user-dept-assoc/by-user-dept:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserDeptAssocByUserDept
-            parameters:
-                - name: UserIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-                - name: DeptIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserDeptAssocByUserDeptResponse'
-    /user-dept/by-dept-path:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserDeptByDeptPath
-            parameters:
-                - name: DeptPathList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserDeptByDeptPathResponse'
     /user-job:
         get:
             tags:
                 - UserCURD
             operationId: UserCURD_GetUserJobList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -671,7 +606,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserJobByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -702,32 +637,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserJobResponse'
-    /user-job/by-job-name:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserJobByJobName
-            parameters:
-                - name: JobNameList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserJobByJobNameResponse'
     /user-project-assoc:
         get:
             tags:
                 - UserCURD
             operationId: UserCURD_GetUserProjectAssocList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -766,7 +682,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserProjectAssocByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -797,40 +713,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserProjectAssocResponse'
-    /user-project-assoc/by-user-proj:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserProjectAssocByUserProj
-            parameters:
-                - name: UserIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-                - name: ProjIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserProjectAssocByUserProjResponse'
     /user-role:
         get:
             tags:
                 - UserCURD
             operationId: UserCURD_GetUserRoleList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -869,7 +758,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserRoleByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -906,7 +795,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserRoleAssocList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -945,7 +834,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserRoleAssocByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -976,40 +865,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserRoleAssocResponse'
-    /user-role-assoc/by-user-role:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserRoleAssocByUserRole
-            parameters:
-                - name: UserIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-                - name: RoleIDList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserRoleAssocByUserRoleResponse'
     /user-role-permission-assoc:
         get:
             tags:
                 - UserCURD
             operationId: UserCURD_GetUserRolePermissionAssocList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -1048,7 +910,7 @@ paths:
                 - UserCURD
             operationId: UserCURD_DelUserRolePermissionAssocByIDList
             parameters:
-                - name: iDList
+                - name: IDList
                   in: query
                   schema:
                     type: array
@@ -1079,25 +941,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateUserRolePermissionAssocResponse'
-    /user/by-user-name:
-        get:
-            tags:
-                - UserCURD
-            operationId: UserCURD_GetUserByUserName
-            parameters:
-                - name: UserNameList
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetUserByUserNameResponse'
     /user/permissions:
         get:
             tags:
@@ -1280,7 +1123,7 @@ components:
         api.CourseSwapRequestInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 srcTeacher:
@@ -1338,13 +1181,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.CourseSwapRequestInfo'
-        api.GetProjectByProjNameResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.ProjectInfo'
         api.GetProjectListResponse:
             type: object
             properties:
@@ -1359,20 +1195,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.TaskInfo'
-        api.GetUserByUserNameResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserInfo'
-        api.GetUserDeptAssocByUserDeptResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserDeptAssocInfo'
         api.GetUserDeptAssocListResponse:
             type: object
             properties:
@@ -1380,13 +1202,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptAssocInfo'
-        api.GetUserDeptByDeptPathResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserDeptInfo'
         api.GetUserDeptListResponse:
             type: object
             properties:
@@ -1394,13 +1209,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserDeptInfo'
-        api.GetUserJobByJobNameResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserJobInfo'
         api.GetUserJobListResponse:
             type: object
             properties:
@@ -1422,13 +1230,6 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-        api.GetUserProjectAssocByUserProjResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserProjectAssocInfo'
         api.GetUserProjectAssocListResponse:
             type: object
             properties:
@@ -1436,13 +1237,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.UserProjectAssocInfo'
-        api.GetUserRoleAssocByUserRoleResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.UserRoleAssocInfo'
         api.GetUserRoleAssocListResponse:
             type: object
             properties:
@@ -1479,7 +1273,7 @@ components:
         api.ProjectInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1500,7 +1294,7 @@ components:
         api.TaskInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 parentID:
@@ -1535,6 +1329,7 @@ components:
             properties:
                 abandonCode:
                     $ref: '#/components/schemas/api.AbandonCodeInfo'
+            description: MARK REMOVE IF NO PRIMARY KEY START
         api.UpdateAbandonCodeResponse:
             type: object
             properties:
@@ -1653,7 +1448,7 @@ components:
         api.UserDeptAssocInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1681,7 +1476,7 @@ components:
         api.UserDeptInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1704,7 +1499,7 @@ components:
         api.UserInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1727,7 +1522,7 @@ components:
         api.UserJobInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1748,7 +1543,7 @@ components:
         api.UserProjectAssocInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1768,7 +1563,7 @@ components:
         api.UserRoleAssocInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1788,7 +1583,7 @@ components:
         api.UserRoleInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:
@@ -1815,7 +1610,7 @@ components:
         api.UserRolePermissionAssocInfo:
             type: object
             properties:
-                iD:
+                ID:
                     type: integer
                     format: int32
                 createTime:

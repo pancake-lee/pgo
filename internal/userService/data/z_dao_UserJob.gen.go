@@ -39,15 +39,14 @@ func (*userJobDAO) GetAll(ctx context.Context,
 	return userJobList, nil
 }
 
-
-func (*userJobDAO) GetByJobName(ctx context.Context, jobNameList []string) ([]*UserJobDO, error) {
-	if len(jobNameList) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
+func (*userJobDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserJobDO, error) {
 	q := db.GetPG().UserJob
 	do := q.WithContext(ctx)
-	if len(jobNameList) > 0 {
-		do = do.Where(q.JobName.In(jobNameList...))
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
 	}
 	list, err := do.Find()
 	if err != nil {

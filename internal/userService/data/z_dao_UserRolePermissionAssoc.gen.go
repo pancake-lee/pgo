@@ -39,6 +39,21 @@ func (*userRolePermissionAssocDAO) GetAll(ctx context.Context,
 	return userRolePermissionAssocList, nil
 }
 
+func (*userRolePermissionAssocDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserRolePermissionAssocDO, error) {
+	q := db.GetPG().UserRolePermissionAssoc
+	do := q.WithContext(ctx)
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
 
 func (*userRolePermissionAssocDAO) UpdateByID(ctx context.Context, do *UserRolePermissionAssocDO) error {
 	if do.ID == 0 {

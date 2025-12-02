@@ -39,18 +39,14 @@ func (*userProjectAssocDAO) GetAll(ctx context.Context,
 	return userProjectAssocList, nil
 }
 
-
-func (*userProjectAssocDAO) GetByUserProj(ctx context.Context, userIDList []int32, projIDList []int32) ([]*UserProjectAssocDO, error) {
-	if len(userIDList) == 0 && len(projIDList) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
+func (*userProjectAssocDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*UserProjectAssocDO, error) {
 	q := db.GetPG().UserProjectAssoc
 	do := q.WithContext(ctx)
-	if len(userIDList) > 0 {
-		do = do.Where(q.UserID.In(userIDList...))
-	}
-	if len(projIDList) > 0 {
-		do = do.Where(q.ProjID.In(projIDList...))
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
 	}
 	list, err := do.Find()
 	if err != nil {

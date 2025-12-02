@@ -82,12 +82,11 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 	if len(req.IDList) != 0 {
 		plogger.Debugf("GetCourseSwapRequestList: %v", req.IDList)
 
-		dataMap, err := data.CourseSwapRequestDAO.GetByIDList(ctx, req.IDList)
+		dataList, err = data.CourseSwapRequestDAO.GetByIndex(ctx,
+            req.IDList,
+		)
 		if err != nil {
 			return nil, plogger.LogErr(err)
-		}
-		for _, d := range dataMap {
-			dataList = append(dataList, d)
 		}
 	} else {
 
@@ -145,5 +144,4 @@ func (s *SchoolCURDServer) DelCourseSwapRequestByIDList(
 	plogger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
 	return nil, nil
 }
-
 

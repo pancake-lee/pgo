@@ -39,6 +39,21 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 	return courseSwapRequestList, nil
 }
 
+func (*courseSwapRequestDAO) GetByIndex(ctx context.Context,
+IDList []int32,
+) ([]*CourseSwapRequestDO, error) {
+	q := db.GetPG().CourseSwapRequest
+	do := q.WithContext(ctx)
+
+	if len(IDList) > 0 {
+		do = do.Where(q.ID.In(IDList...))
+	}
+	list, err := do.Find()
+	if err != nil {
+		return nil, plogger.LogErr(err)
+	}
+	return list, nil
+}
 
 func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapRequestDO) error {
 	if do.ID == 0 {

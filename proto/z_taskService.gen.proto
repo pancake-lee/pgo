@@ -38,7 +38,7 @@ service taskCURD { // 该命名应该全文唯一
 // --------------------------------------------------
 // tbl : task
 message TaskInfo {
-    int32 iD = 1;
+    int32 ID = 1;
     int32 parentID = 2;
     int32 prevID = 3;
     string task = 4;
@@ -55,18 +55,16 @@ message AddTaskRequest {
     TaskInfo task = 1;
 }
 
-
 message AddTaskResponse {
     TaskInfo task = 1;
 }
 
 message GetTaskListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 message GetTaskListResponse {
     repeated TaskInfo taskList = 1;
 }
-
 
 message UpdateTaskRequest {
     TaskInfo task = 1;
@@ -77,6 +75,6 @@ message UpdateTaskResponse {
 }
 
 message DelTaskByIDListRequest {
-    repeated int32 iDList = 1;
+    repeated int32 IDList = 1;
 }
 
