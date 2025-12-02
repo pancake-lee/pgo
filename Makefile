@@ -123,6 +123,7 @@ build:
 .PHONY: precommit
 # 提交生成的代码[*.pb.go, ./client/swagger/*, *.gen.go, *.gen.proto]
 precommit:
+	git add "openapi.yaml"
 	git add "*.pb.go"
 	git add "./client/swagger/*"
 	git add "*.gen.go"

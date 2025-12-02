@@ -44,12 +44,9 @@ func (*abandonCodeDAO) GetByIndex(ctx context.Context,
 	idx3List []int32,
 	// MARK REPLACE IDX COL END
 ) ([]*AbandonCodeDO, error) {
-	if len(idx1List) == 0 {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
 	q := db.GetPG().AbandonCode
 	do := q.WithContext(ctx)
-	// MARK REPLACE IDX COL WHERE START
+	// MARK REPLACE IDX WHERE START
 	if len(idx1List) > 0 {
 		do = do.Where(q.Idx1.In(idx1List...))
 	}
@@ -59,7 +56,7 @@ func (*abandonCodeDAO) GetByIndex(ctx context.Context,
 	if len(idx3List) > 0 {
 		do = do.Where(q.Idx3.In(idx3List...))
 	}
-	// MARK REPLACE IDX COL WHERE END
+	// MARK REPLACE IDX WHERE END
 	list, err := do.Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
