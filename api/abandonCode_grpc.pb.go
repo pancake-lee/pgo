@@ -23,7 +23,6 @@ const (
 	AbandonCodeCURD_GetAbandonCodeList_FullMethodName       = "/api.abandonCodeCURD/GetAbandonCodeList"
 	AbandonCodeCURD_UpdateAbandonCode_FullMethodName        = "/api.abandonCodeCURD/UpdateAbandonCode"
 	AbandonCodeCURD_DelAbandonCodeByIdx1List_FullMethodName = "/api.abandonCodeCURD/DelAbandonCodeByIdx1List"
-	AbandonCodeCURD_GetAbandonCodeByIdx23_FullMethodName    = "/api.abandonCodeCURD/GetAbandonCodeByIdx23"
 )
 
 // AbandonCodeCURDClient is the client API for AbandonCodeCURD service.
@@ -40,9 +39,6 @@ type AbandonCodeCURDClient interface {
 	// MARK REMOVE IF NO PRIMARY KEY START
 	UpdateAbandonCode(ctx context.Context, in *UpdateAbandonCodeRequest, opts ...grpc.CallOption) (*UpdateAbandonCodeResponse, error)
 	DelAbandonCodeByIdx1List(ctx context.Context, in *DelAbandonCodeByIdx1ListRequest, opts ...grpc.CallOption) (*Empty, error)
-	// MARK REMOVE IF NO PRIMARY KEY END
-	// MARK REPEAT INDEX API START
-	GetAbandonCodeByIdx23(ctx context.Context, in *GetAbandonCodeByIdx23Request, opts ...grpc.CallOption) (*GetAbandonCodeByIdx23Response, error)
 }
 
 type abandonCodeCURDClient struct {
@@ -93,16 +89,6 @@ func (c *abandonCodeCURDClient) DelAbandonCodeByIdx1List(ctx context.Context, in
 	return out, nil
 }
 
-func (c *abandonCodeCURDClient) GetAbandonCodeByIdx23(ctx context.Context, in *GetAbandonCodeByIdx23Request, opts ...grpc.CallOption) (*GetAbandonCodeByIdx23Response, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAbandonCodeByIdx23Response)
-	err := c.cc.Invoke(ctx, AbandonCodeCURD_GetAbandonCodeByIdx23_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AbandonCodeCURDServer is the server API for AbandonCodeCURD service.
 // All implementations must embed UnimplementedAbandonCodeCURDServer
 // for forward compatibility.
@@ -117,9 +103,6 @@ type AbandonCodeCURDServer interface {
 	// MARK REMOVE IF NO PRIMARY KEY START
 	UpdateAbandonCode(context.Context, *UpdateAbandonCodeRequest) (*UpdateAbandonCodeResponse, error)
 	DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error)
-	// MARK REMOVE IF NO PRIMARY KEY END
-	// MARK REPEAT INDEX API START
-	GetAbandonCodeByIdx23(context.Context, *GetAbandonCodeByIdx23Request) (*GetAbandonCodeByIdx23Response, error)
 	mustEmbedUnimplementedAbandonCodeCURDServer()
 }
 
@@ -141,9 +124,6 @@ func (UnimplementedAbandonCodeCURDServer) UpdateAbandonCode(context.Context, *Up
 }
 func (UnimplementedAbandonCodeCURDServer) DelAbandonCodeByIdx1List(context.Context, *DelAbandonCodeByIdx1ListRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelAbandonCodeByIdx1List not implemented")
-}
-func (UnimplementedAbandonCodeCURDServer) GetAbandonCodeByIdx23(context.Context, *GetAbandonCodeByIdx23Request) (*GetAbandonCodeByIdx23Response, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAbandonCodeByIdx23 not implemented")
 }
 func (UnimplementedAbandonCodeCURDServer) mustEmbedUnimplementedAbandonCodeCURDServer() {}
 func (UnimplementedAbandonCodeCURDServer) testEmbeddedByValue()                         {}
@@ -238,24 +218,6 @@ func _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AbandonCodeCURD_GetAbandonCodeByIdx23_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAbandonCodeByIdx23Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AbandonCodeCURDServer).GetAbandonCodeByIdx23(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AbandonCodeCURD_GetAbandonCodeByIdx23_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AbandonCodeCURDServer).GetAbandonCodeByIdx23(ctx, req.(*GetAbandonCodeByIdx23Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // AbandonCodeCURD_ServiceDesc is the grpc.ServiceDesc for AbandonCodeCURD service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,10 +240,6 @@ var AbandonCodeCURD_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelAbandonCodeByIdx1List",
 			Handler:    _AbandonCodeCURD_DelAbandonCodeByIdx1List_Handler,
-		},
-		{
-			MethodName: "GetAbandonCodeByIdx23",
-			Handler:    _AbandonCodeCURD_GetAbandonCodeByIdx23_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

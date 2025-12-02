@@ -6,7 +6,7 @@ option go_package = "github.com/pancake-lee/pgo/api;api";
 
 // --------------------------------------------------
 service abandonCodeCURD { // 该命名应该全文唯一
-// MARK REPEAT API START 一个表的接口定义
+    // MARK REPEAT API START 一个表的接口定义
     // --------------------------------------------------
     // tbl : abandon_code
     rpc AddAbandonCode (AddAbandonCodeRequest) returns (AddAbandonCodeResponse) {
@@ -33,14 +33,7 @@ service abandonCodeCURD { // 该命名应该全文唯一
         };
     }
     // MARK REMOVE IF NO PRIMARY KEY END
-    // MARK REPEAT INDEX API START
-    rpc GetAbandonCodeByIdx23 (GetAbandonCodeByIdx23Request) returns (GetAbandonCodeByIdx23Response) {
-        option (google.api.http) = {
-            get: "/abandon-code/by-idx23"
-        };
-    }
-    // MARK REPEAT INDEX API END
-// MARK REPEAT API END
+    // MARK REPEAT API END
 }
 
 // MARK REPEAT MSG START 一个表的数据定义
@@ -58,31 +51,22 @@ message AddAbandonCodeRequest {
     AbandonCodeInfo abandon_code = 1;
 }
 
-// MARK REPEAT INDEX MSG START
-message GetAbandonCodeByIdx23Request {
-    repeated int32 idx2_list = 1;
-    repeated int32 idx3_list = 2;
-}
-message GetAbandonCodeByIdx23Response {
-    repeated AbandonCodeInfo data = 1;
-}
-// MARK REPEAT INDEX MSG END
-
 message AddAbandonCodeResponse {
     AbandonCodeInfo abandon_code = 1;
 }
 
 message GetAbandonCodeListRequest {
-    // MARK REPLACE REQUEST IDX START 替换内容，索引字段
+    // MARK REPLACE IDX COL START 替换内容，索引字段
     repeated int32 idx1List = 1;
-    // MARK REPLACE REQUEST IDX END
+    repeated int32 idx2List = 2;
+    repeated int32 idx3List = 3;
+    // MARK REPLACE IDX COL END
 }
 message GetAbandonCodeListResponse {
     repeated AbandonCodeInfo abandonCodeList = 1;
 }
 
 // MARK REMOVE IF NO PRIMARY KEY START
-
 message UpdateAbandonCodeRequest {
     AbandonCodeInfo abandonCode = 1;
 }
@@ -92,9 +76,9 @@ message UpdateAbandonCodeResponse {
 }
 
 message DelAbandonCodeByIdx1ListRequest {
-    // MARK REPLACE REQUEST IDX START 替换内容，索引字段
+    // MARK REPLACE PRIMARY IDX START
     repeated int32 idx1List = 1;
-    // MARK REPLACE REQUEST IDX END
+    // MARK REPLACE PRIMARY IDX END
 }
 // MARK REMOVE IF NO PRIMARY KEY END
 

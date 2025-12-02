@@ -37,27 +37,35 @@ func (*abandonCodeDAO) GetAll(ctx context.Context,
 	return abandonCodeList, nil
 }
 
-// MARK REPEAT INDEX DAO START
-func (*abandonCodeDAO) GetByIdx23(ctx context.Context, idx2List []int32, idx3List []int32) ([]*AbandonCodeDO, error) {
-	if len(idx2List) == 0 && len(idx3List) == 0 {
+func (*abandonCodeDAO) GetByIndex(ctx context.Context,
+	// MARK REPLACE IDX COL START
+	idx1List []int32,
+	idx2List []int32,
+	idx3List []int32,
+	// MARK REPLACE IDX COL END
+) ([]*AbandonCodeDO, error) {
+	if len(idx1List) == 0 {
 		return nil, plogger.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetPG().AbandonCode
 	do := q.WithContext(ctx)
+	// MARK REPLACE IDX COL WHERE START
+	if len(idx1List) > 0 {
+		do = do.Where(q.Idx1.In(idx1List...))
+	}
 	if len(idx2List) > 0 {
 		do = do.Where(q.Idx2.In(idx2List...))
 	}
 	if len(idx3List) > 0 {
 		do = do.Where(q.Idx3.In(idx3List...))
 	}
+	// MARK REPLACE IDX COL WHERE END
 	list, err := do.Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
 	return list, nil
 }
-
-// MARK REPEAT INDEX DAO END
 
 // MARK REMOVE IF NO PRIMARY KEY START
 func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) error {

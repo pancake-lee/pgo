@@ -20,6 +20,20 @@ paths:
                     items:
                         type: integer
                         format: int32
+                - name: idx2List
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: idx3List
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
             responses:
                 "200":
                     description: OK
@@ -86,36 +100,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateAbandonCodeResponse'
-    /abandon-code/by-idx23:
-        get:
-            tags:
-                - AbandonCodeCURD
-            description: |-
-                MARK REMOVE IF NO PRIMARY KEY END
-                 MARK REPEAT INDEX API START
-            operationId: AbandonCodeCURD_GetAbandonCodeByIdx23
-            parameters:
-                - name: idx2List
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-                - name: idx3List
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.GetAbandonCodeByIdx23Response'
     /course-swap-request:
         get:
             tags:
@@ -1340,13 +1324,6 @@ components:
         api.Empty:
             type: object
             properties: {}
-        api.GetAbandonCodeByIdx23Response:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.AbandonCodeInfo'
         api.GetAbandonCodeListResponse:
             type: object
             properties:

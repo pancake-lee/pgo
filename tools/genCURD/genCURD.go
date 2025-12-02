@@ -25,9 +25,9 @@ type dbModel interface {
 
 // 处理复合键、多个索引的情况
 type IndexField struct {
-	IdxColName  string // 索引列名，model字段名
-	IdxColType  string // 索引列类型，model字段类型
-	IdxParmName string // 索引列名，读写值的参数名
+	IdxColName   string // 索引列名，model字段名
+	IdxColType   string // 索引列类型，model字段类型
+	IdxProtoName string // 索引列名，读写值的参数名
 }
 
 type IndexInfo struct {
@@ -45,10 +45,9 @@ type Table struct {
 	LowerCamelName string // 驼峰命名，首字母小写
 	UpperCamelName string // 驼峰命名，首字母大写
 
-	// IdxMap      map[string][]*IndexField // 用map是为了以后只要是唯一索引都可以生成代码
-	IdxColName  string // 索引列名，model字段名
-	IdxColType  string // 索引列类型，model字段类型
-	IdxParmName string // 索引列名，读写值的参数名
+	IdxColName   string // 索引列名，model字段名
+	IdxColType   string // 索引列类型，model字段类型
+	IdxProtoName string // 索引列名，读写值的参数名
 
 	IdxList []*IndexInfo // 存储所有唯一索引
 
@@ -61,7 +60,7 @@ func (t *Table) String() string {
 		"IdxColName[%v] IdxColType[%v] IdxParmName[%v]",
 		t.Model.TableName(), t.ServiceName,
 		t.HyphenName, t.LowerCamelName, t.UpperCamelName,
-		t.IdxColName, t.IdxColType, t.IdxParmName)
+		t.IdxColName, t.IdxColType, t.IdxProtoName)
 }
 
 var tblMap = make(map[string]*Table)
@@ -145,12 +144,12 @@ func main() {
 
 			plogger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
 			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
-				if tbl.IdxColName != "" {
+				if tbl.IdxColName != "" { //TODO
 					isMultiKey = true
 				}
 				tbl.IdxColName = field.Name
 				tbl.IdxColType = field.Type.String()
-				tbl.IdxParmName = putil.StrFirstToLower(putil.StrIdToLower(tbl.IdxColName))
+				tbl.IdxProtoName = putil.StrFirstToLower(tbl.IdxColName)
 			}
 		}
 
@@ -158,49 +157,44 @@ func main() {
 		indexes, err := pdb.GetGormDB().Migrator().GetIndexes(tbl.Model)
 		if err != nil {
 			plogger.Errorf("get indexes failed: %v", err)
-		} else {
-			for _, idx := range indexes {
-				pk, _ := idx.PrimaryKey()
-				unique, _ := idx.Unique()
-				plogger.Debugf("Index Name[%s] Primary[%v] Unique[%v]",
-					idx.Name(), pk, unique)
-
-				if unique && !pk {
-					var idxFields []*IndexField
-					for _, col := range idx.Columns() {
-						// 找到对应的 model 字段
-						for _, f := range tbl.FieldList {
-							// 简单的匹配逻辑，可能需要根据实际情况调整
-							// GORM tag 中通常包含 column:xxx
-							gormTag := f.Tag.Get("gorm")
-							colTag := "column:" + col
-							if strings.Contains(gormTag, colTag) ||
-								strings.Contains(gormTag, colTag+";") ||
-								f.Name == putil.StrToCamelCase(col) {
-
-								idxFields = append(idxFields, &IndexField{
-									IdxColName:  f.Name,
-									IdxColType:  f.Type.String(),
-									IdxParmName: putil.StrFirstToLower(putil.StrIdToLower(f.Name)),
-								})
-								break
-							}
-						}
+			return
+		}
+		for _, idx := range indexes {
+			pk, _ := idx.PrimaryKey()
+			unique, _ := idx.Unique()
+			plogger.Debugf("Index Name[%s] Primary[%v] Unique[%v]",
+				idx.Name(), pk, unique)
+			if !unique {
+				continue
+			}
+			var idxFields []*IndexField
+			for _, col := range idx.Columns() {
+				// 找到对应的 model 字段
+				for _, f := range tbl.FieldList {
+					if !strings.EqualFold(f.Name, col) {
+						continue
 					}
-					if len(idxFields) > 0 {
-						tbl.IdxList = append(tbl.IdxList, &IndexInfo{
-							Name:   idx.Name(),
-							Fields: idxFields,
-						})
-					}
+					idxFields = append(idxFields, &IndexField{
+						IdxColName:   f.Name, //ID
+						IdxColType:   f.Type.String(),
+						IdxProtoName: StrFirstToLowerButID(f.Name),
+					})
+					break
 				}
 			}
+			if len(idxFields) == 0 {
+				continue
+			}
+			tbl.IdxList = append(tbl.IdxList, &IndexInfo{
+				Name:   idx.Name(),
+				Fields: idxFields,
+			})
 		}
 
 		if isMultiKey { //TODO
 			tbl.IdxColName = ""
 			tbl.IdxColType = ""
-			tbl.IdxParmName = ""
+			tbl.IdxProtoName = ""
 		}
 		plogger.Debug("tbl info : ", tbl)
 	}
@@ -208,7 +202,7 @@ func main() {
 	tplTable := newTable(&model.AbandonCode{}, "abandonCode")
 	tplTable.IdxColName = "Idx1"
 	tplTable.IdxColType = "int32"
-	tplTable.IdxParmName = "idx1"
+	tplTable.IdxProtoName = "idx1"
 
 	genDaoCode(tblMap, tplTable)
 	genProto(tblMap, tplTable)
@@ -223,8 +217,15 @@ func main() {
 	genServiceCode(tblMap, tplTable)
 }
 
-func DO2DTO_FieldName(f string) string {
-	return putil.StrFirstToLower(putil.StrIdToLower(f))
+// gorm-gen 工具生成的字段采用ID命名
+// protoc   工具生成的字段采用Id命名
+// 使用起来依然太复杂，简单的代码替换难以分析是orm代码还是pb代码
+// 最后是在proto中也用ID命名，所以生成的代码就统一是ID，只要首字母小写时遇到ID开头就不转换即可
+func StrFirstToLowerButID(f string) string {
+	if strings.HasPrefix(f, "ID") {
+		return f
+	}
+	return putil.StrFirstToLower(f)
 }
 
 func rmAllGenFile() {

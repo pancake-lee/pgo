@@ -17,7 +17,8 @@ type _markPairTool struct{}
 var markPairTool iMarkPairTool = new(_markPairTool)
 
 // --------------------------------------------------
-// 循环替换
+// 循环替换，取出mark的内容，循环调用replaceFunc进行替换多次
+// 得到多个新代码块，然后拼接起来替换原内容
 func (r *_markPairTool) ReplaceLoop(mark, fileStr string, count int, replaceFunc func(int, string) string) string {
 	if count == 0 {
 		return r.ReplaceAll(mark, fileStr, "")
@@ -40,7 +41,7 @@ func (r *_markPairTool) ReplaceLoop(mark, fileStr string, count int, replaceFunc
 // --------------------------------------------------
 // 替换标记的内容
 func (r *_markPairTool) ReplaceAll(mark, fileStr, replaceStr string) string {
-	for strings.Contains(fileStr, mark) {
+	for strings.Contains(fileStr, mark+" START") {
 		fileStr = r.replaceOnce(mark, fileStr, replaceStr)
 	}
 	return fileStr

@@ -6,10 +6,8 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"unicode"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 生成 curd 的 proto 定义，包括数据结构和接口定义
@@ -64,6 +62,7 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		// 处理数据定义代码
 		msgCode := pbReplace(msgTpl, tplTable, tbl)
 
+		// --------------------------------------------------
 		// 构造pb结构体的字段列表
 		pbColList := ""
 		for i, field := range tbl.FieldList {
@@ -77,21 +76,23 @@ func genProtoForOneService(svcName string, tblList []*Table,
 			}
 
 			pbColList += fmt.Sprintf("    %v %v = %v;\n",
-				pbTypeName, DO2DTO_FieldName(field.Name), i+1)
+				pbTypeName, StrFirstToLowerButID(field.Name), i+1)
 		}
 
 		msgCode = markPairTool.ReplaceAll("MARK REPLACE PB COL",
 			msgCode, pbColList)
 
-		//TODO 扩展多个索引的情况
+		// --------------------------------------------------
+		// 处理主键操作
 		pbKeyColList := ""
-		if tbl.IdxColName != "" {
+		if tbl.IdxColName != "" { //TODO 扩展复合主键的情况
 			pbKeyColList = fmt.Sprintf("    repeated %v %vList = 1;\n",
-				tbl.IdxColType, DO2DTO_FieldName(tbl.IdxColName))
+				tbl.IdxColType, StrFirstToLowerButID(tbl.IdxColName))
 		}
-		msgCode = markPairTool.ReplaceAll("MARK REPLACE REQUEST IDX",
+		msgCode = markPairTool.ReplaceAll("MARK REPLACE PRIMARY IDX",
 			msgCode, pbKeyColList)
 
+		// --------------------------------------------------
 		msgCodeForAllTable += msgCode
 	}
 
@@ -124,69 +125,27 @@ func pbReplace(
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
 		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
+		codeStr = tblIdxReplaceProto(codeStr, tplTable, tbl)
 	}
-
-	// 处理唯一索引生成的 API 代码
-	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX API", codeStr, len(tbl.IdxList),
-		func(idx int, content string) string {
-			indexInfo := tbl.IdxList[idx]
-			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
-
-			rpcName := "Get" + tbl.UpperCamelName + funcSuffix
-			reqName := rpcName + "Request"
-			respName := rpcName + "Response"
-			httpPath := fmt.Sprintf("/%s/%s", tbl.HyphenName, camelToHyphen(funcSuffix))
-
-			return fmt.Sprintf(`
-    rpc %s (%s) returns (%s) {
-        option (google.api.http) = {
-            get: "%s"
-        };
-    }
-`, rpcName, reqName, respName, httpPath)
-		})
-
-	// 处理唯一索引生成的 MSG 代码
-	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX MSG", codeStr, len(tbl.IdxList),
-		func(idx int, content string) string {
-			indexInfo := tbl.IdxList[idx]
-			idxFields := indexInfo.Fields
-			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
-			reqFields := ""
-
-			for i, f := range idxFields {
-				reqFields += fmt.Sprintf("    repeated %s %s_list = %d;\n",
-					f.IdxColType, putil.StrIdToLower(f.IdxColName), i+1)
-			}
-
-			reqName := "Get" + tbl.UpperCamelName + funcSuffix + "Request"
-			respName := "Get" + tbl.UpperCamelName + funcSuffix + "Response"
-
-			return fmt.Sprintf(`
-message %s {
-%s}
-message %s {
-    repeated %sInfo data = 1;
-}
-`, reqName, reqFields, respName, tbl.UpperCamelName)
-		})
 
 	codeStr = tblNameReplace(codeStr, tplTable, tbl)
 
 	return codeStr
 }
 
-func camelToHyphen(s string) string {
-	var result strings.Builder
-	for i, r := range s {
-		if unicode.IsUpper(r) {
-			if i > 0 {
-				result.WriteRune('-')
-			}
-			result.WriteRune(unicode.ToLower(r))
-		} else {
-			result.WriteRune(r)
+func tblIdxReplaceProto(codeStr string, tplTable *Table, tbl *Table) string {
+	// 处理更多索引字段
+	indexColDef := ""
+	i := 1
+	for _, idx := range tbl.IdxList {
+		for _, f := range idx.Fields {
+			indexColDef += fmt.Sprintf("    repeated %v %vList = %v;\n",
+				f.IdxColType, f.IdxProtoName, i)
+			i++
 		}
 	}
-	return result.String()
+	codeStr = markPairTool.ReplaceAll(
+		"MARK REPLACE IDX COL", codeStr, indexColDef)
+
+	return codeStr
 }

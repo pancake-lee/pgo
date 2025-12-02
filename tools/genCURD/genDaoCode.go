@@ -48,70 +48,52 @@ func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
 		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
+		codeStr = tblIdxReplaceDao(codeStr, tplTable, tbl)
 	}
-
-	// 处理唯一索引生成的代码
-	codeStr = markPairTool.ReplaceLoop("MARK REPEAT INDEX DAO", codeStr, len(tbl.IdxList),
-		func(idx int, content string) string {
-			indexInfo := tbl.IdxList[idx]
-			idxFields := indexInfo.Fields
-
-			// 构造函数名后缀，例如 ByIdx2Idx3
-			funcSuffix := "By" + idxNameToCamelCase(indexInfo.Name)
-			// 构造参数列表，例如 idx2List []int32, idx3List []int32
-			paramList := ""
-			// 构造参数检查，例如 len(idx2List) == 0 && len(idx3List) == 0
-			paramCheck := ""
-			// 构造查询条件
-			queryCond := ""
-
-			for i, f := range idxFields {
-				paramList += fmt.Sprintf("%sList []%s", f.IdxParmName, f.IdxColType)
-				paramCheck += fmt.Sprintf("len(%sList) == 0", f.IdxParmName)
-
-				queryCond += fmt.Sprintf(`
-	if len(%sList) > 0 {
-		do = do.Where(q.%s.In(%sList...))
-	}`, f.IdxParmName, f.IdxColName, f.IdxParmName)
-
-				if i < len(idxFields)-1 {
-					paramList += ", "
-					paramCheck += " && "
-				}
-			}
-
-			newContent := fmt.Sprintf(`
-func (*%sDAO) Get%s(ctx context.Context, %s) ([]*%sDO, error) {
-	if %s {
-		return nil, plogger.LogErr(perr.ErrParamInvalid)
-	}
-	q := db.GetPG().%s
-	do := q.WithContext(ctx)%s
-	list, err := do.Find()
-	if err != nil {
-		return nil, plogger.LogErr(err)
-	}
-	return list, nil
-}
-`, tbl.LowerCamelName, funcSuffix, paramList, tbl.UpperCamelName, paramCheck, tbl.UpperCamelName, queryCond)
-
-			return newContent
-		})
 
 	return tblNameReplace(codeStr, tplTable, tbl)
 }
 
 // --------------------------------------------------
+const idxWhereTmp = `
+	if len(%vList) > 0 {
+		do = do.Where(q.%v.In(%vList...))
+	}
+`
+
 func tblIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 替换主键的字段名，参数名，参数类型
 	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.IdxColName, putil.StrIdToLower(tbl.IdxColName))
+		tplTable.IdxColName, tbl.IdxColName) // proto id -> dto Id
 
 	codeStr = strings.ReplaceAll(codeStr,
+		tplTable.IdxProtoName, tbl.IdxProtoName)
+
+	codeStr = strings.ReplaceAll(codeStr, //TODO 这是怎么工作的，感觉有点问题
 		tplTable.IdxColType, tbl.IdxColType)
 
-	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.IdxParmName, tbl.IdxParmName)
+	return codeStr
+}
+
+func tblIdxReplaceDao(codeStr string, tplTable *Table, tbl *Table) string {
+	// 处理更多索引字段
+	indexColDef := ""
+	indexColWhere := ""
+	for _, idx := range tbl.IdxList {
+		for _, f := range idx.Fields {
+			indexColDef += fmt.Sprintf("%sList []%s,\n",
+				f.IdxProtoName, f.IdxColType)
+
+			indexColWhere += fmt.Sprintf(idxWhereTmp,
+				f.IdxProtoName,
+				putil.StrFirstToUpper(f.IdxProtoName),
+				f.IdxProtoName)
+		}
+	}
+	codeStr = markPairTool.ReplaceAll(
+		"MARK REPLACE IDX COL", codeStr, indexColDef)
+	codeStr = markPairTool.ReplaceAll(
+		"MARK REPLACE IDX WHERE", codeStr, indexColWhere)
 
 	return codeStr
 }
