@@ -63,6 +63,17 @@ func LogErrToErrNo(err error, errNo int32) int32 {
 	return defaultLogWarper.LogErrToErrNo(err, errNo)
 }
 
+func (l *PLogWarper) LogErrNoToErr(errNo int32) error {
+	if errNo == 0 {
+		return nil
+	}
+	l.kLog.Log(kLogger.LevelError, "msg", fmt.Sprintf("got errNo[%d]", errNo))
+	return fmt.Errorf("error code: %d", errNo)
+}
+func LogErrNoToErr(errNo int32) error {
+	return defaultLogWarper.LogErrNoToErr(errNo)
+}
+
 // --------------------------------------------------
 func (l *PLogWarper) Debug(args ...any) {
 	l.kLog.Log(kLogger.LevelDebug, "msg", fmt.Sprint(args...))

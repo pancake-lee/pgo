@@ -338,7 +338,7 @@ type SelectFieldOption struct {
 	Style SelectFieldOptionColor `json:"color,omitempty"`
 }
 
-func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
+func NewSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
 	if options == nil {
 		options = []*SelectFieldOption{}
 	}
@@ -351,7 +351,7 @@ func NewSimpleSingleSelectCol(colName string, options []*SelectFieldOption) *Add
 	}
 }
 
-func NewMultiSingleSelectCol(colName string, options []*SelectFieldOption) *AddField {
+func NewMultiSelectCol(colName string, options []*SelectFieldOption) *AddField {
 	return &AddField{
 		Name: colName,
 		Type: FIELD_TYPE_MULTI_SELECT,
