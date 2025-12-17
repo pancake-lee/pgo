@@ -45,9 +45,9 @@ type Table struct {
 	LowerCamelName string // 驼峰命名，首字母小写
 	UpperCamelName string // 驼峰命名，首字母大写
 
-	IdxColName   string // 索引列名，model字段名
-	IdxColType   string // 索引列类型，model字段类型
-	IdxProtoName string // 索引列名，读写值的参数名
+	PriIdxColName   string // 索引列名，model字段名
+	PriIdxColType   string // 索引列类型，model字段类型
+	PriIdxProtoName string // 索引列名，读写值的参数名
 
 	IdxList []*IndexInfo // 存储所有唯一索引
 
@@ -60,7 +60,7 @@ func (t *Table) String() string {
 		"IdxColName[%v] IdxColType[%v] IdxParmName[%v]",
 		t.Model.TableName(), t.ServiceName,
 		t.HyphenName, t.LowerCamelName, t.UpperCamelName,
-		t.IdxColName, t.IdxColType, t.IdxProtoName)
+		t.PriIdxColName, t.PriIdxColType, t.PriIdxProtoName)
 }
 
 var tblMap = make(map[string]*Table)
@@ -79,6 +79,12 @@ func newTable(m dbModel, svcName string) *Table {
 	tbl.LowerCamelName = putil.StrFirstToLower(tbl.UpperCamelName)
 	return &tbl
 }
+
+// 1：连接数据库
+// 2：获取数据库表结构
+//    但是当前部分逻辑通过orm结构来获取，应该废弃
+//    本来想orm对于编码来说更加准确，但是orm结构并不包含索引等信息
+// 3：根据internal/abandonCodeService的代码以及代码中的标记，生成dao/pb/service代码
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ltime)
@@ -136,7 +142,7 @@ func main() {
 	//读取数据库表结构
 	for _, tbl := range tblMap {
 		plogger.Debugf("%v---------------------------", tbl.Model.TableName())
-		isMultiKey := false
+		isMultiPriKey := false
 		val := reflect.ValueOf(tbl.Model).Elem()
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
@@ -144,12 +150,12 @@ func main() {
 
 			plogger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
 			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
-				if tbl.IdxColName != "" { //TODO
-					isMultiKey = true
+				if tbl.PriIdxColName != "" { //TODO
+					isMultiPriKey = true
 				}
-				tbl.IdxColName = field.Name
-				tbl.IdxColType = field.Type.String()
-				tbl.IdxProtoName = putil.StrFirstToLower(tbl.IdxColName)
+				tbl.PriIdxColName = field.Name
+				tbl.PriIdxColType = field.Type.String()
+				tbl.PriIdxProtoName = putil.StrFirstToLower(tbl.PriIdxColName)
 			}
 		}
 
@@ -191,18 +197,18 @@ func main() {
 			})
 		}
 
-		if isMultiKey { //TODO
-			tbl.IdxColName = ""
-			tbl.IdxColType = ""
-			tbl.IdxProtoName = ""
+		if isMultiPriKey { //TODO
+			tbl.PriIdxColName = ""
+			tbl.PriIdxColType = ""
+			tbl.PriIdxProtoName = ""
 		}
 		plogger.Debug("tbl info : ", tbl)
 	}
 
 	tplTable := newTable(&model.AbandonCode{}, "abandonCode")
-	tplTable.IdxColName = "Idx1"
-	tplTable.IdxColType = "int32"
-	tplTable.IdxProtoName = "idx1"
+	tplTable.PriIdxColName = "Idx1"
+	tplTable.PriIdxColType = "int32"
+	tplTable.PriIdxProtoName = "idx1"
 
 	genDaoCode(tblMap, tplTable)
 	genProto(tblMap, tplTable)

@@ -13,6 +13,7 @@ import (
 // 生成 curd 的 dao 代码
 const daoTplPath = "internal/abandonCodeService/data/dao_AbandonCode.go"
 
+// 遍历每个表，以表为单位，生成一个dao代码文件，处理文件头和文件路径
 func genDaoCode(
 	tblToSvrMap map[string]*Table,
 	tplTable *Table,
@@ -43,11 +44,11 @@ func genDaoCode(
 func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 
 	// 如果没有主键，则删除相关代码块
-	if tbl.IdxColName == "" {
+	if tbl.PriIdxColName == "" {
 		codeStr = markPairTool.ReplaceAll("MARK REMOVE IF NO PRIMARY KEY", codeStr, "")
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
-		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
+		codeStr = tblPriIdxReplace(codeStr, tplTable, tbl)
 		codeStr = tblIdxReplaceDao(codeStr, tplTable, tbl)
 	}
 
@@ -55,25 +56,12 @@ func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 }
 
 // --------------------------------------------------
+// dao代码，替换索引相关代码
 const idxWhereTmp = `
 	if len(%vList) > 0 {
 		do = do.Where(q.%v.In(%vList...))
 	}
 `
-
-func tblIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
-	// 替换主键的字段名，参数名，参数类型
-	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.IdxColName, tbl.IdxColName) // proto id -> dto Id
-
-	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.IdxProtoName, tbl.IdxProtoName)
-
-	codeStr = strings.ReplaceAll(codeStr, //TODO 这是怎么工作的，感觉有点问题
-		tplTable.IdxColType, tbl.IdxColType)
-
-	return codeStr
-}
 
 func tblIdxReplaceDao(codeStr string, tplTable *Table, tbl *Table) string {
 	// 处理更多索引字段
@@ -98,6 +86,23 @@ func tblIdxReplaceDao(codeStr string, tplTable *Table, tbl *Table) string {
 	return codeStr
 }
 
+// --------------------------------------------------
+// 替换主键相关代码，dao/pb/service都会用到
+func tblPriIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
+	// 替换主键的字段名，参数名，参数类型
+	codeStr = strings.ReplaceAll(codeStr,
+		tplTable.PriIdxColName, tbl.PriIdxColName) // proto id -> dto Id
+
+	codeStr = strings.ReplaceAll(codeStr,
+		tplTable.PriIdxProtoName, tbl.PriIdxProtoName)
+
+	codeStr = strings.ReplaceAll(codeStr, //TODO 这是怎么工作的，感觉有点问题
+		tplTable.PriIdxColType, tbl.PriIdxColType)
+
+	return codeStr
+}
+
+// 替换表名相关代码，dao/pb/service都会用到
 func tblNameReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 把表名的4种命名方式都替换一遍
 	codeStr = strings.ReplaceAll(codeStr,

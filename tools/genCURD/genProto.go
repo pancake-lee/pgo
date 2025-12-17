@@ -14,6 +14,8 @@ import (
 const pbTplPath = "proto/abandonCode.proto"
 const pbOutputPath = "./proto/"
 
+// 遍历每个表，以service为单位，生成一个pb代码文件
+// 先获取模板中的接口定义和数据定义内容，然后拼接生成多个表的代码
 func genProto(
 	tblToSvrMap map[string]*Table,
 	tplTable *Table,
@@ -85,9 +87,9 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		// --------------------------------------------------
 		// 处理主键操作
 		pbKeyColList := ""
-		if tbl.IdxColName != "" { //TODO 扩展复合主键的情况
+		if tbl.PriIdxColName != "" { //TODO 扩展复合主键的情况
 			pbKeyColList = fmt.Sprintf("    repeated %v %vList = 1;\n",
-				tbl.IdxColType, StrFirstToLowerButID(tbl.IdxColName))
+				tbl.PriIdxColType, StrFirstToLowerButID(tbl.PriIdxColName))
 		}
 		msgCode = markPairTool.ReplaceAll("MARK REPLACE PRIMARY IDX",
 			msgCode, pbKeyColList)
@@ -120,11 +122,11 @@ func pbReplace(
 	codeStr := tplCode
 
 	// 如果没有主键，则删除相关代码块
-	if tbl.IdxColName == "" {
+	if tbl.PriIdxColName == "" {
 		codeStr = markPairTool.ReplaceAll("MARK REMOVE IF NO PRIMARY KEY", codeStr, "")
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
-		codeStr = tblIdxReplace(codeStr, tplTable, tbl)
+		codeStr = tblPriIdxReplace(codeStr, tplTable, tbl)
 		codeStr = tblIdxReplaceProto(codeStr, tplTable, tbl)
 	}
 
