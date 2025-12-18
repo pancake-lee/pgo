@@ -2,7 +2,6 @@ package dbexport
 
 import (
 	"fmt"
-	"inserver/pkg/util"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func DumpTable(tbl *Table, outputFolder string, filter string) error {
@@ -138,7 +138,7 @@ func dumpTableByMysqldump(tbl *Table, outputFile string, filter string) error {
 
 	sqlArgs := []string{
 		"-h", pdb.Host,
-		"-P", util.Int32ToStr(pdb.Port),
+		"-P", putil.Int32ToStr(pdb.Port),
 		"-u", pdb.User,
 		"-p" + pdb.Password,
 		"--single-transaction",

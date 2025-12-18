@@ -1,7 +1,6 @@
 package plogger
 
 import (
-	"inserver/pkg/util"
 	"log"
 	"path"
 	"path/filepath"
@@ -74,7 +73,7 @@ func InitLogger(isLogConsole bool, lv zapcore.Level, logPath string) {
 	execName := putil.GetExecName()
 
 	if strings.HasSuffix(logPath, ".log") {
-		folderPath = util.NewPathToolSimple(logPath).GetParentFolderPath()
+		folderPath = filepath.Dir(logPath)
 		fullPath = logPath
 
 	} else {
