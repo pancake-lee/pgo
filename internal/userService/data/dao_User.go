@@ -34,3 +34,31 @@ func (*userDAO) EditUserName(ctx context.Context, id int32, userName string) err
 		UpdateSimple(q.UserName.Value(userName))
 	return err
 }
+
+func (*userDAO) SelectByRecordId(ctx context.Context, recordID string) (*model.User, error) {
+	if recordID == "" {
+		return nil, nil
+	}
+	q := db.GetPG().User
+	user, err := q.WithContext(ctx).
+		Where(q.MtblRecordID.Eq(recordID)).
+		First()
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+func (*userDAO) UpdateMtblInfo(ctx context.Context, id int32,
+	mtblRecordId, lastEditFrom string) error {
+	if id == 0 {
+		return errors.New("argument invalid")
+	}
+	q := db.GetPG().User
+	_, err := q.WithContext(ctx).
+		Where(q.ID.Eq(id)).
+		UpdateSimple(
+			q.MtblRecordID.Value(mtblRecordId),
+			q.LastEditFrom.Value(lastEditFrom),
+		)
+	return err
+}

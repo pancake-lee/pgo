@@ -12,13 +12,15 @@ const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
-	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
-	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
-	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
-	UserName   string    `gorm:"column:user_name;not null" json:"user_name"`
-	Password   string    `gorm:"column:password;not null" json:"password"`
+	ID           int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	CreateTime   time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateUser   int32     `gorm:"column:create_user;not null" json:"create_user"`
+	UpdateTime   time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
+	UpdateUser   int32     `gorm:"column:update_user;not null" json:"update_user"`
+	UserName     string    `gorm:"column:user_name;not null" json:"user_name"`
+	Password     string    `gorm:"column:password;not null" json:"password"`
+	MtblRecordID string    `gorm:"column:mtbl_record_id;not null" json:"mtbl_record_id"`
+	LastEditFrom string    `gorm:"column:last_edit_from;not null" json:"last_edit_from"`
 }
 
 // TableName User's table name

@@ -9,6 +9,9 @@ CREATE TABLE "user" (
   "user_name" varchar(32)  NOT NULL,
   "password" varchar(100)  NOT NULL,
 
+  "mtbl_record_id" varchar(16)  NOT NULL,
+  "last_edit_from" varchar(8)  NOT NULL,
+
   CONSTRAINT  "idx_user_name" UNIQUE ("user_name")
 );
 ALTER SEQUENCE user_id_seq RESTART WITH 10;

@@ -14,14 +14,15 @@ import (
 
 // 由业务方提供数据的读写方法，以及apitable的字段映射关系等
 type DataProvider interface {
+	// 如果内部创建新的表，需要提供到外部存储
+	SetDoc(doc *MultiTableDoc)
+
 	// GetTableName 获取表名
 	GetTableName() string
 	// GetPrimaryCol 获取主键列定义
 	GetPrimaryCol() *AddField
 	// GetColList 获取所有列定义
 	GetColList() []*AddField
-	// 如果内部创建新的表，需要提供到外部存储
-	SetDoc(doc *MultiTableDoc)
 
 	// L2MTBL 将本地记录转换为APITable记录
 	// record: 本地记录
@@ -30,9 +31,6 @@ type DataProvider interface {
 
 	// GetSyncData 获取全量同步的数据
 	GetSyncData() ([]*AddRecord, error)
-	// GetLocalRecord 获取本地记录，隐含了L2MTBL的正向映射逻辑
-	// 返回本地记录的APITable记录ID、本地记录、错误信息
-	GetLocalRecord(id any) (string, any, error)
 	// GetLastEditFrom 获取最后修改来源
 	GetLastEditFrom(record any) string
 
@@ -41,6 +39,8 @@ type DataProvider interface {
 
 	// GetLocalRecordByMtbl 根据MTBL记录获取本地记录，隐含了M2LTBL的反向映射逻辑
 	// mtblRecord: MTBL记录
+	// 返回error将中断处理，可以返回nil,nil继续处理mtbl新增数据，而ltbl不存在的情况
+	// 至少需要在GetLastEditFrom/UpdateLocalRecord中处理ltbl不存在的情况，并且创建新记录
 	// 返回: 本地记录, error
 	GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error)
 
@@ -305,11 +305,9 @@ func (s *SyncHelper) UpdateToLTBL(mtblRecord *CommonRecord) error {
 	if err != nil {
 		return err
 	}
-	s.log.Debugf("localRecord : %+v", localRecord)
 
 	// 基于本地数据，用MTBL的值覆盖对应字段，然后调用dataProvider的“更新方法”
 	s.dataProvider.M2L(mtblRecord, localRecord)
-	s.log.Debugf("localRecord : %+v", localRecord)
 
 	lastEditFrom := s.dataProvider.GetLastEditFrom(localRecord)
 	if lastEditFrom != LastEditFrom_TEMP {
