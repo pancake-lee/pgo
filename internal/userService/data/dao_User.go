@@ -6,6 +6,8 @@ import (
 
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/internal/pkg/perr"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func (*userDAO) GetOrAdd(ctx context.Context,
@@ -61,4 +63,16 @@ func (*userDAO) UpdateMtblInfo(ctx context.Context, id int32,
 			q.LastEditFrom.Value(lastEditFrom),
 		)
 	return err
+}
+
+func (*userDAO) DelByRecordID(ctx context.Context, recordID string) error {
+	if recordID == "" {
+		return plogger.LogErr(perr.ErrParamInvalid)
+	}
+	q := db.GetQuery().User
+	_, err := q.WithContext(ctx).Where(q.MtblRecordID.Eq(recordID)).Delete()
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
 }

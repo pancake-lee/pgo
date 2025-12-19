@@ -12,6 +12,12 @@ import (
 // 2：本地数据变更，触发同步数据到apitable
 // 3：apitable数据变更，出发本地数据更新
 
+type ApiTableEvent struct {
+	DatasheetId string `json:"datasheetId,omitempty"` // 表格ID
+	RecordId    string `json:"recordId,omitempty"`    // 记录ID
+	Event       string `json:"event,omitempty"`       // 事件类型，insert/update/delete
+}
+
 // 由业务方提供数据的读写方法，以及apitable的字段映射关系等
 type DataProvider interface {
 	// 如果内部创建新的表，需要提供到外部存储

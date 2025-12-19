@@ -64,6 +64,21 @@ services:
         volumes:
             - ./postgresql/data:/var/lib/postgresql/data
 
+    rabbitmq:
+        container_name: pgo-rabbitmq
+        image: rabbitmq:3.12-management
+        restart: always
+        ports:
+            - 25672:5672 
+            - 25673:15672
+            - 25674:25672
+        networks:
+            - pgo-net
+        environment:
+            RABBITMQ_DEFAULT_USER: pgo 
+            RABBITMQ_DEFAULT_PASS: pgo
+            RABBITMQ_DEFAULT_VHOST: pgo_vhost
+
     swagger:
         container_name: pgo-swagger
         image: swaggerapi/swagger-ui:v5.17.14

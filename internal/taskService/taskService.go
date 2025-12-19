@@ -12,7 +12,7 @@ import (
 
 func main() {
 	l := flag.Bool("l", false, "log to console, default is false")
-	c := flag.String("c", "./configs/",
+	c := flag.String("c", "",
 		"config folder, should have common.yaml and ${execName}.yaml")
 	flag.Parse()
 

@@ -50,13 +50,48 @@ func (h *MyEventHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	cb, ok := GetCallback(e.Table.Name)
-	if !ok {
+	handler := GetTableHandler(e.Table.Name)
+	if handler == nil {
 		return nil
 	}
 
 	ctx := context.Background()
-	cb(ctx, e)
+
+	step := 1
+	if e.Action == canal.UpdateAction {
+		step = 2
+	}
+
+	for i := 0; i < len(e.Rows); i += step {
+		switch e.Action {
+		case canal.InsertAction:
+			if handler.InsertCallback != nil {
+				newRow := e.Rows[i]
+				if err := handler.InsertCallback(ctx, e.Table.Columns, newRow); err != nil {
+					plogger.Errorf("Insert callback error: %v", err)
+				}
+			}
+		case canal.DeleteAction:
+			if handler.DeleteCallback != nil {
+				oldRow := e.Rows[i]
+				if err := handler.DeleteCallback(ctx, e.Table.Columns, oldRow); err != nil {
+					plogger.Errorf("Delete callback error: %v", err)
+				}
+			}
+		case canal.UpdateAction:
+			if i+1 >= len(e.Rows) {
+				plogger.Errorf("Update action with incomplete row data")
+				break
+			}
+			if handler.UpdateCallback != nil {
+				oldRow := e.Rows[i]
+				newRow := e.Rows[i+1]
+				if err := handler.UpdateCallback(ctx, e.Table.Columns, oldRow, newRow); err != nil {
+					plogger.Errorf("Update callback error: %v", err)
+				}
+			}
+		}
+	}
 
 	return nil
 }

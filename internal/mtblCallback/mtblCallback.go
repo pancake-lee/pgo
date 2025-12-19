@@ -14,6 +14,10 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
+// mtblCallback 多维表格数据变更回调服务
+// mtbl = multi table 多维表格
+// 是相对于ltbl = local table 则本地数据库而言的
+
 func main() {
 	var isLogConsole = flag.Bool("l", false, "true: log in file and console; false: only log in file")
 	var configFile = flag.String("c", "", "The specified config file")

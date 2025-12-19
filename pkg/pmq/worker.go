@@ -141,12 +141,16 @@ func (cli *AmqpClient) logRespMsg(workerId int32, keyStr string, cbName string,
 type PMQContext struct {
 	workerNum int32
 	cbName    string
-	req       string
-	resp      string
+	Req       string
+	Resp      string
 }
 type _PMQContextKey struct{}
 
 var PMQContextKey = _PMQContextKey{}
+
+func GetPMQContext(ctx context.Context) *PMQContext {
+	return ctx.Value(PMQContextKey).(*PMQContext)
+}
 
 // 流程上，一个消息被调用处理函数之前，注册到这里的函数将被调用，用于：
 // 1：编写框架性代码，如框架性数据结构的封包和解包；
@@ -158,12 +162,12 @@ func (cli *AmqpClient) SetBeforeCall(f func(ctx context.Context) error) {
 
 func (cli *AmqpClient) handleMQMsg(rpcMsg *mqMsg, i int32) error {
 	var pmqCtx PMQContext
-	pmqCtx.req = string(rpcMsg.mqDelivery.Body)
+	pmqCtx.Req = string(rpcMsg.mqDelivery.Body)
 
 	ctx := context.WithValue(context.Background(), PMQContextKey, &pmqCtx)
 
 	plogger.Debug("-------------------------------------------------------------------")
-	cli.logReqMsg(i, "svr mq req ", rpcMsg.cbName, rpcMsg.mqDelivery.CorrelationId, pmqCtx.req)
+	cli.logReqMsg(i, "svr mq req ", rpcMsg.cbName, rpcMsg.mqDelivery.CorrelationId, pmqCtx.Req)
 
 	if cli.beforeCall != nil {
 		err := cli.beforeCall(ctx)
@@ -186,7 +190,7 @@ func (cli *AmqpClient) publishResponse(pmqCtx *PMQContext, delivery *amqp.Delive
 	}
 
 	cli.logRespMsg(pmqCtx.workerNum, "svr mq resp", pmqCtx.cbName,
-		delivery.CorrelationId, pmqCtx.resp)
+		delivery.CorrelationId, pmqCtx.Resp)
 
 	// 返回resp的时候，能否用消费者的channel，而不是用公共的channel呢？怎么封装才能实现？
 	err := cli.ch.mqChannel.Publish(
@@ -197,11 +201,10 @@ func (cli *AmqpClient) publishResponse(pmqCtx *PMQContext, delivery *amqp.Delive
 		amqp.Publishing{
 			ContentType:   "text/plain",
 			CorrelationId: delivery.CorrelationId,
-			Body:          []byte(pmqCtx.resp),
+			Body:          []byte(pmqCtx.Resp),
 		})
 	if err != nil {
 		plogger.Error("Failed to publish a response message")
 		return // rpc返回失败了，能怎么处理呢，只能让调用方等到超时了
 	}
-	return
 }

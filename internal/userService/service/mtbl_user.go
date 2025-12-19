@@ -2,19 +2,105 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 
+	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/pmq"
 )
 
+// 当前完全以多维表格作为操作入口，不用处理本地数据库的变更回调
+// func OnLtblUpdateUser(ctx context.Context) error
+
+// 用户的多维表不需要代码来建，手动建好即可，然后把datasheetId记录到配置文件中
+// func CreateMtblUser(ctx context.Context) error
+
+func OnMtblUpdateUser(ctx context.Context) error {
+	pmqCtx := pmq.GetPMQContext(ctx)
+	var event papitable.ApiTableEvent
+	err := json.Unmarshal([]byte(pmqCtx.Req), &event)
+	if err != nil {
+		plogger.Errorf("OnMtblUpdate unmarshal event err: %v", err)
+		return err
+	}
+	if event.DatasheetId != conf.UserSvcConf.APITable.UserSheetID {
+		return nil // 只处理用户表的变更事件
+	}
+	plogger.Infof("OnMtblUpdate received event: %+v", event)
+
+	switch event.Event {
+	case "insert", "update":
+		return updateUser_M2L(ctx, event.DatasheetId, event.RecordId)
+	case "delete":
+		return deleteUser_M2L(ctx, event.DatasheetId, event.RecordId)
+	default:
+		plogger.Warnf("skip unknown event type: %v", event.Event)
+		return nil
+	}
+}
+
+func deleteUser_M2L(ctx context.Context, datasheetId, recordId string) error {
+	papitable.LastEditFromMarker_LTBL.Set(recordId) // delete触发的ltbl回调直接忽略掉就好了
+	err := data.UserDAO.DelByRecordID(ctx, recordId)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	return nil
+}
+
+func updateUser_M2L(ctx context.Context, datasheetId, recordId string) error {
+	spaceId, err := pconfig.GetStringE("APITable.spaceId")
+	if err != nil {
+		plogger.Errorf("getTaskDoc: APITable.spaceId not found in config: %v", err)
+		return nil
+	}
+	doc := papitable.NewMultiTableDoc(spaceId, datasheetId)
+
+	resp, err := doc.GetRow(&papitable.GetRecordRequest{
+		RecordIds: []string{recordId},
+	})
+	if err != nil {
+		plogger.Errorf("GetRow failed for recordId %s, err: %v", recordId, err)
+		return err
+	}
+	if len(resp.Data.Records) == 0 {
+		plogger.Errorf("GetRow returned no data for recordId %s", recordId)
+		return fmt.Errorf("recordId %s not found in mtbl", recordId)
+	} else if len(resp.Data.Records) > 1 {
+		plogger.Errorf("GetRow returned multiple data for recordId %s", recordId)
+		return fmt.Errorf("recordId %s returned multiple records in mtbl", recordId)
+	}
+
+	row := resp.Data.Records[0]
+	mtblDao := NewMtblUser(ctx, doc)
+	syncHelper := papitable.NewSyncHelper(mtblDao, doc).
+		WithLogger(plogger.GetDefaultLogWarper())
+	err = syncHelper.UpdateToLTBL(row)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+
+	return nil
+}
+
+// --------------------------------------------------
 var _ papitable.DataProvider = (*t_MtblUser)(nil)
 
 type t_MtblUser struct {
 	ctx context.Context
 	doc *papitable.MultiTableDoc
+}
+
+func NewMtblUser(ctx context.Context, doc *papitable.MultiTableDoc) *t_MtblUser {
+	return &t_MtblUser{
+		ctx: ctx,
+		doc: doc,
+	}
 }
 
 func (dao *t_MtblUser) SetDoc(doc *papitable.MultiTableDoc) {
@@ -126,9 +212,11 @@ func (dao *t_MtblUser) GetLocalRecordByMtbl(mtblRecord *papitable.CommonRecord) 
 	dbTask, _ := data.UserDAO.SelectByRecordId(dao.ctx, mtblRecord.RecordId)
 	if dbTask == nil {
 		tmpData := dao.m2l(mtblRecord, nil)
-		dbTask, err = data.UserDAO.GetByID(dao.ctx, tmpData.ID)
-		if err == nil {
-			dbTask.MtblRecordID = mtblRecord.RecordId
+		if tmpData.ID != 0 {
+			dbTask, err = data.UserDAO.GetByID(dao.ctx, tmpData.ID)
+			if err == nil {
+				dbTask.MtblRecordID = mtblRecord.RecordId
+			}
 		}
 	}
 	return dbTask, nil
