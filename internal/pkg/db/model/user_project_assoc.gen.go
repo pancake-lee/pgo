@@ -13,7 +13,7 @@ const TableNameUserProjectAssoc = "user_project_assoc"
 // UserProjectAssoc mapped from table <user_project_assoc>
 type UserProjectAssoc struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
 	UserID     int32     `gorm:"column:user_id;not null" json:"user_id"`
 	ProjID     int32     `gorm:"column:proj_id;not null" json:"proj_id"`

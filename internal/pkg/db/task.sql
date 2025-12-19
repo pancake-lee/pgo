@@ -1,23 +1,20 @@
-
-DROP TABLE IF EXISTS "task";
+DROP TABLE IF EXISTS task;
 CREATE TABLE task (
-    "id" SERIAL NOT NULL,
-    "parent_id" int NOT NULL, 
-    "prev_id" int NOT NULL, 
+    id INT NOT NULL AUTO_INCREMENT,
+    parent_id int NOT NULL, 
+    prev_id int NOT NULL, 
 
-    "task" varchar(100) NOT NULL,
-    "status" int NOT NULL, 
-    "estimate" int NOT NULL,
-    "start" timestamp DEFAULT NOW(),
-    "end" timestamp DEFAULT NOW(),
+    task varchar(100) NOT NULL,
+    status int NOT NULL, 
+    estimate int NOT NULL,
+    start timestamp DEFAULT CURRENT_TIMESTAMP,
+    end timestamp DEFAULT CURRENT_TIMESTAMP,
 
-    "desc" varchar(5000) NOT NULL,
-    "metadata" varchar(5000) NOT NULL, -- {k:v}
+    `desc` varchar(5000) NOT NULL,
+    metadata varchar(5000) NOT NULL, -- {k:v}
 
-    "create_time" timestamp DEFAULT NOW(),
-    PRIMARY KEY ("id")
-);
+    create_time timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) AUTO_INCREMENT=10;
 
-ALTER SEQUENCE task_id_seq RESTART WITH 10;
-
-insert into task (parent_id,prev_id,task,status,estimate,"desc",metadata)values(0,0,'test',0,0,'' ,'');
+insert into task (parent_id,prev_id,task,status,estimate,`desc`,metadata)values(0,0,'test',0,0,'' ,'');

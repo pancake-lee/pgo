@@ -37,6 +37,7 @@ func newAbandonCode(db *gorm.DB, opts ...gen.DOOption) abandonCode {
 	return _abandonCode
 }
 
+// abandonCode CURD生成模板
 type abandonCode struct {
 	abandonCodeDo abandonCodeDo
 

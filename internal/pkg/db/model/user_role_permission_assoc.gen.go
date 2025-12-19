@@ -13,7 +13,7 @@ const TableNameUserRolePermissionAssoc = "user_role_permission_assoc"
 // UserRolePermissionAssoc mapped from table <user_role_permission_assoc>
 type UserRolePermissionAssoc struct {
 	ID          int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime  time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateTime  time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	CreateUser  int32     `gorm:"column:create_user;not null" json:"create_user"`
 	RoleID      int32     `gorm:"column:role_id;not null" json:"role_id"`
 	Action      string    `gorm:"column:action;not null" json:"action"`

@@ -23,7 +23,7 @@ type CourseSwapRequest struct {
 	DstCourseNum int32     `gorm:"column:dst_course_num;not null" json:"dst_course_num"`
 	DstCourse    string    `gorm:"column:dst_course;not null" json:"dst_course"`
 	DstClass     string    `gorm:"column:dst_class;not null" json:"dst_class"`
-	CreateTime   time.Time `gorm:"column:create_time;default:now()" json:"create_time"`
+	CreateTime   time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP" json:"create_time"`
 	Status       int32     `gorm:"column:status;not null" json:"status"`
 }
 

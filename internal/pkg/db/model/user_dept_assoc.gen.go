@@ -13,9 +13,9 @@ const TableNameUserDeptAssoc = "user_dept_assoc"
 // UserDeptAssoc mapped from table <user_dept_assoc>
 type UserDeptAssoc struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
-	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
 	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
 	UserID     int32     `gorm:"column:user_id;not null" json:"user_id"`
 	DeptID     int32     `gorm:"column:dept_id;not null" json:"dept_id"`

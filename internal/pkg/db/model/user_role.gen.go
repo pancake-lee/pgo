@@ -13,9 +13,9 @@ const TableNameUserRole = "user_role"
 // UserRole mapped from table <user_role>
 type UserRole struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime time.Time `gorm:"column:create_time;not null;default:now()" json:"create_time"`
+	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
-	UpdateTime time.Time `gorm:"column:update_time;not null;default:now()" json:"update_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
 	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
 	ProjID     int32     `gorm:"column:proj_id;not null" json:"proj_id"`
 	RoleName   string    `gorm:"column:role_name;not null" json:"role_name"`

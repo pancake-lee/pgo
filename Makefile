@@ -10,12 +10,6 @@ dbUser?=pgo
 dbPass?=pgo
 dbName?=pgo
 
-dbCli?=go run ./cmd/pgo/ psql
-# dbCli?=psql
-
-dbCmd=export PGPASSWORD=${dbPass}; \
-	${dbCli} --host $(dbIP) -U ${dbUser}
-
 # 遍历所有proto文件
 # every developer has a Git. run in GitBash.
 API_PROTO_FILES=$(shell find ./proto -name *.proto)
@@ -81,33 +75,32 @@ api:
 	echo       url: http://127.0.0.1:8080 >> ./openapi.yaml
 
 .PHONY: gorm
-# 通过 gorm-gen 生成数据库访问代码
 gorm:
-	${dbCmd} -d postgres -c "DROP DATABASE IF EXISTS pgo_build;"
-	${dbCmd} -d postgres -c "CREATE DATABASE pgo_build;"
+	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "DROP DATABASE IF EXISTS pgo_build; CREATE DATABASE pgo_build DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 	for file in ./internal/pkg/db/*.sql; do \
-		${dbCmd} -d pgo_build -f $$file; \
+		mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) pgo_build < $$file; \
 	done
 
 	rm -rf ./internal/pkg/db/model/
 	rm -rf ./internal/pkg/db/query/
 	gentool \
-	-db postgres \
-	-dsn "host=$(dbIP) user=${dbUser} password=${dbPass} dbname=pgo_build port=5432 sslmode=disable" \
-	-outPath ./internal/pkg/db/query \
-	-modelPkgName "model"
+	-db mysql \
+	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:3306)/pgo_build?charset=utf8mb4&parseTime=True&loc=Local" \
+	-outPath internal/pkg/db/query/ \
+	-outFile query.go \
+	-modelPkgName model \
 
 .PHONY: initDB
 initDB:
-	${dbCmd} -d postgres -c "CREATE DATABASE ${dbName};"
-	for file in internal/pkg/db/*.sql; do \
-		${dbCmd} -d ${dbName} -f $$file; \
+	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "CREATE DATABASE ${dbName} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+	for file in ./internal/pkg/db/*.sql; do \
+		mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) ${dbName} < $$file; \
 	done
 
 .PHONY: reInitDB
 # 慎重，这是重置数据库的操作
 reInitDB:
-	${dbCmd} -d postgres -c "DROP DATABASE ${dbName};"
+	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "DROP DATABASE ${dbName};"
 	make initDB
 
 .PHONY: curd

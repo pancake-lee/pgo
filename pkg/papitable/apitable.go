@@ -10,8 +10,7 @@ import (
 
 var g_token string
 
-// var g_baseUrl string = "https://aitable.ai"
-var g_baseUrl string = "http://192.168.17.163" //本地部署
+var g_baseUrl string = "https://aitable.ai"
 
 // --------------------------------------------------
 func InitAPITableByConfig() error {
