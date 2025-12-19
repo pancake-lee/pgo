@@ -19,7 +19,7 @@ import (
 // 5：删除数据
 func TestUserRolePermission(t *testing.T) {
 	pconfig.MustInitConfig("../../../configs/pancake.yaml")
-	pdb.MustInitPGByConfig()
+	pdb.MustInitMysqlByConfig()
 
 	// Drop tables to ensure clean state
 	// pdb.GetGormDB().Migrator().DropTable(

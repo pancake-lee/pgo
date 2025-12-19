@@ -4,47 +4,76 @@
 
 name: pgo
 services:
-#  rocky9:
-#     container_name: dr9
-#     image: dr9:latest
-#     restart: always
-#     command: /docker-dev.sh
-#     ports:
-#       - 7022:22
-#       - 7050-7060:7050-7060
-#     environment:
-#       TZ: Asia/Shanghai
-#     networks:
-#       - pgo-net
-#     volumes:
-#       # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
-#       - D:/workspace/code:/root/workspace/
-#       - D:/workspace/docker-dev.sh:/docker-dev.sh
-      
-  postgres:
-    container_name: pgo-pg
-    image: postgres:16
-    restart: always
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: pgo
-      POSTGRES_PASSWORD: pgo
-    networks:
-      - pgo-net
-    volumes:
-      - D:/workspace/pgo/postgresql/data:/var/lib/postgresql/data
+    rocky9:
+        container_name: dr9
+        image: dr9:latest
+        restart: always
+        command: /docker-dev.sh
+        ports:
+            - 7022:22
+            - 7050-7060:7050-7060
+        environment:
+            TZ: Asia/Shanghai
+        networks:
+            - pgo-net
+        volumes:
+            # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
+            - ../code:/root/workspace/
+            - ./docker-dev.sh:/docker-dev.sh
+        
+    mysql:
+        container_name: pgo-mysql
+        image: mysql:8.0
+        restart: always
+        ports:
+            - 3306:3306
+        networks:
+            - pgo-net
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_MAX_CONNECTIONS: 10240
+            TZ: Asia/Shanghai
+        volumes:
+            - ./specific/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ./mysql/data:/var/lib/mysql
 
-  swagger:
-    container_name: pgo-swagger
-    image: swaggerapi/swagger-ui
-    restart: always
-    ports:
-      - 8080:8080
-    volumes:
-      - D:/workspace/pgo/openapi.yaml:/api_standard.yaml
-    environment:
-      SWAGGER_JSON: /api_standard.yaml
+    redis:
+        container_name: pgo-redis
+        image: redis:7.2
+        restart: always
+        command: redis-server /usr/local/etc/redis/redis.conf
+        ports:
+            - 6379:6379
+        networks:
+            - pgo-net
+        volumes:
+            - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./redis/data:/data
+
+    postgres:
+        container_name: pgo-pgsql
+        image: postgres:16
+        restart: always
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: pgo
+            POSTGRES_PASSWORD: pgo
+        networks:
+            - pgo-net
+        volumes:
+            - ./postgresql/data:/var/lib/postgresql/data
+
+    swagger:
+        container_name: pgo-swagger
+        image: swaggerapi/swagger-ui:v5.17.14
+        restart: always
+        ports:
+            - 8080:8080
+        volumes:
+            - ./openapi.yaml:/openapi.yaml
+        environment:
+            SWAGGER_JSON: /openapi.yaml
 
 networks:
-  pgo-net:
+    pgo-net:

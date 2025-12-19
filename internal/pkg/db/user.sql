@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS user;
 CREATE TABLE user (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
 
   user_name varchar(32)  NOT NULL,
@@ -18,9 +18,9 @@ CREATE TABLE user (
 DROP TABLE IF EXISTS user_job;
 CREATE TABLE user_job (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
 
   job_name varchar(32)  NOT NULL,
@@ -30,9 +30,9 @@ CREATE TABLE user_job (
 DROP TABLE IF EXISTS user_dept;
 CREATE TABLE user_dept (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
 
   dept_path varchar(100)  NOT NULL,
@@ -43,9 +43,9 @@ CREATE TABLE user_dept (
 DROP TABLE IF EXISTS user_dept_assoc;
 CREATE TABLE user_dept_assoc (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
 
   user_id int NOT NULL,
@@ -58,9 +58,9 @@ CREATE TABLE user_dept_assoc (
 DROP TABLE IF EXISTS project;
 CREATE TABLE project (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
   
   proj_name varchar(100) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE project (
 DROP TABLE IF EXISTS user_project_assoc;
 CREATE TABLE user_project_assoc (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
   
   user_id int NOT NULL,
@@ -82,9 +82,9 @@ CREATE TABLE user_project_assoc (
 DROP TABLE IF EXISTS user_role;
 CREATE TABLE user_role (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
-  update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_user int NOT NULL,
   
   proj_id int NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE user_role (
 DROP TABLE IF EXISTS user_role_assoc;
 CREATE TABLE user_role_assoc (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
   
   user_id int NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE user_role_assoc (
 DROP TABLE IF EXISTS user_role_permission_assoc;
 CREATE TABLE user_role_permission_assoc (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   create_user int NOT NULL,
   
   role_id int NOT NULL,

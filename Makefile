@@ -6,9 +6,12 @@ VERSION?=$(shell git describe --tags --always --dirty)
 COMMIT=$(shell git describe --tags --always --dirty)
 
 dbIP?=127.0.0.1
+dbPort?=3306
 dbUser?=pgo
 dbPass?=pgo
 dbName?=pgo
+
+dbCmd=mysql -h $(dbIP) -P ${dbPort} -u $(dbUser) -p$(dbPass)
 
 # 遍历所有proto文件
 # every developer has a Git. run in GitBash.
@@ -70,37 +73,37 @@ api:
 		--openapi_out=fq_schema_naming=true,default_response=false:. \
 		$(API_PROTO_FILES) \
 
-	echo servers: >> ./openapi.yaml
-	echo     - description: PGO API >> ./openapi.yaml
-	echo       url: http://127.0.0.1:8080 >> ./openapi.yaml
+	echo "servers:" >> ./openapi.yaml
+	echo "    - description: PGO API" >> ./openapi.yaml
+	echo "      url: http://127.0.0.1:8080" >> ./openapi.yaml
 
 .PHONY: gorm
 gorm:
-	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "DROP DATABASE IF EXISTS pgo_build; CREATE DATABASE pgo_build DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+	$(dbCmd) -e "DROP DATABASE IF EXISTS pgo_build; CREATE DATABASE pgo_build DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 	for file in ./internal/pkg/db/*.sql; do \
-		mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) pgo_build < $$file; \
+		$(dbCmd) pgo_build < $$file; \
 	done
 
 	rm -rf ./internal/pkg/db/model/
 	rm -rf ./internal/pkg/db/query/
 	gentool \
 	-db mysql \
-	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:3306)/pgo_build?charset=utf8mb4&parseTime=True&loc=Local" \
+	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/pgo_build?charset=utf8mb4&parseTime=True&loc=Local" \
 	-outPath internal/pkg/db/query/ \
 	-outFile query.go \
 	-modelPkgName model \
 
 .PHONY: initDB
 initDB:
-	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "CREATE DATABASE ${dbName} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+	$(dbCmd) -e "CREATE DATABASE ${dbName} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 	for file in ./internal/pkg/db/*.sql; do \
-		mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) ${dbName} < $$file; \
+		$(dbCmd) ${dbName} < $$file; \
 	done
 
 .PHONY: reInitDB
 # 慎重，这是重置数据库的操作
 reInitDB:
-	mysql -h $(dbIP) -u $(dbUser) -p$(dbPass) -e "DROP DATABASE ${dbName};"
+	$(dbCmd) -e "DROP DATABASE ${dbName};"
 	make initDB
 
 .PHONY: curd

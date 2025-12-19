@@ -14,7 +14,7 @@ CREATE TABLE course_swap_request (
     dst_course varchar(100)  NOT NULL,
     dst_class varchar(100)  NOT NULL,
 
-    create_time timestamp DEFAULT CURRENT_TIMESTAMP,
+    create_time datetime DEFAULT CURRENT_TIMESTAMP,
     status int NOT NULL,
     PRIMARY KEY (id)
 ) AUTO_INCREMENT=10;

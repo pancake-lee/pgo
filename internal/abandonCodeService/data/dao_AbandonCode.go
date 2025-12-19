@@ -19,6 +19,7 @@ func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) erro
 	if abandonCode == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().AbandonCode
 	err := q.WithContext(ctx).Create(abandonCode)
 	if err != nil {

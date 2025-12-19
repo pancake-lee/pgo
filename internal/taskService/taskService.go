@@ -18,7 +18,7 @@ func main() {
 
 	pconfig.MustInitConfig(*c)
 	plogger.InitFromConfig(*l)
-	pdb.MustInitPGByConfig()
+	pdb.MustInitMysqlByConfig()
 
 	var taskCURDServer service.TaskCURDServer
 

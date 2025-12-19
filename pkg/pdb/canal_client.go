@@ -10,7 +10,6 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/predis"
 	"github.com/pancake-lee/pgo/pkg/putil"
-	"github.com/robfig/cron/v3"
 )
 
 const REDIS_KEY_CANAL_BINLOG_POS = "canal:binlog:pos"
@@ -96,15 +95,6 @@ func (client *CanalClient) Run() error {
 	if err != nil || redisPos == "" {
 		plogger.Warn("redis binlog pos not found, and no DB fallback implemented")
 	}
-
-	cron.New().AddFunc("0 */5 * * *", func() {
-		redisPos, err := predis.DefaultClient.Get(REDIS_KEY_CANAL_BINLOG_POS).Result()
-		if err != nil || redisPos == "" {
-			plogger.Errorf("get redis binlog pos [%v] fail : [%v]", redisPos, err)
-			return
-		}
-		plogger.Debugf("Would update DB with pos: %s", redisPos)
-	})
 
 	plogger.Debug("redisPos get current pos : ", redisPos)
 

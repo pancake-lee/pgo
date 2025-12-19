@@ -19,7 +19,7 @@ func main() {
 
 	pconfig.MustInitConfig(*c)
 	plogger.InitFromConfig(*l)
-	pdb.MustInitPGByConfig()
+	pdb.MustInitMysqlByConfig()
 
 	err := pconfig.Scan(&conf.UserSvcConf)
 	if err != nil {

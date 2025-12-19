@@ -9,6 +9,18 @@ Grpc:
   Addr: "0.0.0.0:9000"
   Timeout: 1000
 
-Pg:
-  Host: "127.0.0.1"
-  Port: 5432
+Pgsql:
+  Addr: "pgo-pgsql:5432"
+  DbName: pgo
+  User: pgo
+  Password: pgo
+
+Mysql:
+  Addr: "pgo-mysql:3306"
+  DbName: pgo
+  User: pgo
+  Password: pgo
+
+Redis:
+  Addr: "pgo-redis:6379"
+  Password: pgo

@@ -92,7 +92,7 @@ func main() {
 	rmAllGenFile()
 
 	pconfig.MustInitConfig("./configs/pancake.yaml")
-	pdb.MustInitPGByConfig()
+	pdb.MustInitMysqlByConfig()
 
 	// 通过反射获取所有表
 	q := db.GetQuery()
