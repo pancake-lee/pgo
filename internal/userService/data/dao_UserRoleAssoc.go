@@ -8,6 +8,6 @@ import (
 )
 
 func (*userRoleAssocDAO) GetByUserID(ctx context.Context, userID int32) ([]*model.UserRoleAssoc, error) {
-	q := db.GetPG()
+	q := db.GetQuery()
 	return q.UserRoleAssoc.WithContext(ctx).Where(q.UserRoleAssoc.UserID.Eq(userID)).Find()
 }

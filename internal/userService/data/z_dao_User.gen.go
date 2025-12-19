@@ -21,7 +21,7 @@ func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 	if user == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	err := q.WithContext(ctx).Create(user)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 
 func (*userDAO) GetAll(ctx context.Context,
 ) (userList []*UserDO, err error) {
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	userList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userDAO) GetAll(ctx context.Context,
 }
 
 func (*userDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserDO, error) {
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userDAO) UpdateByID(ctx context.Context, do *UserDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userDAO) GetByID(ctx context.Context, iD int32,
 		return user, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	user, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userMap, nil
 }
-

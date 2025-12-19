@@ -21,7 +21,7 @@ func (*taskDAO) Add(ctx context.Context, task *TaskDO) error {
 	if task == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	err := q.WithContext(ctx).Create(task)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*taskDAO) Add(ctx context.Context, task *TaskDO) error {
 
 func (*taskDAO) GetAll(ctx context.Context,
 ) (taskList []*TaskDO, err error) {
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	taskList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*taskDAO) GetAll(ctx context.Context,
 }
 
 func (*taskDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*TaskDO, error) {
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*taskDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*taskDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*taskDAO) GetByID(ctx context.Context, iD int32,
 		return task, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	task, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*taskDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().Task
+	q := db.GetQuery().Task
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*taskDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return taskMap, nil
 }
-

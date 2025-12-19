@@ -13,7 +13,7 @@ func (*userDAO) GetOrAdd(ctx context.Context,
 	if user == nil || user.UserName == "" {
 		return nil, errors.New("user name is empty")
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	user, err := q.WithContext(ctx).
 		Where(q.UserName.Eq(user.UserName)).
 		Attrs(q.UserName.Value(user.UserName)).
@@ -28,7 +28,7 @@ func (*userDAO) EditUserName(ctx context.Context, id int32, userName string) err
 	if id == 0 || userName == "" {
 		return errors.New("argument invalid")
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	_, err := q.WithContext(ctx).
 		Where(q.ID.Eq(id)).
 		UpdateSimple(q.UserName.Value(userName))
@@ -39,7 +39,7 @@ func (*userDAO) SelectByRecordId(ctx context.Context, recordID string) (*model.U
 	if recordID == "" {
 		return nil, nil
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	user, err := q.WithContext(ctx).
 		Where(q.MtblRecordID.Eq(recordID)).
 		First()
@@ -53,7 +53,7 @@ func (*userDAO) UpdateMtblInfo(ctx context.Context, id int32,
 	if id == 0 {
 		return errors.New("argument invalid")
 	}
-	q := db.GetPG().User
+	q := db.GetQuery().User
 	_, err := q.WithContext(ctx).
 		Where(q.ID.Eq(id)).
 		UpdateSimple(

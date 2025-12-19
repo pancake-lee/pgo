@@ -95,7 +95,7 @@ func main() {
 	pdb.MustInitPGByConfig()
 
 	// 通过反射获取所有表
-	q := db.GetPG()
+	q := db.GetQuery()
 	qVal := reflect.ValueOf(q).Elem()
 	for i := 0; i < qVal.NumField(); i++ {
 		field := qVal.Type().Field(i)

@@ -21,7 +21,7 @@ func (*courseSwapRequestDAO) Add(ctx context.Context, courseSwapRequest *CourseS
 	if courseSwapRequest == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	err := q.WithContext(ctx).Create(courseSwapRequest)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*courseSwapRequestDAO) Add(ctx context.Context, courseSwapRequest *CourseS
 
 func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 ) (courseSwapRequestList []*CourseSwapRequestDO, err error) {
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	courseSwapRequestList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*courseSwapRequestDAO) GetAll(ctx context.Context,
 }
 
 func (*courseSwapRequestDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*CourseSwapRequestDO, error) {
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*courseSwapRequestDAO) UpdateByID(ctx context.Context, do *CourseSwapReque
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*courseSwapRequestDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*courseSwapRequestDAO) DelByIDList(ctx context.Context, iDList []int32) er
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*courseSwapRequestDAO) GetByID(ctx context.Context, iD int32,
 		return courseSwapRequest, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	courseSwapRequest, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*courseSwapRequestDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().CourseSwapRequest
+	q := db.GetQuery().CourseSwapRequest
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*courseSwapRequestDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return courseSwapRequestMap, nil
 }
-

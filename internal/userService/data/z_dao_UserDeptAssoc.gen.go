@@ -21,7 +21,7 @@ func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO
 	if userDeptAssoc == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	err := q.WithContext(ctx).Create(userDeptAssoc)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO
 
 func (*userDeptAssocDAO) GetAll(ctx context.Context,
 ) (userDeptAssocList []*UserDeptAssocDO, err error) {
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	userDeptAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userDeptAssocDAO) GetAll(ctx context.Context,
 }
 
 func (*userDeptAssocDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserDeptAssocDO, error) {
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userDeptAssocDAO) UpdateByID(ctx context.Context, do *UserDeptAssocDO) er
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userDeptAssocDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userDeptAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error 
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userDeptAssocDAO) GetByID(ctx context.Context, iD int32,
 		return userDeptAssoc, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	userDeptAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userDeptAssocMap, nil
 }
-

@@ -21,7 +21,7 @@ func (*userProjectAssocDAO) Add(ctx context.Context, userProjectAssoc *UserProje
 	if userProjectAssoc == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	err := q.WithContext(ctx).Create(userProjectAssoc)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userProjectAssocDAO) Add(ctx context.Context, userProjectAssoc *UserProje
 
 func (*userProjectAssocDAO) GetAll(ctx context.Context,
 ) (userProjectAssocList []*UserProjectAssocDO, err error) {
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	userProjectAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userProjectAssocDAO) GetAll(ctx context.Context,
 }
 
 func (*userProjectAssocDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserProjectAssocDO, error) {
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userProjectAssocDAO) UpdateByID(ctx context.Context, do *UserProjectAssoc
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userProjectAssocDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userProjectAssocDAO) DelByIDList(ctx context.Context, iDList []int32) err
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userProjectAssocDAO) GetByID(ctx context.Context, iD int32,
 		return userProjectAssoc, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	userProjectAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userProjectAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserProjectAssoc
+	q := db.GetQuery().UserProjectAssoc
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userProjectAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userProjectAssocMap, nil
 }
-

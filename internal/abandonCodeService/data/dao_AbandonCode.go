@@ -19,7 +19,7 @@ func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) erro
 	if abandonCode == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	err := q.WithContext(ctx).Create(abandonCode)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -29,7 +29,7 @@ func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) erro
 
 func (*abandonCodeDAO) GetAll(ctx context.Context,
 ) (abandonCodeList []*AbandonCodeDO, err error) {
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	abandonCodeList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -44,7 +44,7 @@ func (*abandonCodeDAO) GetByIndex(ctx context.Context,
 	idx3List []int32,
 	// MARK REPLACE IDX COL END
 ) ([]*AbandonCodeDO, error) {
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	do := q.WithContext(ctx)
 	// MARK REPLACE IDX WHERE START
 	if len(idx1List) > 0 {
@@ -69,7 +69,7 @@ func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) erro
 	if do.Idx1 == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(do.Idx1)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -81,7 +81,7 @@ func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
 	if idx1 == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(idx1)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -93,7 +93,7 @@ func (*abandonCodeDAO) DelByIdx1List(ctx context.Context, idx1List []int32) erro
 	if len(idx1List) == 0 {
 		return nil
 	}
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	_, err := q.WithContext(ctx).
 		Where(q.Idx1.In(idx1List...)).Delete()
 	if err != nil {
@@ -108,7 +108,7 @@ func (*abandonCodeDAO) GetByIdx1(ctx context.Context, idx1 int32,
 		return abandonCode, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	abandonCode, err = q.WithContext(ctx).
 		Where(q.Idx1.Eq(idx1)).First()
 	if err != nil {
@@ -123,7 +123,7 @@ func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().AbandonCode
+	q := db.GetQuery().AbandonCode
 	l, err := q.WithContext(ctx).
 		Where(q.Idx1.In(idx1List...)).Find()
 	if err != nil {

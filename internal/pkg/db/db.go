@@ -5,6 +5,6 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pdb"
 )
 
-func GetPG() *query.Query {
+func GetQuery() *query.Query {
 	return query.Use(pdb.GetGormDB())
 }

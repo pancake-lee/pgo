@@ -12,6 +12,6 @@ func (*userRolePermissionAssocDAO) GetByRoleIDs(ctx context.Context, roleIDs []i
 		return nil, nil
 	}
 
-	q := db.GetPG()
+	q := db.GetQuery()
 	return q.UserRolePermissionAssoc.WithContext(ctx).Where(q.UserRolePermissionAssoc.RoleID.In(roleIDs...)).Find()
 }

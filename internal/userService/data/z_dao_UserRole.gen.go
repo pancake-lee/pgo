@@ -21,7 +21,7 @@ func (*userRoleDAO) Add(ctx context.Context, userRole *UserRoleDO) error {
 	if userRole == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	err := q.WithContext(ctx).Create(userRole)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userRoleDAO) Add(ctx context.Context, userRole *UserRoleDO) error {
 
 func (*userRoleDAO) GetAll(ctx context.Context,
 ) (userRoleList []*UserRoleDO, err error) {
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	userRoleList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userRoleDAO) GetAll(ctx context.Context,
 }
 
 func (*userRoleDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserRoleDO, error) {
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userRoleDAO) UpdateByID(ctx context.Context, do *UserRoleDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userRoleDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userRoleDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userRoleDAO) GetByID(ctx context.Context, iD int32,
 		return userRole, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	userRole, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserRole
+	q := db.GetQuery().UserRole
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userRoleMap, nil
 }
-

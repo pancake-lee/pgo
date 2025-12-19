@@ -9,7 +9,7 @@ import (
 func (*userDeptAssocDAO) DelByPrimaryKey(ctx context.Context,
 	userID, deptID int32) error {
 
-	q := db.GetPG().UserDeptAssoc
+	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).
 		Where(q.UserID.Eq(userID), q.DeptID.Eq(deptID)).
 		Delete()

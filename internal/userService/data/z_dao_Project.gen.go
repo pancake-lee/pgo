@@ -21,7 +21,7 @@ func (*projectDAO) Add(ctx context.Context, project *ProjectDO) error {
 	if project == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	err := q.WithContext(ctx).Create(project)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*projectDAO) Add(ctx context.Context, project *ProjectDO) error {
 
 func (*projectDAO) GetAll(ctx context.Context,
 ) (projectList []*ProjectDO, err error) {
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	projectList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*projectDAO) GetAll(ctx context.Context,
 }
 
 func (*projectDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*ProjectDO, error) {
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*projectDAO) UpdateByID(ctx context.Context, do *ProjectDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*projectDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*projectDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*projectDAO) GetByID(ctx context.Context, iD int32,
 		return project, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	project, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().Project
+	q := db.GetQuery().Project
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return projectMap, nil
 }
-

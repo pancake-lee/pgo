@@ -12,7 +12,7 @@ func (*userJobDAO) EditJobName(ctx context.Context,
 	if id == 0 || jobName == "" {
 		return errors.New("param is invalid")
 	}
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(id)).
 		Update(q.JobName, jobName)
 	if err != nil {

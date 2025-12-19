@@ -137,15 +137,15 @@ func dumpTableByMysqldump(tbl *Table, outputFile string, filter string) error {
 	// 假设使用相同的数据库连接配置
 
 	sqlArgs := []string{
-		"-h", pdb.Host,
-		"-P", putil.Int32ToStr(pdb.Port),
-		"-u", pdb.User,
-		"-p" + pdb.Password,
+		"-h", pdb.GetSqlConfig().Host,
+		"-P", putil.Int32ToStr(pdb.GetSqlConfig().Port),
+		"-u", pdb.GetSqlConfig().User,
+		"-p" + pdb.GetSqlConfig().Password,
 		"--single-transaction",
 		"--routines",
 		"--triggers",
 		"--complete-insert",
-		pdb.DbName,
+		pdb.GetSqlConfig().DbName,
 		tbl.TableName,
 	}
 	if filter != "" {

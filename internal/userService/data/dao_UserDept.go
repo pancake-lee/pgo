@@ -12,7 +12,7 @@ func (*userDeptDAO) EditDeptName(ctx context.Context,
 	if id == 0 || deptName == "" {
 		return errors.New("param is invalid")
 	}
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(id)).
 		Update(q.DeptName, deptName)
 	if err != nil {
@@ -28,7 +28,7 @@ func (*userDeptDAO) GetWithDeptPath(ctx context.Context, deptPath string,
 		return userDept, errors.New("param is invalid")
 	}
 
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	userDept, err = q.WithContext(ctx).
 		Where(q.DeptPath.Eq(deptPath)).First()
 	if err != nil {
@@ -43,7 +43,7 @@ func (*userDeptDAO) GetWithDeptPaths(ctx context.Context, deptPaths []string,
 		return userDeptList, nil
 	}
 
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	userDeptList, err = q.WithContext(ctx).
 		Where(q.DeptPath.In(deptPaths...)).Find()
 	if err != nil {

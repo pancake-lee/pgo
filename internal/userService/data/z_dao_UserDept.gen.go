@@ -21,7 +21,7 @@ func (*userDeptDAO) Add(ctx context.Context, userDept *UserDeptDO) error {
 	if userDept == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	err := q.WithContext(ctx).Create(userDept)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userDeptDAO) Add(ctx context.Context, userDept *UserDeptDO) error {
 
 func (*userDeptDAO) GetAll(ctx context.Context,
 ) (userDeptList []*UserDeptDO, err error) {
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	userDeptList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userDeptDAO) GetAll(ctx context.Context,
 }
 
 func (*userDeptDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserDeptDO, error) {
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userDeptDAO) UpdateByID(ctx context.Context, do *UserDeptDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userDeptDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userDeptDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userDeptDAO) GetByID(ctx context.Context, iD int32,
 		return userDept, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	userDept, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userDeptDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserDept
+	q := db.GetQuery().UserDept
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userDeptDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userDeptMap, nil
 }
-

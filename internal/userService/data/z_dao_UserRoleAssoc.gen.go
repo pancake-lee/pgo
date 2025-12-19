@@ -21,7 +21,7 @@ func (*userRoleAssocDAO) Add(ctx context.Context, userRoleAssoc *UserRoleAssocDO
 	if userRoleAssoc == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	err := q.WithContext(ctx).Create(userRoleAssoc)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userRoleAssocDAO) Add(ctx context.Context, userRoleAssoc *UserRoleAssocDO
 
 func (*userRoleAssocDAO) GetAll(ctx context.Context,
 ) (userRoleAssocList []*UserRoleAssocDO, err error) {
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	userRoleAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userRoleAssocDAO) GetAll(ctx context.Context,
 }
 
 func (*userRoleAssocDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserRoleAssocDO, error) {
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userRoleAssocDAO) UpdateByID(ctx context.Context, do *UserRoleAssocDO) er
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userRoleAssocDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userRoleAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error 
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userRoleAssocDAO) GetByID(ctx context.Context, iD int32,
 		return userRoleAssoc, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	userRoleAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userRoleAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserRoleAssoc
+	q := db.GetQuery().UserRoleAssoc
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userRoleAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userRoleAssocMap, nil
 }
-

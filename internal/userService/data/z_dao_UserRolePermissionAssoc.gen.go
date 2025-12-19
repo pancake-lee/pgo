@@ -21,7 +21,7 @@ func (*userRolePermissionAssocDAO) Add(ctx context.Context, userRolePermissionAs
 	if userRolePermissionAssoc == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	err := q.WithContext(ctx).Create(userRolePermissionAssoc)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userRolePermissionAssocDAO) Add(ctx context.Context, userRolePermissionAs
 
 func (*userRolePermissionAssocDAO) GetAll(ctx context.Context,
 ) (userRolePermissionAssocList []*UserRolePermissionAssocDO, err error) {
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	userRolePermissionAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userRolePermissionAssocDAO) GetAll(ctx context.Context,
 }
 
 func (*userRolePermissionAssocDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserRolePermissionAssocDO, error) {
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userRolePermissionAssocDAO) UpdateByID(ctx context.Context, do *UserRoleP
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userRolePermissionAssocDAO) DelByID(ctx context.Context, iD int32) error 
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userRolePermissionAssocDAO) DelByIDList(ctx context.Context, iDList []int
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userRolePermissionAssocDAO) GetByID(ctx context.Context, iD int32,
 		return userRolePermissionAssoc, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	userRolePermissionAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userRolePermissionAssocDAO) GetByIDList(ctx context.Context, iDList []int
 		return nil, nil
 	}
 
-	q := db.GetPG().UserRolePermissionAssoc
+	q := db.GetQuery().UserRolePermissionAssoc
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userRolePermissionAssocDAO) GetByIDList(ctx context.Context, iDList []int
 	}
 	return userRolePermissionAssocMap, nil
 }
-

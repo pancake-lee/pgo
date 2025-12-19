@@ -21,7 +21,7 @@ func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
 	if userJob == nil {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	err := q.WithContext(ctx).Create(userJob)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -31,7 +31,7 @@ func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
 
 func (*userJobDAO) GetAll(ctx context.Context,
 ) (userJobList []*UserJobDO, err error) {
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	userJobList, err = q.WithContext(ctx).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
@@ -40,9 +40,9 @@ func (*userJobDAO) GetAll(ctx context.Context,
 }
 
 func (*userJobDAO) GetByIndex(ctx context.Context,
-IDList []int32,
+	IDList []int32,
 ) ([]*UserJobDO, error) {
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	do := q.WithContext(ctx)
 
 	if len(IDList) > 0 {
@@ -59,7 +59,7 @@ func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
 	if do.ID == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
 		return plogger.LogErr(err)
@@ -71,7 +71,7 @@ func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
 	if iD == 0 {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
 		return plogger.LogErr(err)
@@ -83,7 +83,7 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
@@ -98,7 +98,7 @@ func (*userJobDAO) GetByID(ctx context.Context, iD int32,
 		return userJob, plogger.LogErr(perr.ErrParamInvalid)
 	}
 
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	userJob, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
@@ -113,7 +113,7 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 		return nil, nil
 	}
 
-	q := db.GetPG().UserJob
+	q := db.GetQuery().UserJob
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
@@ -125,4 +125,3 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userJobMap, nil
 }
-
