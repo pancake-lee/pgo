@@ -444,12 +444,31 @@ func NewFormulaCol(colName string, expression string) *AddField {
 
 // --------------------------------------------------
 // OneWayLink（单向关联）字段
-func NewOneWayLinkCol(colName string, foreignDatasheetId string, multiSelect bool) *AddField {
+func NewOneWayLinkCol(colName string,
+	foreignDatasheetId string,
+	multiSelect bool) *AddField {
 	return &AddField{
 		Name: colName,
 		Type: FIELD_TYPE_ONE_WAY_LINK,
 		Property: map[string]any{
 			"foreignDatasheetId": foreignDatasheetId,
+			"limitSingleRecord":  !multiSelect,
+			// "limitToViewId":      limitToViewId, // 没有创建视图的API，就不能完成整个程序闭环
+		},
+	}
+}
+
+// --------------------------------------------------
+// OneTwoLink（双向关联）字段
+func NewTwoWayLinkCol(colName string,
+	foreignDatasheetId, brotherFieldId string,
+	multiSelect bool) *AddField {
+	return &AddField{
+		Name: colName,
+		Type: FIELD_TYPE_TWO_WAY_LINK,
+		Property: map[string]any{
+			"foreignDatasheetId": foreignDatasheetId,
+			"brotherFieldId":     brotherFieldId,
 			"limitSingleRecord":  !multiSelect,
 			// "limitToViewId":      limitToViewId, // 没有创建视图的API，就不能完成整个程序闭环
 		},

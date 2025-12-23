@@ -15,7 +15,8 @@ func TestGetRow(t *testing.T) {
 	var err error
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(),
+		"../../configs/pancake.yaml"))
 
 	err = InitAPITableByConfig()
 	if err != nil {
@@ -26,9 +27,32 @@ func TestGetRow(t *testing.T) {
 		pconfig.GetStringM("APITable.spaceId"),
 		pconfig.GetStringM("APITable.datasheetId"))
 
+	relFieldName := "负责人"
+	relShowFieldName := "姓名"
+	var relField *Field
+
+	cols, err := doc.GetCols()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range cols {
+		plogger.Debugf("Col: %+v", c)
+		if c.Name == relFieldName {
+			relField = c
+		}
+	}
+
+	var relDoc *MultiTableDoc
+	if relField != nil {
+		tblId := relField.Property["foreignDatasheetId"]
+		relDoc = NewMultiTableDoc(
+			pconfig.GetStringM("APITable.spaceId"),
+			tblId.(string))
+	}
+
 	// 读取数据
 	resp, err := doc.GetRow(&GetRecordRequest{
-		PageNum: 1, PageSize: 10})
+		PageNum: 1, PageSize: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,6 +61,23 @@ func TestGetRow(t *testing.T) {
 	}
 	for _, r := range resp.Data.Records {
 		plogger.Debugf("GetRow response: %+v", r)
+		if relField == nil {
+			continue
+		}
+		projRootRelList, err := ParseOneWayLinkValue(r.Fields[relFieldName])
+		if err != nil {
+			t.Fatal(err)
+		}
+		relRow, err := relDoc.GetRow(&GetRecordRequest{
+			PageNum: 1, PageSize: len(projRootRelList),
+			RecordIds: projRootRelList,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, rr := range relRow.Data.Records {
+			plogger.Debugf("related field[%v]: %+v", relFieldName, rr.Fields[relShowFieldName])
+		}
 	}
 }
 
@@ -50,7 +91,7 @@ func TestAPITable(t *testing.T) {
 		t.Fatal(err)
 	}
 	// --------------------------------------------------
-	if true {
+	if false { // 用户接口文档有，但是404
 		// 用户列表
 		userList, err := GetUserList(pconfig.GetStringM("APITable.spaceId"))
 		if err != nil {
@@ -179,7 +220,7 @@ func TestFileCol(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if true { // 关闭上传，测试/确认附件字段值的结构
+	if true { // true = 关闭上传，测试/确认附件字段值的结构
 		filePath := "../../bin/2.jpg"
 		// 打开文件
 		f, err := os.Open(filePath)

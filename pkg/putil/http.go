@@ -3,7 +3,6 @@ package putil
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -126,8 +125,8 @@ func NewHttpRequestJson(method, rawURL string, header, querys map[string]string,
 }
 
 func NewHttpRequest(method, rawURL string, header, querys map[string]string, body string) (*http.Request, error) {
-	fmt.Println("url  : ", rawURL)
-	fmt.Println("body : ", body)
+	// fmt.Println("url  : ", rawURL)
+	// fmt.Println("body : ", body)
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err

@@ -205,8 +205,16 @@ func NewOneWayLinkValue(recordIds []string) []string {
 }
 
 func ParseOneWayLinkValue(value any) ([]string, error) {
-	if recordIds, ok := value.([]string); ok {
-		return recordIds, nil
+	if recordIds, ok := value.([]any); ok {
+		strIds := make([]string, 0, len(recordIds))
+		for _, id := range recordIds {
+			if strId, ok := id.(string); ok {
+				strIds = append(strIds, strId)
+			} else {
+				return nil, fmt.Errorf("invalid link record id type: %T", id)
+			}
+		}
+		return strIds, nil
 	}
 	return nil, fmt.Errorf("invalid link value type: %T", value)
 }
