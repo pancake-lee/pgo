@@ -5,7 +5,8 @@ type conf struct {
 	TokenSK     string `default:"12345678123456781234567812345678"` //secret key
 
 	APITable struct {
-		UserSheetID string
+		UserSheetID    string
+		ProjectSheetID string
 	}
 }
 

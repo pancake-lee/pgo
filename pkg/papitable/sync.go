@@ -7,6 +7,10 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
+// 本文件主要提供的是SyncHelper
+// 封装的内容主要是LTBL和MTBL的双向同步逻辑
+// 而双方表格具体的字段映射关系，数据获取等等都是DataProvider接口提供的
+
 // 同步数据到apitable
 // 1：初始化apitable，创建表结构（或对比表结构差异，更新表结构），并全量同步一次数据
 // 2：本地数据变更，触发同步数据到apitable
@@ -30,10 +34,10 @@ type DataProvider interface {
 	// GetColList 获取所有列定义
 	GetColList() []*AddField
 
-	// L2MTBL 将本地记录转换为APITable记录
+	// L2M 将本地记录转换为APITable记录
 	// record: 本地记录
 	// oldMtblRecord: APITable上的旧记录（如果是更新）
-	L2MTBL(record any, oldMtblRecord *CommonRecord) map[string]any
+	L2M(record any, oldMtblRecord *CommonRecord) map[string]any
 
 	// GetSyncData 获取全量同步的数据
 	GetSyncData() ([]*AddRecord, error)
@@ -203,7 +207,7 @@ func (s *SyncHelper) UpdateToMTBL(
 	if localLastEditFrom != LastEditFrom_TEMP {
 		if oldRecord == nil {
 			// 新增
-			fieldList := s.dataProvider.L2MTBL(localRecord, nil)
+			fieldList := s.dataProvider.L2M(localRecord, nil)
 			if fieldList == nil {
 				// 不一定是错误，也许localRecord参数不足，或者不需要同步，中止
 				s.log.Infof("local L2M [%d] is nil, skip", localId)
@@ -230,7 +234,7 @@ func (s *SyncHelper) UpdateToMTBL(
 
 		} else {
 			// 更新
-			fieldList := s.dataProvider.L2MTBL(localRecord, oldRecord)
+			fieldList := s.dataProvider.L2M(localRecord, oldRecord)
 			if fieldList == nil {
 				s.log.Errorf("local L2M [%d] is nil, skip", localId)
 				return nil
@@ -341,7 +345,7 @@ func (s *SyncHelper) UpdateToLTBL(mtblRecord *CommonRecord) error {
 
 	// 重新从LTBL转一次，这样可以通过 UpdateLocalRecord 中修改 localRecord 的值，更新到MTBL
 	// 比如某些值不允许MTBL修改，或有更复杂的修改逻辑，强制覆盖回去
-	fieldList := s.dataProvider.L2MTBL(localRecord, mtblRecord)
+	fieldList := s.dataProvider.L2M(localRecord, mtblRecord)
 	if fieldList == nil {
 		s.log.Errorf("MTBL L2M [%s] is nil", mtblRecordId)
 		return fmt.Errorf("MTBL L2M [%s] is nil", mtblRecordId)

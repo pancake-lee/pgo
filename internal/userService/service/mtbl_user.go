@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
 
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/data"
@@ -122,7 +121,7 @@ func (dao *t_MtblUser) GetColList() []*papitable.AddField {
 	}
 }
 
-func (dao *t_MtblUser) L2MTBL(record any, oldMtblRecord *papitable.CommonRecord) map[string]any {
+func (dao *t_MtblUser) L2M(record any, oldMtblRecord *papitable.CommonRecord) map[string]any {
 	if record == nil {
 		return nil
 	}
@@ -143,13 +142,9 @@ func (dao *t_MtblUser) GetSyncData() ([]*papitable.AddRecord, error) {
 		return nil, err
 	}
 
-	sort.Slice(uList, func(i, j int) bool {
-		return uList[i].UserName < uList[j].UserName
-	})
-
 	var ret []*papitable.AddRecord
 	for _, u := range uList {
-		row := dao.L2MTBL(u, nil)
+		row := dao.L2M(u, nil)
 		if row == nil {
 			plogger.Errorf("user [%d] conv to mtbl data is nil, skip", u.ID)
 			continue

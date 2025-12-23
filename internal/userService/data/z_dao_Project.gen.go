@@ -32,7 +32,7 @@ func (*projectDAO) Add(ctx context.Context, project *ProjectDO) error {
 func (*projectDAO) GetAll(ctx context.Context,
 ) (projectList []*ProjectDO, err error) {
 	q := db.GetQuery().Project
-	projectList, err = q.WithContext(ctx).Find()
+	projectList, err = q.WithContext(ctx).Order(q.ID).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

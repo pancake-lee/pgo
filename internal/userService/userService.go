@@ -33,6 +33,9 @@ func main() {
 	pmq.DefaultClient.DeclareServerEvent(
 		"apitable_event", "apitable_change", true,
 		service.OnMtblUpdateUser)
+	pmq.DefaultClient.DeclareServerEvent(
+		"apitable_event", "apitable_change", true,
+		service.OnMtblUpdateProject)
 
 	// --------------------------------------------------
 	err = pconfig.Scan(&conf.UserSvcConf)

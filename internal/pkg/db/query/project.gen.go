@@ -33,6 +33,8 @@ func newProject(db *gorm.DB, opts ...gen.DOOption) project {
 	_project.UpdateTime = field.NewTime(tableName, "update_time")
 	_project.UpdateUser = field.NewInt32(tableName, "update_user")
 	_project.ProjName = field.NewString(tableName, "proj_name")
+	_project.MtblRecordID = field.NewString(tableName, "mtbl_record_id")
+	_project.LastEditFrom = field.NewString(tableName, "last_edit_from")
 
 	_project.fillFieldMap()
 
@@ -42,13 +44,15 @@ func newProject(db *gorm.DB, opts ...gen.DOOption) project {
 type project struct {
 	projectDo projectDo
 
-	ALL        field.Asterisk
-	ID         field.Int32
-	CreateTime field.Time
-	CreateUser field.Int32
-	UpdateTime field.Time
-	UpdateUser field.Int32
-	ProjName   field.String
+	ALL          field.Asterisk
+	ID           field.Int32
+	CreateTime   field.Time
+	CreateUser   field.Int32
+	UpdateTime   field.Time
+	UpdateUser   field.Int32
+	ProjName     field.String
+	MtblRecordID field.String
+	LastEditFrom field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -71,6 +75,8 @@ func (p *project) updateTableName(table string) *project {
 	p.UpdateTime = field.NewTime(table, "update_time")
 	p.UpdateUser = field.NewInt32(table, "update_user")
 	p.ProjName = field.NewString(table, "proj_name")
+	p.MtblRecordID = field.NewString(table, "mtbl_record_id")
+	p.LastEditFrom = field.NewString(table, "last_edit_from")
 
 	p.fillFieldMap()
 
@@ -95,13 +101,15 @@ func (p *project) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (p *project) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 6)
+	p.fieldMap = make(map[string]field.Expr, 8)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["create_time"] = p.CreateTime
 	p.fieldMap["create_user"] = p.CreateUser
 	p.fieldMap["update_time"] = p.UpdateTime
 	p.fieldMap["update_user"] = p.UpdateUser
 	p.fieldMap["proj_name"] = p.ProjName
+	p.fieldMap["mtbl_record_id"] = p.MtblRecordID
+	p.fieldMap["last_edit_from"] = p.LastEditFrom
 }
 
 func (p project) clone(db *gorm.DB) project {

@@ -32,7 +32,7 @@ func (*userDAO) Add(ctx context.Context, user *UserDO) error {
 func (*userDAO) GetAll(ctx context.Context,
 ) (userList []*UserDO, err error) {
 	q := db.GetQuery().User
-	userList, err = q.WithContext(ctx).Find()
+	userList, err = q.WithContext(ctx).Order(q.ID).Find()
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

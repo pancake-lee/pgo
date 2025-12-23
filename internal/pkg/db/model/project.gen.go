@@ -12,12 +12,14 @@ const TableNameProject = "project"
 
 // Project mapped from table <project>
 type Project struct {
-	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
-	CreateUser int32     `gorm:"column:create_user;not null" json:"create_user"`
-	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
-	UpdateUser int32     `gorm:"column:update_user;not null" json:"update_user"`
-	ProjName   string    `gorm:"column:proj_name;not null" json:"proj_name"`
+	ID           int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	CreateTime   time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	CreateUser   int32     `gorm:"column:create_user;not null" json:"create_user"`
+	UpdateTime   time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
+	UpdateUser   int32     `gorm:"column:update_user;not null" json:"update_user"`
+	ProjName     string    `gorm:"column:proj_name;not null" json:"proj_name"`
+	MtblRecordID string    `gorm:"column:mtbl_record_id;not null" json:"mtbl_record_id"`
+	LastEditFrom string    `gorm:"column:last_edit_from;not null" json:"last_edit_from"`
 }
 
 // TableName Project's table name
