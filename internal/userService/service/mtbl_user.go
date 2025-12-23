@@ -2,255 +2,70 @@ package service
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
-	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/pmq"
 )
 
-// 当前完全以多维表格作为操作入口，不用处理本地数据库的变更回调
-// func OnLtblUpdateUser(ctx context.Context) error
-
-// 用户的多维表不需要代码来建，手动建好即可，然后把datasheetId记录到配置文件中
-// func CreateMtblUser(ctx context.Context) error
-
 func OnMtblUpdateUser(ctx context.Context) error {
-	pmqCtx := pmq.GetPMQContext(ctx)
-	var event papitable.ApiTableEvent
-	err := json.Unmarshal([]byte(pmqCtx.Req), &event)
-	if err != nil {
-		plogger.Errorf("OnMtblUpdate unmarshal event err: %v", err)
-		return err
-	}
-	if event.DatasheetId != conf.UserSvcConf.APITable.UserSheetID {
-		return nil // 只处理用户表的变更事件
-	}
-	plogger.Infof("OnMtblUpdate received event: %+v", event)
-
-	switch event.Event {
-	case "insert", "update":
-		return updateUser_M2L(ctx, event.DatasheetId, event.RecordId)
-	case "delete":
-		return deleteUser_M2L(ctx, event.DatasheetId, event.RecordId)
-	default:
-		plogger.Warnf("skip unknown event type: %v", event.Event)
-		return nil
-	}
+	return NewMtblUser(ctx).HandleMtblEvent()
 }
 
-func deleteUser_M2L(ctx context.Context, datasheetId, recordId string) error {
-	papitable.LastEditFromMarker_LTBL.Set(recordId) // delete触发的ltbl回调直接忽略掉就好了
-	err := data.UserDAO.DelByRecordID(ctx, recordId)
-	if err != nil {
-		return plogger.LogErr(err)
+func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
+	return &papitable.BaseDataProvider{
+		Ctx:         ctx,
+		DatasheetID: conf.UserSvcConf.APITable.UserSheetID,
+		TableConfig: &papitable.TableConfig{
+			TableName:  "人员表",
+			PrimaryCol: papitable.NewTextCol("姓名"),
+			ColList: []*papitable.FieldConfig{
+				{Col: papitable.NewTextCol("姓名"), DOField: "UserName"},
+				{Col: papitable.NewSimpleNumCol("UserID"), DOField: "ID"},
+			},
+			NewDO: func() any { return &data.UserDO{} },
+		},
+		DAO: &UserDAOWrapper{},
+		GetIDByDO: func(record any) int32 {
+			if do, ok := record.(*data.UserDO); ok {
+				return do.ID
+			}
+			return 0
+		},
 	}
-	return nil
-}
-
-func updateUser_M2L(ctx context.Context, datasheetId, recordId string) error {
-	spaceId, err := pconfig.GetStringE("APITable.spaceId")
-	if err != nil {
-		plogger.Errorf("getTaskDoc: APITable.spaceId not found in config: %v", err)
-		return nil
-	}
-	doc := papitable.NewMultiTableDoc(spaceId, datasheetId)
-
-	resp, err := doc.GetRow(&papitable.GetRecordRequest{
-		RecordIds: []string{recordId},
-	})
-	if err != nil {
-		plogger.Errorf("GetRow failed for recordId %s, err: %v", recordId, err)
-		return err
-	}
-	if len(resp.Data.Records) == 0 {
-		plogger.Errorf("GetRow returned no data for recordId %s", recordId)
-		return fmt.Errorf("recordId %s not found in mtbl", recordId)
-	} else if len(resp.Data.Records) > 1 {
-		plogger.Errorf("GetRow returned multiple data for recordId %s", recordId)
-		return fmt.Errorf("recordId %s returned multiple records in mtbl", recordId)
-	}
-
-	row := resp.Data.Records[0]
-	mtblDao := NewMtblUser(ctx, doc)
-	syncHelper := papitable.NewSyncHelper(mtblDao, doc).
-		WithLogger(plogger.GetDefaultLogWarper())
-	err = syncHelper.UpdateToLTBL(row)
-	if err != nil {
-		return plogger.LogErr(err)
-	}
-
-	return nil
 }
 
 // --------------------------------------------------
-var _ papitable.DataProvider = (*t_MtblUser)(nil)
+type UserDAOWrapper struct{}
 
-type t_MtblUser struct {
-	ctx context.Context
-	doc *papitable.MultiTableDoc
+func (d *UserDAOWrapper) Add(ctx context.Context, do any) error {
+	return data.UserDAO.Add(ctx, do.(*data.UserDO))
 }
 
-func NewMtblUser(ctx context.Context, doc *papitable.MultiTableDoc) *t_MtblUser {
-	return &t_MtblUser{
-		ctx: ctx,
-		doc: doc,
-	}
+func (d *UserDAOWrapper) UpdateByID(ctx context.Context, do any) error {
+	return data.UserDAO.UpdateByID(ctx, do.(*data.UserDO))
 }
 
-func (dao *t_MtblUser) SetDoc(doc *papitable.MultiTableDoc) {
-	dao.doc = doc
-}
-
-func (dao *t_MtblUser) GetTableName() string {
-	return "人员表"
-}
-
-func (dao *t_MtblUser) GetPrimaryCol() *papitable.AddField {
-	return papitable.NewTextCol("姓名")
-}
-
-func (dao *t_MtblUser) GetColList() []*papitable.AddField {
-	return []*papitable.AddField{
-		papitable.NewTextCol("姓名"),
-		papitable.NewSimpleNumCol("UserID"),
-	}
-}
-
-func (dao *t_MtblUser) L2M(record any, oldMtblRecord *papitable.CommonRecord) map[string]any {
-	if record == nil {
-		return nil
-	}
-	u, ok := record.(*data.UserDO)
-	if !ok {
-		return nil
-	}
-
-	valMap := make(map[string]any)
-	valMap["姓名"] = papitable.NewTextValue(u.UserName)
-	valMap["UserID"] = papitable.NewNumValue(float64(u.ID))
-	return valMap
-}
-
-func (dao *t_MtblUser) GetSyncData() ([]*papitable.AddRecord, error) {
-	uList, err := data.UserDAO.GetAll(dao.ctx)
+func (d *UserDAOWrapper) GetAll(ctx context.Context) ([]any, error) {
+	list, err := data.UserDAO.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	var ret []*papitable.AddRecord
-	for _, u := range uList {
-		row := dao.L2M(u, nil)
-		if row == nil {
-			plogger.Errorf("user [%d] conv to mtbl data is nil, skip", u.ID)
-			continue
-		}
-		ret = append(ret, &papitable.AddRecord{Values: row})
+	ret := make([]any, len(list))
+	for i, v := range list {
+		ret[i] = v
 	}
 	return ret, nil
 }
 
-func (dao *t_MtblUser) GetLastEditFrom(record any) string {
-	u, ok := record.(*data.UserDO)
-	if !ok {
-		return ""
-	}
-	if u == nil {
-		return ""
-	}
-	return u.LastEditFrom
+func (d *UserDAOWrapper) GetByID(ctx context.Context, id int32) (any, error) {
+	return data.UserDAO.GetByID(ctx, id)
 }
 
-func (dao *t_MtblUser) UpdateMtblRecordID(id any, mtblRecordId, lastEditFrom string) error {
-	userID, ok := id.(int32)
-	if !ok {
-		return fmt.Errorf("invalid userID : %v", id)
-	}
-
-	err := data.UserDAO.UpdateMtblInfo(
-		dao.ctx, userID, mtblRecordId, lastEditFrom)
-	if err != nil {
-		return fmt.Errorf("update user[%v] mtbl col err : %v", userID, err)
-	}
-	return nil
+func (d *UserDAOWrapper) GetByMtblRecordID(ctx context.Context, recordId string) (any, error) {
+	return data.UserDAO.SelectByRecordId(ctx, recordId)
 }
 
-func (dao *t_MtblUser) M2L(mtblRecord *papitable.CommonRecord,
-	localRecord any) any {
-	return dao.m2l(mtblRecord, localRecord.(*data.UserDO))
-}
-func (dao *t_MtblUser) m2l(mtblRecord *papitable.CommonRecord,
-	localRecord *data.UserDO) *data.UserDO {
-	values := mtblRecord.Fields
-	if values == nil {
-		return nil
-	}
-	if localRecord == nil {
-		localRecord = &data.UserDO{}
-	}
-	if v, ok := values["姓名"]; ok {
-		localRecord.UserName, _ = papitable.ParseTextValue(v)
-	}
-	if v, ok := values["UserID"]; ok {
-		numVal, _ := papitable.ParseNumValue(v)
-		localRecord.ID = int32(numVal)
-	}
-	return localRecord
-}
-
-func (dao *t_MtblUser) GetLocalRecordByMtbl(mtblRecord *papitable.CommonRecord) (any, error) {
-	var err error
-	dbTask, _ := data.UserDAO.SelectByRecordId(dao.ctx, mtblRecord.RecordId)
-	if dbTask == nil {
-		tmpData := dao.m2l(mtblRecord, nil)
-		if tmpData.ID != 0 {
-			dbTask, err = data.UserDAO.GetByID(dao.ctx, tmpData.ID)
-			if err == nil {
-				dbTask.MtblRecordID = mtblRecord.RecordId
-			}
-		}
-	}
-	return dbTask, nil
-}
-func (dao *t_MtblUser) UpdateLocalRecord(localRecord any, mtblRecord *papitable.CommonRecord,
-) (newRecord any, stop bool, err error) {
-
-	var dbData *data.UserDO
-	if localRecord != nil {
-		var ok bool
-		dbData, ok = localRecord.(*data.UserDO)
-		if !ok {
-			return nil, false, fmt.Errorf("invalid localRecord type")
-		}
-	}
-
-	var newDbData data.UserDO
-	newDbData.MtblRecordID = mtblRecord.RecordId
-	if dbData != nil {
-		newDbData = *dbData
-	}
-	dao.m2l(mtblRecord, &newDbData)
-	plogger.Debugf("MTBL recordId %s, parsed user: %v", mtblRecord.RecordId, newDbData)
-
-	if dbData == nil {
-		// 新增记录
-		err := data.UserDAO.Add(dao.ctx, &newDbData)
-		if err != nil {
-			return nil, false, err
-		}
-		plogger.Debugf("MTBL add recordId[%s] to LTBL", newDbData.MtblRecordID)
-
-	} else {
-		// 当前只允许修改UserName字段
-		err := data.UserDAO.EditUserName(dao.ctx, newDbData.ID, newDbData.UserName)
-		if err != nil {
-			return nil, false, err
-		}
-		plogger.Debugf("MTBL update recordId[%s] to LTBL", newDbData.MtblRecordID)
-	}
-	return &newDbData, false, nil
+func (d *UserDAOWrapper) DeleteByMtblRecordID(ctx context.Context, recordId string) error {
+	return data.UserDAO.DelByRecordID(ctx, recordId)
 }

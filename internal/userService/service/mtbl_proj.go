@@ -12,36 +12,27 @@ func OnMtblUpdateProject(ctx context.Context) error {
 	return NewMtblProject(ctx).HandleMtblEvent()
 }
 
-type t_MtblProject struct {
-	*BaseMtblHandler
-}
-
-func NewMtblProject(ctx context.Context) *t_MtblProject {
-	h := &BaseMtblHandler{
+func NewMtblProject(ctx context.Context) *papitable.BaseDataProvider {
+	return &papitable.BaseDataProvider{
 		Ctx:         ctx,
 		DatasheetID: conf.UserSvcConf.APITable.ProjectSheetID,
-		TableConfig: &MtblTableConfig{
+		TableConfig: &papitable.TableConfig{
 			TableName:  "项目表",
 			PrimaryCol: papitable.NewTextCol("项目名"),
-			ColList: []*MtblFieldConfig{
-				{
-					Col:     papitable.NewTextCol("项目名"),
-					DOField: "ProjName"},
-				{
-					Col:     papitable.NewSimpleNumCol("ProjectID"),
-					DOField: "ID"},
+			ColList: []*papitable.FieldConfig{
+				{Col: papitable.NewTextCol("项目名"), DOField: "ProjName"},
+				{Col: papitable.NewSimpleNumCol("ProjectID"), DOField: "ID"},
 			},
 			NewDO: func() any { return &data.ProjectDO{} },
 		},
 		DAO: &ProjectDAOWrapper{},
-		GetIDFunc: func(record any) int32 {
+		GetIDByDO: func(record any) int32 {
 			if p, ok := record.(*data.ProjectDO); ok {
 				return p.ID
 			}
 			return 0
 		},
 	}
-	return &t_MtblProject{BaseMtblHandler: h}
 }
 
 // --------------------------------------------------

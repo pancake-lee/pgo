@@ -34,11 +34,6 @@ type DataProvider interface {
 	// GetColList 获取所有列定义
 	GetColList() []*AddField
 
-	// L2M 将本地记录转换为APITable记录
-	// record: 本地记录
-	// oldMtblRecord: APITable上的旧记录（如果是更新）
-	L2M(record any, oldMtblRecord *CommonRecord) map[string]any
-
 	// GetSyncData 获取全量同步的数据
 	GetSyncData() ([]*AddRecord, error)
 	// GetLastEditFrom 获取最后修改来源
@@ -54,12 +49,6 @@ type DataProvider interface {
 	// 返回: 本地记录, error
 	GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error)
 
-	// M2L 将MTBL记录转换为本地记录结构
-	// mtblRecord: MTBL记录
-	// localRecord: 现有的本地记录（如果存在），用于合并或更新
-	// 返回: 准备好用于更新的本地记录对象
-	M2L(mtblRecord *CommonRecord, localRecord any) any
-
 	// UpdateLocalRecord 应用本地更新（写入DB）
 	// localRecord: 旧的本地记录（如果存在）
 	// mtblRecord: 原始MTBL记录（用于某些特殊逻辑，如删除）
@@ -69,6 +58,17 @@ type DataProvider interface {
 	// 	通过MTBL操作，触发后端复杂逻辑后，对于当前回调的MTBL记录，可能不再需要继续处理，可能已经删除了
 	UpdateLocalRecord(localRecord any, mtblRecord *CommonRecord,
 	) (newRecord any, stop bool, err error)
+
+	// L2M 将本地记录转换为APITable记录
+	// record: 本地记录
+	// oldMtblRecord: APITable上的旧记录（如果是更新）
+	L2M(record any, oldMtblRecord *CommonRecord) map[string]any
+
+	// M2L 将MTBL记录转换为本地记录结构
+	// mtblRecord: MTBL记录
+	// localRecord: 现有的本地记录（如果存在），用于合并或更新
+	// 返回: 准备好用于更新的本地记录对象
+	M2L(mtblRecord *CommonRecord, localRecord any) any
 }
 
 type SyncHelper struct {
