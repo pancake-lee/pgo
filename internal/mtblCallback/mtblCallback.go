@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pancake-lee/pgo/pkg/papitable"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pmq"
@@ -72,11 +73,19 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	plogger.Debugf("Raw Body: %s", string(body))
 
 	// 尝试解析JSON
+	// {"datasheetId":"111","recordId":"123","event":"update"}
 	if len(body) > 0 {
-		// {"datasheetId":"111","recordId":"123"}
+		var event papitable.ApiTableEvent
+		err = json.Unmarshal(body, &event)
+		if err != nil {
+			plogger.Errorf("Error parsing JSON: %v", err)
+			http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+			return
+		}
+
 		var jsonStrReq string = string(body)
 		err = pmq.DefaultClient.SendServerEventStr(context.Background(),
-			"apitable_event", "apitable_change", &jsonStrReq,
+			"apitable", "apitable.change."+event.DatasheetId, &jsonStrReq,
 		)
 		if err != nil {
 			plogger.LogErr(err)

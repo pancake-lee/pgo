@@ -153,6 +153,9 @@ var globalSortedPrefixKey []string
 
 func SetPrefixKeys(keys ...string) {
 	for _, k := range keys {
+		if globalPrefixKeys[k] {
+			continue
+		}
 		globalPrefixKeys[k] = true
 		globalSortedPrefixKey = append(globalSortedPrefixKey, k)
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func OnMtblUpdateUser(ctx context.Context) error {
@@ -13,7 +14,7 @@ func OnMtblUpdateUser(ctx context.Context) error {
 }
 
 func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
-	return &papitable.BaseDataProvider{
+	ret := papitable.BaseDataProvider{
 		Ctx:         ctx,
 		DatasheetID: conf.UserSvcConf.APITable.UserSheetID,
 		TableConfig: &papitable.TableConfig{
@@ -33,6 +34,8 @@ func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
 			return 0
 		},
 	}
+	ret.WithLogger(plogger.GetDefaultLogWarper())
+	return &ret
 }
 
 // --------------------------------------------------

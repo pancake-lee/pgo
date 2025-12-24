@@ -23,25 +23,31 @@ func main() {
 	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
 
+	err := pconfig.Scan(&conf.UserSvcConf)
+	if err != nil {
+		panic(err)
+	}
 	// --------------------------------------------------
-	err := papitable.InitAPITableByConfig()
+	err = papitable.InitAPITableByConfig()
 	if err != nil {
 		panic(err)
 	}
 
 	pmq.MustInitMQByConfig()
-	pmq.DefaultClient.DeclareServerEvent(
-		"apitable_event", "apitable_change", true,
-		service.OnMtblUpdateUser)
-	pmq.DefaultClient.DeclareServerEvent(
-		"apitable_event", "apitable_change", true,
-		service.OnMtblUpdateProject)
+
+	if conf.UserSvcConf.APITable.UserSheetID != "" {
+		pmq.DefaultClient.DeclareServerEvent("apitable",
+			"apitable.change."+conf.UserSvcConf.APITable.UserSheetID,
+			true, service.OnMtblUpdateUser)
+	}
+
+	if conf.UserSvcConf.APITable.ProjectSheetID != "" {
+		pmq.DefaultClient.DeclareServerEvent("apitable",
+			"apitable.change."+conf.UserSvcConf.APITable.ProjectSheetID,
+			true, service.OnMtblUpdateProject)
+	}
 
 	// --------------------------------------------------
-	err = pconfig.Scan(&conf.UserSvcConf)
-	if err != nil {
-		panic(err)
-	}
 
 	var userCURDServer service.UserCURDServer
 	var userServer service.UserServer

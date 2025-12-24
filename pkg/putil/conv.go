@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -508,6 +509,23 @@ func AnyToStr(val any) string {
 	default:
 		return fmt.Sprintf("%v", val)
 	}
+}
+
+// 接口变量只有在 类型（Type）和值（Value）都为 nil 时，才被认为是 nil
+func AnyIsNil(val any) bool {
+	if val == nil {
+		return true
+	}
+	rv := reflect.ValueOf(val)
+	if rv.Kind() != reflect.Chan &&
+		rv.Kind() != reflect.Func &&
+		rv.Kind() != reflect.Interface &&
+		rv.Kind() != reflect.Map &&
+		rv.Kind() != reflect.Ptr &&
+		rv.Kind() != reflect.Slice {
+		return false
+	}
+	return rv.IsNil()
 }
 
 // --------------------------------------------------

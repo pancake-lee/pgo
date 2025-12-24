@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
@@ -82,10 +83,16 @@ type SyncHelper struct {
 // 为了防止回调循环，需要在业务代码里调用 LastEditFromMarker_LTBL.Set(recordId) 标记一下
 
 func NewSyncHelper(data DataProvider, doc *MultiTableDoc) *SyncHelper {
+
+	newLog := log.With(plogger.GetDefaultLogger(),
+		"mtbl", data.GetTableName(),
+	)
+	plogger.SetPrefixKeys("mtbl")
+
 	return &SyncHelper{
 		dataProvider: data,
 		doc:          doc,
-		log:          plogger.GetDefaultLogWarper(),
+		log:          plogger.NewPLogWarper(newLog),
 	}
 }
 
@@ -96,7 +103,13 @@ func (s *SyncHelper) SetInit(init bool) *SyncHelper {
 	return s
 }
 func (s *SyncHelper) WithLogger(logger *plogger.PLogWarper) *SyncHelper {
-	s.log = logger
+
+	newLog := log.With(logger.GetLogger(),
+		"mtbl", s.dataProvider.GetTableName(),
+	)
+	plogger.SetPrefixKeys("mtbl")
+
+	s.log = plogger.NewPLogWarper(newLog)
 	// s.log.Debugf("SyncHelper set custom logger")
 	return s
 }
