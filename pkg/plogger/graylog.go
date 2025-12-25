@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// graylog其实没有想象中那么好用，因为UI算是比较简陋了一点
 // 实现zapcore.Core接口以获得日志level
 type GraylogCore struct {
 	zapcore.LevelEnabler

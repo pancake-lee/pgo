@@ -46,10 +46,51 @@ func FromZap(zLogger *zap.Logger) *pLogger {
 	return &pLogger{log: zLogger}
 }
 
-// TODO 需要两个实现，一个是打印到控制台或文件，需要提供肉眼可读的日志
-// 另一个是打印到日志收集系统，需要提供结构化的日志，用json输出
-// 还有些需求可能考虑通过脚本重新分析日志得到某些数据，应该在日志系统后面做，线上文件是临时的/短期的
 func (l *pLogger) Log(level kLog.Level, keyVals ...any) error {
+	if isJsonLog {
+		return l.logJson(level, keyVals...)
+	}
+	return l.logConsole(level, keyVals...)
+}
+
+func (l *pLogger) logJson(level kLog.Level, keyVals ...any) error {
+	if len(keyVals) == 0 || len(keyVals)%2 != 0 {
+		l.log.Warn(fmt.Sprint("kv must appear in pairs: ", keyVals))
+		return nil
+	}
+
+	var msg string
+	var fields []zap.Field
+
+	for i := 0; i < len(keyVals); i += 2 {
+		k := fmt.Sprint(keyVals[i])
+		v := keyVals[i+1]
+
+		if k == "msg" {
+			msg = fmt.Sprint(v)
+			continue
+		}
+		fields = append(fields, zap.Any(k, v))
+	}
+
+	switch level {
+	case kLog.LevelDebug:
+		l.log.Debug(msg, fields...)
+	case kLog.LevelInfo:
+		l.log.Info(msg, fields...)
+	case kLog.LevelWarn:
+		l.log.Warn(msg, fields...)
+	case kLog.LevelError:
+		l.log.Error(msg, fields...)
+	case kLog.LevelFatal:
+		l.log.Fatal(msg, fields...)
+	default:
+		l.log.Error(msg, fields...)
+	}
+	return nil
+}
+
+func (l *pLogger) logConsole(level kLog.Level, keyVals ...any) error {
 	if len(keyVals) == 0 || len(keyVals)%2 != 0 {
 		l.log.Warn(fmt.Sprint("kv must appear in pairs: ", keyVals))
 		return nil
@@ -161,3 +202,9 @@ func SetPrefixKeys(keys ...string) {
 	}
 	sort.Strings(globalSortedPrefixKey)
 }
+
+// --------------------------------------------------
+// 把trace_id存入context的key定义
+type pgoTid int
+
+const PgoTidKey pgoTid = 0

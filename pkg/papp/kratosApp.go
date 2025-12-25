@@ -1,8 +1,7 @@
 package papp
 
 import (
-	// 新增 context 包
-
+	"context"
 	"os"
 	"time"
 
@@ -13,7 +12,9 @@ import (
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/rs/cors"
@@ -46,6 +47,27 @@ type kratosServer interface {
 }
 
 func RunKratosApp(kratosServers ...kratosServer) {
+
+	kLogger := log.With(plogger.GetDefaultLogger(),
+		// 这里必须log.Valuer转换，log包实现代码判断了这个类型，才会动态获取值，否则只是一个匿名函数指针
+		"tid", log.Valuer(func(ctx context.Context) interface{} {
+			tid := tracing.TraceID()(ctx)
+			if tid == "" {
+				t := ctx.Value(plogger.PgoTidKey)
+				if t != nil {
+					tid = t
+				}
+			}
+			return putil.StrPrefixByNum(putil.AnyToStr(tid), 6)
+		}),
+		"sid", log.Valuer(func(ctx context.Context) interface{} {
+			return putil.StrPrefixByNum(
+				putil.AnyToStr(tracing.SpanID()(ctx)), 6)
+		}),
+	)
+	plogger.SetDefaultLogger(kLogger)
+	plogger.SetPrefixKeys("tid")
+
 	var conf ServiceConfig
 	err := pconfig.Scan(&conf)
 	if err != nil {

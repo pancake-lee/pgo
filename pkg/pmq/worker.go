@@ -165,6 +165,7 @@ func (cli *AmqpClient) handleMQMsg(rpcMsg *mqMsg, i int32) error {
 	pmqCtx.Req = string(rpcMsg.mqDelivery.Body)
 
 	ctx := context.WithValue(context.Background(), PMQContextKey, &pmqCtx)
+	ctx = context.WithValue(ctx, plogger.PgoTidKey, putil.UUID_S())
 
 	plogger.Debug("-------------------------------------------------------------------")
 	cli.logReqMsg(i, "svr mq req ", rpcMsg.cbName, rpcMsg.mqDelivery.CorrelationId, pmqCtx.Req)

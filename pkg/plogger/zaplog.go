@@ -17,6 +17,7 @@ var (
 	logLevel     *zap.AtomicLevel
 	origLogLevel string
 	resetTimer   *time.Timer
+	isJsonLog    bool = true
 )
 
 func GetLoggerLevel() zapcore.Level {
@@ -49,8 +50,8 @@ func SetLoggerLevel(lv string) {
 }
 
 func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath string) *zap.Logger {
-	encoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
-		// encoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+
+	logConf := zapcore.EncoderConfig{
 		TimeKey:        "T",
 		LevelKey:       "L",
 		NameKey:        "N",
@@ -60,7 +61,16 @@ func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath str
 		EncodeLevel:    levelEncoder, // zapcore.CapitalLevelEncoder
 		EncodeTime:     timeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
-	})
+	}
+
+	var encoder zapcore.Encoder
+
+	if isJsonLog {
+		encoder = zapcore.NewJSONEncoder(logConf)
+	} else {
+		encoder = zapcore.NewConsoleEncoder(logConf)
+	}
+
 	syncWriter := getWriter(fullPath, linkPath)
 
 	l := zap.NewAtomicLevelAt(level)
@@ -126,17 +136,17 @@ func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 func levelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	switch level {
 	case zapcore.DebugLevel:
-		enc.AppendString("[D]")
+		enc.AppendString("D")
 	case zapcore.InfoLevel:
-		enc.AppendString("[I]")
+		enc.AppendString("I")
 	case zapcore.WarnLevel:
-		enc.AppendString("[W]")
+		enc.AppendString("W")
 	case zapcore.ErrorLevel:
-		enc.AppendString("[E]")
+		enc.AppendString("E")
 	case zapcore.FatalLevel:
-		enc.AppendString("[F]")
+		enc.AppendString("F")
 	default:
-		enc.AppendString(fmt.Sprintf("[%d]", level))
+		enc.AppendString(fmt.Sprintf("%d", level))
 	}
 }
 

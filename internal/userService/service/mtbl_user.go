@@ -34,7 +34,7 @@ func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
 			return 0
 		},
 	}
-	ret.WithLogger(plogger.GetDefaultLogWarper())
+	ret.WithLogger(plogger.GetDefaultLogWarper().WithContext(ctx))
 	return &ret
 }
 

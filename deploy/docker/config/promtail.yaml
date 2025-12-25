@@ -1,0 +1,57 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml  # 记录文件读取位置，容器重启后可以续传
+
+clients:
+  - url: http://pgo-loki:3100/loki/api/v1/push  # Loki 服务地址
+
+scrape_configs:
+  - job_name: pgo  # 任务名称
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: 'pgo'  # 这个标签会在 Grafana 里用于筛选
+          env: 'prod'             # 环境标签
+          # 注意：__path__ 是 Promtail 的特殊标签，用于指定日志文件路径，支持通配符
+          __path__: /opt/app_logs/*.log
+          # 如果有多个子目录，也可以用 /opt/app_logs/**/*.log
+    pipeline_stages:
+      # 第一阶段：使用正则表达式从文件路径中提取程序名和日期
+      - regex:
+          # 日志文件命名格式为：mtblCallback_20251225.log
+          expression: '/(?P<app>[^/]+?)(?:_(?P<date>\d{8}))?\.log$'
+          source: filename  # 对文件路径（filename）应用正则
+      # 第二阶段：将从路径提取出的信息作为标签（labels）
+      - labels:
+          app:  # 将上面 regex 捕获的 'app' 组作为名为 'app' 的标签
+          date: # 将捕获的 'date' 组作为标签（日滚动文件会有值，软链接则无）
+
+      # 第三阶段：解析 JSON 日志行
+      - json:
+          expressions:
+            T: timestamp  # 将 JSON 中的 T 字段映射到 timestamp 变量
+            L: level
+            M: message
+            caller: caller
+            tid: trace_id
+
+      # 第四阶段：处理时间戳
+      - timestamp:
+          source: timestamp  # 使用上一步解析出的 timestamp 变量
+          format: '060102 15:04:05.999'  # 必须和日志中 "T" 字段的格式 "251225 11:54:08.361" 完全匹配
+
+      # 第五阶段：将解析出的 JSON 字段附加为日志的“标签”
+      # 此处指 Loki 的 Structured Metadata，便于筛选，但非索引
+      - output:
+          source: message  # 将 message 变量作为最终日志行内容
+
+      # （可选）第六阶段：你可以添加一个阶段来删除临时变量，使界面更清爽
+      # - drop:
+      #     sources:
+      #       - timestamp
+      #       - level
+      #       - caller

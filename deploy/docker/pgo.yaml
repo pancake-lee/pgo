@@ -10,8 +10,8 @@ services:
         restart: always
         command: /docker-dev.sh
         ports:
-            - 7022:22
-            - 7050-7060:7050-7060
+            - 20022:22
+            - 20000-20010:20000-20010
         environment:
             TZ: Asia/Shanghai
         networks:
@@ -20,13 +20,14 @@ services:
             # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
             - ../code:/root/workspace/
             - ./docker-dev.sh:/docker-dev.sh
+            - ./backend:/backend
         
     mysql:
         container_name: pgo-mysql
         image: mysql:8.0
         restart: always
         ports:
-            - 3306:3306
+            - 23306:3306
         networks:
             - pgo-net
         environment:
@@ -43,7 +44,7 @@ services:
         restart: always
         command: redis-server /usr/local/etc/redis/redis.conf
         ports:
-            - 6379:6379
+            - 26379:6379
         networks:
             - pgo-net
         volumes:
@@ -55,7 +56,7 @@ services:
         image: postgres:16
         restart: always
         ports:
-            - 5432:5432
+            - 25432:5432
         environment:
             POSTGRES_USER: pgo
             POSTGRES_PASSWORD: pgo
@@ -69,9 +70,9 @@ services:
         image: rabbitmq:3.12-management
         restart: always
         ports:
-            - 25672:5672 
-            - 25673:15672
-            - 25674:25672
+            - 25673:5672 
+            - 25674:15672
+            - 25675:25672
         networks:
             - pgo-net
         environment:
@@ -84,11 +85,49 @@ services:
         image: swaggerapi/swagger-ui:v5.17.14
         restart: always
         ports:
-            - 8080:8080
+            - 28080:8080
         volumes:
             - ./openapi.yaml:/openapi.yaml
         environment:
             SWAGGER_JSON: /openapi.yaml
+
+    loki:
+        container_name: pgo-loki
+        image: grafana/loki:3.5.9
+        restart: unless-stopped
+        command: "-config.file=/etc/loki/loki.yaml"
+        ports:
+            - 23100:3100
+        networks:
+            - pgo-net
+        volumes:
+            - ./config/loki.yaml:/etc/loki/loki.yaml
+            - ./loki/data:/data/loki
+
+    promtail:
+        container_name: pgo-promtail
+        image: grafana/promtail:3.5.9
+        restart: unless-stopped
+        command: -config.file=/etc/promtail/promtail.yaml
+        networks:
+            - pgo-net
+        volumes:
+            - ./backend/logs:/opt/app_logs:ro
+            - ./config/promtail.yaml:/etc/promtail/promtail.yaml
+
+    grafana:
+        container_name: pgo-grafana
+        image: grafana/grafana:12.3
+        restart: unless-stopped
+        user: "0:0" # 以root用户运行，方便挂载卷写入数据
+        ports:
+            - "23000:3000"
+        environment:
+            # 初始管理员密码（首次登录后会要求修改）
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+        volumes:
+            # 持久化 Grafana 数据（仪表板、用户等）
+            - ./grafana/data:/var/lib/grafana
 
 networks:
     pgo-net:
