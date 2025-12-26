@@ -8,7 +8,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/abandonCodeService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_AbandonCode(do *data.AbandonCodeDO) *api.AbandonCodeInfo {
@@ -35,8 +35,10 @@ func DTO2DO_AbandonCode(dto *api.AbandonCodeInfo) *data.AbandonCodeDO {
 }
 
 func (s *AbandonCodeCURDServer) AddAbandonCode(
-	ctx context.Context, req *api.AddAbandonCodeRequest,
+	_ctx context.Context, req *api.AddAbandonCodeRequest,
 ) (resp *api.AddAbandonCodeResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.AbandonCode == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -44,11 +46,11 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 
 	err = data.AbandonCodeDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
 	// MARK REMOVE IF NO PRIMARY KEY START
-	plogger.Debugf("AddAbandonCode: %v", newData.Idx1)
+	ctx.Log.Debugf("AddAbandonCode: %v", newData.Idx1)
 	// MARK REMOVE IF NO PRIMARY KEY END
 
 	resp = new(api.AddAbandonCodeResponse)
@@ -57,14 +59,15 @@ func (s *AbandonCodeCURDServer) AddAbandonCode(
 }
 
 func (s *AbandonCodeCURDServer) GetAbandonCodeList(
-	ctx context.Context, req *api.GetAbandonCodeListRequest,
+	_ctx context.Context, req *api.GetAbandonCodeListRequest,
 ) (resp *api.GetAbandonCodeListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.AbandonCodeDO
 
 	// MARK REMOVE IF NO PRIMARY KEY START 1
 	if len(req.Idx1List) != 0 {
-		plogger.Debugf("GetAbandonCodeList: %v", req.Idx1List)
+		ctx.Log.Debugf("GetAbandonCodeList: %v", req.Idx1List)
 
 		dataList, err = data.AbandonCodeDAO.GetByIndex(ctx,
 			// MARK REPLACE IDX COL START
@@ -74,21 +77,21 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 			// MARK REPLACE IDX COL END
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 		// MARK REMOVE IF NO PRIMARY KEY END 1
 
 		dataList, err = data.AbandonCodeDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 		// MARK REMOVE IF NO PRIMARY KEY START 2
 	}
 	// MARK REMOVE IF NO PRIMARY KEY END 2
 
-	plogger.Debugf("GetAbandonCodeList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetAbandonCodeList resp len %v", len(dataList))
 
 	resp = new(api.GetAbandonCodeListResponse)
 	resp.AbandonCodeList = make([]*api.AbandonCodeInfo, 0, len(dataList))
@@ -101,8 +104,10 @@ func (s *AbandonCodeCURDServer) GetAbandonCodeList(
 // MARK REMOVE IF NO PRIMARY KEY START
 
 func (s *AbandonCodeCURDServer) UpdateAbandonCode(
-	ctx context.Context, req *api.UpdateAbandonCodeRequest,
+	_ctx context.Context, req *api.UpdateAbandonCodeRequest,
 ) (resp *api.UpdateAbandonCodeResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.AbandonCode == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -110,30 +115,32 @@ func (s *AbandonCodeCURDServer) UpdateAbandonCode(
 	do := DTO2DO_AbandonCode(req.AbandonCode)
 	err = data.AbandonCodeDAO.UpdateByIdx1(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
+	ctx.Log.Debugf("UpdateAbandonCode %v", req.AbandonCode.Idx1)
 
 	resp = new(api.UpdateAbandonCodeResponse)
 	d, err := data.AbandonCodeDAO.GetByIdx1(ctx, req.AbandonCode.Idx1)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.AbandonCode = DO2DTO_AbandonCode(d)
 	return resp, nil
 }
 
 func (s *AbandonCodeCURDServer) DelAbandonCodeByIdx1List(
-	ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
+	_ctx context.Context, req *api.DelAbandonCodeByIdx1ListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.Idx1List) == 0 {
 		return nil, nil
 	}
 	err = data.AbandonCodeDAO.DelByIdx1List(ctx, req.Idx1List)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
+	ctx.Log.Debugf("DelAbandonCodeByIdx1List %v", req.Idx1List)
 	return nil, nil
 }
 

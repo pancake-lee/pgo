@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type TaskDO = model.Task
@@ -17,30 +15,31 @@ type taskDAO struct{}
 
 var TaskDAO taskDAO
 
-func (*taskDAO) Add(ctx context.Context, task *TaskDO) error {
+func (*taskDAO) Add(ctx *papp.AppCtx, task *TaskDO) error {
 	if task == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().Task
 	err := q.WithContext(ctx).Create(task)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*taskDAO) GetAll(ctx context.Context,
+func (*taskDAO) GetAll(ctx *papp.AppCtx,
 ) (taskList []*TaskDO, err error) {
 	q := db.GetQuery().Task
 	taskList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return taskList, nil
 }
 
-func (*taskDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*taskDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*TaskDO, error) {
 	q := db.GetQuery().Task
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*taskDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*taskDAO) UpdateByID(ctx context.Context, do *TaskDO) error {
+func (*taskDAO) UpdateByID(ctx *papp.AppCtx, do *TaskDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*taskDAO) DelByID(ctx context.Context, iD int32) error {
+func (*taskDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().Task
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*taskDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*taskDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*taskDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*taskDAO) GetByID(ctx context.Context, iD int32,
+func (*taskDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (task *TaskDO, err error) {
 	if iD == 0 {
-		return task, plogger.LogErr(perr.ErrParamInvalid)
+		return task, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().Task
 	task, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return task, nil
 }
 
-func (*taskDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*taskDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (taskMap map[int32]*TaskDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*taskDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	taskMap = make(map[int32]*TaskDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*taskDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return taskMap, nil
 }
+

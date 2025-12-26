@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_User(do *data.UserDO) *api.UserInfo {
@@ -24,6 +24,8 @@ func DO2DTO_User(do *data.UserDO) *api.UserInfo {
         UpdateUser: do.UpdateUser,
         UserName: do.UserName,
         Password: do.Password,
+        MtblRecordID: do.MtblRecordID,
+        LastEditFrom: do.LastEditFrom,
 	}
 }
 func DTO2DO_User(dto *api.UserInfo) *data.UserDO {
@@ -38,12 +40,16 @@ func DTO2DO_User(dto *api.UserInfo) *data.UserDO {
         UpdateUser: dto.UpdateUser,
         UserName: dto.UserName,
         Password: dto.Password,
+        MtblRecordID: dto.MtblRecordID,
+        LastEditFrom: dto.LastEditFrom,
 	}
 }
 
 func (s *UserCURDServer) AddUser(
-	ctx context.Context, req *api.AddUserRequest,
+	_ctx context.Context, req *api.AddUserRequest,
 ) (resp *api.AddUserResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.User == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -51,10 +57,10 @@ func (s *UserCURDServer) AddUser(
 
 	err = data.UserDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUser: %v", newData.ID)
+	ctx.Log.Debugf("AddUser: %v", newData.ID)
 
 	resp = new(api.AddUserResponse)
 	resp.User = DO2DTO_User(newData)
@@ -62,30 +68,31 @@ func (s *UserCURDServer) AddUser(
 }
 
 func (s *UserCURDServer) GetUserList(
-	ctx context.Context, req *api.GetUserListRequest,
+	_ctx context.Context, req *api.GetUserListRequest,
 ) (resp *api.GetUserListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserList: %v", req.IDList)
 
 		dataList, err = data.UserDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserList resp len %v", len(dataList))
 
 	resp = new(api.GetUserListResponse)
 	resp.UserList = make([]*api.UserInfo, 0, len(dataList))
@@ -97,8 +104,10 @@ func (s *UserCURDServer) GetUserList(
 
 
 func (s *UserCURDServer) UpdateUser(
-	ctx context.Context, req *api.UpdateUserRequest,
+	_ctx context.Context, req *api.UpdateUserRequest,
 ) (resp *api.UpdateUserResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.User == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -106,30 +115,32 @@ func (s *UserCURDServer) UpdateUser(
 	do := DTO2DO_User(req.User)
 	err = data.UserDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUser %v", req.User.ID)
+	ctx.Log.Debugf("UpdateUser %v", req.User.ID)
 
 	resp = new(api.UpdateUserResponse)
 	d, err := data.UserDAO.GetByID(ctx, req.User.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.User = DO2DTO_User(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserByIDList(
-	ctx context.Context, req *api.DelUserByIDListRequest,
+	_ctx context.Context, req *api.DelUserByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserByIDList %v", req.IDList)
 	return nil, nil
 }
 

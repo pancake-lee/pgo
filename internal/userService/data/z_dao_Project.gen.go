@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type ProjectDO = model.Project
@@ -17,30 +15,31 @@ type projectDAO struct{}
 
 var ProjectDAO projectDAO
 
-func (*projectDAO) Add(ctx context.Context, project *ProjectDO) error {
+func (*projectDAO) Add(ctx *papp.AppCtx, project *ProjectDO) error {
 	if project == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().Project
 	err := q.WithContext(ctx).Create(project)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*projectDAO) GetAll(ctx context.Context,
+func (*projectDAO) GetAll(ctx *papp.AppCtx,
 ) (projectList []*ProjectDO, err error) {
 	q := db.GetQuery().Project
-	projectList, err = q.WithContext(ctx).Order(q.ID).Find()
+	projectList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return projectList, nil
 }
 
-func (*projectDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*projectDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*ProjectDO, error) {
 	q := db.GetQuery().Project
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*projectDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*projectDAO) UpdateByID(ctx context.Context, do *ProjectDO) error {
+func (*projectDAO) UpdateByID(ctx *papp.AppCtx, do *ProjectDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*projectDAO) DelByID(ctx context.Context, iD int32) error {
+func (*projectDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().Project
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*projectDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*projectDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*projectDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*projectDAO) GetByID(ctx context.Context, iD int32,
+func (*projectDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (project *ProjectDO, err error) {
 	if iD == 0 {
-		return project, plogger.LogErr(perr.ErrParamInvalid)
+		return project, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().Project
 	project, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return project, nil
 }
 
-func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*projectDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (projectMap map[int32]*ProjectDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	projectMap = make(map[int32]*ProjectDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*projectDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return projectMap, nil
 }
+

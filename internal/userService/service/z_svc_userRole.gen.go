@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserRole(do *data.UserRoleDO) *api.UserRoleInfo {
@@ -44,8 +44,10 @@ func DTO2DO_UserRole(dto *api.UserRoleInfo) *data.UserRoleDO {
 }
 
 func (s *UserCURDServer) AddUserRole(
-	ctx context.Context, req *api.AddUserRoleRequest,
+	_ctx context.Context, req *api.AddUserRoleRequest,
 ) (resp *api.AddUserRoleResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRole == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -53,10 +55,10 @@ func (s *UserCURDServer) AddUserRole(
 
 	err = data.UserRoleDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserRole: %v", newData.ID)
+	ctx.Log.Debugf("AddUserRole: %v", newData.ID)
 
 	resp = new(api.AddUserRoleResponse)
 	resp.UserRole = DO2DTO_UserRole(newData)
@@ -64,30 +66,31 @@ func (s *UserCURDServer) AddUserRole(
 }
 
 func (s *UserCURDServer) GetUserRoleList(
-	ctx context.Context, req *api.GetUserRoleListRequest,
+	_ctx context.Context, req *api.GetUserRoleListRequest,
 ) (resp *api.GetUserRoleListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserRoleDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserRoleList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserRoleList: %v", req.IDList)
 
 		dataList, err = data.UserRoleDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserRoleDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserRoleList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserRoleList resp len %v", len(dataList))
 
 	resp = new(api.GetUserRoleListResponse)
 	resp.UserRoleList = make([]*api.UserRoleInfo, 0, len(dataList))
@@ -99,8 +102,10 @@ func (s *UserCURDServer) GetUserRoleList(
 
 
 func (s *UserCURDServer) UpdateUserRole(
-	ctx context.Context, req *api.UpdateUserRoleRequest,
+	_ctx context.Context, req *api.UpdateUserRoleRequest,
 ) (resp *api.UpdateUserRoleResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRole == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -108,30 +113,32 @@ func (s *UserCURDServer) UpdateUserRole(
 	do := DTO2DO_UserRole(req.UserRole)
 	err = data.UserRoleDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserRole %v", req.UserRole.ID)
+	ctx.Log.Debugf("UpdateUserRole %v", req.UserRole.ID)
 
 	resp = new(api.UpdateUserRoleResponse)
 	d, err := data.UserRoleDAO.GetByID(ctx, req.UserRole.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserRole = DO2DTO_UserRole(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserRoleByIDList(
-	ctx context.Context, req *api.DelUserRoleByIDListRequest,
+	_ctx context.Context, req *api.DelUserRoleByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserRoleDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserRoleByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserRoleByIDList %v", req.IDList)
 	return nil, nil
 }
 

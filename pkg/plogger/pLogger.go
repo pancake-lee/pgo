@@ -202,9 +202,3 @@ func SetPrefixKeys(keys ...string) {
 	}
 	sort.Strings(globalSortedPrefixKey)
 }
-
-// --------------------------------------------------
-// 把trace_id存入context的key定义
-type pgoTid int
-
-const PgoTidKey pgoTid = 0

@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserRolePermissionAssoc(do *data.UserRolePermissionAssocDO) *api.UserRolePermissionAssocInfo {
@@ -40,8 +40,10 @@ func DTO2DO_UserRolePermissionAssoc(dto *api.UserRolePermissionAssocInfo) *data.
 }
 
 func (s *UserCURDServer) AddUserRolePermissionAssoc(
-	ctx context.Context, req *api.AddUserRolePermissionAssocRequest,
+	_ctx context.Context, req *api.AddUserRolePermissionAssocRequest,
 ) (resp *api.AddUserRolePermissionAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRolePermissionAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -49,10 +51,10 @@ func (s *UserCURDServer) AddUserRolePermissionAssoc(
 
 	err = data.UserRolePermissionAssocDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserRolePermissionAssoc: %v", newData.ID)
+	ctx.Log.Debugf("AddUserRolePermissionAssoc: %v", newData.ID)
 
 	resp = new(api.AddUserRolePermissionAssocResponse)
 	resp.UserRolePermissionAssoc = DO2DTO_UserRolePermissionAssoc(newData)
@@ -60,30 +62,31 @@ func (s *UserCURDServer) AddUserRolePermissionAssoc(
 }
 
 func (s *UserCURDServer) GetUserRolePermissionAssocList(
-	ctx context.Context, req *api.GetUserRolePermissionAssocListRequest,
+	_ctx context.Context, req *api.GetUserRolePermissionAssocListRequest,
 ) (resp *api.GetUserRolePermissionAssocListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserRolePermissionAssocDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserRolePermissionAssocList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserRolePermissionAssocList: %v", req.IDList)
 
 		dataList, err = data.UserRolePermissionAssocDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserRolePermissionAssocDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserRolePermissionAssocList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserRolePermissionAssocList resp len %v", len(dataList))
 
 	resp = new(api.GetUserRolePermissionAssocListResponse)
 	resp.UserRolePermissionAssocList = make([]*api.UserRolePermissionAssocInfo, 0, len(dataList))
@@ -95,8 +98,10 @@ func (s *UserCURDServer) GetUserRolePermissionAssocList(
 
 
 func (s *UserCURDServer) UpdateUserRolePermissionAssoc(
-	ctx context.Context, req *api.UpdateUserRolePermissionAssocRequest,
+	_ctx context.Context, req *api.UpdateUserRolePermissionAssocRequest,
 ) (resp *api.UpdateUserRolePermissionAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRolePermissionAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -104,30 +109,32 @@ func (s *UserCURDServer) UpdateUserRolePermissionAssoc(
 	do := DTO2DO_UserRolePermissionAssoc(req.UserRolePermissionAssoc)
 	err = data.UserRolePermissionAssocDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserRolePermissionAssoc %v", req.UserRolePermissionAssoc.ID)
+	ctx.Log.Debugf("UpdateUserRolePermissionAssoc %v", req.UserRolePermissionAssoc.ID)
 
 	resp = new(api.UpdateUserRolePermissionAssocResponse)
 	d, err := data.UserRolePermissionAssocDAO.GetByID(ctx, req.UserRolePermissionAssoc.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserRolePermissionAssoc = DO2DTO_UserRolePermissionAssoc(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserRolePermissionAssocByIDList(
-	ctx context.Context, req *api.DelUserRolePermissionAssocByIDListRequest,
+	_ctx context.Context, req *api.DelUserRolePermissionAssocByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserRolePermissionAssocDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserRolePermissionAssocByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserRolePermissionAssocByIDList %v", req.IDList)
 	return nil, nil
 }
 

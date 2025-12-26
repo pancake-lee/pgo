@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserDept(do *data.UserDeptDO) *api.UserDeptInfo {
@@ -42,8 +42,10 @@ func DTO2DO_UserDept(dto *api.UserDeptInfo) *data.UserDeptDO {
 }
 
 func (s *UserCURDServer) AddUserDept(
-	ctx context.Context, req *api.AddUserDeptRequest,
+	_ctx context.Context, req *api.AddUserDeptRequest,
 ) (resp *api.AddUserDeptResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserDept == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -51,10 +53,10 @@ func (s *UserCURDServer) AddUserDept(
 
 	err = data.UserDeptDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserDept: %v", newData.ID)
+	ctx.Log.Debugf("AddUserDept: %v", newData.ID)
 
 	resp = new(api.AddUserDeptResponse)
 	resp.UserDept = DO2DTO_UserDept(newData)
@@ -62,30 +64,31 @@ func (s *UserCURDServer) AddUserDept(
 }
 
 func (s *UserCURDServer) GetUserDeptList(
-	ctx context.Context, req *api.GetUserDeptListRequest,
+	_ctx context.Context, req *api.GetUserDeptListRequest,
 ) (resp *api.GetUserDeptListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserDeptDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserDeptList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserDeptList: %v", req.IDList)
 
 		dataList, err = data.UserDeptDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserDeptDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserDeptList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserDeptList resp len %v", len(dataList))
 
 	resp = new(api.GetUserDeptListResponse)
 	resp.UserDeptList = make([]*api.UserDeptInfo, 0, len(dataList))
@@ -97,8 +100,10 @@ func (s *UserCURDServer) GetUserDeptList(
 
 
 func (s *UserCURDServer) UpdateUserDept(
-	ctx context.Context, req *api.UpdateUserDeptRequest,
+	_ctx context.Context, req *api.UpdateUserDeptRequest,
 ) (resp *api.UpdateUserDeptResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserDept == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -106,30 +111,32 @@ func (s *UserCURDServer) UpdateUserDept(
 	do := DTO2DO_UserDept(req.UserDept)
 	err = data.UserDeptDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserDept %v", req.UserDept.ID)
+	ctx.Log.Debugf("UpdateUserDept %v", req.UserDept.ID)
 
 	resp = new(api.UpdateUserDeptResponse)
 	d, err := data.UserDeptDAO.GetByID(ctx, req.UserDept.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserDept = DO2DTO_UserDept(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserDeptByIDList(
-	ctx context.Context, req *api.DelUserDeptByIDListRequest,
+	_ctx context.Context, req *api.DelUserDeptByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserDeptDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserDeptByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserDeptByIDList %v", req.IDList)
 	return nil, nil
 }
 

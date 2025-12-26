@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_Project(do *data.ProjectDO) *api.ProjectInfo {
@@ -23,6 +23,8 @@ func DO2DTO_Project(do *data.ProjectDO) *api.ProjectInfo {
         UpdateTime: do.UpdateTime.Unix(),
         UpdateUser: do.UpdateUser,
         ProjName: do.ProjName,
+        MtblRecordID: do.MtblRecordID,
+        LastEditFrom: do.LastEditFrom,
 	}
 }
 func DTO2DO_Project(dto *api.ProjectInfo) *data.ProjectDO {
@@ -36,12 +38,16 @@ func DTO2DO_Project(dto *api.ProjectInfo) *data.ProjectDO {
         UpdateTime: time.Unix(dto.UpdateTime, 0),
         UpdateUser: dto.UpdateUser,
         ProjName: dto.ProjName,
+        MtblRecordID: dto.MtblRecordID,
+        LastEditFrom: dto.LastEditFrom,
 	}
 }
 
 func (s *UserCURDServer) AddProject(
-	ctx context.Context, req *api.AddProjectRequest,
+	_ctx context.Context, req *api.AddProjectRequest,
 ) (resp *api.AddProjectResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.Project == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -49,10 +55,10 @@ func (s *UserCURDServer) AddProject(
 
 	err = data.ProjectDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddProject: %v", newData.ID)
+	ctx.Log.Debugf("AddProject: %v", newData.ID)
 
 	resp = new(api.AddProjectResponse)
 	resp.Project = DO2DTO_Project(newData)
@@ -60,30 +66,31 @@ func (s *UserCURDServer) AddProject(
 }
 
 func (s *UserCURDServer) GetProjectList(
-	ctx context.Context, req *api.GetProjectListRequest,
+	_ctx context.Context, req *api.GetProjectListRequest,
 ) (resp *api.GetProjectListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.ProjectDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetProjectList: %v", req.IDList)
+		ctx.Log.Debugf("GetProjectList: %v", req.IDList)
 
 		dataList, err = data.ProjectDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.ProjectDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetProjectList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetProjectList resp len %v", len(dataList))
 
 	resp = new(api.GetProjectListResponse)
 	resp.ProjectList = make([]*api.ProjectInfo, 0, len(dataList))
@@ -95,8 +102,10 @@ func (s *UserCURDServer) GetProjectList(
 
 
 func (s *UserCURDServer) UpdateProject(
-	ctx context.Context, req *api.UpdateProjectRequest,
+	_ctx context.Context, req *api.UpdateProjectRequest,
 ) (resp *api.UpdateProjectResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.Project == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -104,30 +113,32 @@ func (s *UserCURDServer) UpdateProject(
 	do := DTO2DO_Project(req.Project)
 	err = data.ProjectDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateProject %v", req.Project.ID)
+	ctx.Log.Debugf("UpdateProject %v", req.Project.ID)
 
 	resp = new(api.UpdateProjectResponse)
 	d, err := data.ProjectDAO.GetByID(ctx, req.Project.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.Project = DO2DTO_Project(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelProjectByIDList(
-	ctx context.Context, req *api.DelProjectByIDListRequest,
+	_ctx context.Context, req *api.DelProjectByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.ProjectDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelProjectByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelProjectByIDList %v", req.IDList)
 	return nil, nil
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func TestJwt(t *testing.T) {
@@ -45,8 +46,8 @@ func TestJwt(t *testing.T) {
 	}
 
 	// --------------------------------------------------
-	ctx = SetUserIdToCtx(ctx, token.UserID)
-	uid, ok := GetUserIdFromCtx(ctx)
+	ctx = putil.SetUserIdToCtx(ctx, token.UserID)
+	uid, ok := putil.GetUserIdFromCtx(ctx)
 	if !ok || uid != userId {
 		plogger.Fatalf("expected userId 1, got %d", uid)
 		t.FailNow()

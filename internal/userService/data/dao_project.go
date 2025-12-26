@@ -1,14 +1,13 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
+	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
-func (*projectDAO) GetByMtblRecordID(ctx context.Context, recordId string) (*ProjectDO, error) {
+func (*projectDAO) GetByMtblRecordID(ctx *papp.AppCtx, recordId string) (*ProjectDO, error) {
 	if recordId == "" {
 		return nil, plogger.LogErr(perr.ErrParamInvalid)
 	}
@@ -22,7 +21,7 @@ func (*projectDAO) GetByMtblRecordID(ctx context.Context, recordId string) (*Pro
 	return ret, nil
 }
 
-func (*projectDAO) DeleteByMtblRecordID(ctx context.Context, recordId string) error {
+func (*projectDAO) DeleteByMtblRecordID(ctx *papp.AppCtx, recordId string) error {
 	if recordId == "" {
 		return plogger.LogErr(perr.ErrParamInvalid)
 	}

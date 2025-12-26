@@ -6,16 +6,16 @@ import (
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-func OnMtblUpdateUser(ctx context.Context) error {
-	return NewMtblUser(ctx).HandleMtblEvent()
+func OnMtblUpdateUser(_ctx context.Context) error {
+	return NewMtblUser(_ctx).HandleMtblEvent()
 }
 
-func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
+func NewMtblUser(_ctx context.Context) *papitable.BaseDataProvider {
 	ret := papitable.BaseDataProvider{
-		Ctx:         ctx,
+		Ctx:         _ctx,
 		DatasheetID: conf.UserSvcConf.APITable.UserSheetID,
 		TableConfig: &papitable.TableConfig{
 			TableName:  "人员表",
@@ -34,23 +34,27 @@ func NewMtblUser(ctx context.Context) *papitable.BaseDataProvider {
 			return 0
 		},
 	}
-	ret.WithLogger(plogger.GetDefaultLogWarper().WithContext(ctx))
+	ctx := papp.NewAppCtx(_ctx)
+	ret.WithLogger(ctx.Log)
 	return &ret
 }
 
 // --------------------------------------------------
 type UserDAOWrapper struct{}
 
-func (d *UserDAOWrapper) Add(ctx context.Context, do any) error {
-	return data.UserDAO.Add(ctx, do.(*data.UserDO))
+func (d *UserDAOWrapper) Add(_ctx context.Context, do any) error {
+	appCtx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.Add(appCtx, do.(*data.UserDO))
 }
 
-func (d *UserDAOWrapper) UpdateByID(ctx context.Context, do any) error {
-	return data.UserDAO.UpdateByID(ctx, do.(*data.UserDO))
+func (d *UserDAOWrapper) UpdateByID(_ctx context.Context, do any) error {
+	appCtx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.UpdateByID(appCtx, do.(*data.UserDO))
 }
 
-func (d *UserDAOWrapper) GetAll(ctx context.Context) ([]any, error) {
-	list, err := data.UserDAO.GetAll(ctx)
+func (d *UserDAOWrapper) GetAll(_ctx context.Context) ([]any, error) {
+	appCtx := papp.NewAppCtx(_ctx)
+	list, err := data.UserDAO.GetAll(appCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -61,14 +65,17 @@ func (d *UserDAOWrapper) GetAll(ctx context.Context) ([]any, error) {
 	return ret, nil
 }
 
-func (d *UserDAOWrapper) GetByID(ctx context.Context, id int32) (any, error) {
-	return data.UserDAO.GetByID(ctx, id)
+func (d *UserDAOWrapper) GetByID(_ctx context.Context, id int32) (any, error) {
+	appCtx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.GetByID(appCtx, id)
 }
 
-func (d *UserDAOWrapper) GetByMtblRecordID(ctx context.Context, recordId string) (any, error) {
-	return data.UserDAO.SelectByRecordId(ctx, recordId)
+func (d *UserDAOWrapper) GetByMtblRecordID(_ctx context.Context, recordId string) (any, error) {
+	appCtx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.SelectByRecordId(appCtx, recordId)
 }
 
-func (d *UserDAOWrapper) DeleteByMtblRecordID(ctx context.Context, recordId string) error {
-	return data.UserDAO.DelByRecordID(ctx, recordId)
+func (d *UserDAOWrapper) DeleteByMtblRecordID(_ctx context.Context, recordId string) error {
+	appCtx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.DelByRecordID(appCtx, recordId)
 }

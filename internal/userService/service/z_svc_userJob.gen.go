@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserJob(do *data.UserJobDO) *api.UserJobInfo {
@@ -40,8 +40,10 @@ func DTO2DO_UserJob(dto *api.UserJobInfo) *data.UserJobDO {
 }
 
 func (s *UserCURDServer) AddUserJob(
-	ctx context.Context, req *api.AddUserJobRequest,
+	_ctx context.Context, req *api.AddUserJobRequest,
 ) (resp *api.AddUserJobResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserJob == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -49,10 +51,10 @@ func (s *UserCURDServer) AddUserJob(
 
 	err = data.UserJobDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserJob: %v", newData.ID)
+	ctx.Log.Debugf("AddUserJob: %v", newData.ID)
 
 	resp = new(api.AddUserJobResponse)
 	resp.UserJob = DO2DTO_UserJob(newData)
@@ -60,30 +62,31 @@ func (s *UserCURDServer) AddUserJob(
 }
 
 func (s *UserCURDServer) GetUserJobList(
-	ctx context.Context, req *api.GetUserJobListRequest,
+	_ctx context.Context, req *api.GetUserJobListRequest,
 ) (resp *api.GetUserJobListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserJobDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserJobList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserJobList: %v", req.IDList)
 
 		dataList, err = data.UserJobDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserJobDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserJobList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserJobList resp len %v", len(dataList))
 
 	resp = new(api.GetUserJobListResponse)
 	resp.UserJobList = make([]*api.UserJobInfo, 0, len(dataList))
@@ -95,8 +98,10 @@ func (s *UserCURDServer) GetUserJobList(
 
 
 func (s *UserCURDServer) UpdateUserJob(
-	ctx context.Context, req *api.UpdateUserJobRequest,
+	_ctx context.Context, req *api.UpdateUserJobRequest,
 ) (resp *api.UpdateUserJobResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserJob == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -104,30 +109,32 @@ func (s *UserCURDServer) UpdateUserJob(
 	do := DTO2DO_UserJob(req.UserJob)
 	err = data.UserJobDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserJob %v", req.UserJob.ID)
+	ctx.Log.Debugf("UpdateUserJob %v", req.UserJob.ID)
 
 	resp = new(api.UpdateUserJobResponse)
 	d, err := data.UserJobDAO.GetByID(ctx, req.UserJob.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserJob = DO2DTO_UserJob(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserJobByIDList(
-	ctx context.Context, req *api.DelUserJobByIDListRequest,
+	_ctx context.Context, req *api.DelUserJobByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserJobDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserJobByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserJobByIDList %v", req.IDList)
 	return nil, nil
 }
 

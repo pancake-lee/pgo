@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserRoleAssoc(do *data.UserRoleAssocDO) *api.UserRoleAssocInfo {
@@ -38,8 +38,10 @@ func DTO2DO_UserRoleAssoc(dto *api.UserRoleAssocInfo) *data.UserRoleAssocDO {
 }
 
 func (s *UserCURDServer) AddUserRoleAssoc(
-	ctx context.Context, req *api.AddUserRoleAssocRequest,
+	_ctx context.Context, req *api.AddUserRoleAssocRequest,
 ) (resp *api.AddUserRoleAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRoleAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -47,10 +49,10 @@ func (s *UserCURDServer) AddUserRoleAssoc(
 
 	err = data.UserRoleAssocDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserRoleAssoc: %v", newData.ID)
+	ctx.Log.Debugf("AddUserRoleAssoc: %v", newData.ID)
 
 	resp = new(api.AddUserRoleAssocResponse)
 	resp.UserRoleAssoc = DO2DTO_UserRoleAssoc(newData)
@@ -58,30 +60,31 @@ func (s *UserCURDServer) AddUserRoleAssoc(
 }
 
 func (s *UserCURDServer) GetUserRoleAssocList(
-	ctx context.Context, req *api.GetUserRoleAssocListRequest,
+	_ctx context.Context, req *api.GetUserRoleAssocListRequest,
 ) (resp *api.GetUserRoleAssocListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserRoleAssocDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserRoleAssocList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserRoleAssocList: %v", req.IDList)
 
 		dataList, err = data.UserRoleAssocDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserRoleAssocDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserRoleAssocList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserRoleAssocList resp len %v", len(dataList))
 
 	resp = new(api.GetUserRoleAssocListResponse)
 	resp.UserRoleAssocList = make([]*api.UserRoleAssocInfo, 0, len(dataList))
@@ -93,8 +96,10 @@ func (s *UserCURDServer) GetUserRoleAssocList(
 
 
 func (s *UserCURDServer) UpdateUserRoleAssoc(
-	ctx context.Context, req *api.UpdateUserRoleAssocRequest,
+	_ctx context.Context, req *api.UpdateUserRoleAssocRequest,
 ) (resp *api.UpdateUserRoleAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserRoleAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -102,30 +107,32 @@ func (s *UserCURDServer) UpdateUserRoleAssoc(
 	do := DTO2DO_UserRoleAssoc(req.UserRoleAssoc)
 	err = data.UserRoleAssocDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserRoleAssoc %v", req.UserRoleAssoc.ID)
+	ctx.Log.Debugf("UpdateUserRoleAssoc %v", req.UserRoleAssoc.ID)
 
 	resp = new(api.UpdateUserRoleAssocResponse)
 	d, err := data.UserRoleAssocDAO.GetByID(ctx, req.UserRoleAssoc.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserRoleAssoc = DO2DTO_UserRoleAssoc(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserRoleAssocByIDList(
-	ctx context.Context, req *api.DelUserRoleAssocByIDListRequest,
+	_ctx context.Context, req *api.DelUserRoleAssocByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserRoleAssocDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserRoleAssocByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserRoleAssocByIDList %v", req.IDList)
 	return nil, nil
 }
 

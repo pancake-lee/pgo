@@ -49,11 +49,12 @@ type kratosServer interface {
 func RunKratosApp(kratosServers ...kratosServer) {
 
 	kLogger := log.With(plogger.GetDefaultLogger(),
-		// 这里必须log.Valuer转换，log包实现代码判断了这个类型，才会动态获取值，否则只是一个匿名函数指针
+		// 这里必须log.Valuer转换，否则只是一个匿名函数指针
+		// log包实现代码判断了这个类型，才会动态获取值
 		"tid", log.Valuer(func(ctx context.Context) interface{} {
 			tid := tracing.TraceID()(ctx)
 			if tid == "" {
-				t := ctx.Value(plogger.PgoTidKey)
+				t := ctx.Value(putil.PgoTraceIDKey)
 				if t != nil {
 					tid = t
 				}

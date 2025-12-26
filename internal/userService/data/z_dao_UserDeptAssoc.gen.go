@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type UserDeptAssocDO = model.UserDeptAssoc
@@ -17,30 +15,31 @@ type userDeptAssocDAO struct{}
 
 var UserDeptAssocDAO userDeptAssocDAO
 
-func (*userDeptAssocDAO) Add(ctx context.Context, userDeptAssoc *UserDeptAssocDO) error {
+func (*userDeptAssocDAO) Add(ctx *papp.AppCtx, userDeptAssoc *UserDeptAssocDO) error {
 	if userDeptAssoc == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().UserDeptAssoc
 	err := q.WithContext(ctx).Create(userDeptAssoc)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userDeptAssocDAO) GetAll(ctx context.Context,
+func (*userDeptAssocDAO) GetAll(ctx *papp.AppCtx,
 ) (userDeptAssocList []*UserDeptAssocDO, err error) {
 	q := db.GetQuery().UserDeptAssoc
 	userDeptAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userDeptAssocList, nil
 }
 
-func (*userDeptAssocDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*userDeptAssocDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*UserDeptAssocDO, error) {
 	q := db.GetQuery().UserDeptAssoc
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*userDeptAssocDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*userDeptAssocDAO) UpdateByID(ctx context.Context, do *UserDeptAssocDO) error {
+func (*userDeptAssocDAO) UpdateByID(ctx *papp.AppCtx, do *UserDeptAssocDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userDeptAssocDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userDeptAssocDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserDeptAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userDeptAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userDeptAssocDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*userDeptAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error 
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userDeptAssocDAO) GetByID(ctx context.Context, iD int32,
+func (*userDeptAssocDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (userDeptAssoc *UserDeptAssocDO, err error) {
 	if iD == 0 {
-		return userDeptAssoc, plogger.LogErr(perr.ErrParamInvalid)
+		return userDeptAssoc, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserDeptAssoc
 	userDeptAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userDeptAssoc, nil
 }
 
-func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*userDeptAssocDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (userDeptAssocMap map[int32]*UserDeptAssocDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	userDeptAssocMap = make(map[int32]*UserDeptAssocDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*userDeptAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userDeptAssocMap, nil
 }
+

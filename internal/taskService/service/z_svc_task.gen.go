@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/taskService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_Task(do *data.TaskDO) *api.TaskInfo {
@@ -50,8 +50,10 @@ func DTO2DO_Task(dto *api.TaskInfo) *data.TaskDO {
 }
 
 func (s *TaskCURDServer) AddTask(
-	ctx context.Context, req *api.AddTaskRequest,
+	_ctx context.Context, req *api.AddTaskRequest,
 ) (resp *api.AddTaskResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.Task == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -59,10 +61,10 @@ func (s *TaskCURDServer) AddTask(
 
 	err = data.TaskDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddTask: %v", newData.ID)
+	ctx.Log.Debugf("AddTask: %v", newData.ID)
 
 	resp = new(api.AddTaskResponse)
 	resp.Task = DO2DTO_Task(newData)
@@ -70,30 +72,31 @@ func (s *TaskCURDServer) AddTask(
 }
 
 func (s *TaskCURDServer) GetTaskList(
-	ctx context.Context, req *api.GetTaskListRequest,
+	_ctx context.Context, req *api.GetTaskListRequest,
 ) (resp *api.GetTaskListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.TaskDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetTaskList: %v", req.IDList)
+		ctx.Log.Debugf("GetTaskList: %v", req.IDList)
 
 		dataList, err = data.TaskDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.TaskDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetTaskList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetTaskList resp len %v", len(dataList))
 
 	resp = new(api.GetTaskListResponse)
 	resp.TaskList = make([]*api.TaskInfo, 0, len(dataList))
@@ -105,8 +108,10 @@ func (s *TaskCURDServer) GetTaskList(
 
 
 func (s *TaskCURDServer) UpdateTask(
-	ctx context.Context, req *api.UpdateTaskRequest,
+	_ctx context.Context, req *api.UpdateTaskRequest,
 ) (resp *api.UpdateTaskResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.Task == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -114,30 +119,32 @@ func (s *TaskCURDServer) UpdateTask(
 	do := DTO2DO_Task(req.Task)
 	err = data.TaskDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateTask %v", req.Task.ID)
+	ctx.Log.Debugf("UpdateTask %v", req.Task.ID)
 
 	resp = new(api.UpdateTaskResponse)
 	d, err := data.TaskDAO.GetByID(ctx, req.Task.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.Task = DO2DTO_Task(d)
 	return resp, nil
 }
 
 func (s *TaskCURDServer) DelTaskByIDList(
-	ctx context.Context, req *api.DelTaskByIDListRequest,
+	_ctx context.Context, req *api.DelTaskByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.TaskDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelTaskByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelTaskByIDList %v", req.IDList)
 	return nil, nil
 }
 

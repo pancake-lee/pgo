@@ -29,6 +29,17 @@ func (l *PLogWarper) GetLogger() kLogger.Logger {
 }
 
 // --------------------------------------------------
+func (l *PLogWarper) LogErrMsg(errMsg string) error {
+	if errMsg == "" {
+		return nil
+	}
+	l.kLog.Log(kLogger.LevelError, "msg", fmt.Sprintf("got err[%s]", errMsg))
+	return fmt.Errorf(errMsg)
+}
+func LogErrMsg(errMsg string) error {
+	return defaultLogWarper.LogErrMsg(errMsg)
+}
+
 func (l *PLogWarper) LogErr(err error) error {
 	if err == nil {
 		return nil

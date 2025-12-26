@@ -1,13 +1,13 @@
 package data
 
 import (
-	"context"
 	"errors"
 
 	"github.com/pancake-lee/pgo/internal/pkg/db"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-func (*userJobDAO) EditJobName(ctx context.Context,
+func (*userJobDAO) EditJobName(ctx *papp.AppCtx,
 	id int32, jobName string) error {
 	if id == 0 || jobName == "" {
 		return errors.New("param is invalid")

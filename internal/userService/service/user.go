@@ -6,7 +6,6 @@ import (
 	api "github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papp"
-	"github.com/pancake-lee/pgo/pkg/plogger"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -26,15 +25,17 @@ func (s *UserServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {
 }
 
 func (s *UserServer) Login(
-	ctx context.Context, req *api.LoginRequest,
+	_ctx context.Context, req *api.LoginRequest,
 ) (resp *api.LoginResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserName == "" {
 		return nil, api.ErrorInvalidArgument("user name is empty")
 	}
 	userData, err := data.UserDAO.GetOrAdd(ctx,
 		&data.UserDO{UserName: req.UserName})
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp = new(api.LoginResponse)
 	resp.User = new(api.UserInfo)
@@ -42,34 +43,38 @@ func (s *UserServer) Login(
 	resp.User.UserName = userData.UserName
 	resp.Token, err = papp.GenToken(userData.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return resp, nil
 }
 func (s *UserServer) EditUserName(
-	ctx context.Context, req *api.EditUserNameRequest,
+	_ctx context.Context, req *api.EditUserNameRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.ID == 0 || req.UserName == "" {
 		return nil, api.ErrorInvalidArgument("")
 	}
 
 	err = data.UserDAO.EditUserName(ctx, req.ID, req.UserName)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return nil, nil
 }
 
 func (s *UserServer) DelUserDeptAssoc(
-	ctx context.Context, req *api.DelUserDeptAssocRequest,
+	_ctx context.Context, req *api.DelUserDeptAssocRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserID == 0 || req.DeptID == 0 {
 		return nil, api.ErrorInvalidArgument("")
 	}
 
 	err = data.UserDeptAssocDAO.DelByPrimaryKey(ctx, req.UserID, req.DeptID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return nil, nil
 }

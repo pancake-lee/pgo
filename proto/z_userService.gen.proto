@@ -236,6 +236,8 @@ message ProjectInfo {
     int64 updateTime = 4;
     int32 updateUser = 5;
     string projName = 6;
+    string mtblRecordID = 7;
+    string lastEditFrom = 8;
 }
 
 message AddProjectRequest {
@@ -276,6 +278,8 @@ message UserInfo {
     int32 updateUser = 5;
     string userName = 6;
     string password = 7;
+    string mtblRecordID = 8;
+    string lastEditFrom = 9;
 }
 
 message AddUserRequest {

@@ -1,12 +1,11 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-func (*userDeptAssocDAO) DelByPrimaryKey(ctx context.Context,
+func (*userDeptAssocDAO) DelByPrimaryKey(ctx *papp.AppCtx,
 	userID, deptID int32) error {
 
 	q := db.GetQuery().UserDeptAssoc

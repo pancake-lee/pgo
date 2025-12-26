@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	// "github.com/streadway/amqp"
+
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -165,7 +166,7 @@ func (cli *AmqpClient) handleMQMsg(rpcMsg *mqMsg, i int32) error {
 	pmqCtx.Req = string(rpcMsg.mqDelivery.Body)
 
 	ctx := context.WithValue(context.Background(), PMQContextKey, &pmqCtx)
-	ctx = context.WithValue(ctx, plogger.PgoTidKey, putil.UUID_S())
+	ctx = context.WithValue(ctx, putil.PgoTraceIDKey, putil.UUID_S())
 
 	plogger.Debug("-------------------------------------------------------------------")
 	cli.logReqMsg(i, "svr mq req ", rpcMsg.cbName, rpcMsg.mqDelivery.CorrelationId, pmqCtx.Req)

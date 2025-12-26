@@ -5,13 +5,16 @@ import (
 
 	api "github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-func (s *UserServer) GetUserPermissions(ctx context.Context, req *api.GetUserPermissionsRequest) (*api.GetUserPermissionsResponse, error) {
+func (s *UserServer) GetUserPermissions(_ctx context.Context, req *api.GetUserPermissionsRequest) (*api.GetUserPermissionsResponse, error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	// 1. Get all RoleIDs for the user
 	userRoleAssocList, err := data.UserRoleAssocDAO.GetByUserID(ctx, req.UserID)
 	if err != nil {
-		return nil, err
+		return nil, ctx.Log.LogErr(err)
 	}
 
 	var candidateRoleIDList []int32
@@ -22,7 +25,7 @@ func (s *UserServer) GetUserPermissions(ctx context.Context, req *api.GetUserPer
 	// 2. Filter by ProjectID
 	roleList, err := data.UserRoleDAO.GetByIDsAndProjectID(ctx, candidateRoleIDList, req.ProjectID)
 	if err != nil {
-		return nil, err
+		return nil, ctx.Log.LogErr(err)
 	}
 
 	var finalRoleIDList []int32
@@ -33,7 +36,7 @@ func (s *UserServer) GetUserPermissions(ctx context.Context, req *api.GetUserPer
 	// 3. Get Permissions
 	permList, err := data.UserRolePermissionAssocDAO.GetByRoleIDs(ctx, finalRoleIDList)
 	if err != nil {
-		return nil, err
+		return nil, ctx.Log.LogErr(err)
 	}
 
 	permMap := make(map[string]string)

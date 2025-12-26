@@ -1,12 +1,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type AbandonCodeDO = model.AbandonCode
@@ -15,30 +13,30 @@ type abandonCodeDAO struct{}
 
 var AbandonCodeDAO abandonCodeDAO
 
-func (*abandonCodeDAO) Add(ctx context.Context, abandonCode *AbandonCodeDO) error {
+func (*abandonCodeDAO) Add(ctx *papp.AppCtx, abandonCode *AbandonCodeDO) error {
 	if abandonCode == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().AbandonCode
 	err := q.WithContext(ctx).Create(abandonCode)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*abandonCodeDAO) GetAll(ctx context.Context,
+func (*abandonCodeDAO) GetAll(ctx *papp.AppCtx,
 ) (abandonCodeList []*AbandonCodeDO, err error) {
 	q := db.GetQuery().AbandonCode
 	abandonCodeList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return abandonCodeList, nil
 }
 
-func (*abandonCodeDAO) GetByIndex(ctx context.Context,
+func (*abandonCodeDAO) GetByIndex(ctx *papp.AppCtx,
 	// MARK REPLACE IDX COL START
 	idx1List []int32,
 	idx2List []int32,
@@ -60,37 +58,37 @@ func (*abandonCodeDAO) GetByIndex(ctx context.Context,
 	// MARK REPLACE IDX WHERE END
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
 // MARK REMOVE IF NO PRIMARY KEY START
-func (*abandonCodeDAO) UpdateByIdx1(ctx context.Context, do *AbandonCodeDO) error {
+func (*abandonCodeDAO) UpdateByIdx1(ctx *papp.AppCtx, do *AbandonCodeDO) error {
 	if do.Idx1 == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(do.Idx1)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*abandonCodeDAO) DelByIdx1(ctx context.Context, idx1 int32) error {
+func (*abandonCodeDAO) DelByIdx1(ctx *papp.AppCtx, idx1 int32) error {
 	if idx1 == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().AbandonCode
 	_, err := q.WithContext(ctx).Where(q.Idx1.Eq(idx1)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*abandonCodeDAO) DelByIdx1List(ctx context.Context, idx1List []int32) error {
+func (*abandonCodeDAO) DelByIdx1List(ctx *papp.AppCtx, idx1List []int32) error {
 	if len(idx1List) == 0 {
 		return nil
 	}
@@ -98,27 +96,27 @@ func (*abandonCodeDAO) DelByIdx1List(ctx context.Context, idx1List []int32) erro
 	_, err := q.WithContext(ctx).
 		Where(q.Idx1.In(idx1List...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*abandonCodeDAO) GetByIdx1(ctx context.Context, idx1 int32,
+func (*abandonCodeDAO) GetByIdx1(ctx *papp.AppCtx, idx1 int32,
 ) (abandonCode *AbandonCodeDO, err error) {
 	if idx1 == 0 {
-		return abandonCode, plogger.LogErr(perr.ErrParamInvalid)
+		return abandonCode, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().AbandonCode
 	abandonCode, err = q.WithContext(ctx).
 		Where(q.Idx1.Eq(idx1)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return abandonCode, nil
 }
 
-func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
+func (*abandonCodeDAO) GetByIdx1List(ctx *papp.AppCtx, idx1List []int32,
 ) (abandonCodeMap map[int32]*AbandonCodeDO, err error) {
 	if len(idx1List) == 0 {
 		return nil, nil
@@ -128,7 +126,7 @@ func (*abandonCodeDAO) GetByIdx1List(ctx context.Context, idx1List []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.Idx1.In(idx1List...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	abandonCodeMap = make(map[int32]*AbandonCodeDO)
 	for _, i := range l {

@@ -1,13 +1,13 @@
 package data
 
 import (
-	"context"
 	"errors"
 
 	"github.com/pancake-lee/pgo/internal/pkg/db"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-func (*userDeptDAO) EditDeptName(ctx context.Context,
+func (*userDeptDAO) EditDeptName(ctx *papp.AppCtx,
 	id int32, deptName string) error {
 	if id == 0 || deptName == "" {
 		return errors.New("param is invalid")
@@ -22,7 +22,7 @@ func (*userDeptDAO) EditDeptName(ctx context.Context,
 	return err
 }
 
-func (*userDeptDAO) GetWithDeptPath(ctx context.Context, deptPath string,
+func (*userDeptDAO) GetWithDeptPath(ctx *papp.AppCtx, deptPath string,
 ) (userDept *UserDeptDO, err error) {
 	if deptPath == "" {
 		return userDept, errors.New("param is invalid")
@@ -37,7 +37,7 @@ func (*userDeptDAO) GetWithDeptPath(ctx context.Context, deptPath string,
 	return userDept, nil
 }
 
-func (*userDeptDAO) GetWithDeptPaths(ctx context.Context, deptPaths []string,
+func (*userDeptDAO) GetWithDeptPaths(ctx *papp.AppCtx, deptPaths []string,
 ) (userDeptList []*UserDeptDO, err error) {
 	if len(deptPaths) == 0 {
 		return userDeptList, nil

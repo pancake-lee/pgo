@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_UserProjectAssoc(do *data.UserProjectAssocDO) *api.UserProjectAssocInfo {
@@ -38,8 +38,10 @@ func DTO2DO_UserProjectAssoc(dto *api.UserProjectAssocInfo) *data.UserProjectAss
 }
 
 func (s *UserCURDServer) AddUserProjectAssoc(
-	ctx context.Context, req *api.AddUserProjectAssocRequest,
+	_ctx context.Context, req *api.AddUserProjectAssocRequest,
 ) (resp *api.AddUserProjectAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserProjectAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -47,10 +49,10 @@ func (s *UserCURDServer) AddUserProjectAssoc(
 
 	err = data.UserProjectAssocDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddUserProjectAssoc: %v", newData.ID)
+	ctx.Log.Debugf("AddUserProjectAssoc: %v", newData.ID)
 
 	resp = new(api.AddUserProjectAssocResponse)
 	resp.UserProjectAssoc = DO2DTO_UserProjectAssoc(newData)
@@ -58,30 +60,31 @@ func (s *UserCURDServer) AddUserProjectAssoc(
 }
 
 func (s *UserCURDServer) GetUserProjectAssocList(
-	ctx context.Context, req *api.GetUserProjectAssocListRequest,
+	_ctx context.Context, req *api.GetUserProjectAssocListRequest,
 ) (resp *api.GetUserProjectAssocListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.UserProjectAssocDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetUserProjectAssocList: %v", req.IDList)
+		ctx.Log.Debugf("GetUserProjectAssocList: %v", req.IDList)
 
 		dataList, err = data.UserProjectAssocDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.UserProjectAssocDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetUserProjectAssocList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetUserProjectAssocList resp len %v", len(dataList))
 
 	resp = new(api.GetUserProjectAssocListResponse)
 	resp.UserProjectAssocList = make([]*api.UserProjectAssocInfo, 0, len(dataList))
@@ -93,8 +96,10 @@ func (s *UserCURDServer) GetUserProjectAssocList(
 
 
 func (s *UserCURDServer) UpdateUserProjectAssoc(
-	ctx context.Context, req *api.UpdateUserProjectAssocRequest,
+	_ctx context.Context, req *api.UpdateUserProjectAssocRequest,
 ) (resp *api.UpdateUserProjectAssocResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.UserProjectAssoc == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -102,30 +107,32 @@ func (s *UserCURDServer) UpdateUserProjectAssoc(
 	do := DTO2DO_UserProjectAssoc(req.UserProjectAssoc)
 	err = data.UserProjectAssocDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateUserProjectAssoc %v", req.UserProjectAssoc.ID)
+	ctx.Log.Debugf("UpdateUserProjectAssoc %v", req.UserProjectAssoc.ID)
 
 	resp = new(api.UpdateUserProjectAssocResponse)
 	d, err := data.UserProjectAssocDAO.GetByID(ctx, req.UserProjectAssoc.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.UserProjectAssoc = DO2DTO_UserProjectAssoc(d)
 	return resp, nil
 }
 
 func (s *UserCURDServer) DelUserProjectAssocByIDList(
-	ctx context.Context, req *api.DelUserProjectAssocByIDListRequest,
+	_ctx context.Context, req *api.DelUserProjectAssocByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.UserProjectAssocDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelUserProjectAssocByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelUserProjectAssocByIDList %v", req.IDList)
 	return nil, nil
 }
 

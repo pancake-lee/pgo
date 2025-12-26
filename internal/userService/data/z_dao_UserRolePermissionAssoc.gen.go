@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type UserRolePermissionAssocDO = model.UserRolePermissionAssoc
@@ -17,30 +15,31 @@ type userRolePermissionAssocDAO struct{}
 
 var UserRolePermissionAssocDAO userRolePermissionAssocDAO
 
-func (*userRolePermissionAssocDAO) Add(ctx context.Context, userRolePermissionAssoc *UserRolePermissionAssocDO) error {
+func (*userRolePermissionAssocDAO) Add(ctx *papp.AppCtx, userRolePermissionAssoc *UserRolePermissionAssocDO) error {
 	if userRolePermissionAssoc == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().UserRolePermissionAssoc
 	err := q.WithContext(ctx).Create(userRolePermissionAssoc)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRolePermissionAssocDAO) GetAll(ctx context.Context,
+func (*userRolePermissionAssocDAO) GetAll(ctx *papp.AppCtx,
 ) (userRolePermissionAssocList []*UserRolePermissionAssocDO, err error) {
 	q := db.GetQuery().UserRolePermissionAssoc
 	userRolePermissionAssocList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userRolePermissionAssocList, nil
 }
 
-func (*userRolePermissionAssocDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*userRolePermissionAssocDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*UserRolePermissionAssocDO, error) {
 	q := db.GetQuery().UserRolePermissionAssoc
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*userRolePermissionAssocDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*userRolePermissionAssocDAO) UpdateByID(ctx context.Context, do *UserRolePermissionAssocDO) error {
+func (*userRolePermissionAssocDAO) UpdateByID(ctx *papp.AppCtx, do *UserRolePermissionAssocDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserRolePermissionAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRolePermissionAssocDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userRolePermissionAssocDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserRolePermissionAssoc
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRolePermissionAssocDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userRolePermissionAssocDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*userRolePermissionAssocDAO) DelByIDList(ctx context.Context, iDList []int
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRolePermissionAssocDAO) GetByID(ctx context.Context, iD int32,
+func (*userRolePermissionAssocDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (userRolePermissionAssoc *UserRolePermissionAssocDO, err error) {
 	if iD == 0 {
-		return userRolePermissionAssoc, plogger.LogErr(perr.ErrParamInvalid)
+		return userRolePermissionAssoc, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserRolePermissionAssoc
 	userRolePermissionAssoc, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userRolePermissionAssoc, nil
 }
 
-func (*userRolePermissionAssocDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*userRolePermissionAssocDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (userRolePermissionAssocMap map[int32]*UserRolePermissionAssocDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*userRolePermissionAssocDAO) GetByIDList(ctx context.Context, iDList []int
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	userRolePermissionAssocMap = make(map[int32]*UserRolePermissionAssocDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*userRolePermissionAssocDAO) GetByIDList(ctx context.Context, iDList []int
 	}
 	return userRolePermissionAssocMap, nil
 }
+

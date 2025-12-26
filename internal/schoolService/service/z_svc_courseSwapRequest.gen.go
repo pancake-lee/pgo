@@ -9,7 +9,7 @@ import (
 
 	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/schoolService/data"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 func DO2DTO_CourseSwapRequest(do *data.CourseSwapRequestDO) *api.CourseSwapRequestInfo {
@@ -54,8 +54,10 @@ func DTO2DO_CourseSwapRequest(dto *api.CourseSwapRequestInfo) *data.CourseSwapRe
 }
 
 func (s *SchoolCURDServer) AddCourseSwapRequest(
-	ctx context.Context, req *api.AddCourseSwapRequestRequest,
+	_ctx context.Context, req *api.AddCourseSwapRequestRequest,
 ) (resp *api.AddCourseSwapRequestResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.CourseSwapRequest == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -63,10 +65,10 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 
 	err = data.CourseSwapRequestDAO.Add(ctx, newData)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 
-	plogger.Debugf("AddCourseSwapRequest: %v", newData.ID)
+	ctx.Log.Debugf("AddCourseSwapRequest: %v", newData.ID)
 
 	resp = new(api.AddCourseSwapRequestResponse)
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(newData)
@@ -74,30 +76,31 @@ func (s *SchoolCURDServer) AddCourseSwapRequest(
 }
 
 func (s *SchoolCURDServer) GetCourseSwapRequestList(
-	ctx context.Context, req *api.GetCourseSwapRequestListRequest,
+	_ctx context.Context, req *api.GetCourseSwapRequestListRequest,
 ) (resp *api.GetCourseSwapRequestListResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
 
 	var dataList []*data.CourseSwapRequestDO
 
 	if len(req.IDList) != 0 {
-		plogger.Debugf("GetCourseSwapRequestList: %v", req.IDList)
+		ctx.Log.Debugf("GetCourseSwapRequestList: %v", req.IDList)
 
 		dataList, err = data.CourseSwapRequestDAO.GetByIndex(ctx,
             req.IDList,
 		)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 	} else {
 
 		dataList, err = data.CourseSwapRequestDAO.GetAll(ctx)
 		if err != nil {
-			return nil, plogger.LogErr(err)
+			return nil, ctx.Log.LogErr(err)
 		}
 
 	}
 
-	plogger.Debugf("GetCourseSwapRequestList resp len %v", len(dataList))
+	ctx.Log.Debugf("GetCourseSwapRequestList resp len %v", len(dataList))
 
 	resp = new(api.GetCourseSwapRequestListResponse)
 	resp.CourseSwapRequestList = make([]*api.CourseSwapRequestInfo, 0, len(dataList))
@@ -109,8 +112,10 @@ func (s *SchoolCURDServer) GetCourseSwapRequestList(
 
 
 func (s *SchoolCURDServer) UpdateCourseSwapRequest(
-	ctx context.Context, req *api.UpdateCourseSwapRequestRequest,
+	_ctx context.Context, req *api.UpdateCourseSwapRequestRequest,
 ) (resp *api.UpdateCourseSwapRequestResponse, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if req.CourseSwapRequest == nil {
 		return nil, api.ErrorInvalidArgument("")
 	}
@@ -118,30 +123,32 @@ func (s *SchoolCURDServer) UpdateCourseSwapRequest(
 	do := DTO2DO_CourseSwapRequest(req.CourseSwapRequest)
 	err = data.CourseSwapRequestDAO.UpdateByID(ctx, do)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
+	ctx.Log.Debugf("UpdateCourseSwapRequest %v", req.CourseSwapRequest.ID)
 
 	resp = new(api.UpdateCourseSwapRequestResponse)
 	d, err := data.CourseSwapRequestDAO.GetByID(ctx, req.CourseSwapRequest.ID)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	resp.CourseSwapRequest = DO2DTO_CourseSwapRequest(d)
 	return resp, nil
 }
 
 func (s *SchoolCURDServer) DelCourseSwapRequestByIDList(
-	ctx context.Context, req *api.DelCourseSwapRequestByIDListRequest,
+	_ctx context.Context, req *api.DelCourseSwapRequestByIDListRequest,
 ) (resp *api.Empty, err error) {
+	ctx := papp.NewAppCtx(_ctx)
+
 	if len(req.IDList) == 0 {
 		return nil, nil
 	}
 	err = data.CourseSwapRequestDAO.DelByIDList(ctx, req.IDList)
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
-	plogger.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
+	ctx.Log.Debugf("DelCourseSwapRequestByIDList %v", req.IDList)
 	return nil, nil
 }
 

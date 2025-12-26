@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type UserRoleDO = model.UserRole
@@ -17,30 +15,31 @@ type userRoleDAO struct{}
 
 var UserRoleDAO userRoleDAO
 
-func (*userRoleDAO) Add(ctx context.Context, userRole *UserRoleDO) error {
+func (*userRoleDAO) Add(ctx *papp.AppCtx, userRole *UserRoleDO) error {
 	if userRole == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().UserRole
 	err := q.WithContext(ctx).Create(userRole)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleDAO) GetAll(ctx context.Context,
+func (*userRoleDAO) GetAll(ctx *papp.AppCtx,
 ) (userRoleList []*UserRoleDO, err error) {
 	q := db.GetQuery().UserRole
 	userRoleList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userRoleList, nil
 }
 
-func (*userRoleDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*userRoleDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*UserRoleDO, error) {
 	q := db.GetQuery().UserRole
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*userRoleDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*userRoleDAO) UpdateByID(ctx context.Context, do *UserRoleDO) error {
+func (*userRoleDAO) UpdateByID(ctx *papp.AppCtx, do *UserRoleDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userRoleDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserRole
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userRoleDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*userRoleDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleDAO) GetByID(ctx context.Context, iD int32,
+func (*userRoleDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (userRole *UserRoleDO, err error) {
 	if iD == 0 {
-		return userRole, plogger.LogErr(perr.ErrParamInvalid)
+		return userRole, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserRole
 	userRole, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userRole, nil
 }
 
-func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*userRoleDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (userRoleMap map[int32]*UserRoleDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	userRoleMap = make(map[int32]*UserRoleDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*userRoleDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userRoleMap, nil
 }
+

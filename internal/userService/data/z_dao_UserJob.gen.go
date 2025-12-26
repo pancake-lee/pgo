@@ -3,12 +3,10 @@
 package data
 
 import (
-	"context"
-
 	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
-	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
 type UserJobDO = model.UserJob
@@ -17,30 +15,31 @@ type userJobDAO struct{}
 
 var UserJobDAO userJobDAO
 
-func (*userJobDAO) Add(ctx context.Context, userJob *UserJobDO) error {
+func (*userJobDAO) Add(ctx *papp.AppCtx, userJob *UserJobDO) error {
 	if userJob == nil {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
+	// TODO 用反射识别是否有create/update字段，自动赋值
 	q := db.GetQuery().UserJob
 	err := q.WithContext(ctx).Create(userJob)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) GetAll(ctx context.Context,
+func (*userJobDAO) GetAll(ctx *papp.AppCtx,
 ) (userJobList []*UserJobDO, err error) {
 	q := db.GetQuery().UserJob
 	userJobList, err = q.WithContext(ctx).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userJobList, nil
 }
 
-func (*userJobDAO) GetByIndex(ctx context.Context,
-	IDList []int32,
+func (*userJobDAO) GetByIndex(ctx *papp.AppCtx,
+IDList []int32,
 ) ([]*UserJobDO, error) {
 	q := db.GetQuery().UserJob
 	do := q.WithContext(ctx)
@@ -50,36 +49,36 @@ func (*userJobDAO) GetByIndex(ctx context.Context,
 	}
 	list, err := do.Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return list, nil
 }
 
-func (*userJobDAO) UpdateByID(ctx context.Context, do *UserJobDO) error {
+func (*userJobDAO) UpdateByID(ctx *papp.AppCtx, do *UserJobDO) error {
 	if do.ID == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(do.ID)).Updates(do)
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) DelByID(ctx context.Context, iD int32) error {
+func (*userJobDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
 	if iD == 0 {
-		return plogger.LogErr(perr.ErrParamInvalid)
+		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
+func (*userJobDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
 	if len(iDList) == 0 {
 		return nil
 	}
@@ -87,27 +86,27 @@ func (*userJobDAO) DelByIDList(ctx context.Context, iDList []int32) error {
 	_, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Delete()
 	if err != nil {
-		return plogger.LogErr(err)
+		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) GetByID(ctx context.Context, iD int32,
+func (*userJobDAO) GetByID(ctx *papp.AppCtx, iD int32,
 ) (userJob *UserJobDO, err error) {
 	if iD == 0 {
-		return userJob, plogger.LogErr(perr.ErrParamInvalid)
+		return userJob, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserJob
 	userJob, err = q.WithContext(ctx).
 		Where(q.ID.Eq(iD)).First()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	return userJob, nil
 }
 
-func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
+func (*userJobDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
 ) (userJobMap map[int32]*UserJobDO, err error) {
 	if len(iDList) == 0 {
 		return nil, nil
@@ -117,7 +116,7 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 	l, err := q.WithContext(ctx).
 		Where(q.ID.In(iDList...)).Find()
 	if err != nil {
-		return nil, plogger.LogErr(err)
+		return nil, ctx.Log.LogErr(err)
 	}
 	userJobMap = make(map[int32]*UserJobDO)
 	for _, i := range l {
@@ -125,3 +124,4 @@ func (*userJobDAO) GetByIDList(ctx context.Context, iDList []int32,
 	}
 	return userJobMap, nil
 }
+

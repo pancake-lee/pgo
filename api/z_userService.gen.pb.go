@@ -34,6 +34,8 @@ type ProjectInfo struct {
 	UpdateTime    int64                  `protobuf:"varint,4,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
 	UpdateUser    int32                  `protobuf:"varint,5,opt,name=updateUser,proto3" json:"updateUser,omitempty"`
 	ProjName      string                 `protobuf:"bytes,6,opt,name=projName,proto3" json:"projName,omitempty"`
+	MtblRecordID  string                 `protobuf:"bytes,7,opt,name=mtblRecordID,proto3" json:"mtblRecordID,omitempty"`
+	LastEditFrom  string                 `protobuf:"bytes,8,opt,name=lastEditFrom,proto3" json:"lastEditFrom,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -106,6 +108,20 @@ func (x *ProjectInfo) GetUpdateUser() int32 {
 func (x *ProjectInfo) GetProjName() string {
 	if x != nil {
 		return x.ProjName
+	}
+	return ""
+}
+
+func (x *ProjectInfo) GetMtblRecordID() string {
+	if x != nil {
+		return x.MtblRecordID
+	}
+	return ""
+}
+
+func (x *ProjectInfo) GetLastEditFrom() string {
+	if x != nil {
+		return x.LastEditFrom
 	}
 	return ""
 }
@@ -429,6 +445,8 @@ type UserInfo struct {
 	UpdateUser    int32                  `protobuf:"varint,5,opt,name=updateUser,proto3" json:"updateUser,omitempty"`
 	UserName      string                 `protobuf:"bytes,6,opt,name=userName,proto3" json:"userName,omitempty"`
 	Password      string                 `protobuf:"bytes,7,opt,name=password,proto3" json:"password,omitempty"`
+	MtblRecordID  string                 `protobuf:"bytes,8,opt,name=mtblRecordID,proto3" json:"mtblRecordID,omitempty"`
+	LastEditFrom  string                 `protobuf:"bytes,9,opt,name=lastEditFrom,proto3" json:"lastEditFrom,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -508,6 +526,20 @@ func (x *UserInfo) GetUserName() string {
 func (x *UserInfo) GetPassword() string {
 	if x != nil {
 		return x.Password
+	}
+	return ""
+}
+
+func (x *UserInfo) GetMtblRecordID() string {
+	if x != nil {
+		return x.MtblRecordID
+	}
+	return ""
+}
+
+func (x *UserInfo) GetLastEditFrom() string {
+	if x != nil {
+		return x.LastEditFrom
 	}
 	return ""
 }
@@ -3606,7 +3638,7 @@ var File_z_userService_gen_proto protoreflect.FileDescriptor
 
 const file_z_userService_gen_proto_rawDesc = "" +
 	"\n" +
-	"\x17z_userService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\xb9\x01\n" +
+	"\x17z_userService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\x81\x02\n" +
 	"\vProjectInfo\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
@@ -3621,7 +3653,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\n" +
 	"updateUser\x18\x05 \x01(\x05R\n" +
 	"updateUser\x12\x1a\n" +
-	"\bprojName\x18\x06 \x01(\tR\bprojName\"?\n" +
+	"\bprojName\x18\x06 \x01(\tR\bprojName\x12\"\n" +
+	"\fmtblRecordID\x18\a \x01(\tR\fmtblRecordID\x12\"\n" +
+	"\flastEditFrom\x18\b \x01(\tR\flastEditFrom\"?\n" +
 	"\x11AddProjectRequest\x12*\n" +
 	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"@\n" +
 	"\x12AddProjectResponse\x12*\n" +
@@ -3635,7 +3669,7 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x15UpdateProjectResponse\x12*\n" +
 	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"3\n" +
 	"\x19DelProjectByIDListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\xd2\x01\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"\x9a\x02\n" +
 	"\bUserInfo\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\x1e\n" +
 	"\n" +
@@ -3651,7 +3685,9 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"updateUser\x18\x05 \x01(\x05R\n" +
 	"updateUser\x12\x1a\n" +
 	"\buserName\x18\x06 \x01(\tR\buserName\x12\x1a\n" +
-	"\bpassword\x18\a \x01(\tR\bpassword\"3\n" +
+	"\bpassword\x18\a \x01(\tR\bpassword\x12\"\n" +
+	"\fmtblRecordID\x18\b \x01(\tR\fmtblRecordID\x12\"\n" +
+	"\flastEditFrom\x18\t \x01(\tR\flastEditFrom\"3\n" +
 	"\x0eAddUserRequest\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"4\n" +
 	"\x0fAddUserResponse\x12!\n" +
