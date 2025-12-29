@@ -77,6 +77,11 @@ api:
 	echo "    - description: PGO API" >> ./openapi.yaml
 	echo "      url: http://127.0.0.1:8080" >> ./openapi.yaml
 
+.PHONY: api-cli
+# generate cli sdk from openapi.yaml
+api-cli:
+	docker run --rm -v ./:/local openapitools/openapi-generator-cli:v7.18.0 generate -i /local/openapi.yaml -g go -o /local/client/swagger -p packageName=swagger
+
 .PHONY: gorm
 gorm:
 	$(dbCmd) -e "DROP DATABASE IF EXISTS pgo_build; CREATE DATABASE pgo_build DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
