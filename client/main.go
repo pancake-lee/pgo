@@ -39,9 +39,9 @@ func runCobra(cmd *cobra.Command, args []string) {
 
 	switch choice {
 	case 1:
-		courseSwap.CourseSwap()
+		courseSwap.CourseSwapCli()
 	default:
 		fmt.Println("无效选项，默认进入调课功能")
-		courseSwap.CourseSwap()
+		courseSwap.CourseSwapCli()
 	}
 }

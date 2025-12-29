@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pancake-lee/pgo/client/courseSwap"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func runApp() {
@@ -28,7 +28,7 @@ func runApp() {
 
 	if isCli {
 		if err := rootCmd.Execute(); err != nil {
-			fmt.Println(err)
+			plogger.Error(err)
 			os.Exit(1)
 		}
 	} else {
@@ -51,49 +51,8 @@ func runUI() {
 	output.SetPlaceHolder("Output will appear here...")
 	output.Disable() // Read-only
 
-	// Redirect stdout to capture output
-	// Note: This is a simple redirection for demonstration.
-	// Real-time capturing might require a pipe and a goroutine.
-	r, wPipe, _ := os.Pipe()
-	originalStdout := os.Stdout
-	os.Stdout = wPipe
-
-	// Capture output in a goroutine
-	go func() {
-		buf := make([]byte, 1024)
-		for {
-			n, err := r.Read(buf)
-			if n > 0 {
-				current, _ := outputData.Get()
-				outputData.Set(current + string(buf[:n]))
-			}
-			if err != nil {
-				if err != io.EOF {
-					fmt.Fprintf(originalStdout, "Error reading stdout: %v\n", err)
-				}
-				break
-			}
-		}
-	}()
-
 	btnCourseSwap := widget.NewButton("调课 (Course Swap)", func() {
 		output.SetText("Starting Course Swap...\n")
-
-		// Mock input for now or use a dialog to get input
-		// Since courseSwap.CourseSwap() uses putil.Interact.Input which reads from Stdin,
-		// we need to adapt courseSwap to accept config or mock the interaction.
-		// For this task, "读取缓存或者输入必要参数后运行程序"
-		// We can try to load cache and run if possible, or pop up a dialog.
-
-		// Ideally, we should refactor courseSwap to take an interface for input/output.
-		// But for now, let's assume we can just run it and it might block on Stdin if we don't handle it.
-		// To avoid blocking, we might need to change how inputParams works or provide a UI implementation of Interact.
-
-		// Let's try to run it in a goroutine so UI doesn't freeze,
-		// BUT inputParams reads from Stdin.
-		// We need to override putil.Interact to use UI dialogs.
-
-		// Let's show a form for Course Swap Params
 		showCourseSwapForm(w, output)
 	})
 
@@ -107,10 +66,6 @@ func runUI() {
 	w.SetContent(content)
 	w.Resize(fyne.NewSize(800, 600))
 	w.ShowAndRun()
-
-	// Restore stdout
-	wPipe.Close()
-	os.Stdout = originalStdout
 }
 
 func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
@@ -171,16 +126,8 @@ func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
 
 			// Run in goroutine to not block UI
 			go func() {
-				// We need to capture stdout again inside the goroutine if we want it to show up?
-				// The global os.Stdout redirect should work for the process.
-
-				courseSwap.Run(config)
-
-				// Append "Done"
-				// output.SetText(output.Text + "\nDone.\n") // Accessing UI from goroutine needs care?
-				// Fyne widgets are generally thread-safe for SetText? No, usually need driver.
-				// But for simplicity let's rely on the stdout capture goroutine to update UI.
-				fmt.Println("\nCourse Swap Finished.")
+				courseSwap.CourseSwap(config)
+				plogger.Infof("\nCourse Swap Finished.")
 			}()
 		},
 	}

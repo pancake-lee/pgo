@@ -11,19 +11,15 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
-// 实在词穷，courseInfo表示课程安排，如20240101一年1班的第1节课
-// 而classInfo表示课程表中的一节课，如周三一年1班的第1节课
-type courseInfo struct {
-	className     string //课名
-	classRoomName string //班级名
-	classNum      int
-	date          time.Time
-	teacher       string
+func CourseSwapCli() {
+	config, err := InputParams()
+	if err != nil {
+		return
+	}
+	CourseSwap(config)
 }
 
-var courseNumMax = 7
-
-func Run(config InputConfig) {
+func CourseSwap(config InputConfig) {
 	allCourseMgr, err := getAllCourseList(config)
 	if err != nil {
 		return
@@ -40,12 +36,14 @@ func Run(config InputConfig) {
 	}
 }
 
-func CourseSwap() {
-	config, err := InputParams()
-	if err != nil {
-		return
-	}
-	Run(config)
+// 实在词穷，courseInfo表示课程安排，如20240101一年1班的第1节课
+// 而classInfo表示课程表中的一节课，如周三一年1班的第1节课
+type courseInfo struct {
+	className     string //课名
+	classRoomName string //班级名
+	classNum      int
+	date          time.Time
+	teacher       string
 }
 
 func getAllCourseList(config InputConfig) (*courseManager, error) {
@@ -129,6 +127,8 @@ func getAllCourseList(config InputConfig) (*courseManager, error) {
 	})
 	return newCourseManager(allCourseList), nil
 }
+
+var courseNumMax = 7
 
 func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, error) {
 	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
