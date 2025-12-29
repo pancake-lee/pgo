@@ -2,11 +2,13 @@ package courseSwap
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/pancake-lee/pgo/client/swagger"
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +36,17 @@ func (CourseSwapRequestModel) TableName() string {
 	return "course_swap_request"
 }
 
-func NewLocalRepo(dbPath string) *LocalRepo {
+func NewLocalRepo() *LocalRepo {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	path := filepath.Join(home, "pgo")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		_ = os.MkdirAll(path, 0755)
+	}
+	dbPath := filepath.Join(path, "course_swap.db")
+
 	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

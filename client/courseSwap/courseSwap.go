@@ -23,12 +23,7 @@ type courseInfo struct {
 
 var courseNumMax = 7
 
-func CourseSwap() {
-	config, err := inputParams()
-	if err != nil {
-		return
-	}
-
+func Run(config InputConfig) {
 	allCourseMgr, err := getAllCourseList(config)
 	if err != nil {
 		return
@@ -45,7 +40,15 @@ func CourseSwap() {
 	}
 }
 
-func getAllCourseList(config inputConfig) (*courseManager, error) {
+func CourseSwap() {
+	config, err := InputParams()
+	if err != nil {
+		return
+	}
+	Run(config)
+}
+
+func getAllCourseList(config InputConfig) (*courseManager, error) {
 	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
 		plogger.Debug("parseCourseExcel failed: ", err)
@@ -127,7 +130,7 @@ func getAllCourseList(config inputConfig) (*courseManager, error) {
 	return newCourseManager(allCourseList), nil
 }
 
-func getSwapCandidates(mgr *courseManager, config inputConfig) (*courseManager, error) {
+func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, error) {
 	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
 	tNow := time.Now()
 	wDiff := tNow.Weekday() - time.Monday
@@ -188,7 +191,7 @@ func getSwapCandidates(mgr *courseManager, config inputConfig) (*courseManager, 
 	return newCourseManager(dstCourseList), nil
 }
 
-func handleSwapSelection(mgr *courseManager, config inputConfig) error {
+func handleSwapSelection(mgr *courseManager, config InputConfig) error {
 	mgr.logCourseList()
 
 	if true {
@@ -240,7 +243,7 @@ func getWeekday(w time.Weekday) string {
 // --------------------------------------------------
 func getRepo(storageType string) CourseSwapRepo {
 	if storageType == "Local" {
-		return NewLocalRepo("course_swap.db")
+		return NewLocalRepo()
 	}
 	return NewCloudRepo()
 }

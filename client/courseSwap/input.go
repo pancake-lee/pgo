@@ -10,7 +10,7 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
-type inputConfig struct {
+type InputConfig struct {
 	Path        string `json:"path"`
 	Teacher     string `json:"teacher"`
 	Date        string `json:"date"`
@@ -21,17 +21,17 @@ type inputConfig struct {
 func getCachePath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return ".course_swap_cache.json"
+		return "course_swap_cache.json"
 	}
 	path := filepath.Join(home, "pgo")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		_ = os.MkdirAll(path, 0755)
 	}
-	return filepath.Join(path, ".course_swap_cache.json")
+	return filepath.Join(path, "course_swap_cache.json")
 }
 
-func loadCache() inputConfig {
-	var cache inputConfig
+func LoadCache() InputConfig {
+	var cache InputConfig
 	data, err := os.ReadFile(getCachePath())
 	if err == nil {
 		_ = json.Unmarshal(data, &cache)
@@ -39,7 +39,7 @@ func loadCache() inputConfig {
 	return cache
 }
 
-func saveCache(cache inputConfig) {
+func SaveCache(cache InputConfig) {
 	data, err := json.MarshalIndent(cache, "", "  ")
 	if err == nil {
 		_ = os.WriteFile(getCachePath(), data, 0644)
@@ -48,8 +48,8 @@ func saveCache(cache inputConfig) {
 
 // --------------------------------------------------
 
-func inputParams() (config inputConfig, err error) {
-	cache := loadCache()
+func InputParams() (config InputConfig, err error) {
+	cache := LoadCache()
 
 	// Path
 	prompt := "请输入需要导入的课程表文件(excel)"
@@ -123,7 +123,7 @@ func inputParams() (config inputConfig, err error) {
 	}
 
 	// Save cache
-	saveCache(config)
+	SaveCache(config)
 
 	if config.Teacher == "" || config.Date == "" || config.CourseNum == 0 {
 		plogger.Debug("input error")
