@@ -187,9 +187,9 @@ func (_interact) MustConfirm(msg string) {
 	result, _ := pterm.DefaultInteractiveConfirm.
 		WithDefaultText(msg).WithDefaultValue(true).Show()
 	if result {
-		Interact.Debugf("已确认\n")
+		Interact.Debugf("Confirmed")
 	} else {
-		Interact.Warnf("已退出")
+		Interact.Warnf("Exited")
 		os.Exit(1)
 	}
 }

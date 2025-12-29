@@ -32,7 +32,7 @@ require (
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gen v0.3.26
-	gorm.io/gorm v1.25.12
+	gorm.io/gorm v1.30.0
 	gorm.io/plugin/dbresolver v1.5.3
 )
 
@@ -69,6 +69,7 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
@@ -97,6 +98,7 @@ require (
 	golang.org/x/tools v0.33.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gorm.io/datatypes v1.1.1-0.20230130040222-c43177d3cf8c // indirect
+	gorm.io/driver/sqlite v1.6.0 // indirect
 	gorm.io/hints v1.1.0 // indirect
 )
 
@@ -121,4 +123,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
 replace github.com/go-mysql-org/go-mysql => github.com/go-mysql-org/go-mysql v1.7.0

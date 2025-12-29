@@ -3,12 +3,10 @@ package courseSwap
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sort"
 	"time"
 
 	"github.com/pancake-lee/pgo/client/swagger"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -24,101 +22,35 @@ type courseInfo struct {
 }
 
 var courseNumMax = 7
-var cli *swagger.APIClient
-
-func getCli() *swagger.APIClient {
-	if cli == nil {
-		cfg := swagger.NewConfiguration()
-		cfg.Host = ""
-		cfg.Scheme = ""
-		cfg.BasePath = "http://127.0.0.1:8000"
-		cfg.HTTPClient = http.DefaultClient
-		cli = swagger.NewAPIClient(cfg)
-	}
-	return cli
-}
-
-func handleErr(err error, httpResp *http.Response) error {
-	if err != nil {
-		plogger.Debug("GetCourseSwapRequestList failed: ", err)
-		return err
-	}
-	if httpResp.StatusCode != http.StatusOK {
-		plogger.Debug("GetCourseSwapRequestList failed: ", httpResp.Status)
-		return fmt.Errorf("http status code: %v", httpResp.StatusCode)
-	}
-	return nil
-}
-
-func inputStrIfEmpty(str *string, msg string) {
-	if *str == "" {
-		inputStr(str, msg)
-	}
-}
-func inputIntIfZero(i *int, msg string) {
-	if *i == 0 {
-		inputInt(i, msg)
-	}
-}
-
-func inputStr(str *string, msg string) {
-	plogger.Debug(msg)
-	var tmpStr string
-	_, _ = fmt.Scanln(&tmpStr)
-	if tmpStr != "" {
-		*str = tmpStr
-	}
-}
-func inputInt(i *int, msg string) {
-	plogger.Debug(msg)
-	var tmpInt int
-	_, _ = fmt.Scanln(&tmpInt)
-	if tmpInt != 0 {
-		*i = tmpInt
-	}
-}
-
-var useConfig bool = true
 
 func CourseSwap() {
-	var configPath string = "./configs/courseSwap.ini"
-	inputStr(&configPath, "配置文件，默认为./configs/courseSwap.ini，输入NO将不使用配置文件")
-	if configPath == "NO" {
-		useConfig = false
-	}
-	var path string
-	var srcTeacher string
-	var srcDateStr string
-	var srcCourseNum int
-
-	if useConfig {
-		pconfig.MustInitConfig(configPath)
-		path = pconfig.GetStringD("filePath", "")
-		srcTeacher = pconfig.GetStringD("teacher", "")
-		srcDateStr = pconfig.GetStringD("date", "")
-		srcCourseNum = int(pconfig.GetInt64D("courseNum", 0))
-	}
-	inputStrIfEmpty(&path, "请输入需要导入的课程表文件(excel)，以回车结束")
-	inputStrIfEmpty(&srcTeacher, "请输入老师名字，不要输入空格等额外内容，以回车结束")
-	inputStrIfEmpty(&srcDateStr, "请输入日期，如20240101，以回车结束")
-	inputIntIfZero(&srcCourseNum, "请输入第几节课，1~7，以回车结束")
-
-	if srcTeacher == "" || srcDateStr == "" || srcCourseNum == 0 {
-		plogger.Debug("input error")
-		return
-	}
-
-	srcDate, err := putil.TimeFromStr(srcDateStr, "YYYYMMDD")
+	config, err := inputParams()
 	if err != nil {
-		plogger.Debug("time.Parse failed: ", err)
 		return
 	}
 
-	plogger.Debug("从excel读取课程表: " + path)
-	courseMap, err := NewCourseParser(path).ParseCourseExcel()
+	allCourseMgr, err := getAllCourseList(config)
+	if err != nil {
+		return
+	}
+
+	dstCourseMgr, err := getSwapCandidates(allCourseMgr, config)
+	if err != nil {
+		return
+	}
+
+	err = handleSwapSelection(dstCourseMgr, config)
+	if err != nil {
+		return
+	}
+}
+
+func getAllCourseList(config inputConfig) (*courseManager, error) {
+	plogger.Debug("从excel读取课程表: " + config.Path)
+	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
 		plogger.Debug("parseCourseExcel failed: ", err)
-		return
+		return nil, err
 	}
 
 	tNow := time.Now()
@@ -155,28 +87,27 @@ func CourseSwap() {
 	}
 
 	plogger.Debug("查询当前换课记录，结合换课记录来计算")
+	repo := getRepo(config.StorageType)
+
 	{ // GetCourseSwapRequestList
-		resp, httpResp, err := getCli().SchoolCURDApi.SchoolCURDGetCourseSwapRequestList(
-			context.Background(), &swagger.SchoolCURDApiSchoolCURDGetCourseSwapRequestListOpts{
-				// IDList: optional.NewInterface([]int64{0}),
-			})
-		err = handleErr(err, httpResp)
+		reqList, err := repo.GetCourseSwapRequestList(context.Background())
 		if err != nil {
 			plogger.Debug("GetCourseSwapRequestList failed: ", err)
-			return
+			return nil, err
 		}
 
-		sort.Slice(resp.CourseSwapRequestList, func(i, j int) bool {
-			return resp.CourseSwapRequestList[i].CreateTime < resp.CourseSwapRequestList[j].CreateTime
+		sort.Slice(reqList, func(i, j int) bool {
+			return reqList[i].CreateTime < reqList[j].CreateTime
 		})
 
-		for _, req := range resp.CourseSwapRequestList {
+		for _, req := range reqList {
 			// allCourseList 中找到src课程
+			mgr := newCourseManager(allCourseList)
 			srcTime, _ := putil.TimeFromStr("YYYYMMDD", req.SrcDate)
-			srcCourse := getCourse(allCourseList, req.SrcTeacher, srcTime, int(req.SrcCourseNum))
+			srcCourse := mgr.getCourse(req.SrcTeacher, srcTime, int(req.SrcCourseNum))
 			// allCourseList 中找到dst课程
 			dstTime, _ := putil.TimeFromStr("YYYYMMDD", req.DstDate)
-			dstCourse := getCourse(allCourseList, req.DstTeacher, dstTime, int(req.DstCourseNum))
+			dstCourse := mgr.getCourse(req.DstTeacher, dstTime, int(req.DstCourseNum))
 			// 交换老师和课名
 			tmpTeacher := srcCourse.teacher
 			tmpClassName := srcCourse.className
@@ -190,23 +121,32 @@ func CourseSwap() {
 	sort.Slice(allCourseList, func(i, j int) bool {
 		return allCourseList[i].date.Before(allCourseList[j].date)
 	})
+	return newCourseManager(allCourseList), nil
+}
+
+func getSwapCandidates(mgr *courseManager, config inputConfig) (*courseManager, error) {
+	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
+	tNow := time.Now()
+	wDiff := tNow.Weekday() - time.Monday
+	endTime := tNow.AddDate(0, 0, 21-int(wDiff))
 
 	// 获取当前需要调课的课程，则某老师某天的某节课
-	srcCourse := getCourse(allCourseList, srcTeacher, srcDate, srcCourseNum)
+	srcCourse := mgr.getCourse(config.Teacher, srcDate, config.CourseNum)
 	if srcCourse == nil {
 		plogger.Debug("srcCourse not found")
-		return
+		return nil, fmt.Errorf("srcCourse not found")
 	} else {
 		logCourse(srcCourse)
 	}
 	srcClassRoom := srcCourse.classRoomName
+	srcDateStr := putil.TimeToStr(srcDate, "YYYYMMDD")
 
 	plogger.Debugf("找到[%v][第%v节]，不用上课的，[%v]同班老师\n",
-		srcDateStr, srcCourseNum, srcCourse.classRoomName)
+		srcDateStr, config.CourseNum, srcCourse.classRoomName)
 	var srcFreeTeacherList []string
-	teacherList := getTeacherListByClassRoom(allCourseList, srcClassRoom)
+	teacherList := mgr.getTeacherListByClassRoom(srcClassRoom)
 	for _, t := range teacherList {
-		c := getCourse(allCourseList, t, srcDate, srcCourseNum)
+		c := mgr.getCourse(t, srcDate, config.CourseNum)
 		if c == nil {
 			plogger.Debugf("teacher[%v] is free", t)
 			srcFreeTeacherList = append(srcFreeTeacherList, t)
@@ -218,7 +158,7 @@ func CourseSwap() {
 	var dstFreeCourseList []*courseInfo //只用来记一下哪天第几节
 	for date := time.Now(); date.Before(endTime); date = date.AddDate(0, 0, 1) {
 		for courseNum := 1; courseNum <= courseNumMax; courseNum++ {
-			c := getCourse(allCourseList, srcTeacher, date, courseNum)
+			c := mgr.getCourse(config.Teacher, date, courseNum)
 			if c != nil {
 				continue
 			}
@@ -228,11 +168,11 @@ func CourseSwap() {
 	}
 
 	plogger.Debugf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空\n",
-		srcTeacher, srcDateStr, srcCourseNum)
+		config.Teacher, srcDateStr, config.CourseNum)
 	var dstCourseList []*courseInfo
 	for _, dstFreeCourse := range dstFreeCourseList {
 		for _, t := range srcFreeTeacherList {
-			dstCourse := getCourse(allCourseList, t, dstFreeCourse.date, dstFreeCourse.classNum)
+			dstCourse := mgr.getCourse(t, dstFreeCourse.date, dstFreeCourse.classNum)
 			if dstCourse == nil ||
 				dstCourse.classRoomName != srcClassRoom { //换同班的课
 				continue
@@ -240,86 +180,29 @@ func CourseSwap() {
 			dstCourseList = append(dstCourseList, dstCourse)
 		}
 	}
+	return newCourseManager(dstCourseList), nil
+}
 
-	logCourseList(dstCourseList)
+func handleSwapSelection(mgr *courseManager, config inputConfig) error {
+	mgr.logCourseList()
 
 	if true {
-		return
+		return nil
 	}
 	// AddCourseSwapRequest
-	resp, httpResp, err := getCli().SchoolCURDApi.SchoolCURDAddCourseSwapRequest(
-		context.Background(), swagger.ApiAddCourseSwapRequestRequest{
-			CourseSwapRequest: &swagger.ApiCourseSwapRequestInfo{
-				SrcTeacher: srcTeacher,
-			}})
-	err = handleErr(err, httpResp)
+	repo := getRepo(config.StorageType)
+	err := repo.AddCourseSwapRequest(context.Background(), &swagger.ApiCourseSwapRequestInfo{
+		SrcTeacher: config.Teacher,
+	})
 	if err != nil {
 		plogger.Debug("AddCourseSwap failed: ", err)
-		return
+		return err
 	}
-	plogger.Debugf("new course swap : %v", resp)
-}
-
-func getTeacherListByClassRoom(courseList []*courseInfo,
-	classRoom string) []string {
-	var retList []string
-	for _, c := range courseList {
-		if c.classRoomName == classRoom {
-			retList = append(retList, c.teacher)
-		}
-	}
-	retList = putil.StrListUnique(retList)
-	return retList
-}
-
-func getAllTeacherList(courseList []*courseInfo) []string {
-	var retList []string
-	for _, c := range courseList {
-		retList = append(retList, c.teacher)
-	}
-	retList = putil.StrListUnique(retList)
-	return retList
-}
-
-func getCourseByDateAndNum(courseList []*courseInfo,
-	t time.Time, courseNum int) *courseInfo {
-	for _, c := range courseList {
-		if c.date.Format("20160102") == t.Format("20160102") &&
-			c.classNum == courseNum {
-			return c
-		}
-	}
+	plogger.Debugf("new course swap added")
 	return nil
 }
 
-func getCourseByTeacher(courseList []*courseInfo,
-	teacher string) []*courseInfo {
-	var retList []*courseInfo
-	for _, c := range courseList {
-		if c.teacher == teacher {
-			retList = append(retList, c)
-		}
-	}
-	return retList
-}
-
-func getCourse(courseList []*courseInfo,
-	teacher string, t time.Time, courseNum int) *courseInfo {
-	for _, c := range courseList {
-		if c.date.Format("20160102") == t.Format("20160102") &&
-			c.classNum == courseNum &&
-			c.teacher == teacher {
-			return c
-		}
-	}
-	return nil
-}
-
-func logCourseList(courseList []*courseInfo) {
-	for _, c := range courseList {
-		logCourse(c)
-	}
-}
+// --------------------------------------------------
 func logCourse(course *courseInfo) {
 	plogger.Debugf("course[%v][%v][第%v节][%v][%v][%v]",
 		course.date.Format("060102"),
@@ -340,4 +223,12 @@ var weekDayMap = map[time.Weekday]string{
 
 func getWeekday(w time.Weekday) string {
 	return weekDayMap[w]
+}
+
+// --------------------------------------------------
+func getRepo(storageType string) CourseSwapRepo {
+	if storageType == "Local" {
+		return NewLocalRepo("course_swap.db")
+	}
+	return NewCloudRepo()
 }

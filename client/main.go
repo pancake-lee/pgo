@@ -9,7 +9,7 @@ import (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lshortfile)
 
-	i := 1
+	i := 0
 	switch i {
 	case 0:
 		courseSwap.CourseSwap()
