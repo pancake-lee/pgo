@@ -46,24 +46,27 @@ func CourseSwap() {
 }
 
 func getAllCourseList(config inputConfig) (*courseManager, error) {
-	plogger.Debug("从excel读取课程表: " + config.Path)
 	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
 		plogger.Debug("parseCourseExcel failed: ", err)
 		return nil, err
 	}
+	plogger.Debugf("从excel读取课程表[%v] 共[%v]个课程安排",
+		config.Path, len(courseMap))
 
 	tNow := time.Now()
 	wDiff := tNow.Weekday() - time.Monday
-	endTime := tNow.AddDate(0, 0, 21-int(wDiff))
+	endWeek := 3
+	endTime := tNow.AddDate(0, 0, 7*endWeek-int(wDiff))
 
-	plogger.Debugf("用课程表，计算未来3周内的课程安排[%v]-[%v]\n",
-		putil.TimeToStr(tNow, "YYYYMMDD"), putil.TimeToStr(endTime, "YYYYMMDD"))
+	plogger.Debugf("用课程表，计算未来[%v]周内的课程安排[%v]-[%v]",
+		endWeek,
+		putil.TimeToStr(tNow, "YYYYMMDD"),
+		putil.TimeToStr(endTime, "YYYYMMDD"))
 
 	var allCourseList []*courseInfo
-	plogger.Debugf("teacher cnt[%v]\n", len(courseMap))
 	for _, tInfo := range courseMap {
-		// plogger.Debugf("teacher[%v] class cnt[%v]\n", tInfo.teacher, len(tInfo.classList))
+		// plogger.Debugf("teacher[%v] class cnt[%v]", tInfo.teacher, len(tInfo.classList))
 		for _, classInfo := range tInfo.classList {
 			// 一节课向后推3周
 			date := tNow.AddDate(0, 0, int(classInfo.weekDay-tNow.Weekday()))
@@ -141,8 +144,10 @@ func getSwapCandidates(mgr *courseManager, config inputConfig) (*courseManager, 
 	srcClassRoom := srcCourse.classRoomName
 	srcDateStr := putil.TimeToStr(srcDate, "YYYYMMDD")
 
-	plogger.Debugf("找到[%v][第%v节]，不用上课的，[%v]同班老师\n",
-		srcDateStr, config.CourseNum, srcCourse.classRoomName)
+	plogger.Debugf("--------------------------------------------------")
+	plogger.Debugf("当前输入为[%v][%v][第%v节]，班级为[%v]",
+		config.Teacher, srcDateStr, config.CourseNum, srcClassRoom)
+	plogger.Debugf("下面找到这个时间不用上课的，候选列表如下:")
 	var srcFreeTeacherList []string
 	teacherList := mgr.getTeacherListByClassRoom(srcClassRoom)
 	for _, t := range teacherList {
@@ -166,8 +171,8 @@ func getSwapCandidates(mgr *courseManager, config inputConfig) (*courseManager, 
 				&courseInfo{date: date, classNum: courseNum})
 		}
 	}
-
-	plogger.Debugf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空\n",
+	plogger.Debugf("--------------------------------------------------")
+	plogger.Debugf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空",
 		config.Teacher, srcDateStr, config.CourseNum)
 	var dstCourseList []*courseInfo
 	for _, dstFreeCourse := range dstFreeCourseList {
@@ -204,11 +209,18 @@ func handleSwapSelection(mgr *courseManager, config inputConfig) error {
 
 // --------------------------------------------------
 func logCourse(course *courseInfo) {
-	plogger.Debugf("course[%v][%v][第%v节][%v][%v][%v]",
+	teacher := course.teacher
+	if len([]rune(teacher)) == 2 {
+		rs := []rune(teacher)
+		teacher = string(rs[0]) + "  " + string(rs[1])
+	}
+	putil.Interact.Infof(
+		// plogger.Debugf(
+		"course [%v] [%v] [第%v节] [%v]班 [%v] [%v]课",
 		course.date.Format("060102"),
 		getWeekday(course.date.Weekday()),
 		course.classNum, course.classRoomName,
-		course.teacher, course.className)
+		teacher, course.className)
 }
 
 var weekDayMap = map[time.Weekday]string{

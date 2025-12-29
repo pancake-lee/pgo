@@ -206,7 +206,7 @@ func (_interact) Debugf(msg string, args ...interface{}) {
 }
 
 func (_interact) Infof(msg string, args ...interface{}) {
-	pterm.Printf(pterm.Green(fmt.Sprintf(msg, args...)))
+	pterm.Println(pterm.Green(fmt.Sprintf(msg, args...)))
 }
 
 func (_interact) PrintLine() {

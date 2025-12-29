@@ -20,6 +20,10 @@ var (
 	isJsonLog    bool = true
 )
 
+func SetJsonLog(isJson bool) {
+	isJsonLog = isJson
+}
+
 func GetLoggerLevel() zapcore.Level {
 	if logLevel == nil {
 		return zap.InfoLevel

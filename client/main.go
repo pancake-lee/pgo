@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
-
 	"github.com/pancake-lee/pgo/client/courseSwap"
+	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lshortfile)
+	plogger.SetJsonLog(false)
+	plogger.InitConsoleLogger()
 
 	i := 0
 	switch i {

@@ -112,7 +112,7 @@ func inputParams() (config inputConfig, err error) {
 
 	// StorageType
 	prompt = "请输入存储类型(Cloud/Local)"
-	defaultStorage := "Cloud"
+	defaultStorage := "Local"
 	if cache.StorageType != "" {
 		defaultStorage = cache.StorageType
 	}

@@ -1,6 +1,7 @@
 package courseSwap
 
 import (
+	"sort"
 	"time"
 
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -66,6 +67,9 @@ func (m *courseManager) getCourse(teacher string, t time.Time, courseNum int) *c
 }
 
 func (m *courseManager) logCourseList() {
+	sort.Slice(m.courses, func(i, j int) bool {
+		return m.courses[i].className < m.courses[j].className
+	})
 	for _, c := range m.courses {
 		logCourse(c)
 	}
