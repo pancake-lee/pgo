@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"image/color"
 	"os"
@@ -25,8 +26,7 @@ import (
 )
 
 func runApp() {
-	// Check if "cli" command is present in args
-	// Note: os.Args[0] is the executable path
+	// windows下通过 client.exe cli 参数启动命令行模式
 	isCli := false
 	for _, arg := range os.Args[1:] {
 		if arg == "cli" {
@@ -36,12 +36,8 @@ func runApp() {
 	}
 
 	if isCli {
-		if err := rootCmd.Execute(); err != nil {
-			plogger.Error(err)
-			os.Exit(1)
-		}
+		runCli()
 	} else {
-		// Run UI directly without Cobra
 		runUI()
 	}
 }
@@ -51,30 +47,95 @@ func runUI() {
 	w := a.NewWindow("PGO Client")
 	w.Resize(fyne.NewSize(1000, 700))
 
-	// Output area (Right)
-	outputData := binding.NewString()
-	output := widget.NewEntryWithData(outputData)
-	output.MultiLine = true
-	output.SetPlaceHolder("Output will appear here...")
-	output.Disable() // Read-only
+	// --------------------------------------------------
+	// 右上，日志区域
+	logData := binding.NewString()
+	captureOutput(logData)
+	logEntry := newReadOnlyEntry()
+	logEntry.Bind(logData)
+	logEntry.MultiLine = true
+	logEntry.SetPlaceHolder("Logs will appear here...")
+	// logEntry.Disable() // Keep enabled for normal text color
+	logEntry.SetMinRowsVisible(10)
 
-	// Center area (Function Content)
+	// --------------------------------------------------
+	// 右下，调课结果列表
+	// Shared state for the list
+	var currentConfig courseSwap.InputConfig
+
+	// List for swap candidates
+	courseData := binding.NewUntypedList()
+	resultList := widget.NewListWithData(
+		courseData,
+		func() fyne.CanvasObject {
+			return container.NewBorder(
+				nil, nil, nil, widget.NewButton("确认", nil),
+				widget.NewLabel("placeholder"))
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			val, _ := i.(binding.Untyped).Get()
+			course, ok := val.(*courseSwap.CourseInfo)
+			if !ok {
+				return
+			}
+
+			c := o.(*fyne.Container)
+			var label *widget.Label
+			var btn *widget.Button
+			for _, obj := range c.Objects {
+				if l, ok := obj.(*widget.Label); ok {
+					label = l
+				} else if b, ok := obj.(*widget.Button); ok {
+					btn = b
+				}
+			}
+
+			label.SetText(fmt.Sprintf("%v", course))
+
+			btn.SetText("确认")
+			btn.Enable()
+			btn.OnTapped = func() {
+				dialog.ShowConfirm("确认调课", "确定要与该课程调课吗？",
+					func(ok bool) {
+						if !ok {
+							return
+						}
+
+						err := courseSwap.ExecuteSwap(currentConfig, course)
+						if err != nil {
+							dialog.ShowError(err, w)
+							return
+						}
+						dialog.ShowInformation("成功", "调课请求已保存。", w)
+						btn.SetText("已选")
+						btn.Disable()
+					}, w)
+			}
+		},
+	)
+
+	// Right side layout: Log at top, List fills rest
+	rightContent := container.NewBorder(logEntry, nil, nil, nil, resultList)
+
+	// --------------------------------------------------
+	// 中间，子功能参数操作区域
 	centerContent := container.NewStack()
-	centerContent.Add(widget.NewLabel("Please select a function from the left."))
+	centerContent.Add(widget.NewLabel("请先从左侧菜单选择一个功能"))
 
 	centerSpacer := canvas.NewRectangle(color.Transparent)
 	centerSpacer.SetMinSize(fyne.NewSize(400, 0))
 	centerFixed := container.NewStack(centerSpacer, centerContent)
 
-	// Left area (Function List)
-	btnCourseSwap := widget.NewButton("调课 (Course Swap)", func() {
-		ui := makeCourseSwapUI(w, output)
+	// --------------------------------------------------
+	// 左侧，功能菜单区域
+	btnCourseSwap := widget.NewButton("调课", func() {
+		ui := makeCourseSwapUI(w, logData, courseData, &currentConfig)
 		centerContent.Objects = []fyne.CanvasObject{ui}
 		centerContent.Refresh()
 	})
 
 	leftMenu := container.NewVBox(
-		widget.NewLabel("Functions"),
+		widget.NewLabel("功能列表"),
 		btnCourseSwap,
 	)
 
@@ -82,40 +143,42 @@ func runUI() {
 	leftSpacer.SetMinSize(fyne.NewSize(100, 0))
 	leftFixed := container.NewStack(leftSpacer, leftMenu)
 
+	// --------------------------------------------------
 	// Layout: Left(100) | Center(400) | Right(Rest)
-	// Inner: Center(Left) | Right(Center)
-	innerBorder := container.NewBorder(nil, nil, centerFixed, nil, output)
-	// Outer: Left(Left) | Inner(Center)
+	innerBorder := container.NewBorder(nil, nil, centerFixed, nil, rightContent)
 	rootBorder := container.NewBorder(nil, nil, leftFixed, nil, innerBorder)
 
 	w.SetContent(rootBorder)
 	w.ShowAndRun()
 }
 
-func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
+func makeCourseSwapUI(w fyne.Window,
+	logData binding.String,
+	courseData binding.UntypedList,
+	currentConfig *courseSwap.InputConfig,
+) fyne.CanvasObject {
 	// Load cache to pre-fill
 	cache := courseSwap.LoadCache()
 
-	pathEntry := widget.NewEntry()
-	pathEntry.SetPlaceHolder("Excel Path")
-	pathEntry.SetText(cache.Path)
-
+	// --------------------------------------------------
 	// Teacher Select
 	teacherSelect := widget.NewSelectEntry([]string{})
-	teacherSelect.PlaceHolder = "Select or Type Teacher"
 	teacherSelect.SetText(cache.Teacher)
 
-	// Helper to update teacher list
 	updateTeachers := func(path string) {
-		if _, err := os.Stat(path); err == nil {
-			// File exists, load teachers in background
-			go func() {
-				teachers, err := courseSwap.GetTeacherList(path)
-				if err == nil {
-					teacherSelect.SetOptions(teachers)
-				}
-			}()
+		if _, err := os.Stat(path); err != nil {
+			plogger.LogErr(err)
+			return
 		}
+		// File exists, load teachers in background
+		go func() {
+			teachers, err := courseSwap.GetTeacherList(path)
+			if err != nil {
+				plogger.LogErr(err)
+				return
+			}
+			teacherSelect.SetOptions(teachers)
+		}()
 	}
 
 	// Initial update
@@ -123,6 +186,11 @@ func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
 		updateTeachers(cache.Path)
 	}
 
+	// --------------------------------------------------
+	pathEntry := widget.NewEntry() // 键盘直接输入
+	pathEntry.SetText(cache.Path)
+
+	// 防抖动机制
 	var debounceTimer *time.Timer
 	pathEntry.OnChanged = func(s string) {
 		if debounceTimer != nil {
@@ -133,9 +201,10 @@ func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
 		})
 	}
 
-	// Hardcoded setting: use Windows native dialog by default (false means use native)
+	// 使用fyne文件选择器，还是windows原生的
 	useFyneFileDialog := false
 
+	// 文件选择器输入
 	browseBtn := widget.NewButton("...", func() {
 		if !useFyneFileDialog {
 			file, err := openNativeFileDialog(pathEntry.Text)
@@ -152,35 +221,39 @@ func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
 		}
 	})
 
+	// 拖拽输入
+	w.SetOnDropped(func(pos fyne.Position, uris []fyne.URI) {
+		if len(uris) > 0 {
+			pathEntry.SetText(uris[0].Path())
+		}
+	})
+
 	pathContainer := container.NewBorder(nil, nil, nil, browseBtn, pathEntry)
 
+	// --------------------------------------------------
 	// Date Picker
 	dateEntry := widget.NewEntry()
-	dateEntry.SetPlaceHolder("Date (YYYYMMDD)")
 	dateEntry.SetText(cache.Date)
-	dateEntry.Disable() // Read-only
 
-	dateBtn := widget.NewButton("Select Date", func() {
+	dateBtn := widget.NewButton("选择日期", func() {
 		openDatePicker(w, dateEntry.Text, func(s string) {
 			dateEntry.SetText(s)
 		})
 	})
 	dateContainer := container.NewBorder(nil, nil, nil, dateBtn, dateEntry)
 
+	// --------------------------------------------------
 	// Course Num Select
-	courseNumSelect := widget.NewSelect([]string{"1", "2", "3", "4", "5", "6", "7"}, nil)
-	if cache.CourseNum > 0 {
+	courseNumSelect := widget.NewSelect(
+		[]string{"1", "2", "3", "4", "5", "6", "7"}, nil)
+	if cache.CourseNum > 0 && cache.CourseNum <= 7 {
 		courseNumSelect.SetSelected(fmt.Sprintf("%d", cache.CourseNum))
 	} else {
 		courseNumSelect.SetSelected("1")
 	}
 
-	// storageTypeSelect := widget.NewSelect([]string{"Local", "Cloud"}, nil)
-	// if cache.StorageType != "" {
-	// 	storageTypeSelect.SetSelected(cache.StorageType)
-	// } else {
-	// 	storageTypeSelect.SetSelected("Local")
-	// }
+	// --------------------------------------------------
+	// 用Form做布局
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
@@ -188,39 +261,45 @@ func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
 			{Text: "教师", Widget: teacherSelect},
 			{Text: "日期", Widget: dateContainer},
 			{Text: "节次", Widget: courseNumSelect},
-			// {Text: "存储", Widget: storageTypeSelect},
 		},
 		OnSubmit: func() {
-			// Construct config
 			cNum, _ := strconv.Atoi(courseNumSelect.Selected)
-
 			config := courseSwap.InputConfig{
 				Path:        pathEntry.Text,
 				Teacher:     teacherSelect.Text,
 				Date:        dateEntry.Text,
 				CourseNum:   cNum,
 				StorageType: "Local",
-				// StorageType: storageTypeSelect.Selected,
 			}
-
-			// Save cache
 			courseSwap.SaveCache(config)
+			*currentConfig = config
 
-			output.SetText("Running Course Swap...\n")
+			courseData.Set(nil) // 清空输出列表
 
-			// Run in goroutine to not block UI
-			go func() {
-				courseSwap.CourseSwap(config)
-				plogger.Infof("\nCourse Swap Finished.")
-			}()
-		},
-	}
+			go func() { // Run in goroutine to not block UI
+				mgr, err := courseSwap.CalculateSwapCandidates(config)
+				if err != nil {
+					plogger.LogErr(err)
+					return
+				}
 
-	w.SetOnDropped(func(pos fyne.Position, uris []fyne.URI) {
-		if len(uris) > 0 {
-			pathEntry.SetText(uris[0].Path())
-		}
-	})
+				courses := mgr.GetCourses()
+				if len(courses) == 0 {
+					plogger.Errorf("找不到合适的调课候选")
+					return
+				}
+
+				plogger.Infof("找到了合适的调课候选[%v]个，展示列表中...", len(courses))
+
+				// Update UI with candidates
+				var items []interface{}
+				for _, c := range courses {
+					items = append(items, c)
+				}
+				courseData.Set(items)
+			}() // goroutine
+		}, // OnSubmit
+	} // form
 
 	return form
 }
@@ -284,11 +363,74 @@ func openDatePicker(w fyne.Window, current string, onSet func(string)) {
 	daySel := widget.NewSelect(days, nil)
 	daySel.SetSelected(fmt.Sprintf("%02d", now.Day()))
 
-	content := container.NewHBox(yearSel, widget.NewLabel("Y"), monthSel, widget.NewLabel("M"), daySel, widget.NewLabel("D"))
+	content := container.NewHBox(
+		yearSel, widget.NewLabel("年"),
+		monthSel, widget.NewLabel("月"),
+		daySel, widget.NewLabel("日"))
 
-	dialog.ShowCustomConfirm("Select Date", "OK", "Cancel", content, func(ok bool) {
-		if ok {
-			onSet(fmt.Sprintf("%s%s%s", yearSel.Selected, monthSel.Selected, daySel.Selected))
+	dialog.ShowCustomConfirm("选择日期", "确定", "取消",
+		content, func(ok bool) {
+			if ok {
+				onSet(fmt.Sprintf("%s%s%s", yearSel.Selected, monthSel.Selected, daySel.Selected))
+			}
+		}, w)
+}
+
+func captureOutput(logData binding.String) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		return
+	}
+
+	os.Stdout = w
+	os.Stderr = w
+
+	// Re-init logger to pick up new stdout
+	plogger.InitConsoleLogger()
+
+	go func() {
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			text := scanner.Text()
+			current, _ := logData.Get()
+			if len(current) > 10000 {
+				current = current[len(current)-5000:]
+			}
+			logData.Set(current + text + "\n")
 		}
-	}, w)
+	}()
+}
+
+// readOnlyEntry is a wrapper around widget.Entry that prevents editing
+// but keeps the text color normal (unlike Disable()) and allows selection/copy.
+type readOnlyEntry struct {
+	widget.Entry
+}
+
+func newReadOnlyEntry() *readOnlyEntry {
+	entry := &readOnlyEntry{}
+	entry.ExtendBaseWidget(entry)
+	return entry
+}
+
+func (e *readOnlyEntry) TypedRune(r rune) {
+	// Ignore typing
+}
+
+func (e *readOnlyEntry) TypedKey(key *fyne.KeyEvent) {
+	// Allow navigation
+	switch key.Name {
+	case fyne.KeyUp, fyne.KeyDown, fyne.KeyLeft, fyne.KeyRight,
+		fyne.KeyPageUp, fyne.KeyPageDown, fyne.KeyHome, fyne.KeyEnd:
+		e.Entry.TypedKey(key)
+	}
+	// Ignore editing keys (Backspace, Delete, Enter, etc.)
+}
+
+func (e *readOnlyEntry) TypedShortcut(shortcut fyne.Shortcut) {
+	// Allow Copy
+	if _, ok := shortcut.(*fyne.ShortcutCopy); ok {
+		e.Entry.TypedShortcut(shortcut)
+	}
+	// Ignore Cut/Paste
 }

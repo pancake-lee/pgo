@@ -8,18 +8,22 @@ import (
 )
 
 type courseManager struct {
-	courses []*courseInfo
+	courses []*CourseInfo
 }
 
-func newCourseManager(courses []*courseInfo) *courseManager {
+func newCourseManager(courses []*CourseInfo) *courseManager {
 	return &courseManager{courses: courses}
+}
+
+func (m *courseManager) GetCourses() []*CourseInfo {
+	return m.courses
 }
 
 func (m *courseManager) getTeacherListByClassRoom(classRoom string) []string {
 	var retList []string
 	for _, c := range m.courses {
-		if c.classRoomName == classRoom {
-			retList = append(retList, c.teacher)
+		if c.ClassRoomName == classRoom {
+			retList = append(retList, c.Teacher)
 		}
 	}
 	retList = putil.StrListUnique(retList)
@@ -29,37 +33,37 @@ func (m *courseManager) getTeacherListByClassRoom(classRoom string) []string {
 func (m *courseManager) GetAllTeacherList() []string {
 	var retList []string
 	for _, c := range m.courses {
-		retList = append(retList, c.teacher)
+		retList = append(retList, c.Teacher)
 	}
 	retList = putil.StrListUnique(retList)
 	return retList
 }
 
-func (m *courseManager) getCourseByDateAndNum(t time.Time, courseNum int) *courseInfo {
+func (m *courseManager) getCourseByDateAndNum(t time.Time, courseNum int) *CourseInfo {
 	for _, c := range m.courses {
-		if c.date.Format("20160102") == t.Format("20160102") &&
-			c.classNum == courseNum {
+		if c.Date.Format("20160102") == t.Format("20160102") &&
+			c.ClassNum == courseNum {
 			return c
 		}
 	}
 	return nil
 }
 
-func (m *courseManager) getCourseByTeacher(teacher string) []*courseInfo {
-	var retList []*courseInfo
+func (m *courseManager) getCourseByTeacher(teacher string) []*CourseInfo {
+	var retList []*CourseInfo
 	for _, c := range m.courses {
-		if c.teacher == teacher {
+		if c.Teacher == teacher {
 			retList = append(retList, c)
 		}
 	}
 	return retList
 }
 
-func (m *courseManager) getCourse(teacher string, t time.Time, courseNum int) *courseInfo {
+func (m *courseManager) getCourse(teacher string, t time.Time, courseNum int) *CourseInfo {
 	for _, c := range m.courses {
-		if c.date.Format("20160102") == t.Format("20160102") &&
-			c.classNum == courseNum &&
-			c.teacher == teacher {
+		if c.Date.Format("20160102") == t.Format("20160102") &&
+			c.ClassNum == courseNum &&
+			c.Teacher == teacher {
 			return c
 		}
 	}
@@ -68,7 +72,7 @@ func (m *courseManager) getCourse(teacher string, t time.Time, courseNum int) *c
 
 func (m *courseManager) logCourseList() {
 	sort.Slice(m.courses, func(i, j int) bool {
-		return m.courses[i].className < m.courses[j].className
+		return m.courses[i].ClassName < m.courses[j].ClassName
 	})
 	for _, c := range m.courses {
 		logCourse(c)

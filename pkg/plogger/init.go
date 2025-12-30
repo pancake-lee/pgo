@@ -91,12 +91,10 @@ func InitLogger(isLogConsole bool, lv zapcore.Level, logPath string) {
 
 	zLogger := newZapLogger(isLogConsole, lv, fullPath, linkPath)
 
-	if !isLogConsole {
-		// 将 zap.Logger 作为全局 logger
-		zap.ReplaceGlobals(zLogger)
-		// 重定向标准输出和错误输出
-		zap.RedirectStdLog(zLogger)
-	}
+	// 将 zap.Logger 作为全局 logger
+	zap.ReplaceGlobals(zLogger)
+	// 重定向标准输出和错误输出
+	zap.RedirectStdLog(zLogger)
 
 	initDefaultLogger(zLogger)
 	// Debugf("Logger initialized -------------------------------")

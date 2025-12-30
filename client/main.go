@@ -1,18 +1,26 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
 )
 
 func main() {
+	runApp()
+}
+
+func runCli() {
 	plogger.SetJsonLog(false)
 	plogger.InitConsoleLogger()
 
-	runApp()
+	if err := rootCmd.Execute(); err != nil {
+		plogger.LogErr(err)
+		os.Exit(1)
+	}
 }
 
 // --------------------------------------------------
@@ -26,13 +34,16 @@ var rootCmd = &cobra.Command{
 func runCobra(cmd *cobra.Command, args []string) {
 	// CLI Interactive Mode
 	// Select function
-	fmt.Println("请选择功能:")
-	fmt.Println("1. 调课 (Course Swap)")
+	putil.Interact.Infof("请选择功能:")
+	putil.Interact.Infof("1. 调课 (Course Swap)")
 	// Add more functions here in the future
 
-	var choice int
-	fmt.Print("请输入选项 (默认1): ")
-	_, err := fmt.Scanln(&choice)
+	funcNumStr := "1"
+	_input := putil.Interact.Input("请输入选项 (默认1): ")
+	if _input != "" {
+		funcNumStr = _input
+	}
+	choice, err := putil.StrToInt(funcNumStr)
 	if err != nil {
 		choice = 1 // Default
 	}
@@ -41,7 +52,7 @@ func runCobra(cmd *cobra.Command, args []string) {
 	case 1:
 		courseSwap.CourseSwapCli()
 	default:
-		fmt.Println("无效选项，默认进入调课功能")
+		putil.Interact.Infof("无效选项，默认进入调课功能")
 		courseSwap.CourseSwapCli()
 	}
 }
