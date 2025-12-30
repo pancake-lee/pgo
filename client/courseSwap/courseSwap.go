@@ -19,8 +19,21 @@ func CourseSwapCli() {
 	CourseSwap(config)
 }
 
+func GetTeacherList(path string) ([]string, error) {
+	courseMap, err := NewCourseParser(path).ParseCourseExcel()
+	if err != nil {
+		return nil, err
+	}
+	var teachers []string
+	for t := range courseMap {
+		teachers = append(teachers, t)
+	}
+	sort.Strings(teachers)
+	return teachers, nil
+}
+
 func CourseSwap(config InputConfig) {
-	allCourseMgr, err := getAllCourseList(config)
+	allCourseMgr, err := GetAllCourseList(config)
 	if err != nil {
 		return
 	}
@@ -46,7 +59,7 @@ type courseInfo struct {
 	teacher       string
 }
 
-func getAllCourseList(config InputConfig) (*courseManager, error) {
+func GetAllCourseList(config InputConfig) (*courseManager, error) {
 	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
 		plogger.Debug("parseCourseExcel failed: ", err)
@@ -242,8 +255,8 @@ func getWeekday(w time.Weekday) string {
 
 // --------------------------------------------------
 func getRepo(storageType string) CourseSwapRepo {
-	if storageType == "Local" {
-		return NewLocalRepo()
+	if storageType == "Cloud" {
+		return NewCloudRepo()
 	}
-	return NewCloudRepo()
+	return NewLocalRepo()
 }

@@ -26,7 +26,7 @@ func (m *courseManager) getTeacherListByClassRoom(classRoom string) []string {
 	return retList
 }
 
-func (m *courseManager) getAllTeacherList() []string {
+func (m *courseManager) GetAllTeacherList() []string {
 	var retList []string
 	for _, c := range m.courses {
 		retList = append(retList, c.teacher)
