@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
@@ -47,37 +49,50 @@ func runApp() {
 func runUI() {
 	a := app.New()
 	w := a.NewWindow("PGO Client")
+	w.Resize(fyne.NewSize(1000, 700))
 
-	// Function selection
-	label := widget.NewLabel("请选择功能:")
-
-	// Output area
+	// Output area (Right)
 	outputData := binding.NewString()
 	output := widget.NewEntryWithData(outputData)
 	output.MultiLine = true
 	output.SetPlaceHolder("Output will appear here...")
 	output.Disable() // Read-only
 
+	// Center area (Function Content)
+	centerContent := container.NewStack()
+	centerContent.Add(widget.NewLabel("Please select a function from the left."))
+
+	centerSpacer := canvas.NewRectangle(color.Transparent)
+	centerSpacer.SetMinSize(fyne.NewSize(400, 0))
+	centerFixed := container.NewStack(centerSpacer, centerContent)
+
+	// Left area (Function List)
 	btnCourseSwap := widget.NewButton("调课 (Course Swap)", func() {
-		output.SetText("Starting Course Swap...\n")
-		showCourseSwapForm(w, output)
+		ui := makeCourseSwapUI(w, output)
+		centerContent.Objects = []fyne.CanvasObject{ui}
+		centerContent.Refresh()
 	})
 
-	content := container.NewVBox(
-		label,
+	leftMenu := container.NewVBox(
+		widget.NewLabel("Functions"),
 		btnCourseSwap,
-		widget.NewLabel("Output:"),
-		container.NewGridWrap(fyne.NewSize(600, 400), output),
 	)
 
-	w.SetContent(content)
-	w.Resize(fyne.NewSize(800, 600))
+	leftSpacer := canvas.NewRectangle(color.Transparent)
+	leftSpacer.SetMinSize(fyne.NewSize(100, 0))
+	leftFixed := container.NewStack(leftSpacer, leftMenu)
+
+	// Layout: Left(100) | Center(400) | Right(Rest)
+	// Inner: Center(Left) | Right(Center)
+	innerBorder := container.NewBorder(nil, nil, centerFixed, nil, output)
+	// Outer: Left(Left) | Inner(Center)
+	rootBorder := container.NewBorder(nil, nil, leftFixed, nil, innerBorder)
+
+	w.SetContent(rootBorder)
 	w.ShowAndRun()
 }
 
-func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
-	w := fyne.CurrentApp().NewWindow("Course Swap Input")
-
+func makeCourseSwapUI(w fyne.Window, output *widget.Entry) fyne.CanvasObject {
 	// Load cache to pre-fill
 	cache := courseSwap.LoadCache()
 
@@ -160,20 +175,20 @@ func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
 		courseNumSelect.SetSelected("1")
 	}
 
-	storageTypeSelect := widget.NewSelect([]string{"Local", "Cloud"}, nil)
-	if cache.StorageType != "" {
-		storageTypeSelect.SetSelected(cache.StorageType)
-	} else {
-		storageTypeSelect.SetSelected("Local")
-	}
+	// storageTypeSelect := widget.NewSelect([]string{"Local", "Cloud"}, nil)
+	// if cache.StorageType != "" {
+	// 	storageTypeSelect.SetSelected(cache.StorageType)
+	// } else {
+	// 	storageTypeSelect.SetSelected("Local")
+	// }
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
-			{Text: "Excel Path", Widget: pathContainer},
-			{Text: "Teacher", Widget: teacherSelect},
-			{Text: "Date", Widget: dateContainer},
-			{Text: "Course Num", Widget: courseNumSelect},
-			{Text: "Storage Type", Widget: storageTypeSelect},
+			{Text: "课表", Widget: pathContainer},
+			{Text: "教师", Widget: teacherSelect},
+			{Text: "日期", Widget: dateContainer},
+			{Text: "节次", Widget: courseNumSelect},
+			// {Text: "存储", Widget: storageTypeSelect},
 		},
 		OnSubmit: func() {
 			// Construct config
@@ -184,7 +199,8 @@ func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
 				Teacher:     teacherSelect.Text,
 				Date:        dateEntry.Text,
 				CourseNum:   cNum,
-				StorageType: storageTypeSelect.Selected,
+				StorageType: "Local",
+				// StorageType: storageTypeSelect.Selected,
 			}
 
 			// Save cache
@@ -206,9 +222,7 @@ func showCourseSwapForm(parent fyne.Window, output *widget.Entry) {
 		}
 	})
 
-	w.SetContent(form)
-	w.Resize(fyne.NewSize(400, 300))
-	w.Show()
+	return form
 }
 
 func openNativeFileDialog(initialPath string) (string, error) {
