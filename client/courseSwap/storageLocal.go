@@ -37,13 +37,16 @@ func (CourseSwapRequestModel) TableName() string {
 }
 
 func NewLocalRepo() *LocalRepo {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil
-	}
-	path := filepath.Join(home, "pgo")
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		_ = os.MkdirAll(path, 0755)
+	path := "./"
+	if false {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil
+		}
+		path = filepath.Join(home, "pgo")
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			_ = os.MkdirAll(path, 0755)
+		}
 	}
 	dbPath := filepath.Join(path, "course_swap.db")
 
@@ -107,6 +110,15 @@ func (r *LocalRepo) AddCourseSwapRequest(ctx context.Context, req *swagger.ApiCo
 	result := r.db.Create(&model)
 	if result.Error != nil {
 		plogger.Debug("Local Add failed: ", result.Error)
+		return result.Error
+	}
+	return nil
+}
+
+func (r *LocalRepo) DeleteCourseSwapRequest(ctx context.Context, id int32) error {
+	result := r.db.Delete(&CourseSwapRequestModel{}, id)
+	if result.Error != nil {
+		plogger.Debug("Local Delete failed: ", result.Error)
 		return result.Error
 	}
 	return nil

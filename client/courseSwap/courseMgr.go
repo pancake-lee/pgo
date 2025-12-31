@@ -4,6 +4,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -39,42 +40,34 @@ func (m *courseManager) GetAllTeacherList() []string {
 	return retList
 }
 
-func (m *courseManager) getCourseByDateAndNum(t time.Time, courseNum int) *CourseInfo {
-	for _, c := range m.courses {
-		if c.Date.Format("20160102") == t.Format("20160102") &&
-			c.ClassNum == courseNum {
-			return c
-		}
-	}
-	return nil
-}
-
-func (m *courseManager) getCourseByTeacher(teacher string) []*CourseInfo {
-	var retList []*CourseInfo
-	for _, c := range m.courses {
-		if c.Teacher == teacher {
-			retList = append(retList, c)
-		}
-	}
-	return retList
-}
-
 func (m *courseManager) getCourse(teacher string, t time.Time, courseNum int) *CourseInfo {
 	for _, c := range m.courses {
-		if c.Date.Format("20160102") == t.Format("20160102") &&
-			c.ClassNum == courseNum &&
+		if c.ClassNum == courseNum &&
 			c.Teacher == teacher {
-			return c
+			if putil.DateToStrDefault(c.Date) == putil.DateToStrDefault(t) {
+				return c
+			}
+			// plogger.Debugf("date not match, c.Date[%v] t[%v]",
+			// 	putil.DateToStrDefault(c.Date),
+			// 	putil.DateToStrDefault(t))
 		}
 	}
+	// plogger.Errorf("teacher[%v] date[%v] courseNum[%v] not found",
+	// teacher, putil.DateToStrDefault(t), courseNum)
 	return nil
 }
 
-func (m *courseManager) logCourseList() {
+func (m *courseManager) logCourseList(teacher string, date time.Time) {
 	sort.Slice(m.courses, func(i, j int) bool {
 		return m.courses[i].ClassName < m.courses[j].ClassName
 	})
 	for _, c := range m.courses {
-		logCourse(c)
+		if c.Teacher != teacher {
+			continue
+		}
+		if putil.DateToStrDefault(c.Date) != putil.DateToStrDefault(date) {
+			continue
+		}
+		plogger.Debug(c)
 	}
 }

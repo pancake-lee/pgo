@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/antihax/optional"
 	"github.com/pancake-lee/pgo/client/swagger"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
@@ -12,6 +13,7 @@ import (
 type CourseSwapRepo interface {
 	GetCourseSwapRequestList(ctx context.Context) ([]swagger.ApiCourseSwapRequestInfo, error)
 	AddCourseSwapRequest(ctx context.Context, req *swagger.ApiCourseSwapRequestInfo) error
+	DeleteCourseSwapRequest(ctx context.Context, id int32) error
 }
 
 type CloudRepo struct {
@@ -45,6 +47,14 @@ func (r *CloudRepo) AddCourseSwapRequest(ctx context.Context, req *swagger.ApiCo
 	_, httpResp, err := r.cli.SchoolCURDApi.SchoolCURDAddCourseSwapRequest(
 		ctx, swagger.ApiAddCourseSwapRequestRequest{
 			CourseSwapRequest: req,
+		})
+	return handleErr(err, httpResp)
+}
+
+func (r *CloudRepo) DeleteCourseSwapRequest(ctx context.Context, id int32) error {
+	_, httpResp, err := r.cli.SchoolCURDApi.SchoolCURDDelCourseSwapRequestByIDList(
+		ctx, &swagger.SchoolCURDApiSchoolCURDDelCourseSwapRequestByIDListOpts{
+			IDList: optional.NewInterface([]int32{id}),
 		})
 	return handleErr(err, httpResp)
 }

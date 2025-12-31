@@ -11,61 +11,7 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
-func CourseSwapCli() {
-	config, err := InputParams()
-	if err != nil {
-		return
-	}
-	mgr, err := CalculateSwapCandidates(config)
-	if err != nil {
-		return
-	}
-
-	courses := mgr.GetCourses()
-	if len(courses) == 0 {
-		plogger.Infof("No swap candidates found.")
-		return
-	}
-
-	// Sort for consistent display
-	sort.Slice(courses, func(i, j int) bool {
-		return courses[i].ClassName < courses[j].ClassName
-	})
-
-	for i, c := range courses {
-		fmt.Printf("[%d] ", i)
-		logCourse(c)
-	}
-
-	fmt.Printf("Please enter the index of the course to swap (0-%d): ", len(courses)-1)
-	var index int
-	_, err = fmt.Scanf("%d", &index)
-	if err != nil || index < 0 || index >= len(courses) {
-		plogger.Errorf("Invalid input")
-		return
-	}
-
-	selected := courses[index]
-	plogger.Infof("Selected: ")
-	logCourse(selected)
-
-	// Confirm
-	fmt.Printf("Confirm swap? (y/n): ")
-	var confirm string
-	fmt.Scanf("%s", &confirm)
-	if confirm != "y" && confirm != "Y" {
-		plogger.Infof("Cancelled")
-		return
-	}
-
-	err = ExecuteSwap(config, selected)
-	if err != nil {
-		plogger.Errorf("Swap failed: %v", err)
-	} else {
-		plogger.Infof("Swap successful!")
-	}
-}
-
+// 下拉：教师列表
 func GetTeacherList(path string) ([]string, error) {
 	courseMap, err := NewCourseParser(path).ParseCourseExcel()
 	if err != nil {
@@ -79,8 +25,9 @@ func GetTeacherList(path string) ([]string, error) {
 	return teachers, nil
 }
 
+// 计算换课候选列表
 func CalculateSwapCandidates(config InputConfig) (*courseManager, error) {
-	allCourseMgr, err := GetAllCourseList(config)
+	allCourseMgr, err := getAllCourseList(config)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +39,61 @@ func CalculateSwapCandidates(config InputConfig) (*courseManager, error) {
 	return dstCourseMgr, nil
 }
 
+// 获取换课历史记录
+func GetSwapHistory(storageType string) ([]swagger.ApiCourseSwapRequestInfo, error) {
+	repo := getRepo(storageType)
+	list, err := repo.GetCourseSwapRequestList(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// Sort:
+	// 1. Expired (SrcDate < Today) last, Active first
+	// 2. Active: SrcDate asc, DstDate asc, SrcTeacher asc
+	// 3. Expired: SrcDate desc, DstDate desc, SrcTeacher asc
+
+	today := putil.DateToStrDefault(time.Now())
+
+	sort.Slice(list, func(i, j int) bool {
+		a, b := list[i], list[j]
+		aExpired := a.SrcDate < today
+		bExpired := b.SrcDate < today
+
+		if aExpired != bExpired {
+			return !aExpired // Active first
+		}
+
+		if !aExpired {
+			// Both active: Ascending
+			if a.SrcDate != b.SrcDate {
+				return a.SrcDate < b.SrcDate
+			}
+			if a.DstDate != b.DstDate {
+				return a.DstDate < b.DstDate
+			}
+		} else {
+			// Both expired: Descending
+			if a.SrcDate != b.SrcDate {
+				return a.SrcDate > b.SrcDate
+			}
+			if a.DstDate != b.DstDate {
+				return a.DstDate > b.DstDate
+			}
+		}
+
+		return a.SrcTeacher < b.SrcTeacher
+	})
+
+	return list, nil
+}
+
+// 删除换课记录
+func DeleteSwapHistory(storageType string, id int32) error {
+	repo := getRepo(storageType)
+	return repo.DeleteCourseSwapRequest(context.Background(), id)
+}
+
+// 保存换课记录
 func ExecuteSwap(config InputConfig, target *CourseInfo) error {
 	// AddCourseSwapRequest
 	repo := getRepo(config.StorageType)
@@ -130,13 +132,13 @@ func (c *CourseInfo) String() string {
 
 	return fmt.Sprintf(
 		"[%v] [%v] [第%v节] [%v]班 [%v] [%v]课",
-		c.Date.Format("060102"),
+		putil.DateToStrDefault(c.Date),
 		getWeekday(c.Date.Weekday()),
 		c.ClassNum, c.ClassRoomName,
 		teacher, c.ClassName)
 }
 
-func GetAllCourseList(config InputConfig) (*courseManager, error) {
+func getAllCourseList(config InputConfig) (*courseManager, error) {
 	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
 		plogger.Debug("parseCourseExcel failed: ", err)
@@ -174,7 +176,6 @@ func GetAllCourseList(config InputConfig) (*courseManager, error) {
 				c.Date = date
 				c.Teacher = tInfo.teacher
 				allCourseList = append(allCourseList, &c)
-
 				date = date.AddDate(0, 0, 7)
 			}
 		}
@@ -194,23 +195,34 @@ func GetAllCourseList(config InputConfig) (*courseManager, error) {
 			return reqList[i].CreateTime < reqList[j].CreateTime
 		})
 
-		for _, req := range reqList {
+		plogger.Debugf("共[%v]条换课记录", len(reqList))
+		for i, req := range reqList {
 			// allCourseList 中找到src课程
 			mgr := newCourseManager(allCourseList)
-			srcTime, _ := putil.TimeFromStr("YYYYMMDD", req.SrcDate)
+			srcTime, _ := putil.DateFromStrDefault(req.SrcDate)
 			srcCourse := mgr.getCourse(req.SrcTeacher, srcTime, int(req.SrcCourseNum))
-			// allCourseList 中找到dst课程
-			dstTime, _ := putil.TimeFromStr("YYYYMMDD", req.DstDate)
-			dstCourse := mgr.getCourse(req.DstTeacher, dstTime, int(req.DstCourseNum))
-			// 交换老师和课名
-			if srcCourse != nil && dstCourse != nil {
-				tmpTeacher := srcCourse.Teacher
-				tmpClassName := srcCourse.ClassName
-				srcCourse.Teacher = dstCourse.Teacher
-				srcCourse.ClassName = dstCourse.ClassName
-				dstCourse.Teacher = tmpTeacher
-				dstCourse.ClassName = tmpClassName
+			if srcCourse == nil {
+				plogger.Errorf("get course failed [src], req[%v]", req)
+				continue
 			}
+			// allCourseList 中找到dst课程
+			dstTime, _ := putil.DateFromStrDefault(req.DstDate)
+			dstCourse := mgr.getCourse(req.DstTeacher, dstTime, int(req.DstCourseNum))
+			if dstCourse == nil {
+				plogger.Errorf("get course failed [dst], req[%v]", req)
+				continue
+			}
+			// 交换老师和课名
+			plogger.Debugf("换课记录[%v]生效(前): src[%v] <-> dst[%v]",
+				i, srcCourse, dstCourse)
+			tmpTeacher := srcCourse.Teacher
+			tmpClassName := srcCourse.ClassName
+			srcCourse.Teacher = dstCourse.Teacher
+			srcCourse.ClassName = dstCourse.ClassName
+			dstCourse.Teacher = tmpTeacher
+			dstCourse.ClassName = tmpClassName
+			plogger.Debugf("换课记录[%v]生效(后): src[%v] <-> dst[%v]",
+				i, srcCourse, dstCourse)
 		}
 	}
 
@@ -222,6 +234,7 @@ func GetAllCourseList(config InputConfig) (*courseManager, error) {
 
 var courseNumMax = 7
 
+// 计算换课候选列表
 func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, error) {
 	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
 	tNow := time.Now()
@@ -231,35 +244,36 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	// 获取当前需要调课的课程，则某老师某天的某节课
 	srcCourse := mgr.getCourse(config.Teacher, srcDate, config.CourseNum)
 	if srcCourse == nil {
-		plogger.Debug("srcCourse not found")
-		return nil, fmt.Errorf("srcCourse not found")
+		return nil, plogger.LogErrfMsg(
+			"输入的课程不存在，注意输入错误或已经换课了")
 	}
 	if srcCourse.ClassRoomName == "" {
 		return nil, plogger.LogErrfMsg(
-			"srcCourse[%v] ClassRoomName is empty", srcCourse)
+			"输入的课程[%v]找到，但班级名为空", srcCourse)
 	}
-
-	logCourse(srcCourse)
 
 	srcClassRoom := srcCourse.ClassRoomName
 	srcDateStr := putil.TimeToStr(srcDate, "YYYYMMDD")
 
 	plogger.Debugf("--------------------------------------------------")
-	plogger.Debugf("当前输入为[%v][%v][第%v节]，班级为[%v]",
-		config.Teacher, srcDateStr, config.CourseNum, srcClassRoom)
-	plogger.Debugf("下面找到这个时间不用上课的，候选列表如下:")
+	plogger.Debugf("当前输入为[%v][%v][第%v节][%v]课，班级为[%v]",
+		config.Teacher, srcDateStr, config.CourseNum,
+		srcCourse.ClassName, srcClassRoom)
+	plogger.Debugf("找到课程: %v", srcCourse)
+	plogger.Debugf("下面找到这个时间不用上课的老师")
 	var srcFreeTeacherList []string
 	teacherList := mgr.getTeacherListByClassRoom(srcClassRoom)
 	for _, t := range teacherList {
 		c := mgr.getCourse(t, srcDate, config.CourseNum)
 		if c == nil {
-			plogger.Debugf("teacher[%v] is free", t)
+			plogger.Debugf("输入的时间[%v][%v] [%v] 老师有空",
+				srcDateStr, config.CourseNum, t)
 			srcFreeTeacherList = append(srcFreeTeacherList, t)
 		}
 	}
 
-	// 当前老师未来有空的时间
-	// 直接遍历时间
+	plogger.Debugf("--------------------------------------------------")
+	plogger.Debugf("当前老师[%v]未来有空的时间", config.Teacher)
 	var dstFreeCourseList []*CourseInfo //只用来记一下哪天第几节
 	for date := time.Now(); date.Before(endTime); date = date.AddDate(0, 0, 1) {
 		for courseNum := 1; courseNum <= courseNumMax; courseNum++ {
@@ -269,6 +283,8 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 			}
 			dstFreeCourseList = append(dstFreeCourseList,
 				&CourseInfo{Date: date, ClassNum: courseNum})
+			// plogger.Debugf("未来[%v][第%v节]有空",
+			// 	putil.DateToStrDefault(date), courseNum)
 		}
 	}
 	plogger.Debugf("--------------------------------------------------")
@@ -283,21 +299,13 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 				continue
 			}
 			dstCourseList = append(dstCourseList, dstCourse)
+			plogger.Debugf("找到目标课程: %v", dstCourse)
 		}
 	}
 	return newCourseManager(dstCourseList), nil
 }
 
-func handleSwapSelection(mgr *courseManager, config InputConfig) error {
-	// Deprecated: Logic moved to CourseSwapCli and ExecuteSwap
-	return nil
-}
-
 // --------------------------------------------------
-func logCourse(course *CourseInfo) {
-	putil.Interact.Infof("%v", course)
-	// plogger.Debugf("%v", course)
-}
 
 var weekDayMap = map[time.Weekday]string{
 	time.Monday:    "周一",

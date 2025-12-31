@@ -19,14 +19,18 @@ type InputConfig struct {
 }
 
 func getCachePath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "course_swap_cache.json"
+	path := "./"
+	if false {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "course_swap_cache.json"
+		}
+		path := filepath.Join(home, "pgo")
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			_ = os.MkdirAll(path, 0755)
+		}
 	}
-	path := filepath.Join(home, "pgo")
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		_ = os.MkdirAll(path, 0755)
-	}
+
 	return filepath.Join(path, "course_swap_cache.json")
 }
 

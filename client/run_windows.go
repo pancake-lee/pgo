@@ -23,6 +23,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func runApp() {
@@ -125,7 +126,7 @@ func runUI() {
 	sep1 := canvas.NewRectangle(color.Gray{Y: 128})
 	sep1.SetMinSize(fyne.NewSize(0, seqWidth))
 	rightTop := container.NewVBox(widget.NewLabel("日志输出"), logEntry, sep1)
-	rightBottom := container.NewVBox(widget.NewLabel("结果输出"), resultList)
+	rightBottom := container.NewBorder(widget.NewLabel("结果输出"), nil, nil, nil, resultList)
 	rightContent := container.NewBorder(rightTop, nil, nil, nil, rightBottom)
 
 	// --------------------------------------------------
@@ -276,6 +277,96 @@ func makeCourseSwapUI(w fyne.Window,
 	}
 
 	// --------------------------------------------------
+	// History List
+	historyData := binding.NewUntypedList()
+	var updateHistory func()
+
+	historyList := widget.NewListWithData(
+		historyData,
+		func() fyne.CanvasObject {
+			label := widget.NewLabel("template")
+			delBtn := widget.NewButton("删除", nil)
+			return container.NewBorder(nil, nil, nil, delBtn, label)
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			val, _ := i.(binding.Untyped).Get()
+			data, ok := val.(map[string]interface{})
+			if !ok {
+				return
+			}
+
+			c := o.(*fyne.Container)
+			var label *widget.Label
+			var btn *widget.Button
+
+			for _, obj := range c.Objects {
+				if l, ok := obj.(*widget.Label); ok {
+					label = l
+				} else if b, ok := obj.(*widget.Button); ok {
+					btn = b
+				}
+			}
+
+			if label == nil || btn == nil {
+				return
+			}
+
+			label.SetText(data["display"].(string))
+
+			if data["expired"].(bool) {
+				label.TextStyle = fyne.TextStyle{Italic: true}
+			} else {
+				label.TextStyle = fyne.TextStyle{}
+			}
+
+			btn.OnTapped = func() {
+				id := data["id"].(int32)
+				err := courseSwap.DeleteSwapHistory("Local", id)
+				if err != nil {
+					dialog.ShowError(err, w)
+				} else {
+					if updateHistory != nil {
+						updateHistory()
+					}
+				}
+			}
+		},
+	)
+
+	updateHistory = func() {
+		go func() {
+			list, err := courseSwap.GetSwapHistory("Local")
+			if err != nil {
+				return
+			}
+			var items []interface{}
+			today := putil.DateToStrDefault(time.Now())
+			for _, info := range list {
+				status := "[有效]"
+				if info.SrcDate < today {
+					status = "[过期]"
+				}
+				str := fmt.Sprintf(
+					"[%s] [%s] [%s] [第%d节] [%v]班 [%v]课 -> "+
+						"[%s] [%s] [第%d节] [%v]班 [%v]课",
+					status,
+					info.SrcTeacher, info.SrcDate, info.SrcCourseNum,
+					info.SrcClass, info.SrcCourse,
+					info.DstTeacher, info.DstDate, info.DstCourseNum,
+					info.DstClass, info.DstCourse)
+
+				items = append(items, map[string]interface{}{
+					"id":      info.ID,
+					"display": str,
+					"expired": info.SrcDate < today,
+				})
+			}
+			historyData.Set(items)
+		}()
+	}
+	updateHistory() // Initial load
+
+	// --------------------------------------------------
 	// 用Form做布局
 
 	form := &widget.Form{
@@ -320,11 +411,23 @@ func makeCourseSwapUI(w fyne.Window,
 					items = append(items, c)
 				}
 				courseData.Set(items)
+
+				// Refresh history after operation (though swap doesn't happen here yet)
+				// Ideally refresh after ExecuteSwap
 			}() // goroutine
 		}, // OnSubmit
 	} // form
 
-	return form
+	// Combine Form and History
+	sep := canvas.NewRectangle(color.Gray{Y: 128})
+	sep.SetMinSize(fyne.NewSize(0, 5))
+
+	content := container.NewBorder(
+		container.NewVBox(form, sep, widget.NewLabel("换课记录")),
+		nil, nil, nil,
+		historyList)
+
+	return content
 }
 
 func openNativeFileDialog(initialPath string) (string, error) {

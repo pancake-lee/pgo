@@ -1,9 +1,11 @@
 package courseSwap
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -35,17 +37,28 @@ func (parser *courseParser) ParseCourseExcel() (map[string]*teacherInfo, error) 
 }
 
 func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
+	// 人+周几+节次 是唯一的
+	keySet := make(map[string]bool)
 	for row, colList := range rowList {
 		// plogger.Debug("row[", row, "] col size : ", len(rowList))
 		for col, cellStr := range colList {
-			if !parser.isTecherInfoStart(cellStr) {
+			if !parser.isTeacherInfoStart(cellStr) {
 				continue
 			}
 			//找到了一个老师的课表位置
-			tInfo := parser.getTecherInfo(row, col, rowList)
+			tInfo := parser.getTeacherInfo(row, col, rowList)
+			for _, c := range tInfo.classList {
+				key := fmt.Sprintf("%v-%v-%v", c.teacher, c.weekDay, c.classNum)
+				if _, ok := keySet[key]; ok {
+					return plogger.LogErrMsg("conflicting course schedules")
+				}
+				keySet[key] = true
+			}
+
 			_, ok := parser.teacherInfoMap[tInfo.teacher]
 			if !ok {
 				parser.teacherInfoMap[tInfo.teacher] = &tInfo
+				continue
 			}
 			// 同一个老师课表分开写了，要合并
 			parser.teacherInfoMap[tInfo.teacher].classList =
@@ -69,12 +82,12 @@ type teacherInfo struct {
 	classList []classInfo
 }
 
-func (parser *courseParser) isTecherInfoStart(cellStr string) bool {
+func (parser *courseParser) isTeacherInfoStart(cellStr string) bool {
 	return cellStr == "节次"
 }
 
 // 老老实实的硬编码，根据excel的格式而定
-func (parser *courseParser) getTecherInfo(rowStart int, colStart int,
+func (parser *courseParser) getTeacherInfo(rowStart int, colStart int,
 	rowList [][]string) (ret teacherInfo) {
 
 	nameCell := rowList[rowStart-1][colStart]
@@ -121,6 +134,7 @@ func (parser *courseParser) getTecherInfo(rowStart int, colStart int,
 			tInfo.classList = append(tInfo.classList, cInfo)
 		}
 	}
+	// plogger.Debugf("找到一个老师 [%v] 课程有[%v]节", tInfo.teacher, len(tInfo.classList))
 	// plogger.Debugf("找到一个老师 [%v] 课程有 : %v", tInfo.teacher, logStr)
 	// plogger.Debugf("")
 	return tInfo

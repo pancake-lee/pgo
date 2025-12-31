@@ -1,12 +1,14 @@
 package main
 
 import (
+	"flag"
 	"os"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -14,8 +16,10 @@ func main() {
 }
 
 func runCli() {
+	l := flag.Bool("l", false, "log to console, default is false")
+	flag.Parse()
 	plogger.SetJsonLog(false)
-	plogger.InitConsoleLogger()
+	plogger.InitLogger(*l, zapcore.DebugLevel, "")
 
 	if err := rootCmd.Execute(); err != nil {
 		plogger.LogErr(err)

@@ -30,23 +30,36 @@ func timeFormatToGoFormat(format string) string {
 	return format
 }
 
-// "YYMMDDTHH:mm:ss"
+// --------------------------------------------------
+// "YYYYMMDDTHH:mm:ss"
 func TimeFromStrDefault(timeStr string) (time.Time, error) {
-	return TimeFromStr(timeStr, "YYMMDDTHH:mm:ss")
+	return TimeFromStr(timeStr, "YYYYMMDDTHH:mm:ss")
 }
 
-// format sample: "YYMMDDTHH:mm:ss"
+// "YYYYMMDDTHH:mm:ss"
+func TimeToStrDefault(t time.Time) string {
+	return TimeToStr(t, "YYYYMMDDTHH:mm:ss")
+}
+
+// --------------------------------------------------
+// "YYYYMMDD"
+func DateFromStrDefault(dateStr string) (time.Time, error) {
+	return TimeFromStr(dateStr, "YYYYMMDD")
+}
+
+// "YYYYMMDD"
+func DateToStrDefault(t time.Time) string {
+	return TimeToStr(t, "YYYYMMDD")
+}
+
+// --------------------------------------------------
+// format sample: "YYYYMMDDTHH:mm:ss"
 func TimeFromStr(timeStr, format string) (time.Time, error) {
 	format = timeFormatToGoFormat(format)
 	return time.Parse(format, timeStr)
 }
 
-// "YYMMDDTHH:mm:ss"
-func TimeToStrDefault(t time.Time) string {
-	return TimeToStr(t, "YYMMDDTHH:mm:ss")
-}
-
-// format sample: "YYMMDDTHH:mm:ss"
+// format sample: "YYYYMMDDTHH:mm:ss"
 func TimeToStr(t time.Time, format string) string {
 	format = timeFormatToGoFormat(format)
 	return t.Format(format)
