@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"os"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
@@ -11,20 +10,21 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+var logToConsole bool
+
 func main() {
 	runApp()
 }
 
 func runCli() {
-	l := flag.Bool("l", false, "log to console, default is false")
-	flag.Parse()
-	plogger.SetJsonLog(false)
-	plogger.InitLogger(*l, zapcore.DebugLevel, "")
-
 	if err := rootCmd.Execute(); err != nil {
 		plogger.LogErr(err)
 		os.Exit(1)
 	}
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log", "l", false, "log to console, default is false")
 }
 
 // --------------------------------------------------
@@ -32,7 +32,11 @@ var rootCmd = &cobra.Command{
 	Use:   "pgo-client",
 	Short: "PGO Client Application",
 	Long:  `PGO Client Application with CLI and UI support`,
-	Run:   runCobra,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		plogger.SetJsonLog(false)
+		plogger.InitLogger(logToConsole, zapcore.DebugLevel, "")
+	},
+	Run: runCobra,
 }
 
 func runCobra(cmd *cobra.Command, args []string) {
