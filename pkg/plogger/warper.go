@@ -39,6 +39,16 @@ func (l *PLogWarper) LogErrMsg(errMsg string) error {
 func LogErrMsg(errMsg string) error {
 	return defaultLogWarper.LogErrMsg(errMsg)
 }
+func (l *PLogWarper) LogErrfMsg(format string, args ...any) error {
+	if format == "" {
+		return nil
+	}
+	l.kLog.Log(kLogger.LevelError, "msg", fmt.Sprintf("got err["+format+"]", args...))
+	return fmt.Errorf(format, args...)
+}
+func LogErrfMsg(format string, args ...any) error {
+	return defaultLogWarper.LogErrfMsg(format, args...)
+}
 
 func (l *PLogWarper) LogErr(err error) error {
 	if err == nil {

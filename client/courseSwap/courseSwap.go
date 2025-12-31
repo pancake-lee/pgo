@@ -233,9 +233,14 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	if srcCourse == nil {
 		plogger.Debug("srcCourse not found")
 		return nil, fmt.Errorf("srcCourse not found")
-	} else {
-		logCourse(srcCourse)
 	}
+	if srcCourse.ClassRoomName == "" {
+		return nil, plogger.LogErrfMsg(
+			"srcCourse[%v] ClassRoomName is empty", srcCourse)
+	}
+
+	logCourse(srcCourse)
+
 	srcClassRoom := srcCourse.ClassRoomName
 	srcDateStr := putil.TimeToStr(srcDate, "YYYYMMDD")
 

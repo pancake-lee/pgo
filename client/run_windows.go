@@ -52,8 +52,13 @@ func runUI() {
 	logData := binding.NewString()
 	captureOutput(logData)
 	logEntry := newReadOnlyEntry()
-	logEntry.Bind(logData)
+	// Manual binding to avoid validation icon
+	logData.AddListener(binding.NewDataListener(func() {
+		val, _ := logData.Get()
+		logEntry.SetText(val)
+	}))
 	logEntry.MultiLine = true
+
 	logEntry.SetPlaceHolder("Logs will appear here...")
 	// logEntry.Disable() // Keep enabled for normal text color
 	logEntry.SetMinRowsVisible(10)
@@ -115,23 +120,37 @@ func runUI() {
 	)
 
 	// Right side layout: Log at top, List fills rest
-	rightContent := container.NewBorder(logEntry, nil, nil, nil, resultList)
+	// Add separator between Log and List
+	var seqWidth float32 = 3
+	sep1 := canvas.NewRectangle(color.Gray{Y: 128})
+	sep1.SetMinSize(fyne.NewSize(0, seqWidth))
+	rightTop := container.NewVBox(widget.NewLabel("日志输出"), logEntry, sep1)
+	rightBottom := container.NewVBox(widget.NewLabel("结果输出"), resultList)
+	rightContent := container.NewBorder(rightTop, nil, nil, nil, rightBottom)
 
 	// --------------------------------------------------
 	// 中间，子功能参数操作区域
-	centerContent := container.NewStack()
-	centerContent.Add(widget.NewLabel("请先从左侧菜单选择一个功能"))
+	centerParam := container.NewStack()
+	centerParam.Add(widget.NewLabel("请先从左侧菜单选择一个功能"))
+
+	centerContent := container.NewVBox(
+		widget.NewLabel("参数输入"), centerParam)
 
 	centerSpacer := canvas.NewRectangle(color.Transparent)
 	centerSpacer.SetMinSize(fyne.NewSize(400, 0))
 	centerFixed := container.NewStack(centerSpacer, centerContent)
 
+	// Add separator to the right of center
+	sep2 := canvas.NewRectangle(color.Gray{Y: 128})
+	sep2.SetMinSize(fyne.NewSize(seqWidth, 0))
+	centerWithSep := container.NewBorder(nil, nil, nil, sep2, centerFixed)
+
 	// --------------------------------------------------
 	// 左侧，功能菜单区域
 	btnCourseSwap := widget.NewButton("调课", func() {
 		ui := makeCourseSwapUI(w, logData, courseData, &currentConfig)
-		centerContent.Objects = []fyne.CanvasObject{ui}
-		centerContent.Refresh()
+		centerParam.Objects = []fyne.CanvasObject{ui}
+		centerParam.Refresh()
 	})
 
 	leftMenu := container.NewVBox(
@@ -142,11 +161,15 @@ func runUI() {
 	leftSpacer := canvas.NewRectangle(color.Transparent)
 	leftSpacer.SetMinSize(fyne.NewSize(100, 0))
 	leftFixed := container.NewStack(leftSpacer, leftMenu)
+	// Add separator to the right of left
+	sep3 := canvas.NewRectangle(color.Gray{Y: 128})
+	sep3.SetMinSize(fyne.NewSize(seqWidth, 0))
+	leftWithSep := container.NewBorder(nil, nil, nil, sep3, leftFixed)
 
 	// --------------------------------------------------
 	// Layout: Left(100) | Center(400) | Right(Rest)
-	innerBorder := container.NewBorder(nil, nil, centerFixed, nil, rightContent)
-	rootBorder := container.NewBorder(nil, nil, leftFixed, nil, innerBorder)
+	innerBorder := container.NewBorder(nil, nil, centerWithSep, nil, rightContent)
+	rootBorder := container.NewBorder(nil, nil, leftWithSep, nil, innerBorder)
 
 	w.SetContent(rootBorder)
 	w.ShowAndRun()
@@ -386,6 +409,7 @@ func captureOutput(logData binding.String) {
 	os.Stderr = w
 
 	// Re-init logger to pick up new stdout
+	plogger.SetJsonLog(false)
 	plogger.InitConsoleLogger()
 
 	go func() {
