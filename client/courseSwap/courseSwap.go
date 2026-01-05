@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/pancake-lee/pgo/client/swagger"
@@ -138,6 +139,14 @@ func (c *CourseInfo) String() string {
 		teacher, c.ClassName)
 }
 
+var endWeek = 5
+
+func getEndTime() time.Time {
+	tNow := time.Now()
+	wDiff := tNow.Weekday() - time.Monday
+	return tNow.AddDate(0, 0, 7*endWeek-int(wDiff))
+}
+
 func getAllCourseList(config InputConfig) (*courseManager, error) {
 	courseMap, err := NewCourseParser(config.Path).ParseCourseExcel()
 	if err != nil {
@@ -148,9 +157,7 @@ func getAllCourseList(config InputConfig) (*courseManager, error) {
 		config.Path, len(courseMap))
 
 	tNow := time.Now()
-	wDiff := tNow.Weekday() - time.Monday
-	endWeek := 3
-	endTime := tNow.AddDate(0, 0, 7*endWeek-int(wDiff))
+	endTime := getEndTime()
 
 	plogger.Debugf("用课程表，计算未来[%v]周内的课程安排[%v]-[%v]",
 		endWeek,
@@ -237,9 +244,6 @@ var courseNumMax = 7
 // 计算换课候选列表
 func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, error) {
 	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
-	tNow := time.Now()
-	wDiff := tNow.Weekday() - time.Monday
-	endTime := tNow.AddDate(0, 0, 21-int(wDiff))
 
 	// 获取当前需要调课的课程，则某老师某天的某节课
 	srcCourse := mgr.getCourse(config.Teacher, srcDate, config.CourseNum)
@@ -275,7 +279,7 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	plogger.Debugf("--------------------------------------------------")
 	plogger.Debugf("当前老师[%v]未来有空的时间", config.Teacher)
 	var dstFreeCourseList []*CourseInfo //只用来记一下哪天第几节
-	for date := time.Now(); date.Before(endTime); date = date.AddDate(0, 0, 1) {
+	for date := time.Now(); date.Before(getEndTime()); date = date.AddDate(0, 0, 1) {
 		for courseNum := 1; courseNum <= courseNumMax; courseNum++ {
 			c := mgr.getCourse(config.Teacher, date, courseNum)
 			if c != nil {
@@ -294,14 +298,25 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	for _, dstFreeCourse := range dstFreeCourseList {
 		for _, t := range srcFreeTeacherList {
 			dstCourse := mgr.getCourse(t, dstFreeCourse.Date, dstFreeCourse.ClassNum)
-			if dstCourse == nil ||
-				dstCourse.ClassRoomName != srcClassRoom { //换同班的课
+			if dstCourse == nil {
 				continue
 			}
-			dstCourseList = append(dstCourseList, dstCourse)
-			plogger.Debugf("找到目标课程: %v", dstCourse)
+			// plogger.Debugf("尝试匹配: %v", dstCourse)
+			if strings.Contains(srcCourse.ClassName, "体助") { // 体助课，换同名课，不限班级
+				if strings.Contains(dstCourse.ClassName, "体助") {
+					dstCourseList = append(dstCourseList, dstCourse)
+				}
+				continue
+			}
+			if dstCourse.ClassRoomName == srcClassRoom { //换同班的课
+				dstCourseList = append(dstCourseList, dstCourse)
+			}
 		}
 	}
+	for _, c := range dstCourseList {
+		plogger.Debugf("找到目标课程: %v", c)
+	}
+
 	return newCourseManager(dstCourseList), nil
 }
 

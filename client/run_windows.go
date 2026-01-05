@@ -46,7 +46,7 @@ func runApp() {
 func runUI() {
 	a := app.New()
 	w := a.NewWindow("PGO Client")
-	w.Resize(fyne.NewSize(1000, 700))
+	w.Resize(fyne.NewSize(1500, 700))
 
 	// --------------------------------------------------
 	// 右上，日志区域
