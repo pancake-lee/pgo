@@ -302,13 +302,29 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 				continue
 			}
 			// plogger.Debugf("尝试匹配: %v", dstCourse)
-			if strings.Contains(srcCourse.ClassName, "体助") { // 体助课，换同名课，不限班级
+
+			// 选修课、会议课，不换
+			if strings.Contains(dstCourse.ClassName, "选修") ||
+				strings.Contains(dstCourse.ClassName, "会议") {
+				continue
+			}
+
+			// 体助课，只换体助，不限班级
+			if strings.Contains(srcCourse.ClassName, "体助") {
 				if strings.Contains(dstCourse.ClassName, "体助") {
 					dstCourseList = append(dstCourseList, dstCourse)
 				}
 				continue
 			}
-			if dstCourse.ClassRoomName == srcClassRoom { //换同班的课
+
+			// 教研直接展示出来给用户自己沟通
+			if strings.Contains(dstCourse.ClassName, "教研") {
+				dstCourseList = append(dstCourseList, dstCourse)
+				continue
+			}
+
+			// 学科课，换同班的课
+			if dstCourse.ClassRoomName == srcClassRoom {
 				dstCourseList = append(dstCourseList, dstCourse)
 			}
 		}
