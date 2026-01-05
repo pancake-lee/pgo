@@ -48,9 +48,9 @@ func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
 			//找到了一个老师的课表位置
 			tInfo := parser.getTeacherInfo(row, col, rowList)
 			for _, c := range tInfo.classList {
-				key := fmt.Sprintf("%v-%v-%v", c.teacher, c.weekDay, c.classNum)
+				key := fmt.Sprintf("%v-%v-%v-%v", c.teacher, c.weekDay, c.classNum, c.weekType)
 				if _, ok := keySet[key]; ok {
-					return plogger.LogErrMsg("conflicting course schedules")
+					return plogger.LogErrfMsg("conflicting course schedules [%v]", key)
 				}
 				keySet[key] = true
 			}
@@ -70,12 +70,19 @@ func (parser *courseParser) parseCourseSheet(rowList [][]string) (err error) {
 }
 
 // --------------------------------------------------
+const (
+	WeekTypeAll = iota
+	WeekTypeOdd
+	WeekTypeEven
+)
+
 type classInfo struct {
 	className     string //课名
 	classRoomName string //班级名
 	classNum      int
 	weekDay       time.Weekday
 	teacher       string
+	weekType      int // 0:All, 1:Odd, 2:Even
 }
 type teacherInfo struct {
 	teacher   string
@@ -97,13 +104,14 @@ func (parser *courseParser) getTeacherInfo(rowStart int, colStart int,
 
 	//循环每节课的cell
 	logStr := ""
+	rowAddMax := 8 + 1 //多加一行是因为中午有一行空行
+	emptyRowAdd := 6   //第六行是空行
 	for wDay := time.Monday; wDay <= time.Friday; wDay++ {
-		for rowAdd := 1; rowAdd <= 8; rowAdd++ {
-			//567是下午，表格中中午隔了一行
+		for rowAdd := 1; rowAdd <= rowAddMax; rowAdd++ {
 			classNum := rowAdd
-			if rowAdd == 5 {
+			if rowAdd == emptyRowAdd {
 				continue
-			} else if rowAdd > 5 {
+			} else if rowAdd > emptyRowAdd {
 				classNum = rowAdd - 1
 			}
 			rowTmp := rowStart + rowAdd
@@ -114,24 +122,72 @@ func (parser *courseParser) getTeacherInfo(rowStart int, colStart int,
 			classCol := rowList[rowTmp][colTmp]
 			classCol = strings.ReplaceAll(classCol, "\n", "")
 			classCol = strings.ReplaceAll(classCol, "\r", "")
-			if classCol == "" {
+			classCol = strings.ReplaceAll(classCol, " ", "")
+			if classCol == "" || classCol == "-" {
 				continue
 			}
-			var cInfo classInfo
 
-			classColSplitList := strings.Split(classCol, "班")
-			if len(classColSplitList) != 2 {
-				cInfo.className = classCol
-				cInfo.classRoomName = ""
-			} else {
-				cInfo.className = classCol
-				cInfo.classRoomName = classColSplitList[0]
+			parseClassStr := func(str string) classInfo {
+				var cInfo classInfo
+				classColSplitList := strings.Split(str, "班")
+				if len(classColSplitList) != 2 {
+					cInfo.className = str
+					cInfo.classRoomName = ""
+				} else {
+					cInfo.className = str
+					cInfo.classRoomName = classColSplitList[0]
+				}
+				return cInfo
 			}
-			cInfo.classNum = classNum
-			cInfo.teacher = tInfo.teacher
-			cInfo.weekDay = wDay
-			logStr += classCol + ","
-			tInfo.classList = append(tInfo.classList, cInfo)
+			// plogger.Debugf("classCol : %v", classCol)
+			var cInfoList []classInfo
+			if strings.HasPrefix(classCol, "单") && strings.Contains(classCol, "双") {
+				parts := strings.Split(classCol, "双")
+				if len(parts) == 2 {
+					oddStr := strings.TrimPrefix(parts[0], "单")
+					evenStr := parts[1]
+					// plogger.Debugf("oddStr : %v", oddStr)
+					// plogger.Debugf("evenStr : %v", evenStr)
+
+					evenInfo := parseClassStr(evenStr)
+					evenInfo.weekType = WeekTypeEven
+					// plogger.Debugf("evenInfo : %v", evenInfo)
+
+					// Try to extract course name from evenStr to complete oddStr
+					courseName := ""
+					if evenInfo.classRoomName != "" {
+						prefix := evenInfo.classRoomName + "班"
+						if strings.HasPrefix(evenStr, prefix) {
+							courseName = strings.TrimPrefix(evenStr, prefix)
+						}
+					}
+					if courseName != "" && strings.HasSuffix(oddStr, "班") {
+						oddStr += courseName
+					}
+
+					oddInfo := parseClassStr(oddStr)
+					oddInfo.weekType = WeekTypeOdd
+					// plogger.Debugf("oddInfo : %v", oddInfo)
+
+					cInfoList = append(cInfoList, oddInfo, evenInfo)
+				} else {
+					info := parseClassStr(classCol)
+					info.weekType = WeekTypeAll
+					cInfoList = append(cInfoList, info)
+				}
+			} else {
+				info := parseClassStr(classCol)
+				info.weekType = WeekTypeAll
+				cInfoList = append(cInfoList, info)
+			}
+
+			for _, cInfo := range cInfoList {
+				cInfo.classNum = classNum
+				cInfo.teacher = tInfo.teacher
+				cInfo.weekDay = wDay
+				logStr += cInfo.className + ","
+				tInfo.classList = append(tInfo.classList, cInfo)
+			}
 		}
 	}
 	// plogger.Debugf("找到一个老师 [%v] 课程有[%v]节", tInfo.teacher, len(tInfo.classList))

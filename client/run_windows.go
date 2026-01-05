@@ -57,6 +57,8 @@ func runUI() {
 	logData.AddListener(binding.NewDataListener(func() {
 		val, _ := logData.Get()
 		logEntry.SetText(val)
+		logEntry.CursorRow = strings.Count(val, "\n")
+		logEntry.Refresh()
 	}))
 	logEntry.MultiLine = true
 
@@ -367,6 +369,19 @@ func makeCourseSwapUI(w fyne.Window,
 	updateHistory() // Initial load
 
 	// --------------------------------------------------
+	// IsOddWeek Checkbox
+	now := time.Now()
+	offset := int(time.Monday - now.Weekday())
+	if offset > 0 {
+		offset = -6
+	}
+	monday := now.AddDate(0, 0, offset)
+	mondayYMD := putil.TimeToStr(monday, "YYYYMMDD")
+
+	isOddWeekCheck := widget.NewCheck(fmt.Sprintf("本周是单周则打勾（%v为周一的）", mondayYMD), nil)
+	isOddWeekCheck.Checked = cache.IsOddWeek
+
+	// --------------------------------------------------
 	// 用Form做布局
 
 	form := &widget.Form{
@@ -375,6 +390,7 @@ func makeCourseSwapUI(w fyne.Window,
 			{Text: "教师", Widget: teacherSelect},
 			{Text: "日期", Widget: dateContainer},
 			{Text: "节次", Widget: courseNumSelect},
+			{Text: "单双周", Widget: isOddWeekCheck},
 		},
 		OnSubmit: func() {
 			cNum, _ := strconv.Atoi(courseNumSelect.Selected)
@@ -384,6 +400,7 @@ func makeCourseSwapUI(w fyne.Window,
 				Date:        dateEntry.Text,
 				CourseNum:   cNum,
 				StorageType: "Local",
+				IsOddWeek:   isOddWeekCheck.Checked,
 			}
 			courseSwap.SaveCache(config)
 			*currentConfig = config
@@ -520,8 +537,8 @@ func captureOutput(logData binding.String) {
 		for scanner.Scan() {
 			text := scanner.Text()
 			current, _ := logData.Get()
-			if len(current) > 10000 {
-				current = current[len(current)-5000:]
+			if len(current) > 100000 {
+				current = current[len(current)-50000:]
 			}
 			logData.Set(current + text + "\n")
 		}

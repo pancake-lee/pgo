@@ -16,6 +16,7 @@ type InputConfig struct {
 	Date        string `json:"date"`
 	CourseNum   int    `json:"courseNum"`
 	StorageType string `json:"storageType"`
+	IsOddWeek   bool   `json:"isOddWeek"`
 }
 
 func getCachePath() string {
@@ -124,6 +125,25 @@ func InputParams() (config InputConfig, err error) {
 	config.StorageType = putil.Interact.Input(prompt)
 	if config.StorageType == "" {
 		config.StorageType = defaultStorage
+	}
+
+	// IsOddWeek
+	prompt = "本周是否为单周(y/n)"
+	defaultOdd := "n"
+	if cache.IsOddWeek {
+		defaultOdd = "y"
+	}
+	prompt += fmt.Sprintf(" (默认: %s)", defaultOdd)
+
+	oddStr := putil.Interact.Input(prompt)
+	if oddStr == "" {
+		config.IsOddWeek = cache.IsOddWeek
+	} else {
+		if oddStr == "y" || oddStr == "Y" || oddStr == "yes" {
+			config.IsOddWeek = true
+		} else {
+			config.IsOddWeek = false
+		}
 	}
 
 	// Save cache

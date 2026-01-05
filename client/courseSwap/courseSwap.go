@@ -122,6 +122,7 @@ type CourseInfo struct {
 	ClassNum      int
 	Date          time.Time
 	Teacher       string
+	WeekType      int // 0:All, 1:Odd, 2:Even
 }
 
 func (c *CourseInfo) String() string {
@@ -131,12 +132,20 @@ func (c *CourseInfo) String() string {
 		teacher = string(rs[0]) + "  " + string(rs[1])
 	}
 
+	weekTypeStr := ""
+	switch c.WeekType {
+	case WeekTypeOdd:
+		weekTypeStr = "[单周]"
+	case WeekTypeEven:
+		weekTypeStr = "[双周]"
+	}
+
 	return fmt.Sprintf(
-		"[%v] [%v] [第%v节] [%v]班 [%v] [%v]课",
+		"[%v] [%v] [第%v节] [%v]班 [%v] [%v]课%v",
 		putil.DateToStrDefault(c.Date),
 		getWeekday(c.Date.Weekday()),
 		c.ClassNum, c.ClassRoomName,
-		teacher, c.ClassName)
+		teacher, c.ClassName, weekTypeStr)
 }
 
 var endWeek = 5
@@ -165,14 +174,34 @@ func getAllCourseList(config InputConfig) (*courseManager, error) {
 		putil.TimeToStr(endTime, "YYYYMMDD"))
 
 	var allCourseList []*CourseInfo
+
+	tNowWeekday := tNow.Weekday()
+	if tNowWeekday == time.Sunday {
+		tNowWeekday = 7
+	}
+
 	for _, tInfo := range courseMap {
 		// plogger.Debugf("teacher[%v] class cnt[%v]", tInfo.teacher, len(tInfo.classList))
 		for _, classInfo := range tInfo.classList {
 			// 一节课向后推3周
-			date := tNow.AddDate(0, 0, int(classInfo.weekDay-tNow.Weekday()))
+			date := tNow.AddDate(0, 0, int(classInfo.weekDay)-int(tNowWeekday))
+			weekIsOdd := config.IsOddWeek
+
 			for date.Before(endTime) {
 				if date.Before(tNow) {
 					date = date.AddDate(0, 0, 7)
+					weekIsOdd = !weekIsOdd
+					continue
+				}
+
+				if classInfo.weekType == WeekTypeOdd && !weekIsOdd {
+					date = date.AddDate(0, 0, 7)
+					weekIsOdd = !weekIsOdd
+					continue
+				}
+				if classInfo.weekType == WeekTypeEven && weekIsOdd {
+					date = date.AddDate(0, 0, 7)
+					weekIsOdd = !weekIsOdd
 					continue
 				}
 
@@ -182,8 +211,10 @@ func getAllCourseList(config InputConfig) (*courseManager, error) {
 				c.ClassNum = classInfo.classNum
 				c.Date = date
 				c.Teacher = tInfo.teacher
+				c.WeekType = classInfo.weekType
 				allCourseList = append(allCourseList, &c)
 				date = date.AddDate(0, 0, 7)
+				weekIsOdd = !weekIsOdd
 			}
 		}
 	}
