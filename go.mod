@@ -14,7 +14,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.7.2
 	github.com/go-mysql-org/go-mysql v1.13.0
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/kataras/iris/v12 v12.2.11
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/pterm/pterm v0.12.82
@@ -65,7 +65,6 @@ require (
 	github.com/go-text/render v0.2.0 // indirect
 	github.com/go-text/typesetting v0.2.1 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20240328165702-4d01890c35c0 // indirect
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
