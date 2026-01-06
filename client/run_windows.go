@@ -270,9 +270,13 @@ func makeCourseSwapUI(w fyne.Window,
 
 	// --------------------------------------------------
 	// Course Num Select
-	courseNumSelect := widget.NewSelect(
-		[]string{"1", "2", "3", "4", "5", "6", "7"}, nil)
-	if cache.CourseNum > 0 && cache.CourseNum <= 7 {
+	var numList []string
+	for i := 1; i <= courseSwap.CourseNumMax; i++ {
+		numList = append(numList, fmt.Sprintf("%d", i))
+	}
+
+	courseNumSelect := widget.NewSelect(numList, nil)
+	if cache.CourseNum > 0 && cache.CourseNum <= courseSwap.CourseNumMax {
 		courseNumSelect.SetSelected(fmt.Sprintf("%d", cache.CourseNum))
 	} else {
 		courseNumSelect.SetSelected("1")

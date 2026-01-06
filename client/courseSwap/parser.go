@@ -93,6 +93,12 @@ func (parser *courseParser) isTeacherInfoStart(cellStr string) bool {
 	return cellStr == "节次"
 }
 
+const (
+	CourseNumMax = 8
+	rowAddMax    = CourseNumMax + 1 //多加一行是因为中午有一行空行
+	emptyRowAdd  = 6                //第六行是空行
+)
+
 // 老老实实的硬编码，根据excel的格式而定
 func (parser *courseParser) getTeacherInfo(rowStart int, colStart int,
 	rowList [][]string) (ret teacherInfo) {
@@ -104,8 +110,6 @@ func (parser *courseParser) getTeacherInfo(rowStart int, colStart int,
 
 	//循环每节课的cell
 	logStr := ""
-	rowAddMax := 8 + 1 //多加一行是因为中午有一行空行
-	emptyRowAdd := 6   //第六行是空行
 	for wDay := time.Monday; wDay <= time.Friday; wDay++ {
 		for rowAdd := 1; rowAdd <= rowAddMax; rowAdd++ {
 			classNum := rowAdd

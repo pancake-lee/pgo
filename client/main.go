@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 	Long:  `PGO Client Application with CLI and UI support`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		plogger.SetJsonLog(false)
-		plogger.InitLogger(logToConsole, zapcore.DebugLevel, "")
+		plogger.InitLogger(logToConsole, zapcore.DebugLevel, "./logs/")
 	},
 	Run: runCobra,
 }

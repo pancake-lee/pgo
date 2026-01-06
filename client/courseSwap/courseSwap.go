@@ -270,8 +270,6 @@ func getAllCourseList(config InputConfig) (*courseManager, error) {
 	return newCourseManager(allCourseList), nil
 }
 
-var courseNumMax = 7
-
 // 计算换课候选列表
 func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, error) {
 	srcDate, _ := putil.TimeFromStr(config.Date, "YYYYMMDD")
@@ -279,39 +277,38 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	// 获取当前需要调课的课程，则某老师某天的某节课
 	srcCourse := mgr.getCourse(config.Teacher, srcDate, config.CourseNum)
 	if srcCourse == nil {
+		plogger.Errorf("当前输入为[%v][%v][第%v节]",
+			config.Teacher, config.Date, config.CourseNum)
 		return nil, plogger.LogErrfMsg(
 			"输入的课程不存在，注意输入错误或已经换课了")
 	}
 	if srcCourse.ClassRoomName == "" {
+		plogger.Errorf("当前输入为[%v][%v][第%v节]",
+			config.Teacher, config.Date, config.CourseNum)
 		return nil, plogger.LogErrfMsg(
 			"输入的课程[%v]找到，但班级名为空", srcCourse)
 	}
 
-	srcClassRoom := srcCourse.ClassRoomName
-	srcDateStr := putil.TimeToStr(srcDate, "YYYYMMDD")
-
 	plogger.Debugf("--------------------------------------------------")
-	plogger.Debugf("当前输入为[%v][%v][第%v节][%v]课，班级为[%v]",
-		config.Teacher, srcDateStr, config.CourseNum,
-		srcCourse.ClassName, srcClassRoom)
 	plogger.Debugf("找到课程: %v", srcCourse)
-	plogger.Debugf("下面找到这个时间不用上课的老师")
+
 	var srcFreeTeacherList []string
-	teacherList := mgr.getTeacherListByClassRoom(srcClassRoom)
+	teacherList := mgr.GetAllTeacherList()
 	for _, t := range teacherList {
 		c := mgr.getCourse(t, srcDate, config.CourseNum)
 		if c == nil {
 			plogger.Debugf("输入的时间[%v][%v] [%v] 老师有空",
-				srcDateStr, config.CourseNum, t)
+				config.Date, config.CourseNum, t)
 			srcFreeTeacherList = append(srcFreeTeacherList, t)
 		}
 	}
+	plogger.Debugf("找到这个时间不用上课的老师[%v]个", len(srcFreeTeacherList))
 
 	plogger.Debugf("--------------------------------------------------")
-	plogger.Debugf("当前老师[%v]未来有空的时间", config.Teacher)
+	plogger.Debugf("正在计算老师[%v]未来有空的时间", config.Teacher)
 	var dstFreeCourseList []*CourseInfo //只用来记一下哪天第几节
 	for date := time.Now(); date.Before(getEndTime()); date = date.AddDate(0, 0, 1) {
-		for courseNum := 1; courseNum <= courseNumMax; courseNum++ {
+		for courseNum := 1; courseNum <= CourseNumMax; courseNum++ {
 			c := mgr.getCourse(config.Teacher, date, courseNum)
 			if c != nil {
 				continue
@@ -324,7 +321,7 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	}
 	plogger.Debugf("--------------------------------------------------")
 	plogger.Debugf("找到[%v]未来有空上的目标课程，并且对应老师在[%v][第%v节]有空",
-		config.Teacher, srcDateStr, config.CourseNum)
+		config.Teacher, config.Date, config.CourseNum)
 	var dstCourseList []*CourseInfo
 	for _, dstFreeCourse := range dstFreeCourseList {
 		for _, t := range srcFreeTeacherList {
@@ -355,7 +352,7 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 			}
 
 			// 学科课，换同班的课
-			if dstCourse.ClassRoomName == srcClassRoom {
+			if dstCourse.ClassRoomName == srcCourse.ClassRoomName {
 				dstCourseList = append(dstCourseList, dstCourse)
 			}
 		}

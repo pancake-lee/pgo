@@ -99,7 +99,7 @@ func InputParams() (config InputConfig, err error) {
 	}
 
 	// CourseNum
-	prompt = "请输入第几节课，1~7"
+	prompt = fmt.Sprintf("请输入第几节课，1~%v", CourseNumMax)
 	if cache.CourseNum != 0 {
 		prompt += fmt.Sprintf(" (默认: %d)", cache.CourseNum)
 	}

@@ -84,6 +84,7 @@ func InitLogger(isLogConsole bool, lv zapcore.Level, logPath string) {
 		fileName := execName + "_" + "%Y%m%d.log"
 		fullPath = path.Join(folderPath, fileName)
 	}
+	// fmt.Println("Log fullPath:", fullPath)
 
 	//软连接名 LogName
 	linkName := execName
