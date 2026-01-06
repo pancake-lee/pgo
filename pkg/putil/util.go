@@ -79,12 +79,12 @@ func (m *IDManager) ReleaseID(id int32) {
 
 // --------------------------------------------------
 func UUID() string {
-	u := uuid.NewV4()
+	u, _ := uuid.NewV4()
 	return u.String()
 }
 
 // 截断的短版UUID
 func UUID_S() string {
-	u := uuid.NewV4()
+	u, _ := uuid.NewV4()
 	return u.String()[0:8]
 }

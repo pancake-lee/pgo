@@ -14,28 +14,28 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	jwt4 "github.com/golang-jwt/jwt/v4"
+	jwt5 "github.com/golang-jwt/jwt/v5"
 )
 
 type claims struct {
 	// 其实标准的sub字段可以用来表达用户ID，这里只是示例，方便后续加入更多字段
 	UserID int32 `json:"userId"`
-	jwt4.StandardClaims
+	jwt5.RegisteredClaims
 }
 
 func GenToken(userId int32) (string, error) {
 	tNow := time.Now()
 	tokenClaims := claims{
 		UserID: userId,
-		StandardClaims: jwt4.StandardClaims{
-			NotBefore: tNow.Unix(),
-			IssuedAt:  tNow.Unix(),
-			ExpiresAt: tNow.Add(httpAuthExpire).Unix(),
+		RegisteredClaims: jwt5.RegisteredClaims{
+			NotBefore: jwt5.NewNumericDate(tNow),
+			IssuedAt:  jwt5.NewNumericDate(tNow),
+			ExpiresAt: jwt5.NewNumericDate(tNow.Add(httpAuthExpire)),
 			Issuer:    "pgo",
 			Subject:   putil.Int32ToStr(userId),
 		},
 	}
-	token := jwt4.NewWithClaims(jwt4.SigningMethodHS256, tokenClaims)
+	token := jwt5.NewWithClaims(jwt5.SigningMethodHS256, tokenClaims)
 	ret, err := token.SignedString([]byte(httpAuthKey))
 	if err != nil {
 		return ret, perr.ErrTokenSign
@@ -59,8 +59,8 @@ func GetTokenFromCtx(ctx context.Context) (*claims, error) {
 func ParseToken(tokenString string) (*claims, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-	token, err := jwt4.ParseWithClaims(tokenString, &claims{},
-		func(token *jwt4.Token) (any, error) {
+	token, err := jwt5.ParseWithClaims(tokenString, &claims{},
+		func(token *jwt5.Token) (any, error) {
 			return []byte(httpAuthKey), nil
 		},
 	)
@@ -104,12 +104,12 @@ func AddWhiteList(paths ...string) {
 func authMiddleware() middleware.Middleware {
 	return selector.
 		Server(jwt.Server(
-			func(token *jwt4.Token) (interface{}, error) {
+			func(token *jwt5.Token) (interface{}, error) {
 				return []byte(httpAuthKey), nil
 			},
-			jwt.WithSigningMethod(jwt4.SigningMethodHS256),
-			jwt.WithClaims(func() jwt4.Claims {
-				return &jwt4.MapClaims{}
+			jwt.WithSigningMethod(jwt5.SigningMethodHS256),
+			jwt.WithClaims(func() jwt5.Claims {
+				return &jwt5.MapClaims{}
 			}),
 		)).
 		Match(func(ctx context.Context, operation string) bool {
