@@ -137,8 +137,8 @@ func runUI() {
 	centerParam := container.NewStack()
 	centerParam.Add(widget.NewLabel("请先从左侧菜单选择一个功能"))
 
-	centerContent := container.NewVBox(
-		widget.NewLabel("参数输入"), centerParam)
+	centerContent := container.NewBorder(
+		widget.NewLabel("参数输入"), nil, nil, nil, centerParam)
 
 	centerSpacer := canvas.NewRectangle(color.Transparent)
 	centerSpacer.SetMinSize(fyne.NewSize(400, 0))
