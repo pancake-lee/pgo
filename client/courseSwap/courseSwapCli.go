@@ -2,7 +2,6 @@ package courseSwap
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -24,11 +23,6 @@ func CourseSwapCli() {
 		putil.Interact.Errorf("没有找到可换的课程")
 		return
 	}
-
-	// Sort for consistent display
-	sort.Slice(courses, func(i, j int) bool {
-		return courses[i].ClassName < courses[j].ClassName
-	})
 
 	for i, c := range courses {
 		putil.Interact.Infof("[%d] %v", i, c)

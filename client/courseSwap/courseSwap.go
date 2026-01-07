@@ -297,12 +297,18 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 	for _, t := range teacherList {
 		c := mgr.getCourse(t, srcDate, config.CourseNum)
 		if c == nil {
-			plogger.Debugf("输入的时间[%v][%v] [%v] 老师有空",
-				config.Date, config.CourseNum, t)
+			// plogger.Debugf("输入的时间[%v][%v] [%v] 老师有空",
+			// 	config.Date, config.CourseNum, t)
 			srcFreeTeacherList = append(srcFreeTeacherList, t)
 		}
 	}
 	plogger.Debugf("找到这个时间不用上课的老师[%v]个", len(srcFreeTeacherList))
+
+	sameClassRoomTeacherList := mgr.getTeacherListByClassRoom(srcCourse.ClassRoomName)
+	sameClassRoomTeacherSet := make(map[string]bool)
+	for _, t := range sameClassRoomTeacherList {
+		sameClassRoomTeacherSet[t] = true
+	}
 
 	plogger.Debugf("--------------------------------------------------")
 	plogger.Debugf("正在计算老师[%v]未来有空的时间", config.Teacher)
@@ -346,8 +352,13 @@ func getSwapCandidates(mgr *courseManager, config InputConfig) (*courseManager, 
 			}
 
 			// 教研直接展示出来给用户自己沟通
-			if strings.Contains(dstCourse.ClassName, "教研") {
-				dstCourseList = append(dstCourseList, dstCourse)
+			// 教研也要匹配同班的，但是教研不会写班级
+			// 所以要先提前找同班老师，再匹配教研安排
+			if strings.Contains(dstCourse.ClassName, "教研") &&
+				sameClassRoomTeacherSet[dstCourse.Teacher] {
+				dstCourseTmp := *dstCourse
+				dstCourseTmp.ClassRoomName = srcCourse.ClassRoomName
+				dstCourseList = append(dstCourseList, &dstCourseTmp)
 				continue
 			}
 

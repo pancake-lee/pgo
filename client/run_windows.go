@@ -57,11 +57,12 @@ func runUI() {
 	logData.AddListener(binding.NewDataListener(func() {
 		val, _ := logData.Get()
 		logEntry.SetText(val)
-		logEntry.CursorRow = strings.Count(val, "\n")
-		logEntry.Refresh()
 	}))
 	logEntry.MultiLine = true
-
+	logEntry.OnChanged = func(s string) {
+		logEntry.CursorRow = strings.Count(s, "\n")
+		logEntry.Refresh()
+	}
 	logEntry.SetPlaceHolder("Logs will appear here...")
 	// logEntry.Disable() // Keep enabled for normal text color
 	logEntry.SetMinRowsVisible(10)
