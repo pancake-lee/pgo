@@ -2,6 +2,7 @@ package papitable
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -343,6 +344,12 @@ func (s *SyncHelper) UpdateToLTBL(mtblRecord *CommonRecord) error {
 			s.log.Debugf("recordId %s is stopped by UpdateLocalRecord, skip update", mtblRecordId)
 			return nil
 		}
+
+		if reflect.ValueOf(newRecord).Kind() != reflect.Ptr {
+			return plogger.LogErrfMsg("UpdateLocalRecord for[%v] must return pointer type",
+				s.dataProvider.GetTableName())
+		}
+
 		localRecord = newRecord
 	}
 

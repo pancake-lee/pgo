@@ -234,7 +234,8 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
 		return nil, plogger.LogErr(fmt.Errorf("asset upload callback failed: code=%d, message=%s", cbResp.Code, cbResp.Message))
 	}
 	final := cbResp.Data[0]
-	plogger.Debugf("upload[%v] success, token[%v]", final.Name, final.Token)
+	plogger.Debugf("upload[%v] success, token[%v] type[%v]",
+		final.Name, final.Token, final.MimeType)
 
 	// --------------------------------------------------
 	var upResp uploadAttachmentResponse
