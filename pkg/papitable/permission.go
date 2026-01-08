@@ -49,7 +49,7 @@ func (doc *MultiTableDoc) UpdateFieldPermissionRole(fieldId string, unitIds []st
 		return plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
@@ -104,7 +104,7 @@ func (doc *MultiTableDoc) EnableFieldPermission(fieldId string, includeExtend bo
 		return plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
@@ -139,7 +139,7 @@ func (doc *MultiTableDoc) DisableFieldPermission(fieldId string) error {
 		return plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}

@@ -79,7 +79,7 @@ func (doc *MultiTableDoc) UploadAttachment(filePath string) (*uploadAttachmentRe
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 
-	body, err := putil.HttpDo(req)
+	body, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -123,7 +123,7 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
 		req.Header.Set(k, v)
 	}
 
-	body, err := putil.HttpDo(req)
+	body, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -183,7 +183,7 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
 	putReq.ContentLength = fileSize
 	// plogger.Debugf("req : %v", putReq)
 
-	respBody, err := putil.HttpDo(putReq)
+	respBody, err := safeHttpDo(putReq)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -207,7 +207,7 @@ func (doc *MultiTableDoc) UploadAttachmentWithPresignedUrl(
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	cbRespBytes, err := putil.HttpDo(cbReq)
+	cbRespBytes, err := safeHttpDo(cbReq)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

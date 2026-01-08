@@ -158,7 +158,7 @@ func getTeamChildren(spaceId, unitId string) ([]*Team, error) {
 			return nil, plogger.LogErr(err)
 		}
 
-		resp, err := putil.HttpDo(req)
+		resp, err := safeHttpDo(req)
 		if err != nil {
 			return nil, plogger.LogErr(err)
 		}
@@ -207,7 +207,7 @@ func getTeamMembers(spaceId, unitId string) ([]*User, error) {
 			return nil, plogger.LogErr(err)
 		}
 
-		resp, err := putil.HttpDo(req)
+		resp, err := safeHttpDo(req)
 		if err != nil {
 			return nil, plogger.LogErr(err)
 		}
@@ -256,7 +256,7 @@ func GetUser(spaceId, unitId string) (*User, error) {
 		return nil, plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

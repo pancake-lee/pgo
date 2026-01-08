@@ -39,7 +39,7 @@ func CreateMultiTable(spaceId, tblName string, keyCol *AddField) (doc *MultiTabl
 		return nil, plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}

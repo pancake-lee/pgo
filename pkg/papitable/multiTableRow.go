@@ -88,7 +88,7 @@ func (doc *MultiTableDoc) DelRow(recordIds []string) error {
 		return plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
@@ -121,7 +121,7 @@ func (doc *MultiTableDoc) GetRow(req *GetRecordRequest) (*getRecordResponse, err
 		return nil, plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(httpReq)
+	resp, err := safeHttpDo(httpReq)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -161,7 +161,6 @@ func (doc *MultiTableDoc) AddRow(rows []*AddRecord) (records []*CommonRecord, er
 		}
 		records = append(records, r...)
 
-		time.Sleep(10 * time.Millisecond) // 避免请求过快
 		return nil
 	})
 	return records, err
@@ -189,7 +188,7 @@ func (doc *MultiTableDoc) iAddRow(rows []*AddRecord) ([]*CommonRecord, error) {
 		return nil, plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -224,7 +223,7 @@ func (doc *MultiTableDoc) EditRow(rows []*UpdateRecord) error {
 		return plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}

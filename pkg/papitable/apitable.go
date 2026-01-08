@@ -1,8 +1,13 @@
 package papitable
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
+	"golang.org/x/time/rate"
 )
 
 // APITable API 接口
@@ -11,6 +16,16 @@ import (
 var g_token string
 
 var g_baseUrl string = "https://aitable.ai"
+
+var g_limiter = rate.NewLimiter(40, 1)
+
+func safeHttpDo(req *http.Request) ([]byte, error) {
+	err := g_limiter.Wait(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return putil.HttpDo(req)
+}
 
 // --------------------------------------------------
 func InitAPITableByConfig() error {

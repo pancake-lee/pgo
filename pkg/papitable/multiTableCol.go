@@ -99,7 +99,7 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 			return plogger.LogErr(err)
 		}
 
-		resp, err := putil.HttpDo(req)
+		resp, err := safeHttpDo(req)
 		if err != nil {
 			return plogger.LogErr(err)
 		}
@@ -131,7 +131,7 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 		return nil, plogger.LogErr(err)
 	}
 
-	resp, err := putil.HttpDo(req)
+	resp, err := safeHttpDo(req)
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
@@ -170,7 +170,7 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 			return nil, plogger.LogErr(err)
 		}
 
-		resp, err := putil.HttpDo(req)
+		resp, err := safeHttpDo(req)
 		if err != nil {
 			return nil, plogger.LogErr(err)
 		}
