@@ -13,10 +13,14 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
-// 本文件主要提供的是BaseMtblHandler，实现了通用的DataProvider
-// 比如最基本的同步模式，只要提供MtblDAO接口实现即可
-// 字段的赋值通过MtblTableConfig定义映射关系，然后通过反射实现
-// 这份封装完全不是必要的，有任何特殊需求，都可以直接实现DataProvider接口
+// 使用SyncHelper的两个方案：
+// 方案1：实现MtblDAO接口，然后配置一个BaseDataProvider即可
+// 		本文件主要提供的是BaseMtblHandler
+// 		封装的是通用的DataProvider，并且扩展事件回调的处理方法
+//      从【实现DataProvider】简化到【实现MtblDAO接口】
+
+// 方案2：直接实现DataProvider接口，完全自定义逻辑
+// 		这份封装完全不是必要的，有任何特殊需求，都可以直接实现DataProvider接口
 
 type FieldConfig struct {
 	Col     *AddField
@@ -25,40 +29,41 @@ type FieldConfig struct {
 
 type TableConfig struct {
 	TableName  string
-	PrimaryCol *AddField
+	FirstCol   *AddField    // 多维表格的第一列，无法隐藏无法移动
+	PrimaryCol *FieldConfig // 对应本地唯一标识字段，一般是主键字段
 	ColList    []*FieldConfig
 	NewDO      func() any
 }
 
+// 定义常规DAO应该提供的CURD方法
 type MtblDAO interface {
 	Add(ctx context.Context, do any) error
 	UpdateByID(ctx context.Context, do any) error
+
 	GetAll(ctx context.Context) ([]any, error)
 	GetByID(ctx context.Context, id int32) (any, error)
-	GetByMtblRecordID(ctx context.Context, recordId string) (any, error)
+
+	// 删除只能依靠mtblRecordId，因为回调中mtbl已经没有这个数据，无法二次查询到LocalId了
 	DeleteByMtblRecordID(ctx context.Context, recordId string) error
+	UpdateMtblInfo(_ctx context.Context, localId string, recordId, lastEditFrom string) error
 }
 
 type BaseDataProvider struct {
 	Ctx context.Context
 	log *plogger.PLogWarper
 
-	// 该字段需要初始化设置好，mtbl事件中用于过滤属于当前表的事件
+	// 该字段需要初始化设置好，mtbl事件处理中用于过滤属于当前表的事件
 	DatasheetID string
 	// 初始化总是nil，由 SyncHelper 根据mtbl事件自动加载
-	// 经过DatasheetID字段的过滤，后续逻辑中的Doc其实也都是同一个表
 	Doc *MultiTableDoc
 
 	TableConfig *TableConfig
 	DAO         MtblDAO
 
-	L2MFunc   func(record any) map[string]any
-	M2LFunc   func(mtblRecord *CommonRecord, localRecord any) any
 	GetIDByDO func(record any) int32
 }
 
 func (h *BaseDataProvider) WithLogger(logger *plogger.PLogWarper) *BaseDataProvider {
-
 	newLog := log.With(logger.GetLogger(),
 		"mtbl", h.GetTableName(),
 	)
@@ -71,7 +76,22 @@ func (h *BaseDataProvider) WithLogger(logger *plogger.PLogWarper) *BaseDataProvi
 // --------------------------------------------------
 // 通用的处理mtbl变更事件方法
 
+type ApiTableEvent struct {
+	DatasheetId string `json:"datasheetId,omitempty"` // 表格ID
+	RecordId    string `json:"recordId,omitempty"`    // 记录ID
+	Event       string `json:"event,omitempty"`       // 事件类型，insert/update/delete
+}
+
 func (h *BaseDataProvider) HandleMtblEvent() error {
+	if h.Doc == nil {
+		spaceId, err := pconfig.GetStringE("APITable.spaceId")
+		if err != nil {
+			h.log.Errorf("getTaskDoc: APITable.spaceId not found in config: %v", err)
+			return err
+		}
+		h.SetDoc(NewMultiTableDoc(spaceId, h.DatasheetID))
+	}
+
 	pmqCtx := pmq.GetPMQContext(h.Ctx)
 	var event ApiTableEvent
 	err := json.Unmarshal([]byte(pmqCtx.Req), &event)
@@ -87,7 +107,7 @@ func (h *BaseDataProvider) HandleMtblEvent() error {
 
 	switch event.Event {
 	case "insert", "update":
-		return h.updateM2L(event.DatasheetId, event.RecordId)
+		return h.updateM2L(event.RecordId)
 	case "delete":
 		return h.deleteM2L(event.RecordId)
 	default:
@@ -98,6 +118,7 @@ func (h *BaseDataProvider) HandleMtblEvent() error {
 
 func (h *BaseDataProvider) deleteM2L(recordId string) error {
 	LastEditFromMarker_LTBL.Set(recordId)
+	// m2l删除只能用recordId删除，已经查不到localId了
 	err := h.DAO.DeleteByMtblRecordID(h.Ctx, recordId)
 	if err != nil {
 		return h.log.LogErr(err)
@@ -105,33 +126,13 @@ func (h *BaseDataProvider) deleteM2L(recordId string) error {
 	return nil
 }
 
-func (h *BaseDataProvider) updateM2L(datasheetId, recordId string) error {
-	spaceId, err := pconfig.GetStringE("APITable.spaceId")
+func (h *BaseDataProvider) updateM2L(recordId string) error {
+	row, err := h.getMtblRecordByRecordId(recordId)
 	if err != nil {
-		h.log.Errorf("getTaskDoc: APITable.spaceId not found in config: %v", err)
-		return nil
-	}
-	doc := NewMultiTableDoc(spaceId, datasheetId)
-
-	resp, err := doc.GetRow(&GetRecordRequest{
-		RecordIds: []string{recordId},
-	})
-	if err != nil {
-		h.log.Errorf("GetRow failed for recordId %s, err: %v", recordId, err)
 		return err
 	}
-	if len(resp.Data.Records) == 0 {
-		h.log.Errorf("GetRow returned no data for recordId %s", recordId)
-		return fmt.Errorf("recordId %s not found in mtbl", recordId)
-	} else if len(resp.Data.Records) > 1 {
-		h.log.Errorf("GetRow returned multiple data for recordId %s", recordId)
-		return fmt.Errorf("recordId %s returned multiple records in mtbl", recordId)
-	}
 
-	row := resp.Data.Records[0]
-	h.SetDoc(doc)
-
-	syncHelper := NewSyncHelper(h, doc).
+	syncHelper := NewSyncHelper(h, h.Doc).
 		WithLogger(h.log)
 	err = syncHelper.UpdateToLTBL(row)
 	if err != nil {
@@ -141,7 +142,31 @@ func (h *BaseDataProvider) updateM2L(datasheetId, recordId string) error {
 	return nil
 }
 
+func (h *BaseDataProvider) getMtblRecordByRecordId(recordId string,
+) (record *CommonRecord, err error) {
+	resp, err := h.Doc.GetRow(&GetRecordRequest{
+		PageSize:  1,
+		RecordIds: []string{recordId},
+	})
+	if err != nil {
+		h.log.Errorf("GetRow failed for record %s, err: %v", recordId, err)
+		return nil, err
+	}
+	if len(resp.Data.Records) == 0 {
+		return nil, h.log.LogErrfMsg("mtbl data %s not found", recordId)
+	} else if len(resp.Data.Records) > 1 {
+		h.log.LogErrfMsg("mtbl data %s returned multiple records", recordId)
+	}
+
+	row := resp.Data.Records[0]
+	return row, nil
+}
+
 // --------------------------------------------------
+// impl DataProvider
+func (h *BaseDataProvider) SetDoc(doc *MultiTableDoc) {
+	h.Doc = doc
+}
 
 // impl DataProvider
 func (h *BaseDataProvider) GetTableName() string {
@@ -149,8 +174,8 @@ func (h *BaseDataProvider) GetTableName() string {
 }
 
 // impl DataProvider
-func (h *BaseDataProvider) GetPrimaryCol() *AddField {
-	return h.TableConfig.PrimaryCol
+func (h *BaseDataProvider) GetFirstCol() *AddField {
+	return h.TableConfig.FirstCol
 }
 
 // impl DataProvider
@@ -163,8 +188,37 @@ func (h *BaseDataProvider) GetColList() []*AddField {
 }
 
 // impl DataProvider
-func (h *BaseDataProvider) SetDoc(doc *MultiTableDoc) {
-	h.Doc = doc
+func (h *BaseDataProvider) GetPrimaryCol() *FieldConfig {
+	return h.TableConfig.PrimaryCol
+}
+
+// impl DataProvider
+func (h *BaseDataProvider) GetPrimaryVal(record any) string {
+	if record == nil {
+		return ""
+	}
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return ""
+	}
+
+	field := val.FieldByName(h.TableConfig.PrimaryCol.DOField)
+	if !field.IsValid() {
+		return ""
+	}
+	if field.Kind() == reflect.String {
+		return field.String()
+	} else if field.Kind() >= reflect.Int && field.Kind() <= reflect.Int64 {
+		return fmt.Sprintf("%d", field.Int())
+	} else if field.Kind() >= reflect.Uint && field.Kind() <= reflect.Uint64 {
+		return fmt.Sprintf("%d", field.Uint())
+	} else {
+		h.log.Errorf("primary val type error : %v", field.Kind())
+		return ""
+	}
 }
 
 // impl DataProvider
@@ -205,19 +259,14 @@ func (h *BaseDataProvider) GetLastEditFrom(record any) string {
 }
 
 // impl DataProvider
-func (h *BaseDataProvider) UpdateMtblRecordID(id any, mtblRecordId, lastEditFrom string) error {
-	return nil
+func (h *BaseDataProvider) UpdateLastEditToLTBL(localId string, mtblRecordId, lastEditFrom string) error {
+	return h.DAO.UpdateMtblInfo(h.Ctx, localId, mtblRecordId, lastEditFrom)
 }
 
 // impl DataProvider
 func (h *BaseDataProvider) GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error) {
-	// mtblRecordID找到了，就直接返回
-	dbData, _ := h.DAO.GetByMtblRecordID(h.Ctx, mtblRecord.RecordId)
-	if dbData != nil {
-		return dbData, nil
-	}
-	// 尝试用主键查找
 	if h.GetIDByDO == nil {
+		h.log.Error("GetIDByDO function is nil")
 		return nil, nil
 	}
 	tmpData := h.M2L(mtblRecord, nil)
@@ -229,7 +278,9 @@ func (h *BaseDataProvider) GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, 
 }
 
 // impl DataProvider
-func (h *BaseDataProvider) UpdateLocalRecord(localRecord any, mtblRecord *CommonRecord) (newRecord any, stop bool, err error) {
+func (h *BaseDataProvider) CreateOrUpdateLocalRecord(
+	localRecord any, mtblRecord *CommonRecord,
+) (newRecord any, stop bool, err error) {
 	newDbData := h.M2L(mtblRecord, localRecord)
 	h.log.Debugf("MTBL recordId %s, parsed data: %v", mtblRecord.RecordId, newDbData)
 
@@ -251,10 +302,6 @@ func (h *BaseDataProvider) UpdateLocalRecord(localRecord any, mtblRecord *Common
 
 // impl DataProvider
 func (h *BaseDataProvider) L2M(record any, oldMtblRecord *CommonRecord) map[string]any {
-	if h.L2MFunc != nil {
-		return h.L2MFunc(record)
-	}
-
 	if record == nil {
 		return nil
 	}
@@ -265,6 +312,9 @@ func (h *BaseDataProvider) L2M(record any, oldMtblRecord *CommonRecord) map[stri
 	}
 
 	valMap := make(map[string]any)
+	for k, v := range oldMtblRecord.Fields {
+		valMap[k] = v // mtbl数据可能有更多的字段，不要丢弃了
+	}
 	for _, fieldCfg := range h.TableConfig.ColList {
 		if fieldCfg.DOField == "" {
 			continue
@@ -299,10 +349,6 @@ func (h *BaseDataProvider) L2M(record any, oldMtblRecord *CommonRecord) map[stri
 
 // impl DataProvider
 func (h *BaseDataProvider) M2L(mtblRecord *CommonRecord, localRecord any) any {
-	if h.M2LFunc != nil {
-		return h.M2LFunc(mtblRecord, localRecord)
-	}
-
 	values := mtblRecord.Fields
 	if values == nil {
 		h.log.Warnf("mtbl record %s is nil", mtblRecord.RecordId)
@@ -324,7 +370,7 @@ func (h *BaseDataProvider) M2L(mtblRecord *CommonRecord, localRecord any) any {
 	}
 	h.log.Debugf("M2L recordVal: %v", recordVal)
 
-	// TODO 不是这里的问题，是localRecord有问题
+	// 这里报错未必是这里的问题，是localRecord在传进来之前就有问题
 	if !recordVal.IsValid() || recordVal.Kind() != reflect.Struct {
 		h.log.Errorf("M2L: recordVal is invalid or not a struct. IsValid: %v, Kind: %v", recordVal.IsValid(), recordVal.Kind())
 		return nil

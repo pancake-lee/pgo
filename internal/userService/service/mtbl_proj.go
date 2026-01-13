@@ -7,6 +7,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
 	"github.com/pancake-lee/pgo/pkg/papp"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func OnMtblUpdateProject(_ctx context.Context) error {
@@ -18,8 +19,10 @@ func NewMtblProject(_ctx context.Context) *papitable.BaseDataProvider {
 		Ctx:         _ctx,
 		DatasheetID: conf.UserSvcConf.APITable.ProjectSheetID,
 		TableConfig: &papitable.TableConfig{
-			TableName:  "项目表",
-			PrimaryCol: papitable.NewTextCol("项目名"),
+			TableName: "项目表",
+			FirstCol:  papitable.NewTextCol("项目名"),
+			PrimaryCol: &papitable.FieldConfig{
+				Col: papitable.NewSimpleNumCol("ProjectID"), DOField: "ID"},
 			ColList: []*papitable.FieldConfig{
 				{Col: papitable.NewTextCol("项目名"), DOField: "ProjName"},
 				{Col: papitable.NewSimpleNumCol("ProjectID"), DOField: "ID"},
@@ -72,12 +75,18 @@ func (w *ProjectDAOWrapper) GetByID(_ctx context.Context, id int32) (any, error)
 	return data.ProjectDAO.GetByID(ctx, id)
 }
 
-func (w *ProjectDAOWrapper) GetByMtblRecordID(_ctx context.Context, recordId string) (any, error) {
-	ctx := papp.NewAppCtx(_ctx)
-	return data.ProjectDAO.GetByMtblRecordID(ctx, recordId)
-}
-
 func (w *ProjectDAOWrapper) DeleteByMtblRecordID(_ctx context.Context, recordId string) error {
 	ctx := papp.NewAppCtx(_ctx)
 	return data.ProjectDAO.DeleteByMtblRecordID(ctx, recordId)
+}
+
+func (d *ProjectDAOWrapper) UpdateMtblInfo(_ctx context.Context, localId string,
+	recordId, lastEditFrom string) error {
+	appCtx := papp.NewAppCtx(_ctx)
+	id, err := putil.StrToInt32(localId)
+	if err != nil {
+		return appCtx.Log.LogErr(err)
+	}
+
+	return data.ProjectDAO.UpdateMtblInfo(appCtx, id, recordId, lastEditFrom)
 }

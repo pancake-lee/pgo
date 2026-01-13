@@ -10,69 +10,71 @@ import (
 )
 
 // 本文件主要提供的是SyncHelper
-// 封装的内容主要是LTBL和MTBL的双向同步逻辑
-// 而双方表格具体的字段映射关系，数据获取等等都是DataProvider接口提供的
-
-// 同步数据到apitable
-// 1：初始化apitable，创建表结构（或对比表结构差异，更新表结构），并全量同步一次数据
+// 封装的内容主要是LTBL和MTBL的双向同步逻辑，尤其是如何避免无限回调的问题
+// 同步数据的几个主要途径
+// 1：初始化apitable，创建/更新表结构，并全量同步一次数据
+// 		由GetSyncData实现LTBL操作，提供给InitMTBL调用
 // 2：本地数据变更，触发同步数据到apitable
+// 		包括UpdateToMTBL和DeleteMTBL，只要实现了双向数据转换就行，不用额外实现细节
 // 3：apitable数据变更，出发本地数据更新
+// 		由CreateOrUpdateLocalRecord实现LTBL操作，提供给UpdateToLTBL调用
 
-type ApiTableEvent struct {
-	DatasheetId string `json:"datasheetId,omitempty"` // 表格ID
-	RecordId    string `json:"recordId,omitempty"`    // 记录ID
-	Event       string `json:"event,omitempty"`       // 事件类型，insert/update/delete
-}
-
-// 由业务方提供数据的读写方法，以及apitable的字段映射关系等
+// SyncHelper只封装同步策略和MTBL的大部分操作
+// 而本地数据操作，以及数据转换等等都是DataProvider接口提供的
 type DataProvider interface {
-	// 如果内部创建新的表，需要提供到外部存储
+	// 如果内部创建新的表，传递到外部存储
 	SetDoc(doc *MultiTableDoc)
 
-	// GetTableName 获取表名
-	GetTableName() string
-	// GetPrimaryCol 获取主键列定义
-	GetPrimaryCol() *AddField
-	// GetColList 获取所有列定义
-	GetColList() []*AddField
+	// --------------------------------------------------
+	// 表配置
+	GetTableName() string    // GetTableName 获取表名
+	GetFirstCol() *AddField  // GetFirstCol 获取主键列定义
+	GetColList() []*AddField // GetColList 获取所有列定义
+	GetPrimaryCol() *FieldConfig
+	GetPrimaryVal(localRecord any) string
 
-	// GetSyncData 获取全量同步的数据
-	GetSyncData() ([]*AddRecord, error)
+	// --------------------------------------------------
+	// 本地维护LastEditFrom字段用于避免循环更新，维护mtbl的recordId用于做删除逻辑
+
 	// GetLastEditFrom 获取最后修改来源
-	GetLastEditFrom(record any) string
+	GetLastEditFrom(localRecord any) string
+	// UpdateLastEditFromToLTBL 更新本地记录的 LastEditFrom 字段
+	UpdateLastEditToLTBL(localId, mtblRecordId, lastEditFrom string) error
 
-	// UpdateMtblRecordID 更新本地记录关联的APITable记录ID和LastEditFrom 字段
-	UpdateMtblRecordID(id any, mtblRecordId, lastEditFrom string) error
+	// --------------------------------------------------
+	GetSyncData() ([]*AddRecord, error) // 获取全量同步的数据，用于SyncHelper.InitMTBL
+
+	// --------------------------------------------------
+	// 主要提供给SyncHelper.UpdateToLTBL使用，用于把MTBL的变更应用到本地
 
 	// GetLocalRecordByMtbl 根据MTBL记录获取本地记录，隐含了M2LTBL的反向映射逻辑
-	// mtblRecord: MTBL记录
-	// 返回error将中断处理，可以返回nil,nil继续处理mtbl新增数据，而ltbl不存在的情况
-	// 至少需要在GetLastEditFrom/UpdateLocalRecord中处理ltbl不存在的情况，并且创建新记录
-	// 返回: 本地记录, error
-	GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error)
+	// 返回error将中断处理，可以返回[nil,nil]继续处理mtbl新增数据，而ltbl不存在的情况
+	GetLocalRecordByMtbl(mtblRecord *CommonRecord) (localRecord any, err error)
 
-	// UpdateLocalRecord 应用本地更新（写入DB）
-	// localRecord: 旧的本地记录（如果存在）
-	// mtblRecord: 原始MTBL记录（用于某些特殊逻辑，如删除）
+	// CreateOrUpdateLocalRecord 应用本地更新（写入DB）
+	// localRecord: 旧的本地记录，可能是nil，一般意味着需要创建新本地记录
+	// mtblRecord: 原始MTBL记录
 	// 返回:
 	//  newRecord: 创建或更新后的新数据
 	// 	stop用于中断SyncHelper后续对MTBL的处理，
-	// 	通过MTBL操作，触发后端复杂逻辑后，对于当前回调的MTBL记录，可能不再需要继续处理，可能已经删除了
-	UpdateLocalRecord(localRecord any, mtblRecord *CommonRecord,
+	// 		用户通过MTBL操作，但只是作为一个入口，触发后端复杂逻辑
+	// 		而这个数据其实不需要维护，甚至被删除了，则SyncHelper.UpdateToLTBL不再需要继续处理
+	CreateOrUpdateLocalRecord(localRecord any, mtblRecord *CommonRecord,
 	) (newRecord any, stop bool, err error)
 
+	// --------------------------------------------------
+	// 提供本地数据和多维表格数据的双向转换方法
+
 	// L2M 将本地记录转换为APITable记录
-	// record: 本地记录
-	// oldMtblRecord: APITable上的旧记录（如果是更新）
-	L2M(record any, oldMtblRecord *CommonRecord) map[string]any
+	// 先赋值oldRecord，再用localRecord覆盖
+	L2M(localRecord any, mtblRecord *CommonRecord) map[string]any
 
 	// M2L 将MTBL记录转换为本地记录结构
-	// mtblRecord: MTBL记录
-	// localRecord: 现有的本地记录（如果存在），用于合并或更新
-	// 返回: 准备好用于更新的本地记录对象
+	// 如果localRecord不为nil，则直接用mtblRecord覆盖到localRecord
 	M2L(mtblRecord *CommonRecord, localRecord any) any
 }
 
+// --------------------------------------------------
 type SyncHelper struct {
 	doc          *MultiTableDoc
 	init         bool
@@ -137,7 +139,7 @@ func (s *SyncHelper) InitMTBL(spaceId, datasheetId string) (string, error) {
 
 	// 2. 如果不存在则创建
 	if doc == nil {
-		doc, err = CreateMultiTable(spaceId, s.dataProvider.GetTableName(), s.dataProvider.GetPrimaryCol())
+		doc, err = CreateMultiTable(spaceId, s.dataProvider.GetTableName(), s.dataProvider.GetFirstCol())
 		if err != nil {
 			s.log.Errorf("CreateMultiTable failed: %v", err)
 			return "", err
@@ -192,8 +194,8 @@ func (s *SyncHelper) InitMTBL(spaceId, datasheetId string) (string, error) {
 }
 
 // 从外部传入record，让业务代码复用record的获取逻辑
-func (s *SyncHelper) UpdateToMTBL(
-	localId any, localRecord any,
+func (s *SyncHelper) UpdateToMTBL( // TODO 为什么是外部提供oldRecord呢？为什么让业务方自己查询？
+	localRecord any,
 	oldRecord *CommonRecord,
 	updateTime time.Time,
 ) (err error) {
@@ -205,26 +207,31 @@ func (s *SyncHelper) UpdateToMTBL(
 		return fmt.Errorf("localRecord is nil")
 	}
 
-	var mtblRecordId string
-	if oldRecord != nil {
-		mtblRecordId = oldRecord.RecordId
+	localId := s.dataProvider.GetPrimaryVal(localRecord)
+	if localId == "" {
+		return fmt.Errorf("localId is empty")
 	}
 	// 检查循环标记 (防止本地更新触发的死循环)
-	if LastEditFromMarker_LTBL.SkipAndClean(mtblRecordId, updateTime) {
-		s.log.Debugf("Local recordId %s is recently edited for [LastEditFrom], skip update", mtblRecordId)
+	if LastEditFromMarker_LTBL.SkipAndClean(localId, updateTime) {
+		s.log.Debugf("Local data [%s] is recently edited for [LastEditFrom], skip update", localId)
 		return nil
 	}
 
 	localLastEditFrom := s.dataProvider.GetLastEditFrom(localRecord)
 
 	// 修改对方 (MTBL)
+	newRecordId := ""
+	if oldRecord != nil {
+		newRecordId = oldRecord.RecordId
+	}
+
 	if localLastEditFrom != LastEditFrom_TEMP {
 		if oldRecord == nil {
 			// 新增
 			fieldList := s.dataProvider.L2M(localRecord, nil)
 			if fieldList == nil {
 				// 不一定是错误，也许localRecord参数不足，或者不需要同步，中止
-				s.log.Infof("local L2M [%d] is nil, skip", localId)
+				s.log.Infof("local L2M [%v] is nil, skip", localId)
 				return nil
 			}
 
@@ -242,9 +249,10 @@ func (s *SyncHelper) UpdateToMTBL(
 				return err
 			}
 			if len(recordList) > 0 {
-				mtblRecordId = recordList[0].RecordId
+				newRecordId = recordList[0].RecordId
+				s.log.Debugf("Local[%v] create recordId[%s] to MTBL",
+					localId, newRecordId)
 			}
-			s.log.Debugf("Local[%v] create recordId[%s] to MTBL", localId, mtblRecordId)
 
 		} else {
 			// 更新
@@ -255,12 +263,13 @@ func (s *SyncHelper) UpdateToMTBL(
 			}
 			fieldList["LastEdit"] = lastEditOptHandler.GetCellOptionById_S(LastEditFrom_TEMP)
 
-			err = s.doc.EditRow([]*UpdateRecord{{RecordId: mtblRecordId, Fields: fieldList}})
+			err = s.doc.EditRow([]*UpdateRecord{
+				{RecordId: oldRecord.RecordId, Fields: fieldList}})
 			if err != nil {
-				s.log.Errorf("Local[%v] update recordId[%s] to MTBL failed: %v", localId, mtblRecordId, err)
+				s.log.Errorf("Local[%v] update recordId[%s] to MTBL failed: %v", localId, oldRecord.RecordId, err)
 				return err
 			}
-			s.log.Debugf("Local[%v] update recordId[%s] to MTBL", localId, mtblRecordId)
+			s.log.Debugf("Local[%v] update recordId[%s] to MTBL", localId, oldRecord.RecordId)
 		}
 	}
 
@@ -274,38 +283,45 @@ func (s *SyncHelper) UpdateToMTBL(
 		newLastEditFrom = LastEditFrom_LTBL
 	}
 
-	err = s.dataProvider.UpdateMtblRecordID(localId, mtblRecordId, newLastEditFrom)
+	err = s.dataProvider.UpdateLastEditToLTBL(localId, newRecordId, newLastEditFrom)
 	if err != nil {
-		s.log.Errorf("Local[%v] update recordId[%s] to LTBL failed: %v", localId, mtblRecordId, err)
+		s.log.Errorf("Local[%v] update LastEditFrom to LTBL failed: %v", localId, err)
 		return err
 	}
 
-	// 设置标记，防止本次 UpdateMtblRecordID 再次触发 UpdateToMTBL
-	LastEditFromMarker_LTBL.Set(mtblRecordId)
-	s.log.Debugf("Local rewrite recordId[%s] LastEditFrom[%v]", mtblRecordId, newLastEditFrom)
+	// 设置标记，防止本次 UpdateLastEditToLTBL 再次触发 UpdateToMTBL
+	LastEditFromMarker_LTBL.Set(localId)
+	s.log.Debugf("Local rewrite [%v] recordId[%s] LastEditFrom[%v]",
+		localId, newRecordId, newLastEditFrom)
 
 	return nil
 }
 
-func (s *SyncHelper) DeleteMTBL(mtblRecordId string, deleteTime time.Time) error {
+func (s *SyncHelper) DeleteMTBL(localId string, deleteTime time.Time) error {
 	if s.doc == nil {
 		return nil
 	}
-	if mtblRecordId == "" {
+	if localId == "" {
 		return nil
 	}
 
-	if LastEditFromMarker_LTBL.SkipAndClean(mtblRecordId, deleteTime) {
-		s.log.Debugf("Local recordId %s is recently delete by MTBL, skip", mtblRecordId)
+	if LastEditFromMarker_LTBL.SkipAndClean(localId, deleteTime) {
+		s.log.Debugf("Local data [%s] is recently delete by MTBL, skip", localId)
 		return nil
 	}
 
-	err := s.doc.DelRow([]string{mtblRecordId})
+	mtblRecord, err := s.getMtblRecordByLocalId(localId)
 	if err != nil {
-		s.log.Errorf("DelRow failed for recordId %s, err: %v", mtblRecordId, err)
+		s.log.Warnf("getMtblRecordByLocalId failed for localId %s, skip, err: %v", localId, err)
 		return err
 	}
-	s.log.Debugf("MTBL delete recordId[%s]", mtblRecordId)
+
+	err = s.doc.DelRow([]string{mtblRecord.RecordId})
+	if err != nil {
+		s.log.Errorf("DelRow failed for recordId %s, err: %v", mtblRecord.RecordId, err)
+		return err
+	}
+	s.log.Debugf("MTBL delete recordId[%s]", mtblRecord.RecordId)
 	return nil
 }
 
@@ -322,31 +338,35 @@ func (s *SyncHelper) UpdateToLTBL(mtblRecord *CommonRecord) error {
 		return nil
 	}
 
-	s.log.Debugf("MTBL recordId %s edited, now sync to LTBL", mtblRecordId)
-
 	// Get Local Record
 	localRecord, err := s.dataProvider.GetLocalRecordByMtbl(mtblRecord)
 	if err != nil {
 		return err
 	}
 
+	s.log.Debugf("MTBL recordId %s edited, now sync to LTBL", mtblRecordId)
+
 	// 基于本地数据，用MTBL的值覆盖对应字段，然后调用dataProvider的“更新方法”
 	s.dataProvider.M2L(mtblRecord, localRecord)
 
-	lastEditFrom := s.dataProvider.GetLastEditFrom(localRecord)
+	lastEditFrom := ""
+	if localRecord != nil {
+		lastEditFrom = s.dataProvider.GetLastEditFrom(localRecord)
+	}
+
 	if lastEditFrom != LastEditFrom_TEMP {
 		// Manual edit in MTBL, apply to Local
-		newRecord, stop, err := s.dataProvider.UpdateLocalRecord(localRecord, mtblRecord)
+		newRecord, stop, err := s.dataProvider.CreateOrUpdateLocalRecord(localRecord, mtblRecord)
 		if err != nil {
 			return err
 		}
 		if stop {
-			s.log.Debugf("recordId %s is stopped by UpdateLocalRecord, skip update", mtblRecordId)
+			s.log.Debugf("recordId %s is stopped by CreateOrUpdateLocalRecord, skip update", mtblRecordId)
 			return nil
 		}
 
 		if reflect.ValueOf(newRecord).Kind() != reflect.Ptr {
-			return plogger.LogErrfMsg("UpdateLocalRecord for[%v] must return pointer type",
+			return plogger.LogErrfMsg("CreateOrUpdateLocalRecord for[%v] must return pointer type",
 				s.dataProvider.GetTableName())
 		}
 
@@ -383,60 +403,23 @@ func (s *SyncHelper) UpdateToLTBL(mtblRecord *CommonRecord) error {
 	return nil
 }
 
-// --------------------------------------------------
-var LastEditFrom_TEMP string = "TEMP"
-var LastEditFrom_LTBL string = "LTBL"
-var LastEditFrom_MTBL string = "MTBL"
-var lastEditOptHandler SelectFieldOptionHandler
-
-func init() {
-	lastEditOptHandler.RegOptionS(LastEditFrom_TEMP, LastEditFrom_TEMP, ColorRed)
-	lastEditOptHandler.RegOptionS(LastEditFrom_LTBL, LastEditFrom_LTBL, ColorPurple)
-	lastEditOptHandler.RegOptionS(LastEditFrom_MTBL, LastEditFrom_MTBL, ColorBlue)
-}
-
-// --------------------------------------------------
-type LastEditFromMarker struct {
-	recordToTimeMap map[string]time.Time
-}
-
-// local table
-var LastEditFromMarker_LTBL = &LastEditFromMarker{
-	recordToTimeMap: make(map[string]time.Time)}
-
-// multi table
-var LastEditFromMarker_MTBL = &LastEditFromMarker{
-	recordToTimeMap: make(map[string]time.Time)}
-
-func init() {
-	// 定期清理过期的记录
-	ticker := time.NewTicker(5 * time.Minute)
-	go func() {
-		for range ticker.C {
-			LastEditFromMarker_LTBL.CleanTimeoutRecord()
-			LastEditFromMarker_MTBL.CleanTimeoutRecord()
-		}
-	}()
-}
-
-func (m *LastEditFromMarker) CleanTimeoutRecord() {
-	for k, v := range m.recordToTimeMap {
-		if time.Since(v) > 5*time.Minute {
-			delete(m.recordToTimeMap, k)
-		}
+func (s *SyncHelper) getMtblRecordByLocalId(localId string,
+) (record *CommonRecord, err error) {
+	resp, err := s.doc.GetRow(&GetRecordRequest{
+		PageSize: 1,
+		FilterByFormula: fmt.Sprintf(`AND({%v}="%v")`,
+			s.dataProvider.GetPrimaryCol().Col.Name, localId),
+	})
+	if err != nil {
+		s.log.Errorf("GetRow failed for data %s, err: %v", localId, err)
+		return nil, err
 	}
-}
-
-func (m *LastEditFromMarker) Set(recordId string) {
-	m.recordToTimeMap[recordId] = time.Now()
-}
-
-func (m *LastEditFromMarker) SkipAndClean(recordId string, updateTime time.Time) bool {
-	t, ok := m.recordToTimeMap[recordId]
-	if ok && updateTime.Sub(t).Abs() < 1*time.Second {
-		// 其实updateTime一定是晚于t的，abs纯粹保险
-		delete(m.recordToTimeMap, recordId)
-		return true
+	if len(resp.Data.Records) == 0 {
+		return nil, s.log.LogErrfMsg("local data %s not found in mtbl", localId)
+	} else if len(resp.Data.Records) > 1 {
+		s.log.LogErrfMsg("local data %s returned multiple records in mtbl", localId)
 	}
-	return false
+
+	row := resp.Data.Records[0]
+	return row, nil
 }

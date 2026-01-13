@@ -7,6 +7,7 @@ import (
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papitable"
 	"github.com/pancake-lee/pgo/pkg/papp"
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func OnMtblUpdateUser(_ctx context.Context) error {
@@ -18,8 +19,10 @@ func NewMtblUser(_ctx context.Context) *papitable.BaseDataProvider {
 		Ctx:         _ctx,
 		DatasheetID: conf.UserSvcConf.APITable.UserSheetID,
 		TableConfig: &papitable.TableConfig{
-			TableName:  "人员表",
-			PrimaryCol: papitable.NewTextCol("姓名"),
+			TableName: "人员表",
+			FirstCol:  papitable.NewTextCol("姓名"),
+			PrimaryCol: &papitable.FieldConfig{
+				Col: papitable.NewSimpleNumCol("UserID"), DOField: "ID"},
 			ColList: []*papitable.FieldConfig{
 				{Col: papitable.NewTextCol("姓名"), DOField: "UserName"},
 				{Col: papitable.NewSimpleNumCol("UserID"), DOField: "ID"},
@@ -70,12 +73,18 @@ func (d *UserDAOWrapper) GetByID(_ctx context.Context, id int32) (any, error) {
 	return data.UserDAO.GetByID(appCtx, id)
 }
 
-func (d *UserDAOWrapper) GetByMtblRecordID(_ctx context.Context, recordId string) (any, error) {
-	appCtx := papp.NewAppCtx(_ctx)
-	return data.UserDAO.SelectByRecordId(appCtx, recordId)
-}
-
 func (d *UserDAOWrapper) DeleteByMtblRecordID(_ctx context.Context, recordId string) error {
 	appCtx := papp.NewAppCtx(_ctx)
 	return data.UserDAO.DelByRecordID(appCtx, recordId)
+}
+
+func (d *UserDAOWrapper) UpdateMtblInfo(_ctx context.Context, localId string,
+	recordId, lastEditFrom string) error {
+	appCtx := papp.NewAppCtx(_ctx)
+	id, err := putil.StrToInt32(localId)
+	if err != nil {
+		return appCtx.Log.LogErr(err)
+	}
+
+	return data.UserDAO.UpdateMtblInfo(appCtx, id, recordId, lastEditFrom)
 }
