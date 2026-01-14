@@ -27,18 +27,23 @@ func init() { //没有手动调用Init时，默认初始化一个控制台日志
 }
 
 func initDefaultLogger(zLogger *zap.Logger) {
-	defaultLogger = kLog.With(FromZap(zLogger),
-		"caller", kLog.Caller(4),
-	)
-
+	defaultLogger = FromZap(zLogger)
 	defaultLogWarper = NewPLogWarper(defaultLogger).AddCallerLevel(1)
 }
 
-func GetDefaultLogger() kLog.Logger {
+func GetDefaultLoggerNoCaller() kLog.Logger {
 	if defaultLogger == nil {
 		InitConsoleLogger()
 	}
 	return defaultLogger
+}
+func GetDefaultLogger() kLog.Logger {
+	if defaultLogger == nil {
+		InitConsoleLogger()
+	}
+	return kLog.With(defaultLogger,
+		"caller", kLog.Caller(4),
+	)
 }
 
 // 除了默认的初始化外，也可以修改后覆盖默认的logger
