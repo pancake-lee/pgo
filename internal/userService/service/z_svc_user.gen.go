@@ -24,7 +24,6 @@ func DO2DTO_User(do *data.UserDO) *api.UserInfo {
         UpdateUser: do.UpdateUser,
         UserName: do.UserName,
         Password: do.Password,
-        MtblRecordID: do.MtblRecordID,
         LastEditFrom: do.LastEditFrom,
 	}
 }
@@ -40,7 +39,6 @@ func DTO2DO_User(dto *api.UserInfo) *data.UserDO {
         UpdateUser: dto.UpdateUser,
         UserName: dto.UserName,
         Password: dto.Password,
-        MtblRecordID: dto.MtblRecordID,
         LastEditFrom: dto.LastEditFrom,
 	}
 }

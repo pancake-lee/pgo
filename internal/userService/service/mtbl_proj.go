@@ -30,12 +30,6 @@ func NewMtblProject(_ctx context.Context) *papitable.BaseDataProvider {
 			NewDO: func() any { return &data.ProjectDO{} },
 		},
 		DAO: &ProjectDAOWrapper{},
-		GetIDByDO: func(record any) int32 {
-			if p, ok := record.(*data.ProjectDO); ok {
-				return p.ID
-			}
-			return 0
-		},
 	}
 	ctx := papp.NewAppCtx(_ctx)
 	ret.WithLogger(ctx.Log)
@@ -75,18 +69,18 @@ func (w *ProjectDAOWrapper) GetByID(_ctx context.Context, id int32) (any, error)
 	return data.ProjectDAO.GetByID(ctx, id)
 }
 
-func (w *ProjectDAOWrapper) DeleteByMtblRecordID(_ctx context.Context, recordId string) error {
+func (w *ProjectDAOWrapper) DeleteByID(_ctx context.Context, id int32) error {
 	ctx := papp.NewAppCtx(_ctx)
-	return data.ProjectDAO.DeleteByMtblRecordID(ctx, recordId)
+	return data.ProjectDAO.DelByID(ctx, id)
 }
 
-func (d *ProjectDAOWrapper) UpdateMtblInfo(_ctx context.Context, localId string,
-	recordId, lastEditFrom string) error {
+func (d *ProjectDAOWrapper) UpdateMtblInfo(_ctx context.Context,
+	localId string, lastEditFrom string) error {
 	appCtx := papp.NewAppCtx(_ctx)
 	id, err := putil.StrToInt32(localId)
 	if err != nil {
 		return appCtx.Log.LogErr(err)
 	}
 
-	return data.ProjectDAO.UpdateMtblInfo(appCtx, id, recordId, lastEditFrom)
+	return data.ProjectDAO.UpdateMtblInfo(appCtx, id, lastEditFrom)
 }

@@ -44,8 +44,8 @@ type MtblDAO interface {
 	GetByID(ctx context.Context, id int32) (any, error)
 
 	// 删除只能依靠mtblRecordId，因为回调中mtbl已经没有这个数据，无法二次查询到LocalId了
-	DeleteByMtblRecordID(ctx context.Context, recordId string) error
-	UpdateMtblInfo(_ctx context.Context, localId string, recordId, lastEditFrom string) error
+	DeleteByID(ctx context.Context, id int32) error
+	UpdateMtblInfo(_ctx context.Context, localId string, lastEditFrom string) error
 }
 
 type BaseDataProvider struct {
@@ -59,8 +59,6 @@ type BaseDataProvider struct {
 
 	TableConfig *TableConfig
 	DAO         MtblDAO
-
-	GetIDByDO func(record any) int32
 }
 
 func (h *BaseDataProvider) WithLogger(logger *plogger.PLogWarper) *BaseDataProvider {
@@ -116,10 +114,22 @@ func (h *BaseDataProvider) HandleMtblEvent() error {
 	}
 }
 
+// mtbl中配置删除按钮，触发事件，再删除双方数据，而不是直接删除mtbl数据，没有提供删除回调
 func (h *BaseDataProvider) deleteM2L(recordId string) error {
-	LastEditFromMarker_LTBL.Set(recordId)
-	// m2l删除只能用recordId删除，已经查不到localId了
-	err := h.DAO.DeleteByMtblRecordID(h.Ctx, recordId)
+	mtblRecord, err := h.getMtblRecordByRecordId(recordId)
+	if err != nil {
+		return err
+	}
+	localTmp := h.M2L(mtblRecord, nil)
+	localId := h.GetPrimaryVal(localTmp)
+	localIdInt, err := putil.StrToInt32(localId)
+	if err != nil {
+		return h.log.LogErr(err)
+	}
+
+	LastEditFromMarker_LTBL.Set(localId)
+
+	err = h.DAO.DeleteByID(h.Ctx, localIdInt)
 	if err != nil {
 		return h.log.LogErr(err)
 	}
@@ -259,22 +269,19 @@ func (h *BaseDataProvider) GetLastEditFrom(record any) string {
 }
 
 // impl DataProvider
-func (h *BaseDataProvider) UpdateLastEditToLTBL(localId string, mtblRecordId, lastEditFrom string) error {
-	return h.DAO.UpdateMtblInfo(h.Ctx, localId, mtblRecordId, lastEditFrom)
+func (h *BaseDataProvider) UpdateLastEditToLTBL(localId string, lastEditFrom string) error {
+	return h.DAO.UpdateMtblInfo(h.Ctx, localId, lastEditFrom)
 }
 
 // impl DataProvider
 func (h *BaseDataProvider) GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error) {
-	if h.GetIDByDO == nil {
-		h.log.Error("GetIDByDO function is nil")
-		return nil, nil
+	localTmp := h.M2L(mtblRecord, nil)
+	localId := h.GetPrimaryVal(localTmp)
+	localIdInt, err := putil.StrToInt32(localId)
+	if err != nil {
+		return nil, h.log.LogErr(err)
 	}
-	tmpData := h.M2L(mtblRecord, nil)
-	id := h.GetIDByDO(tmpData)
-	if id != 0 {
-		return h.DAO.GetByID(h.Ctx, id)
-	}
-	return nil, nil
+	return h.DAO.GetByID(h.Ctx, localIdInt)
 }
 
 // impl DataProvider

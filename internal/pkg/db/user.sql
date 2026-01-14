@@ -9,7 +9,6 @@ CREATE TABLE user (
   user_name varchar(32)  NOT NULL,
   password varchar(100)  NOT NULL,
 
-  mtbl_record_id varchar(16)  NOT NULL,
   last_edit_from varchar(8)  NOT NULL,
 
   UNIQUE KEY idx_user_name (user_name)
@@ -65,7 +64,6 @@ CREATE TABLE project (
   
   proj_name varchar(100) NOT NULL,
 
-  mtbl_record_id varchar(16)  NOT NULL,
   last_edit_from varchar(8)  NOT NULL,
 
   UNIQUE KEY idx_proj_name (proj_name)

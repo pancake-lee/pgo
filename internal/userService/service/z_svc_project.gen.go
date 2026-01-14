@@ -23,7 +23,6 @@ func DO2DTO_Project(do *data.ProjectDO) *api.ProjectInfo {
         UpdateTime: do.UpdateTime.Unix(),
         UpdateUser: do.UpdateUser,
         ProjName: do.ProjName,
-        MtblRecordID: do.MtblRecordID,
         LastEditFrom: do.LastEditFrom,
 	}
 }
@@ -38,7 +37,6 @@ func DTO2DO_Project(dto *api.ProjectInfo) *data.ProjectDO {
         UpdateTime: time.Unix(dto.UpdateTime, 0),
         UpdateUser: dto.UpdateUser,
         ProjName: dto.ProjName,
-        MtblRecordID: dto.MtblRecordID,
         LastEditFrom: dto.LastEditFrom,
 	}
 }

@@ -30,12 +30,6 @@ func NewMtblUser(_ctx context.Context) *papitable.BaseDataProvider {
 			NewDO: func() any { return &data.UserDO{} },
 		},
 		DAO: &UserDAOWrapper{},
-		GetIDByDO: func(record any) int32 {
-			if do, ok := record.(*data.UserDO); ok {
-				return do.ID
-			}
-			return 0
-		},
 	}
 	ctx := papp.NewAppCtx(_ctx)
 	ret.WithLogger(ctx.Log)
@@ -73,18 +67,18 @@ func (d *UserDAOWrapper) GetByID(_ctx context.Context, id int32) (any, error) {
 	return data.UserDAO.GetByID(appCtx, id)
 }
 
-func (d *UserDAOWrapper) DeleteByMtblRecordID(_ctx context.Context, recordId string) error {
-	appCtx := papp.NewAppCtx(_ctx)
-	return data.UserDAO.DelByRecordID(appCtx, recordId)
+func (w *UserDAOWrapper) DeleteByID(_ctx context.Context, id int32) error {
+	ctx := papp.NewAppCtx(_ctx)
+	return data.UserDAO.DelByID(ctx, id)
 }
 
-func (d *UserDAOWrapper) UpdateMtblInfo(_ctx context.Context, localId string,
-	recordId, lastEditFrom string) error {
+func (d *UserDAOWrapper) UpdateMtblInfo(_ctx context.Context,
+	localId string, lastEditFrom string) error {
 	appCtx := papp.NewAppCtx(_ctx)
 	id, err := putil.StrToInt32(localId)
 	if err != nil {
 		return appCtx.Log.LogErr(err)
 	}
 
-	return data.UserDAO.UpdateMtblInfo(appCtx, id, recordId, lastEditFrom)
+	return data.UserDAO.UpdateMtblInfo(appCtx, id, lastEditFrom)
 }

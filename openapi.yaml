@@ -1288,8 +1288,6 @@ components:
                     format: int32
                 projName:
                     type: string
-                mtblRecordID:
-                    type: string
                 lastEditFrom:
                     type: string
             description: |-
@@ -1519,8 +1517,6 @@ components:
                 userName:
                     type: string
                 password:
-                    type: string
-                mtblRecordID:
                     type: string
                 lastEditFrom:
                     type: string

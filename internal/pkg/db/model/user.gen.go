@@ -19,7 +19,6 @@ type User struct {
 	UpdateUser   int32     `gorm:"column:update_user;not null" json:"update_user"`
 	UserName     string    `gorm:"column:user_name;not null" json:"user_name"`
 	Password     string    `gorm:"column:password;not null" json:"password"`
-	MtblRecordID string    `gorm:"column:mtbl_record_id;not null" json:"mtbl_record_id"`
 	LastEditFrom string    `gorm:"column:last_edit_from;not null" json:"last_edit_from"`
 }
 
