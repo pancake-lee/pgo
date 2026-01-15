@@ -28,7 +28,6 @@ RUN echo "Setup Repositories and Install Maintenance Tools" \
         procps iputils net-tools vim tar xz zip \
         openssh-server \
         ImageMagick \
-        git mysql \
     # SSH 配置
     && ssh-keygen -A \
     && echo 'root:root' | chpasswd \
@@ -54,6 +53,7 @@ ENV NODE_PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/lib/node_modules \
 
 # 安装 各种语言开发环境
 RUN echo "Installing development and runtime environments" \
+    && dnf install -y make git mysql\
     # --------------------------------------------------
     && dnf remove -yq golang go \
     && wget ${GO_DL_URL}/go${GO_VERSION}.linux-amd64.tar.gz -O go.tar.gz \
