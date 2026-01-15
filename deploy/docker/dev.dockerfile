@@ -1,55 +1,107 @@
-# docker build -f dev.dockerfile -t dr9:latest .
+# --------------------------------------------------
+# 全局参数定义
+# --------------------------------------------------
+ARG GO_DL_URL="https://go.dev/dl/"
+ARG GO_VERSION=1.24.4
+ARG NODE_VERSION=16.15.0
+ARG FileServer="http://127.0.0.1:9000/download/"
+ARG PROTOC_VERSION=30.2
 
-FROM rockylinux:9.2
+# --------------------------------------------------
+# 第一阶段：基础环境与维护工具 (Base)
+# 功能：提供OS基础、SSH服务、以及生产和开发都需要的日常运维工具
+# --------------------------------------------------
+FROM rockylinux:9.2 AS base
 
-RUN echo 'alias ll="ls -la"' >> /etc/bashrc \
-    && echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/:/usr/lib64/:/usr/local/lib/:/usr/local/lib64/' >> /etc/bashrc \
-    && echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/:/usr/lib64/:/usr/local/lib/:/usr/local/lib64/' >> /etc/profile \
-    \
-    && echo "dnf install with epel-release" \
+# 配置环境变量
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/:/usr/lib64/:/usr/local/lib/:/usr/local/lib64/:/usr/local/samba/
+
+# 安装基础仓库和运维工具 (合并指令以减少层数)
+RUN echo "Setup Repositories and Install Maintenance Tools" \
+    && echo 'alias ll="ls -la"' >> /etc/bashrc \
     && dnf install -y epel-release \
     && dnf config-manager --set-enabled crb \
     && dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm \
-    && dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm
-
-RUN dnf install -y python3-pip 
-
-RUN echo 'set up ssh' \
-    && dnf install -y openssh-server \
-    && echo 'docker setup sshd' \
+    && dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm \
+    && dnf install -y \
+        dmidecode nginx wget \
+        procps iputils net-tools vim tar xz zip \
+        openssh-server \
+        ImageMagick \
+        git mysql \
+    # SSH 配置
     && ssh-keygen -A \
     && echo 'root:root' | chpasswd \
     && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
-    && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+    && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config \
+    # 清理缓存
+    && dnf clean all && rm -rf /var/cache/dnf
 
-RUN echo "dnf install for developer" \
-    && dnf install -y dmidecode nginx wget \
-    && dnf install -y procps iputils net-tools vim mysql tar xz git zip
+# --------------------------------------------------
+# 第二阶段：开发环境
+# --------------------------------------------------
+FROM base AS dev
+# 记得声明一下
+ARG FileServer
+ARG GO_DL_URL 
+ARG GO_VERSION
+ARG NODE_VERSION
+ARG PROTOC_VERSION
 
-RUN dnf remove golang go \
-    && wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz -O go.tar.gz \
+ENV NVM_DIR=/root/.nvm
+ENV NODE_PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/lib/node_modules \
+    PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/bin:$PATH
+
+# 安装 各种语言开发环境
+RUN echo "Installing development and runtime environments" \
+    # --------------------------------------------------
+    && dnf remove -yq golang go \
+    && wget ${GO_DL_URL}/go${GO_VERSION}.linux-amd64.tar.gz -O go.tar.gz \
     && tar zxvf go.tar.gz -C /usr/local/ \
     && rm -rf go.tar.gz \
     && echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> /etc/profile \
     && echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> /etc/bashrc \
     && export PATH=$PATH:/usr/local/go/bin \
-    && go env -w GOPROXY=https://goproxy.cn,direct
+    && go env -w GOPROXY=https://goproxy.cn,direct \
+    # --------------------------------------------------
+    && dnf install -y python3-pip \
+    && pip install usd-core -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
+    && rm -rf /root/.cache/pip/ \
+    # --------------------------------------------------
+    && git clone https://gitee.com/mirrors/nvm.git $NVM_DIR \
+    && cd $NVM_DIR \
+    && git checkout v0.39.5 \
+    && . $NVM_DIR/nvm.sh \
+    && export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node \
+    && nvm install ${NODE_VERSION} \
+    && npm config set registry https://registry.npmmirror.com \
+    && npm install -g pm2@4.5 yarn pnpm
 
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v30.2/protoc-30.2-linux-x86_64.zip -O protoc.zip \
+# --------------------------------------------------
+# 第三阶段：额外的开发运行环境扩展
+# --------------------------------------------------
+FROM dev AS dev_ex
+# 记得声明一下
+ARG FileServer
+ARG PROTOC_VERSION
+# --------------------------------------------------
+# 一些运行库和工具
+RUN echo "Installing Runtime Binaries" \
+    && dnf install -y python3-gpg libtasn1 libxslt libcom_err jansson-devel \
+    # --------------------------------------------------
+    && wget ${FileServer}/ffmpeg -O /usr/bin/ffmpeg \
+    && chmod +x /usr/bin/ffmpeg \
+    && wget ${FileServer}/ffprobe -O /usr/bin/ffprobe \
+    && chmod +x /usr/bin/ffprobe \
+    # --------------------------------------------------
+    && wget ${FileServer}/minio-20211229064906.0.0.x86_64.rpm -O /tmp/minio.rpm \
+    && dnf install -y /tmp/minio.rpm \
+    && rm -f /tmp/minio.rpm \
+    # --------------------------------------------------
+    && wget ${FileServer}/hiredis.tar.gz -O /tmp/hiredis.tar.gz \
+    && tar zxvf /tmp/hiredis.tar.gz -C /usr/local/ \
+    && rm -f /tmp/hiredis.tar.gz \
+    # --------------------------------------------------
+    && wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip -O protoc.zip \
     && unzip protoc.zip -d /usr/local/ \
     && rm -rf protoc.zip
-
-# RUN wget https://nodejs.org/dist/v22.17.0/node-v22.17.0-linux-x64.tar.xz -O node.tar.xz \
-#     && tar -xf node.tar.xz -C /usr/local/ \
-#     && rm -rf node.tar.xz \
-#     && mv /usr/local/node-v22.17.0-linux-x64 /usr/local/node \
-#     && echo "export PATH=$PATH:/usr/local/node/bin" >> /etc/profile \
-#     && echo "export PATH=$PATH:/usr/local/node/bin" >> /etc/bashrc \
-#     && export PATH=$PATH:/usr/local/node/bin
-
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \
-    && source ~/.bashrc \
-    && nvm install 16.15.0
-
-RUN npm config set registry https://registry.npmmirror.com \
-    && npm install -g pm2@4.5 yarn pnpm
