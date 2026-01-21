@@ -1,0 +1,21 @@
+# 记录一些测试/调研的平台
+
+name: pgo
+services:
+  n8n:
+    container_name: dev-n8n
+    # image: n8nio/n8n:2.4.1
+    image: blowsnow/n8n-chinese # 中文镜像
+    restart: always
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_SECURE_COOKIE=false              # 关键：禁用安全 Cookie
+      # TODO 读写文件节点无法写文件到本地，怎么设置权限都不行，可能设计某些环境变量
+    ports:
+      - 5678:5678
+    volumes:
+      - ./n8n/data/:/home/node/.n8n
+      
+networks:
+    dev-net:
