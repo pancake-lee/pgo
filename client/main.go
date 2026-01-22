@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
+	"github.com/pancake-lee/pgo/client/devops"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"go.uber.org/zap/zapcore"
@@ -24,9 +25,10 @@ func runCli() {
 	// --------------------------------------------------
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
 	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)
+	sel.Reg("构建工具 (Make Tool)", devops.MakeCli)
 	sel.Reg("测试交互 (Test Interact)", testInteraction)
 
-	sel.Run()
+	sel.Loop()
 }
 
 func testInteraction() {
@@ -62,8 +64,7 @@ func testInteraction() {
 	s := putil.Interact.NewSelector("请选择一种颜色 (Pick a color)")
 	s.Reg("红色 (Red)", func() { putil.Interact.Infof("你选择了红色") })
 	s.Reg("蓝色 (Blue)", func() { putil.Interact.Infof("你选择了蓝色") })
-	s.Reg("退出 (Exit)", func() { putil.Interact.Infof("选择退出") })
-	s.Run()
+	s.Loop()
 
 	putil.Interact.Infof("交互测试完成 (Test Completed)")
 }

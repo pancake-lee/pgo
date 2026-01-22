@@ -7,54 +7,62 @@
 
 ### 客户端
 
-- **实用客户端工具 (`client`)**
-  - **双模式运行**: 统一核心逻辑，支持 CLI (Cobra) 和 GUI (Fyne/Windows) 两种交互方式。
-  - **业务案例**: 包含 `CourseSwap` 等具备实际业务价值的工具，展示 Excel 解析、日程推演等逻辑。
+- 基础
+  - 双模式运行: 统一核心逻辑，支持 CLI (Cobra) 和 GUI (Fyne/Windows) 两种交互方式。
+- 客户端
+  - swagger目录包含了后端接口的生成代码，无需手搓http请求
+  - 参考makefile中api-cli命令，可以通过swagger生成其他语言的代码
+- CI
+  - Make
+    - 读取makefile的命令和备注信息，提供执行的功能
+    - 则make命令不再是死记硬背，而是命令行交互选择功能
+    - 参数可以交互式输入，然后记录到缓存文件，下次询问更改或使用旧值
+      - 如生成orm代码所需要的数据库host/port/user/pass等
 
 ### 服务
 
-- **用户服务 (`userService`)**
-  - **定位**: 核心身份与权限管理服务。
-  - **功能**: 提供用户登录 (`Login`)、个人信息修改、权限查询 (`GetUserPermissions`)。
-  - **特性**: 混合模式，同时包含手写业务逻辑与自动生成的 CRUD 接口。
+- 用户服务 (`userService`)
+  - 定位: 核心身份与权限管理服务。
+  - 功能: 提供用户登录 (`Login`)、个人信息修改、权限查询 (`GetUserPermissions`)。
+  - 特性: 混合模式，同时包含手写业务逻辑与自动生成的 CRUD 接口。
 
-- **学校服务 (`schoolService`)**
-  - **定位**: 换课客户端 (`CourseSwap`) 的后端存储支撑。
-  - **功能**: 管理换课申请单 (`CourseSwapRequest`)，记录源/目标教师与课程的调换详情。
-  - **特性**: 纯代码生成服务，展示 `genCURD` 对新业务实体的快速支持。
+- 学校服务 (`schoolService`)
+  - 定位: 换课客户端 (`CourseSwap`) 的后端存储支撑。
+  - 功能: 管理换课申请单 (`CourseSwapRequest`)，记录源/目标教师与课程的调换详情。
+  - 特性: 纯代码生成服务，展示 `genCURD` 对新业务实体的快速支持。
 
-- **任务服务 (`taskService`)**
-  - **定位**: 通用的任务管理服务。
-  - **功能**: 管理任务 (`Task`) 的层级关系、状态流转及时间规划 (起止/估时)。
-  - **特性**: 纯代码生成服务，提供标准的任务数据操作接口。
+- 任务服务 (`taskService`)
+  - 定位: 通用的任务管理服务。
+  - 功能: 管理任务 (`Task`) 的层级关系、状态流转及时间规划 (起止/估时)。
+  - 特性: 纯代码生成服务，提供标准的任务数据操作接口。
 
-- **示例服务 (`abandonCodeService`)**
-  - **定位**: 代码生成工具的演示与测试服务。
-  - **功能**: 对 `abandon_code` 表提供标准的增删改查能力。
-  - **特性**: 模板服务，用于验证工具链生成的代码结构的正确性。
+- 示例服务 (`abandonCodeService`)
+  - 定位: 代码生成工具的演示与测试服务。
+  - 功能: 对 `abandon_code` 表提供标准的增删改查能力。
+  - 特性: 模板服务，用于验证工具链生成的代码结构的正确性。
 
-- **回调处理 (`ltblCallback` / `mtblCallback`)**
-  - **定位**: 外部多维表格系统的集成模块。
-  - **功能**: 接收并处理 Webhook 回调，实现本地数据与外部表格 (如飞书/维格表) 的双向同步。
-  - **特性**: 集成服务，专注于外部生态连接。
+- 回调处理 (`ltblCallback` / `mtblCallback`)
+  - 定位: 外部多维表格系统的集成模块。
+  - 功能: 接收并处理 Webhook 回调，实现本地数据与外部表格 (如飞书/维格表) 的双向同步。
+  - 特性: 集成服务，专注于外部生态连接。
 
 ### 框架
 
-- **全流程自动化开发 (DB-First)**
-  - **SQL定义优先**: 编写 SQL 脚本后，通过 `make gorm` 自动生成 GORM 模型代码。
-  - **代码生成器 (`tools/genCURD`)**: 根据数据库 Schema 自动生成 Proto 定义、gRPC/HTTP 桩代码、Service 业务层及 Data 数据层的基础 CRUD 代码。
-  - **SDK 自动构建**: 支持 `make api-cli` 基于 OpenAPI 规范自动生成 Go 语言客户端 SDK。
+- 全流程自动化开发 (DB-First)
+  - SQL定义优先: 编写 SQL 脚本后，通过 `make gorm` 自动生成 GORM 模型代码。
+  - 代码生成器 (`tools/genCURD`): 根据数据库 Schema 自动生成 Proto 定义、gRPC/HTTP 桩代码、Service 业务层及 Data 数据层的基础 CRUD 代码。
+  - SDK 自动构建: 支持 `make api-cli` 基于 OpenAPI 规范自动生成 Go 语言客户端 SDK。
 
-- **微服务架构支持**
-  - 基于 **Kratos** 框架，提供标准化的 gRPC/HTTP 混合接口支持。
+- 微服务架构支持
+  - 基于 Kratos 框架，提供标准化的 gRPC/HTTP 混合接口支持。
   - 清晰的分层架构：`Service` (业务逻辑) -> `Data` (数据访问) -> `DB`，生成的代码 (`z_*.gen.go`) 与自定义逻辑分离。
 
-- **丰富的组件封装 (`pkg`)**
-  - **基础设施**: 统一封装了 Log, Config, Redis, MySQL, RabbitMQ 等基础组件。
-  - **集成能力**: 内置微信生态 (`pweixin`) 及多维表格 (`papitable`) 等第三方服务集成。
+- 丰富的组件封装 (`pkg`)
+  - 基础设施: 统一封装了 Log, Config, Redis, MySQL, RabbitMQ 等基础组件。
+  - 集成能力: 内置微信生态 (`pweixin`) 及多维表格 (`papitable`) 等第三方服务集成。
 
-- **DevOps 友好**
-  - 完善的 **Makefile** 支持：涵盖环境安装 (`env`)、代码生成 (`api`, `gorm`, `curd`)、构建 (`build`) 及 部署准备。
+- DevOps 友好
+  - 完善的 Makefile 支持：涵盖环境安装 (`env`)、代码生成 (`api`, `gorm`, `curd`)、构建 (`build`) 及 部署准备。
 
 ## TODO
 
@@ -62,11 +70,6 @@
   - 多维表格不开启自动化的回调webhook，而是放弃同步，或者按钮触发同步
   - 本地第1次修改数据，回调设置TEMP，然后修改多维表格数据
   - 本地第2次修改数据，回调中发现当前TEMP状态，以为是多维表格的回环同步，中断逻辑
-- client通过corba增加编译功能，仅在命令行下有效
-  - 读取makefile的命令和备注信息，提供执行的功能
-  - 则make命令不再是死记硬背，而是命令行交互选择功能
-  - 参数可以交互式输入，然后记录到缓存文件，下次询问更改或使用旧值
-    - 如生成orm代码所需要的数据库host/port/user/pass等
 - client提供部署功能，指定ssh目标机器，提供通用的docker部署脚本
   - 遇到冲突不能直接覆盖，不能覆盖目标机器任何东西，用户需要自己上去删除
   - 即使是client部署到一半失败了导致的垃圾，也只能让用户去删除，程序无法判断是不是垃圾
@@ -94,50 +97,50 @@
 
 ## AI PROMPT
 
-### **Project PGO Development Context & Guidelines**
+### Project PGO Development Context & Guidelines
 
 #### 1. 开发模式 (Development Workflow)
 
-- **DB/Model First**: 项目以数据库表结构（GORM Model）为核心。
+- DB/Model First: 项目以数据库表结构（GORM Model）为核心。
   - 编写好 `internal/pkg/db`的表定义后使用 `make gorm`生成orm代码
-- **代码生成 (Code Generation)**:
+- 代码生成 (Code Generation):
   - 使用自定义工具 `genCURD` (`go run ./tools/genCURD/`)。
   - 该工具通过反射 (`reflect`) 读取数据库表结构和索引信息。
   - 自动生成内容：Proto 定义 (`proto/`)、gRPC/HTTP 桩代码 (`api/`)、Service 层基础 CRUD (`z_svc_*.gen.go`)、Data 层基础 CRUD (`z_dao_*.gen.go`)。
-  - **注意**: 以 `z_` 开头 `gen.go`结尾的文件为自动生成，**禁止手动修改**。
-- **自定义逻辑 (Custom Logic)**:
+  - 注意: 以 `z_` 开头 `gen.go`结尾的文件为自动生成，禁止手动修改。
+- 自定义逻辑 (Custom Logic):
   - 在 `proto/` 中定义非 CRUD 的额外 RPC 接口。
   - 在 `internal/<service>/service/` 中实现业务逻辑。
   - 在 `internal/<service>/data/` 中实现复杂的数据库查询。
 
 #### 2. 分层架构与职责 (Architecture & Responsibilities)
 
-- **Service 层 (`internal/<service>/service`)**:
-  - **职责**: 处理业务逻辑，参数校验，调用 Data 层，模型转换 (Model -> Proto)。
-  - **风格**: 保持逻辑清晰，尽量不直接操作 DB，而是通过 Data 层接口。
-- **Data 层 (`internal/<service>/data`)**:
-  - **职责**: 封装所有数据库操作 (DAO 模式)。
-  - **风格**:
-    - **文件拆分**: 按表/实体拆分文件 (e.g., `dao_UserRole.go`, `dao_UserRoleAssoc.go`)，避免大杂烩。
-    - **返回值**: 尽量返回完整的 Model 对象指针 (`*model.User`) 或列表 (`[]*model.User`)，而非仅仅返回 ID，以便上层灵活使用。
-    - **Context**: 数据库操作需传递 `context.Context` 以支持链路追踪或超时控制。
+- Service 层 (`internal/<service>/service`):
+  - 职责: 处理业务逻辑，参数校验，调用 Data 层，模型转换 (Model -> Proto)。
+  - 风格: 保持逻辑清晰，尽量不直接操作 DB，而是通过 Data 层接口。
+- Data 层 (`internal/<service>/data`):
+  - 职责: 封装所有数据库操作 (DAO 模式)。
+  - 风格:
+    - 文件拆分: 按表/实体拆分文件 (e.g., `dao_UserRole.go`, `dao_UserRoleAssoc.go`)，避免大杂烩。
+    - 返回值: 尽量返回完整的 Model 对象指针 (`*model.User`) 或列表 (`[]*model.User`)，而非仅仅返回 ID，以便上层灵活使用。
+    - Context: 数据库操作需传递 `context.Context` 以支持链路追踪或超时控制。
 
 #### 3. 编码规范 (Coding Conventions)
 
-- **变量命名**:
+- 变量命名:
   - 列表/切片后缀使用 `List` (e.g., `userRoleList`, `permissionList`)。
   - Map 结构后缀使用 `Map` (e.g., `roleIDMap`, `permissionMap`)。
-- **测试 (Testing)**:
+- 测试 (Testing):
   - 编写集成测试 (Integration Tests) 验证 Service 层逻辑。
-  - **数据清理**: 使用 `defer` 配合清理函数 (e.g., `defer testDelUser(...)`) 移除测试数据。
-  - **禁忌**: 禁止在测试中直接修改表结构，这会破坏表结构和其他测试的运行。表结构的差异应该正常报错，有利于提醒本次更新涉及到数据库结构更新，升级服务器时需要注意到。
+  - 数据清理: 使用 `defer` 配合清理函数 (e.g., `defer testDelUser(...)`) 移除测试数据。
+  - 禁忌: 禁止在测试中直接修改表结构，这会破坏表结构和其他测试的运行。表结构的差异应该正常报错，有利于提醒本次更新涉及到数据库结构更新，升级服务器时需要注意到。
 - 其他
   - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
   -
 
 #### 4. 工具链细节 (Tooling Insights)
 
-- **genCURD**:
+- genCURD:
   - 目前已支持通过 GORM `Migrator().GetIndexes()` 识别数据库索引。
   - 未来扩展方向：根据识别到的唯一索引 (`UniqueIndex`) 自动生成 `GetBy<IndexColumn>` 等查询方法。
 

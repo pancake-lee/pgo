@@ -82,6 +82,35 @@ func (s *_selector) Run() {
 	}
 }
 
+func (s *_selector) Loop() {
+	if len(s.options) == 0 {
+		Interact.Warnf("No options registered")
+		return
+	}
+
+	backOpt := "回到上一级 (Back)"
+	// create a new slice with 'Back' option
+	opts := append(s.options, backOpt)
+
+	for {
+		selected, _ := pterm.DefaultInteractiveSelect.
+			WithDefaultText(s.msg).
+			WithMaxHeight(10).
+			WithOptions(opts).
+			Show()
+
+		if selected == backOpt {
+			return
+		}
+
+		Interact.Debugf("Selected: %s", selected)
+
+		if cb, ok := s.callbacks[selected]; ok && cb != nil {
+			cb()
+		}
+	}
+}
+
 // --------------------------------------------------
 
 func (_interact) Warnf(msg string, args ...interface{}) {
