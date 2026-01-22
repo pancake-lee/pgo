@@ -1,66 +1,69 @@
 package main
 
 import (
-	"os"
+	"flag"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
-	"github.com/spf13/cobra"
 	"go.uber.org/zap/zapcore"
 )
-
-var logToConsole bool
 
 func main() {
 	runApp()
 }
 
 func runCli() {
-	if err := rootCmd.Execute(); err != nil {
-		plogger.LogErr(err)
-		os.Exit(1)
-	}
+	logToConsole := flag.Bool("l", false, "log to console")
+	flag.Parse()
+
+	// 初始化日志
+	plogger.SetJsonLog(false)
+	plogger.InitLogger(*logToConsole, zapcore.DebugLevel, "./logs/")
+
+	// --------------------------------------------------
+	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
+	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)
+	sel.Reg("测试交互 (Test Interact)", testInteraction)
+
+	sel.Run()
 }
 
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log", "l", false, "log to console, default is false")
-}
+func testInteraction() {
+	putil.Interact.PrintLine()
+	putil.Interact.Infof("开始交互组件测试 (Interactive Component Test)")
 
-// --------------------------------------------------
-var rootCmd = &cobra.Command{
-	Use:   "pgo-client",
-	Short: "PGO Client Application",
-	Long:  `PGO Client Application with CLI and UI support`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		plogger.SetJsonLog(false)
-		plogger.InitLogger(logToConsole, zapcore.DebugLevel, "./logs/")
-	},
-	Run: runCobra,
-}
+	// 1. Log Style
+	putil.Interact.Infof("测试日志样式 (Log Style):")
+	putil.Interact.Infof("  -> 这是 Info 消息 (Info Message)")
+	putil.Interact.Debugf("  -> 这是 Debug 消息 (Debug Message)")
+	putil.Interact.Warnf("  -> 这是 Warn 消息 (Warn Message)")
+	putil.Interact.Errorf("  -> 这是 Error 消息 (Error Message)")
+	putil.Interact.PrintLine()
 
-func runCobra(cmd *cobra.Command, args []string) {
-	// CLI Interactive Mode
-	// Select function
-	putil.Interact.Infof("请选择功能:")
-	putil.Interact.Infof("1. 调课 (Course Swap)")
-	// Add more functions here in the future
+	// 2. Input
+	val := putil.Interact.Input("测试普通输入 (Input - Optional): ")
+	putil.Interact.Infof("你输入了 (You input): %s", val)
 
-	funcNumStr := "1"
-	_input := putil.Interact.Input("请输入选项 (默认1): ")
-	if _input != "" {
-		funcNumStr = _input
-	}
-	choice, err := putil.StrToInt(funcNumStr)
-	if err != nil {
-		choice = 1 // Default
-	}
+	// 3. MustInput
+	val = putil.Interact.MustInput("测试必填输入 (MustInput - Required): ")
+	putil.Interact.Infof("你输入了 (You input): %s", val)
 
-	switch choice {
-	case 1:
-		courseSwap.CourseSwapCli()
-	default:
-		putil.Interact.Infof("无效选项，默认进入调课功能")
-		courseSwap.CourseSwapCli()
-	}
+	// 4. MustConfirm
+	putil.Interact.PrintLine()
+	putil.Interact.Infof("即将测试确认框 (Confirm Test)")
+	// 注意，如果用户选 No，MustConfirm 会 os.Exit(1)，所以这里仅仅是测试 Confirm 流程
+	putil.Interact.MustConfirm("确认继续吗? (Confirm to continue?)")
+	putil.Interact.Infof("已确认 (Confirmed)")
+
+	// 5. Selector (Nested)
+	putil.Interact.PrintLine()
+	putil.Interact.Infof("即将测试多级选择器 (Nested Selector Test)")
+	s := putil.Interact.NewSelector("请选择一种颜色 (Pick a color)")
+	s.Reg("红色 (Red)", func() { putil.Interact.Infof("你选择了红色") })
+	s.Reg("蓝色 (Blue)", func() { putil.Interact.Infof("你选择了蓝色") })
+	s.Reg("退出 (Exit)", func() { putil.Interact.Infof("选择退出") })
+	s.Run()
+
+	putil.Interact.Infof("交互测试完成 (Test Completed)")
 }

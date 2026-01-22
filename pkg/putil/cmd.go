@@ -2,13 +2,10 @@ package putil
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/pterm/pterm"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
@@ -153,63 +150,4 @@ func Conv_utf16le_utf8(s string) (string, error) {
 		return s, err
 	}
 	return string(utf8Bytes), nil
-}
-
-// --------------------------------------------------
-// 命令行交互
-type _interact struct{}
-
-var Interact _interact
-
-func (_interact) MustInput(msg string) (value string) {
-	for i := 0; i < 3; i++ {
-		value = Interact.Input(msg)
-		if value != "" {
-			Interact.Debugf("Your input: %v", value)
-			break
-		} else {
-			Interact.Warnf("No input! retry[%v] ...", i+1)
-		}
-	}
-	if value == "" {
-		Interact.Warnf("No input! exit")
-		os.Exit(1)
-	}
-	return value
-}
-func (_interact) Input(msg string) (value string) {
-	value, _ = pterm.DefaultInteractiveTextInput.
-		WithDefaultText(msg).Show()
-	return value
-}
-
-func (_interact) MustConfirm(msg string) {
-	result, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultText(msg).WithDefaultValue(true).Show()
-	if result {
-		Interact.Debugf("Confirmed")
-	} else {
-		Interact.Warnf("Exited")
-		os.Exit(1)
-	}
-}
-
-func (_interact) Warnf(msg string, args ...interface{}) {
-	pterm.Println(pterm.Yellow(fmt.Sprintf(msg, args...)))
-}
-func (_interact) Errorf(msg string, args ...interface{}) {
-	pterm.Println(pterm.Red(fmt.Sprintf(msg, args...)))
-}
-
-func (_interact) Debugf(msg string, args ...interface{}) {
-	pterm.Println(pterm.Cyan(fmt.Sprintf(msg, args...)))
-}
-
-func (_interact) Infof(msg string, args ...interface{}) {
-	pterm.Println(pterm.Green(fmt.Sprintf(msg, args...)))
-}
-
-func (_interact) PrintLine() {
-	msg := "---------------------------------------------"
-	pterm.Println(pterm.Cyan(msg))
 }
