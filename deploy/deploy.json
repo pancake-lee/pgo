@@ -1,0 +1,7 @@
+{
+    "files": {
+        "pgo.yaml": "pgo.yaml",
+        "configs/": "configs/",
+        "deploy/nginx/": "nginx/"
+    }
+}
