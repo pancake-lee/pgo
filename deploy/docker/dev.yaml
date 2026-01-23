@@ -2,6 +2,19 @@
 
 name: pgo
 services:
+  rocky9:
+    container_name: dr9
+    image: dr9:latest
+    restart: always
+    command: /usr/sbin/sshd && tail -f /dev/null
+    ports:
+      - 10022:22
+      - 10000-10010:10000-10010
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./share:/root/share/
+
   n8n:
     container_name: dev-n8n
     # image: n8nio/n8n:2.4.1

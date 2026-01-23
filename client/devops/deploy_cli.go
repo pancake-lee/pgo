@@ -16,7 +16,7 @@ type DeployConfig struct {
 }
 
 func DeployCli() {
-	deployFile := "deploy/deploy.json"
+	deployFile := putil.NewPathS("deploy/deploy.json").GetPath()
 	if _, err := os.Stat(deployFile); os.IsNotExist(err) {
 		putil.Interact.Errorf("Deploy config not found: %s", deployFile)
 		return
@@ -37,14 +37,17 @@ func DeployCli() {
 	// 2. Interactive Inputs & Cache
 	cachePath := pconfig.GetDefaultCachePath()
 
-	sshHost := getCachedInput(cachePath, "deploy.ssh.host", "SSH Host (IP:Port)", "127.0.0.1:22")
+	sshHost := getCachedInput(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
+	sshPort := getCachedInput(cachePath, "deploy.ssh.port", "SSH Port", "22")
 	sshUser := getCachedInput(cachePath, "deploy.ssh.user", "SSH User", "root")
 	sshPass := getCachedInput(cachePath, "deploy.ssh.pass", "SSH Password", "")
 	remoteRoot := getCachedInput(cachePath, "deploy.ssh.root", "Remote Root Dir", "/root/pgo")
+	dstRootPath := putil.NewPath(remoteRoot)
 
 	// 3. Connect SSH
-	putil.Interact.Infof("Connecting to %s@%s...", sshUser, sshHost)
-	sshCli, err := putil.NewSSHClient(sshUser, sshPass, sshHost)
+	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
+	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)
+	sshCli, err := putil.NewSSHClient(sshUser, sshPass, host)
 	if err != nil {
 		putil.Interact.Errorf("SSH Connection failed: %v", err)
 		return
@@ -62,44 +65,40 @@ func DeployCli() {
 
 	for src, dst := range cfg.Files {
 		// Handle directory recursion or single file
-		info, err := os.Stat(src)
+		srcPath := putil.NewPathS(src)
+		info, err := os.Stat(srcPath.GetPath())
 		if err != nil {
-			putil.Interact.Warnf("Skipping %s: %v", src, err)
+			putil.Interact.Warnf("Skipping %s: %v", srcPath, err)
 			continue // Or error out?
 		}
 
 		if info.IsDir() {
 			// Recursive copy
-			err := filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				if info.IsDir() {
-					return nil
-				}
-				// Calculate relative path
-				relPath, err := filepath.Rel(src, path)
-				if err != nil {
-					return err
-				}
-				// Determine remote path
-				// dst usually is directory if src is directory
-				// remotePath = join(remoteRoot, dst, relPath)
-				// Clean paths to use forward slashes for remote
-				remotePath := strings.TrimRight(remoteRoot, "/") + "/" + strings.TrimRight(dst, "/") + "/" + filepath.ToSlash(relPath)
+			err := filepath.Walk(srcPath.GetPath(),
+				func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					if info.IsDir() {
+						return nil
+					}
 
-				return deployOneFile(sshCli, path, remotePath)
-			})
+					ph := putil.NewPathS(path).CutPrefix(srcPath.GetPath())
+					dstPath := dstRootPath.Clone().Join(dst).Join(ph.GetPath())
+					return deployOneFile(sshCli, path, dstPath.GetPath())
+				})
 			if err != nil {
-				putil.Interact.Errorf("Failed to deploy directory %s: %v", src, err)
+				putil.Interact.Errorf("Failed to deploy directory %s: %v",
+					srcPath.GetPath(), err)
 				return
 			}
 		} else {
 			// Single file
-			// remotePath = join(remoteRoot, dst)
-			remotePath := strings.TrimRight(remoteRoot, "/") + "/" + strings.TrimLeft(dst, "/")
-			if err := deployOneFile(sshCli, src, remotePath); err != nil {
-				putil.Interact.Errorf("Failed to deploy file %s: %v", src, err)
+			dstPath := dstRootPath.Clone().Join(dst)
+			err := deployOneFile(sshCli, srcPath.GetPath(), dstPath.GetPath())
+			if err != nil {
+				putil.Interact.Errorf("Failed to deploy file %s: %v",
+					srcPath.GetPath(), err)
 				return
 			}
 		}
@@ -108,8 +107,11 @@ func DeployCli() {
 	putil.Interact.Infof("All files deployed successfully.")
 
 	// 5. Run Docker Compose
-	autoRun := putil.Interact.Input("Run 'docker-compose up -d' automatically? (y/n) [n]: ")
-	cmdStr := fmt.Sprintf("cd %s && docker-compose -f pgo.yaml up -d", remoteRoot)
+	autoRun := putil.Interact.
+		Input("Run 'docker-compose up -d' automatically? (y/n) [n]: ")
+
+	cmdStr := fmt.Sprintf("cd %s && chmod -R +x *.sh && docker-compose up -d",
+		dstRootPath.GetPath())
 
 	if strings.ToLower(autoRun) == "y" {
 		putil.Interact.Infof("Executing: %s", cmdStr)

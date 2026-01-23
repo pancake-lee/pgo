@@ -1,7 +1,10 @@
 {
     "files": {
-        "pgo.yaml": "pgo.yaml",
-        "configs/": "configs/",
-        "deploy/nginx/": "nginx/"
+        "openapi.yaml": "openapi.yaml",
+        "configs/common.yaml": "backend/common.yaml",
+        "deploy/docker/config/": "config/",
+        "bin/userService": "backend/userService",
+        "deploy/docker/startup.sh": "startup.sh",
+        "deploy/docker/docker-compose.yaml": "docker-compose.yaml"
     }
 }

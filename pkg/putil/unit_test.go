@@ -35,7 +35,6 @@ func TestAnyToUrlQuery(t *testing.T) {
 		querys["Cl"] != "100,200,300" {
 		t.Fatalf("GetUrlQueryString returned unexpected values: %v", querys)
 	}
-	t.Logf("GetUrlQueryString returned: %v", querys)
 }
 
 func TestCollections(t *testing.T) {

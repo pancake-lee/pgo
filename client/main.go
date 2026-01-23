@@ -24,9 +24,11 @@ func runCli() {
 
 	// --------------------------------------------------
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
+	sel.Reg("Devops CI", devops.MakeCli)
+	sel.Reg("Devops CD", devops.DeployCli)
+
 	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)
-	sel.Reg("构建工具 (Make Tool)", devops.MakeCli)
-	sel.Reg("部署工具 (Deploy Tool)", devops.DeployCli)
+
 	sel.Reg("测试交互 (Test Interact)", testInteraction)
 
 	sel.Loop()

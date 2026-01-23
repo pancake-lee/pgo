@@ -119,12 +119,7 @@ func TestPathHelper_Scene3_LinuxManipulation(t *testing.T) {
 		t.Errorf("GetFirst want home, got %s", first)
 	}
 
-	cutFirst := p.CutFirst() // returns home, path becomes user/docs/photos/2023
-	if cutFirst != "home" {
-		t.Errorf("CutFirst return wrong: %s", cutFirst)
-	}
-	// Note: p internal path is now "user/docs/photos/2023" (relative internally?)
-	// But GetPath adds "/" if !isRel and linux.
+	p.CutDepth(1) // returns home, path becomes user/docs/photos/2023
 	if p.GetPath() != "/user/docs/photos/2023" {
 		t.Errorf("After CutFirst path wrong: %s", p.GetPath())
 	}
@@ -133,21 +128,12 @@ func TestPathHelper_Scene3_LinuxManipulation(t *testing.T) {
 	if last != "2023" {
 		t.Errorf("GetLast return wrong: %s", last)
 	}
-
-	cutLast := p.CutLast() // returns 2023, path becomes /user/docs/photos
-	if cutLast != "2023" {
-		t.Errorf("CutLast return wrong: %s", cutLast)
-	}
-	if p.GetPath() != "/user/docs/photos" {
-		t.Errorf("After CutLast path wrong: %s", p.GetPath())
-	}
 }
 
 func TestPathHelper_Scene4_Manipulation_Advanced(t *testing.T) {
 	p := NewPath("/a/b/c/d/e")
 
-	// CutByDepth
-	p.CutByDepth(2) // remove a, b. -> c/d/e
+	p.CutDepth(2) // remove a, b. -> c/d/e
 	if p.GetPath() != "/c/d/e" {
 		t.Errorf("CutByDepth failed: %s", p.GetPath())
 	}

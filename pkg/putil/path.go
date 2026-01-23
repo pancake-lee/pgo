@@ -34,6 +34,14 @@ func NewPath(p string) *pathHelper {
 	}
 }
 
+// Simple
+func NewPathS(p string) *pathHelper {
+	ret := NewPath(p)
+	ret.SetCurOS()
+	ret.SetIsRel(true)
+	return ret
+}
+
 func (h *pathHelper) Ext() string {
 	return strings.TrimPrefix(filepath.Ext(h.path), ".")
 }
@@ -66,19 +74,61 @@ func (h *pathHelper) SetCaseSensitive(s bool) *pathHelper {
 	return h
 }
 
+// --------------------------------------------------
+// 处理头部
+// --------------------------------------------------
+
 // AddPrefix 在路径前面添加前缀
 func (h *pathHelper) AddPrefix(prefix string) *pathHelper {
 	h.path = path.Join(prefix, h.path)
 	return h
 }
 
-// Join( parts ...string ) 将各部分路径拼接成完整路径，也可以理解为AddSuffix
+// CutPrefix 去掉指定父级
+func (h *pathHelper) CutPrefix(prefix string) *pathHelper {
+	p := NewPathS(prefix).SetOS(h.targetOS)
+	h.path = strings.TrimPrefix(h.path, p.GetPath())
+	return h
+}
+
+// CutByDepth 去掉指定深度的路径部分
+func (h *pathHelper) CutDepth(depth int) *pathHelper {
+	parts, fn := h.SplitAll()
+	h.path = ""
+	if depth < len(parts) {
+		h.Join(parts[depth:]...)
+	}
+	h.Join(fn)
+	return h
+}
+
+// GetFirst 获取路径的第一级目录名称
+func (h *pathHelper) GetFirst() string {
+	parts, _ := h.SplitAll()
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return ""
+}
+
+// --------------------------------------------------
+// 处理尾巴部
+// --------------------------------------------------
+
+// Join( parts ...string ) 将各部分路径拼接成完整路径
+// 也可以理解为AddSuffix，通过".."也实现了CutLast的功能
 func (h *pathHelper) Join(parts ...string) *pathHelper {
 	list := append([]string{h.path}, parts...)
 	h.path = path.Join(list...)
 	return h
 }
 
+// GetLast 获取路径的最后一级，可能是文件也可能是目录
+func (h *pathHelper) GetLast() string {
+	return path.Base(h.path)
+}
+
+// --------------------------------------------------
 // ToFile 去掉末尾的斜杠，表示文件路径
 func (h *pathHelper) ToFile() *pathHelper {
 	h.path = strings.TrimSuffix(h.path, "/")
@@ -161,46 +211,6 @@ func (h *pathHelper) GetPath() string {
 	return res
 }
 
-// CutByDepth 去掉指定深度的路径部分，返回剩余路径
-func (h *pathHelper) CutByDepth(depth int) *pathHelper {
-	parts := h.SplitAll()
-	if depth < len(parts) {
-		h.path = path.Join(parts[depth:]...)
-		// 如果join后丢失了原来的目录性质，暂不强求，视Join行为定
-	} else {
-		h.path = ""
-	}
-	return h
-}
-
-// GetFirst 获取路径的第一级目录名称
-func (h *pathHelper) GetFirst() string {
-	parts := h.SplitAll()
-	if len(parts) > 0 {
-		return parts[0]
-	}
-	return ""
-}
-
-// CutFirst 去掉路径的第一级目录，返回第一级目录名称
-func (h *pathHelper) CutFirst() string {
-	first := h.GetFirst()
-	h.CutByDepth(1)
-	return first
-}
-
-// GetLast 获取路径的最后一级，可能是文件也可能是目录
-func (h *pathHelper) GetLast() string {
-	return path.Base(h.path)
-}
-
-// CutLast 去掉路径的最后一级，返回最后一级名称
-func (h *pathHelper) CutLast() string {
-	last := h.GetLast()
-	h.path = path.Dir(strings.TrimSuffix(h.path, "/"))
-	return last
-}
-
 // GetLastFolder 获取路径的最后一个目录，如果是文件则返回其上级目录名称
 func (h *pathHelper) GetLastFolder() string {
 	p := h.path
@@ -239,7 +249,12 @@ func (h *pathHelper) Base() string {
 
 // Depth 获取路径的深度级别
 func (h *pathHelper) Depth() int {
-	return len(h.SplitAll())
+	parts, _ := h.SplitAll()
+	if h.IsFile() {
+		return len(parts) + 1
+	} else {
+		return len(parts)
+	}
 }
 
 // Split 直接调用 filepath.Split 方法，返回目录和文件部分
@@ -248,12 +263,9 @@ func (h *pathHelper) Split() (dir, file string) {
 }
 
 // SplitAll 类似Split，但目录部分返回字符串数组，包含所有层级文件夹名
-func (h *pathHelper) SplitAll() []string {
-	clean := strings.Trim(h.path, "/")
-	if clean == "" {
-		return []string{}
-	}
-	return strings.Split(clean, "/")
+func (h *pathHelper) SplitAll() ([]string, string) {
+	p, n := filepath.Split(h.path)
+	return StrToStrList(p, "/"), n
 }
 
 // IsParentPathOf 当前路径是否输入路径的父路径

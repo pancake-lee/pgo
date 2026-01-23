@@ -241,7 +241,7 @@ func (ch *consumeChannel) waitReconnect(cli *AmqpClient) {
 			plogger.Debug("channel closed, notify chan closed, exit reconnect goroutine")
 			break
 		}
-		plogger.Debug("channel closed, reason: %v", reason)
+		plogger.Debugf("channel closed, reason: %v", reason)
 
 		for {
 			time.Sleep(1 * time.Second)
@@ -253,7 +253,7 @@ func (ch *consumeChannel) waitReconnect(cli *AmqpClient) {
 				break
 			}
 
-			plogger.Debug("channel recreate failed, err: %v", err)
+			plogger.Debugf("channel recreate failed, err: %v", err)
 		}
 	}
 }

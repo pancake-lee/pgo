@@ -127,13 +127,14 @@ func (cli *AmqpClient) logReqMsg(workerId int32, keyStr string, cbName string,
 func (cli *AmqpClient) logRespMsg(workerId int32, keyStr string, cbName string,
 	correlationId string, detail string) {
 	if cli.isLogMessage == 0 {
-		plogger.Debugf("w[%v] %v[%v] ID[%v] e[%v] l[%v]", workerId, keyStr, cbName,
+		plogger.Debugf("w[%v] %v[%v] ID[%v] l[%v]", workerId,
+			keyStr, cbName,
 			correlationId, len(detail))
 	} else if cli.isLogMessage == 1 && len(detail) > 4096 {
-		plogger.Debugf("w[%v] %v[%v] ID[%v] e[%v] l[%v] msg : %v", workerId, keyStr, cbName,
+		plogger.Debugf("w[%v] %v[%v] ID[%v] l[%v] msg : %v", workerId, keyStr, cbName,
 			correlationId, len(detail), detail[0:4096])
 	} else {
-		plogger.Debugf("w[%v] %v[%v] ID[%v] e[%v] l[%v] msg : %v", workerId, keyStr, cbName,
+		plogger.Debugf("w[%v] %v[%v] ID[%v] l[%v] msg : %v", workerId, keyStr, cbName,
 			correlationId, len(detail), detail)
 	}
 }

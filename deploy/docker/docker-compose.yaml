@@ -5,10 +5,10 @@
 name: pgo
 services:
     rocky9:
-        container_name: dr9
+        container_name: pgo-dr9
         image: dr9:latest
         restart: always
-        command: /docker-dev.sh
+        command: /startup.sh
         ports:
             - 20022:22
             - 20000-20010:20000-20010
@@ -17,9 +17,7 @@ services:
         networks:
             - pgo-net
         volumes:
-            # 把整个工作目录挂载到容器中，就可以用这个docker来编码开发了
-            - ../code:/root/workspace/
-            - ./docker-dev.sh:/docker-dev.sh
+            - ./startup.sh:/startup.sh
             - ./backend:/backend
         
     mysql:
@@ -35,7 +33,7 @@ services:
             MYSQL_MAX_CONNECTIONS: 10240
             TZ: Asia/Shanghai
         volumes:
-            - ./specific/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ./config/my.cnf:/etc/mysql/conf.d/my.cnf
             - ./mysql/data:/var/lib/mysql
 
     redis:
@@ -50,20 +48,6 @@ services:
         volumes:
             - ./config/redis.conf:/usr/local/etc/redis/redis.conf
             - ./redis/data:/data
-
-    postgres:
-        container_name: pgo-pgsql
-        image: postgres:16
-        restart: always
-        ports:
-            - 25432:5432
-        environment:
-            POSTGRES_USER: pgo
-            POSTGRES_PASSWORD: pgo
-        networks:
-            - pgo-net
-        volumes:
-            - ./postgresql/data:/var/lib/postgresql/data
 
     rabbitmq:
         container_name: pgo-rabbitmq
