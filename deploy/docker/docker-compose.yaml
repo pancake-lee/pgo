@@ -7,7 +7,7 @@ services:
     rocky9:
         container_name: pgo-dr9
         image: dr9:latest
-        restart: always
+        restart: on-failure:5
         command: /startup.sh
         ports:
             - 20022:22
@@ -27,7 +27,7 @@ services:
     mysql:
         container_name: pgo-mysql
         image: mysql:8.0
-        restart: always
+        restart: unless-stopped
         ports:
             - 23306:3306
         networks:
@@ -43,7 +43,7 @@ services:
     redis:
         container_name: pgo-redis
         image: redis:7.2
-        restart: always
+        restart: unless-stopped
         command: redis-server /usr/local/etc/redis/redis.conf
         ports:
             - 26379:6379
@@ -56,7 +56,7 @@ services:
     rabbitmq:
         container_name: pgo-rabbitmq
         image: rabbitmq:3.12-management
-        restart: always
+        restart: unless-stopped
         ports:
             - 25673:5672 
             - 25674:15672
@@ -71,7 +71,7 @@ services:
     swagger:
         container_name: pgo-swagger
         image: swaggerapi/swagger-ui:v5.17.14
-        restart: always
+        restart: unless-stopped
         ports:
             - 28080:8080
         volumes:

@@ -110,12 +110,19 @@ func updateMysqlSchema(conf pdb.MysqlConfig, host, portStr string) {
 
 	// Save SQL log regardless of success or failure
 	if sb.Len() > 0 {
-		filename := fmt.Sprintf("db_update_%s.sql", time.Now().Format("20060102T150405"))
-		wErr := os.WriteFile(filename, []byte(sb.String()), 0644)
-		if wErr != nil {
-			plogger.Errorf("Failed to write SQL log: %v", wErr)
+		folder := fmt.Sprintf("%v/record", putil.GetExecFolder())
+		err = os.MkdirAll(folder, 0755)
+		if err != nil {
+			plogger.Errorf("Failed to create record folder: %v", err)
 		} else {
-			plogger.Infof("SQL log written to %s", filename)
+			filename := fmt.Sprintf("%v/db_update_%s.sql",
+				folder, time.Now().Format("20060102T150405"))
+			err = os.WriteFile(filename, []byte(sb.String()), 0644)
+			if err != nil {
+				plogger.Errorf("Failed to write SQL log: %v", err)
+			} else {
+				plogger.Infof("SQL log written to %s", filename)
+			}
 		}
 	}
 
