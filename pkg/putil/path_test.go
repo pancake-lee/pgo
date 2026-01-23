@@ -39,9 +39,6 @@ func TestPathHelper_Scene1_OS_System(t *testing.T) {
 	}
 
 	p = NewPath("/var/log/")
-	// ToDir/ToFile 还没调，但是 Clean 会去掉末尾斜杠，GetPath logic checks trailing slash BEFORE clean?
-	// source: hasTrailing := strings.HasSuffix(res, "/") -> Clean -> if hasTrailing -> add /
-	// content of path is "/var/log/" -> hasTrailing=true -> Clean="/var/log" -> add / -> "/var/log/"
 	if got := p.GetPath(); got != "/var/log/" {
 		t.Errorf("Linux Abs 2 failed: want /var/log/, got %s", got)
 	}
@@ -71,7 +68,8 @@ func TestPathHelper_Scene2_SpecialProtocols(t *testing.T) {
 	// but GetPath returns res as-is if it has "//" prefix.
 
 	got := p.GetPath()
-	if !p.IsMatchPattern("//*") {
+	// UNC should start with \\ because FixWinSlash preserves it and GetPath respects it
+	if !strings.HasPrefix(got, "\\\\") {
 		t.Errorf("UNC check failed, got %s", got)
 	}
 }
@@ -98,7 +96,7 @@ func TestPathHelper_Scene3_LinuxManipulation(t *testing.T) {
 	}
 
 	// 2. Join & Parent & Base
-	p.Join("photos", "2023")
+	p.Join("photos", "2023", "aaa", "..")
 	// now /home/user/docs/photos/2023
 	if !strings.HasSuffix(p.GetPath(), "2023") {
 		t.Errorf("Join failed: %s", p.GetPath())
