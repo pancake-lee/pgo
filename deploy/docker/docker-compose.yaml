@@ -17,8 +17,12 @@ services:
         networks:
             - pgo-net
         volumes:
-            - ./startup.sh:/startup.sh
+            - ./config/startup.sh:/startup.sh
             - ./backend:/backend
+        depends_on:
+            - mysql
+            - redis
+            - rabbitmq
         
     mysql:
         container_name: pgo-mysql

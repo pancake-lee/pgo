@@ -2,9 +2,9 @@
     "files": {
         "openapi.yaml": "openapi.yaml",
         "configs/common.yaml": "backend/common.yaml",
+        "configs/pm2.config.js": "backend/pm2.config.js",
         "deploy/docker/config/": "config/",
         "bin/userService": "backend/userService",
-        "deploy/docker/startup.sh": "startup.sh",
         "deploy/docker/docker-compose.yaml": "docker-compose.yaml"
     }
 }

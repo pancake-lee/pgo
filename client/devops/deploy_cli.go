@@ -110,7 +110,9 @@ func DeployCli() {
 	autoRun := putil.Interact.
 		Input("Run 'docker-compose up -d' automatically? (y/n) [n]: ")
 
-	cmdStr := fmt.Sprintf("cd %s && chmod -R +x *.sh && docker-compose up -d",
+	cmdStr := fmt.Sprintf(`cd %s && `+
+		`find . -name "*.sh" -exec chmod +x {} \; && `+
+		`docker-compose up -d`,
 		dstRootPath.GetPath())
 
 	if strings.ToLower(autoRun) == "y" {
