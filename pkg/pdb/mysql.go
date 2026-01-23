@@ -12,6 +12,8 @@ import (
 	dbLogger "gorm.io/gorm/logger"
 )
 
+const DefaultConfigGroup = "Mysql"
+
 type MysqlConfig struct {
 	Mysql SqlConfig
 }
@@ -57,7 +59,10 @@ func InitMysql(host, user, password, dbName string, port int32) (err error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", user, password, host, port, dbName)
 	dsn += "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	gDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	gDB, err = gorm.Open(mysql.New(mysql.Config{
+		DSN:                      dsn,
+		DisableDatetimePrecision: true, // false 时 AutoMigrate 会失败
+	}), &gorm.Config{
 		Logger: dbLogger.New(
 			Writer{},
 			dbLogger.Config{

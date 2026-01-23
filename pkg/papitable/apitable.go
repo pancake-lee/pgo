@@ -13,6 +13,8 @@ import (
 // APITable API 接口
 // https://developers.aitable.ai/zh-CN/api/cn/reference/
 
+const DefaultConfigGroup = "APITable"
+
 var g_token string
 
 var g_baseUrl string = "https://aitable.ai"

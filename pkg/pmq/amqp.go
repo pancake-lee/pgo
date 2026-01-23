@@ -13,6 +13,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+const DefaultConfigGroup = "RabbitMQ"
+
 var DefaultClient *AmqpClient
 
 func MustInitMQByConfig() {

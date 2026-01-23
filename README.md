@@ -105,6 +105,11 @@
 
 ### Project PGO Development Context & Guidelines
 
+AI 助手启动提示词 (Initial Prompt for AI Assistant)：
+你好！请先读取项目根目录下的 `README.md` 文件，完整了解 Project PGO 的项目背景、开发模式、分层架构、编码规范及工具链细节。
+当我完成一个需求的开发，我会向你发送 '总结到项目'，你可以选择性把有用的内容回写到根目录下的 `README.md` 中，注意必须是简洁的高度总结，以免篇幅过大。
+注意：本条消息不需要你进行代码编写或回答具体问题。请仅回复 '收到 (Received)' 以确认你已加载项目上下文。具体的开发任务我将在下一条消息中给出。
+
 #### 1. 开发模式 (Development Workflow)
 
 - DB/Model First: 项目以数据库表结构（GORM Model）为核心。
@@ -142,7 +147,7 @@
   - 禁忌: 禁止在测试中直接修改表结构，这会破坏表结构和其他测试的运行。表结构的差异应该正常报错，有利于提醒本次更新涉及到数据库结构更新，升级服务器时需要注意到。
 - 其他
   - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
-  -
+  - 入口函数命名: 习惯将 `main` 方法写到 `internal/<module>` 对应模块的同名代码文件中（例如 `internal/bootCheck/bootCheck.go`），而不是 `cmd/` 下。
 
 #### 4. 工具链细节 (Tooling Insights)
 

@@ -69,10 +69,10 @@ func newZapLogger(isLogConsole bool, level zapcore.Level, fullPath, linkPath str
 
 	var encoder zapcore.Encoder
 
-	if isJsonLog {
-		encoder = zapcore.NewJSONEncoder(logConf)
-	} else {
+	if isLogConsole || !isJsonLog {
 		encoder = zapcore.NewConsoleEncoder(logConf)
+	} else {
+		encoder = zapcore.NewJSONEncoder(logConf)
 	}
 
 	syncWriter := getWriter(fullPath, linkPath)

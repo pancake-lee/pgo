@@ -90,6 +90,15 @@ func MustGetConfig() config.Config {
 	return c
 }
 
+// Has 检查配置是否存在
+func Has(key string) bool {
+	if c == nil {
+		return false
+	}
+	// Attempt to load the value. If it's nil, it likely doesn't exist.
+	return c.Value(key).Load() != nil
+}
+
 // 支持定义结构体来解析配置
 func Scan(v any) (err error) {
 	err = SetDefaults(v)

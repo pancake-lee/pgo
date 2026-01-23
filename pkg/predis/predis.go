@@ -9,6 +9,8 @@ import (
 
 // 按固定的配置结构，初始化一个默认的Redis客户端单例
 
+const DefaultConfigGroup = "Redis"
+
 var DefaultClient *redisClient
 
 type redisClient struct {
