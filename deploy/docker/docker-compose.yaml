@@ -115,7 +115,7 @@ services:
             - ./grafana/data:/var/lib/grafana
 
     # --------------------------------------------------
-    # 宿主机
+    # 宿主机监控
     node-exporter:
         container_name: pgo-node-exporter
         image: prom/node-exporter:v1.10.2
@@ -141,6 +141,27 @@ services:
             - /:/rootfs:ro              # 根文件系统，用于收集磁盘使用
             - /run/udev:/run/udev:ro    # 设备信息
             - /dev:/host/dev:ro         # 设备文件
+
+    # --------------------------------------------------
+    # 容器监控
+    cadvisor:
+        image: gcr.io/cadvisor/cadvisor:v0.55.1
+        container_name: pgo-cadvisor
+        restart: unless-stopped
+        privileged: true # 这是关键，cAdvisor需要特权模式访问容器数据
+        devices:
+            - /dev/kmsg:/dev/kmsg # 用于收集内核事件
+        volumes:
+            # 挂载宿主机目录，让cAdvisor能访问容器运行时和数据
+            - /:/rootfs:ro
+            - /var/run:/var/run:ro
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+            - /dev/disk/:/dev/disk:ro
+        ports:
+            - "28081:8080" # Web UI端口，可选，主要用于调试
+        networks:
+            - pgo-net
 
     # --------------------------------------------------
     # 日志

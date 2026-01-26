@@ -7,9 +7,9 @@ scrape_configs:
     static_configs:
       - targets: ['pgo-node-exporter:9100']
 
-  # - job_name: 'docker'
-  #   static_configs:
-  #     - targets: ['cadvisor:8080']
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['pgo-cadvisor:8080']
 
   # TODO Prometheus 自监控
 
