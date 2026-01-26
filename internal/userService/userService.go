@@ -48,7 +48,6 @@ func main() {
 	}
 
 	// --------------------------------------------------
-
 	var userCURDServer service.UserCURDServer
 	var userServer service.UserServer
 	papp.AddWhiteList("/user/token")

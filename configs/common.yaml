@@ -24,3 +24,14 @@ Mysql:
 Redis:
   Addr: "pgo-redis:6379"
   Password: pgo
+
+RabbitMQ:
+    Addr: "pgo-rabbitmq:5672"
+    User: "pgo"
+    Password: "pgo"
+    VHost: "pgo_vhost"
+    IsLogMessage: 1
+
+APITable:
+  token: ""
+  baseUrl: ""

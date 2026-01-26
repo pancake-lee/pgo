@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
@@ -16,35 +17,14 @@ type DeployConfig struct {
 }
 
 func DeployCli() {
-	deployFile := putil.NewPathS("deploy/deploy.json").GetPath()
-	if _, err := os.Stat(deployFile); os.IsNotExist(err) {
-		putil.Interact.Errorf("Deploy config not found: %s", deployFile)
-		return
-	}
-
-	// 1. Load Deploy Config
-	content, err := os.ReadFile(deployFile)
-	if err != nil {
-		putil.Interact.Errorf("Failed to read deploy config: %v", err)
-		return
-	}
-	var cfg DeployConfig
-	if err := json.Unmarshal(content, &cfg); err != nil {
-		putil.Interact.Errorf("Failed to parse deploy config: %v", err)
-		return
-	}
-
-	// 2. Interactive Inputs & Cache
 	cachePath := pconfig.GetDefaultCachePath()
 
 	sshHost := getCachedInput(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
 	sshPort := getCachedInput(cachePath, "deploy.ssh.port", "SSH Port", "22")
 	sshUser := getCachedInput(cachePath, "deploy.ssh.user", "SSH User", "root")
 	sshPass := getCachedInput(cachePath, "deploy.ssh.pass", "SSH Password", "")
-	remoteRoot := getCachedInput(cachePath, "deploy.ssh.root", "Remote Root Dir", "/root/pgo")
-	dstRootPath := putil.NewPath(remoteRoot)
+	remoteRoot := getCachedInput(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
 
-	// 3. Connect SSH
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
 	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)
 	sshCli, err := putil.NewSSHClient(sshUser, sshPass, host)
@@ -52,15 +32,33 @@ func DeployCli() {
 		putil.Interact.Errorf("SSH Connection failed: %v", err)
 		return
 	}
-	defer sshCli.Close()
 
-	// Initialize SFTP
-	if err := sshCli.InitSftp(); err != nil {
+	err = sshCli.InitSftp()
+	if err != nil {
+		sshCli.Close()
 		putil.Interact.Errorf("SFTP Initialization failed: %v", err)
 		return
 	}
 
-	// 4. Process Files
+	// --------------------------------------------------
+	sel := putil.Interact.NewSelector("Deploy Menu")
+	sel.Reg("First Time Deployment", func() {
+		firstTimeDeploy(sshCli, remoteRoot)
+	})
+	sel.Reg("Update Service Process", func() {
+		updateServiceProcess(sshCli, remoteRoot)
+	})
+	sel.Run()
+}
+
+func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
+	dstRootPath := putil.NewPath(remoteRoot)
+
+	cfg, err := loadDeployConfig()
+	if err != nil {
+		return
+	}
+
 	putil.Interact.Infof("Starting deployment check...")
 
 	for src, dst := range cfg.Files {
@@ -69,7 +67,7 @@ func DeployCli() {
 		info, err := os.Stat(srcPath.GetPath())
 		if err != nil {
 			putil.Interact.Warnf("Skipping %s: %v", srcPath, err)
-			continue // Or error out?
+			continue
 		}
 
 		if info.IsDir() {
@@ -128,6 +126,26 @@ func DeployCli() {
 	}
 }
 
+func loadDeployConfig() (*DeployConfig, error) {
+	deployFile := putil.NewPathS("deploy/deploy.json").GetPath()
+	if _, err := os.Stat(deployFile); os.IsNotExist(err) {
+		putil.Interact.Errorf("Deploy config not found: %s", deployFile)
+		return nil, err
+	}
+
+	content, err := os.ReadFile(deployFile)
+	if err != nil {
+		putil.Interact.Errorf("Failed to read deploy config: %v", err)
+		return nil, err
+	}
+	var cfg DeployConfig
+	if err := json.Unmarshal(content, &cfg); err != nil {
+		putil.Interact.Errorf("Failed to parse deploy config: %v", err)
+		return nil, err
+	}
+	return &cfg, nil
+}
+
 func getCachedInput(cachePath, key, prompt, layout string) string {
 	cachedVal := pconfig.GetCacheValue(cachePath, key)
 	defaultVal := layout
@@ -151,10 +169,6 @@ func getCachedInput(cachePath, key, prompt, layout string) string {
 func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error {
 	putil.Interact.Infof("Checking %s -> %s", localPath, remotePath)
 
-	// Check if remote file exists and MD5
-	// cmd: md5sum <file> | awk '{print $1}'
-	// Note: md5sum might output "hash  filename".
-
 	md5Cmd := fmt.Sprintf("md5sum '%s'", remotePath)
 	stdout, _, err := sshCli.RunCommand(md5Cmd)
 
@@ -162,7 +176,6 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error 
 	remoteMd5 := ""
 
 	if err == nil {
-		// Parse MD5
 		parts := strings.Fields(stdout)
 		if len(parts) > 0 {
 			remoteMd5 = parts[0]
@@ -181,7 +194,6 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error 
 			return nil
 		}
 
-		// MD5 Mismatch - Prompt Conflict
 		putil.Interact.Warnf("CONFLICT: MD5 Mismatch for %s", remotePath)
 		putil.Interact.Warnf("Remote: %s", remoteMd5)
 		putil.Interact.Warnf("Local : %s", localMd5)
@@ -189,11 +201,77 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error 
 		return fmt.Errorf("conflict detected for %s", remotePath)
 	}
 
-	// Copy file
 	putil.Interact.Infof("  Copying...")
 	if err := sshCli.Scp(localPath, remotePath); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// --------------------------------------------------
+func updateServiceProcess(sshCli *putil.SshClient, remoteRoot string) {
+	dstRootPath := putil.NewPath(remoteRoot)
+
+	cfg, err := loadDeployConfig()
+	if err != nil {
+		return
+	}
+
+	// Filter bin files
+	var options []string
+	// Collect keys
+	for src := range cfg.Files {
+		if strings.HasPrefix(src, "bin/") ||
+			strings.HasPrefix(src, "./bin/") {
+			options = append(options, src)
+		}
+	}
+	sort.Strings(options)
+
+	if len(options) == 0 {
+		putil.Interact.Warnf("No service process configurations found (starting with bin/)")
+		return
+	}
+	var selectedSrc string
+	sel := putil.Interact.NewSelector("Select service to update")
+	for _, opt := range options {
+		o := opt
+		sel.Reg(o, func() { selectedSrc = o })
+	}
+	sel.Run()
+
+	if selectedSrc == "" {
+		return
+	}
+
+	selectedDst := cfg.Files[selectedSrc]
+
+	srcPath := putil.NewPathS(selectedSrc)
+	dstPath := dstRootPath.Clone().Join(selectedDst)
+
+	putil.Interact.Infof("Updating %s -> %s",
+		srcPath.GetPath(), dstPath.GetPath())
+
+	// Check if local exists
+	_, err = os.Stat(srcPath.GetPath())
+	if os.IsNotExist(err) {
+		putil.Interact.Errorf("Local file not found: %s", srcPath.GetPath())
+		return
+	}
+
+	// Force copy (overwrite) for update
+	// 区别于deployOneFile需要检测MD5，防止自动部署覆盖手动修改
+	// 更新服务，是主动覆盖文件，更新程序，修改文件后由pm2 watch自动重启服务
+
+	// Fix: remove remote file first to avoid "Text file busy"
+	sshCli.RunCommand(fmt.Sprintf("rm -f '%s'", dstPath.GetPath()))
+
+	err = sshCli.Scp(srcPath.GetPath(), dstPath.GetPath())
+	if err != nil {
+		putil.Interact.Errorf("Failed to copy file: %v", err)
+		return
+	}
+
+	putil.Interact.Infof("Update successful!")
 }
