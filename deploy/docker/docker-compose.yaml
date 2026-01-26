@@ -79,6 +79,71 @@ services:
         environment:
             SWAGGER_JSON: /openapi.yaml
 
+    # --------------------------------------------------
+    # 以下都是监控组件，主要都是prometheus+grafana生态
+    prometheus:
+        image: prom/prometheus:v3.9.0
+        container_name: pgo-prometheus
+        restart: unless-stopped
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.enable-lifecycle'
+        user: "root:root"  # 粗暴：使用root用户
+        ports:
+            - "29090:9090"
+        networks:
+            - pgo-net
+        volumes:
+            - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./prometheus/data:/prometheus
+        
+    grafana:
+        container_name: pgo-grafana
+        image: grafana/grafana:12.3
+        restart: unless-stopped
+        user: "0:0" # 以root用户运行，方便挂载卷写入数据
+        ports:
+            - "23000:3000"
+        networks:
+            - pgo-net
+        environment:
+            # 初始管理员密码（首次登录后会要求修改）
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+        volumes:
+            # 持久化 Grafana 数据（仪表板、用户等）
+            - ./grafana/data:/var/lib/grafana
+
+    # --------------------------------------------------
+    # 宿主机
+    node-exporter:
+        container_name: pgo-node-exporter
+        image: prom/node-exporter:v1.10.2
+        restart: unless-stopped
+        ports:
+            - 29100:9100
+        networks:
+            - pgo-net
+        command:
+            - '--path.procfs=/host/proc'          # procfs 挂载路径
+            - '--path.sysfs=/host/sys'            # sysfs 挂载路径
+            - '--path.rootfs=/rootfs'             # 根文件系统路径
+            # 排除虚拟文件系统，避免指标干扰
+            - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run|var/lib/docker)($$|/)'
+            # 忽略虚拟磁盘设备
+            - '--collector.diskstats.device-exclude=^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\d+n\d+p)\d+$$'
+            - '--collector.netdev.device-exclude=^lo$$'  # 忽略回环接口
+            - '--web.listen-address=:9100'        # 监听端口
+        volumes:
+            # 挂载主机系统目录，用于收集系统信息
+            - /proc:/host/proc:ro       # 进程信息，只读挂载
+            - /sys:/host/sys:ro         # 系统信息，只读挂载
+            - /:/rootfs:ro              # 根文件系统，用于收集磁盘使用
+            - /run/udev:/run/udev:ro    # 设备信息
+            - /dev:/host/dev:ro         # 设备文件
+
+    # --------------------------------------------------
+    # 日志
     loki:
         container_name: pgo-loki
         image: grafana/loki:3.5.9
@@ -103,19 +168,6 @@ services:
             - ./backend/logs:/opt/app_logs:ro
             - ./config/promtail.yaml:/etc/promtail/promtail.yaml
 
-    grafana:
-        container_name: pgo-grafana
-        image: grafana/grafana:12.3
-        restart: unless-stopped
-        user: "0:0" # 以root用户运行，方便挂载卷写入数据
-        ports:
-            - "23000:3000"
-        environment:
-            # 初始管理员密码（首次登录后会要求修改）
-            - GF_SECURITY_ADMIN_PASSWORD=admin
-        volumes:
-            # 持久化 Grafana 数据（仪表板、用户等）
-            - ./grafana/data:/var/lib/grafana
 
 networks:
     pgo-net:
