@@ -2,6 +2,18 @@
 # chmod +x docker-compose-linux-x86_64 
 # mv ./docker-compose-linux-x86_64 /usr/local/bin/docker-compose
 
+# 启动顺序
+# mysql/redis/rabbitmq/swagger
+# rocky9
+# node-exporter/cadvisor
+# loki/prometheus
+# promtail
+# grafana
+
+# 比较特别的是，loki和prometheus依赖关系不同
+# promtail 主动上报loki，所以先启动 loki
+# prometheus 主动拉取数据，所以先启动 node-exporter 等数据生产者
+
 name: pgo
 services:
     rocky9:
@@ -97,7 +109,11 @@ services:
         volumes:
             - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
             - ./prometheus/data:/prometheus
-        
+        depends_on:
+            - node-exporter
+            - cadvisor
+            - rocky9
+
     grafana:
         container_name: pgo-grafana
         image: grafana/grafana:12.3
@@ -111,8 +127,15 @@ services:
             # 初始管理员密码（首次登录后会要求修改）
             - GF_SECURITY_ADMIN_PASSWORD=admin
         volumes:
+            # 挂载数据源配置
+            - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+            # 挂载仪表板配置   
+            - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
             # 持久化 Grafana 数据（仪表板、用户等）
             - ./grafana/data:/var/lib/grafana
+        depends_on:
+            - prometheus
+            - loki
 
     # --------------------------------------------------
     # 宿主机监控
@@ -188,7 +211,9 @@ services:
         volumes:
             - ./backend/logs:/opt/app_logs:ro
             - ./config/promtail.yaml:/etc/promtail/promtail.yaml
-
+        depends_on:
+            - loki
+            - rocky9
 
 networks:
     pgo-net:

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -54,16 +55,28 @@ func ensureMysqlDBExists(conf pdb.MysqlConfig, host, portStr string) {
 	}
 	defer rawDB.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := rawDB.Ping(ctx); err != nil {
-		plogger.Fatalf("Failed to ping mysql: %v", err)
+	// 首次部署mysql以及应用容器时，mysql需要一定时间初始化，但应用容器启动更快
+	// 导致mysql无法连接。这里简单做重试即可
+	err = papp.NewRunner("check_mysql").RunRetry(12, 15*time.Second,
+		func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			if err := rawDB.Ping(ctx); err != nil {
+				plogger.Infof("Failed to ping mysql: %v, retrying...", err)
+				return err
+			}
+			return nil
+		})
+	if err != nil {
+		plogger.Fatalf("Failed to connect to mysql after retries: %v", err)
 	}
 
 	plogger.Info("Mysql connection established.")
 
 	// Check DB exists
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci", conf.Mysql.DbName)
 	if _, err := rawDB.Exec(ctx, query); err != nil {
 		plogger.Fatalf("Failed to create database %s: %v", conf.Mysql.DbName, err)
