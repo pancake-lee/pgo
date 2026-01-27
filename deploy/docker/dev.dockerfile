@@ -75,7 +75,8 @@ RUN echo "Installing development and runtime environments" \
     && export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node \
     && nvm install ${NODE_VERSION} \
     && npm config set registry https://registry.npmmirror.com \
-    && npm install -g pm2@4.5 yarn pnpm
+    && npm install -g pm2@4.5 yarn pnpm \
+    && pm2 install pm2-prom-module \
 
 # --------------------------------------------------
 # 第三阶段：额外的开发运行环境扩展
