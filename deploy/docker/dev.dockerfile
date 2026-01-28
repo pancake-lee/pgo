@@ -48,8 +48,9 @@ ARG NODE_VERSION
 ARG PROTOC_VERSION
 
 ENV NVM_DIR=/root/.nvm
-ENV NODE_PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/lib/node_modules \
-    PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/bin:$PATH
+# 应该使用nvm管理node版本，所以不应该直接设置某个版本的路径
+# ENV NODE_PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/lib/node_modules \
+#     PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/bin:$PATH
 
 # 安装 各种语言开发环境
 RUN echo "Installing development and runtime environments" \
@@ -72,6 +73,7 @@ RUN echo "Installing development and runtime environments" \
     && cd $NVM_DIR \
     && git checkout v0.39.5 \
     && . $NVM_DIR/nvm.sh \
+    && echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /etc/bashrc \
     && export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node \
     && nvm install ${NODE_VERSION} \
     && npm config set registry https://registry.npmmirror.com \
