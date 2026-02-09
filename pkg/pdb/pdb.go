@@ -36,27 +36,6 @@ func GetGormDB() *gorm.DB {
 	return gDB
 }
 
-func GetTables() (ret []string, err error) {
-	db, _ := GetDB()
-	rows, err := db.Query(`show tables`)
-	if err != nil {
-		return ret, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var tableName string
-		if err := rows.Scan(&tableName); err != nil {
-			return ret, err
-		}
-		ret = append(ret, tableName)
-	}
-	if err := rows.Err(); err != nil {
-		return ret, err
-	}
-	return ret, err
-}
-
 // --------------------------------------------------
 func Exec(sql string) (sqlResult sql.Result, err error) {
 	db, err := GetDB()

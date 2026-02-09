@@ -77,19 +77,21 @@ api:
 	echo "    - description: PGO API" >> ./openapi.yaml
 	echo "      url: http://127.0.0.1:8080" >> ./openapi.yaml
 
+dbBuild?=pgo_orm
+dbCodePath?=./internal/pkg/db
 .PHONY: gorm
 gorm:
-	$(dbCmd) -e "DROP DATABASE IF EXISTS pgo_build; CREATE DATABASE pgo_build DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
-	for file in ./internal/pkg/db/*.sql; do \
-		$(dbCmd) pgo_build < $$file; \
+	$(dbCmd) -e "DROP DATABASE IF EXISTS ${dbBuild}; CREATE DATABASE ${dbBuild} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+	for file in ${dbCodePath}/*.sql; do \
+		$(dbCmd) ${dbBuild} < $$file; \
 	done
 
-	rm -rf ./internal/pkg/db/model/
-	rm -rf ./internal/pkg/db/query/
+	rm -rf ${dbCodePath}/model/
+	rm -rf ${dbCodePath}/query/
 	gentool \
 	-db mysql \
-	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/pgo_build?charset=utf8mb4&parseTime=True&loc=Local" \
-	-outPath internal/pkg/db/query/ \
+	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbBuild}?charset=utf8mb4&parseTime=True&loc=Local" \
+	-outPath ${dbCodePath}/query/ \
 	-outFile query.go \
 	-modelPkgName model \
 
@@ -109,7 +111,7 @@ reInitDB:
 .PHONY: curd
 # 根据数据库生成 CURD 代码
 curd:
-	go run ./tools/genCURD/
+	go run ./tools/genCURD/ -l
 
 .PHONY: build
 # build

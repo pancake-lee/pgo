@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,10 +9,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 
-	"github.com/pancake-lee/pgo/internal/pkg/db"
-	"github.com/pancake-lee/pgo/internal/pkg/db/model"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -87,84 +86,81 @@ func newTable(m dbModel, svcName string) *Table {
 // 3：根据internal/abandonCodeService的代码以及代码中的标记，生成dao/pb/service代码
 
 func main() {
-	log.SetFlags(log.Lshortfile | log.Ltime)
+	l := flag.Bool("l", false, "log to console, default is false")
+	c := flag.String("c", "./configs/pancake.yaml",
+		"config folder, should have common.yaml and ${execName}.yaml")
+	flag.Parse()
 
 	rmAllGenFile()
 
-	pconfig.MustInitConfig("./configs/pancake.yaml")
+	// TODO 应该和makefile的orm临时表保持一致，而不是读取配置文件运行时的数据库
+	pconfig.MustInitConfig(*c)
+	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
 
-	// 通过反射获取所有表
-	q := db.GetQuery()
-	qVal := reflect.ValueOf(q).Elem()
-	for i := 0; i < qVal.NumField(); i++ {
-		field := qVal.Type().Field(i)
-		plogger.Debugf("reflect field[%s] Type[%s]", field.Name, field.Type)
-		if field.Name == "db" ||
-			field.Name == putil.StrToCamelCase(
-				(&model.AbandonCode{}).TableName()) {
-			continue
+	// 通过数据库读取所有表、列和唯一索引信息（废弃基于 orm 的反射）
+
+	// 获取当前数据库下的所有表名（使用 pdb 封装）
+	tables, err := pdb.GetGormDB().Migrator().GetTables()
+	if err != nil {
+		log.Fatalf("get tables failed: %v", err)
+	}
+	for _, tblName := range tables {
+		if tblName == "abandon_code" {
+			continue // 模板表不处理
 		}
-
-		// DAO 对象有 WithContext 方法返回 DO 对象
-		method := qVal.Field(i).Addr().MethodByName("WithContext")
-		if !method.IsValid() {
-			plogger.Debugf("reflect field[%s] not found WithContext func", field.Name)
-			continue
-		}
-
-		// Call WithContext
-		res := method.Call([]reflect.Value{reflect.ValueOf(context.Background())})
-		if len(res) == 0 {
-			continue
-		}
-		doVal := res[0]
-
-		// 获取 Create 方法
-		createMethod := doVal.MethodByName("Create")
-		if !createMethod.IsValid() {
-			plogger.Debugf("reflect field[%s] DO not found Create func", field.Name)
-			continue
-		}
-
-		// 获取 Create 方法的第一个参数类型 ...*model.User
-		// In(0) 是 []*model.User
-		// Elem() 是 *model.User
-		// Elem() 是 model.User
-		modelType := createMethod.Type().In(0).Elem().Elem()
-
-		// 创建实例
-		m := reflect.New(modelType).Interface().(dbModel)
-
-		addTable(m, inferServiceName(m.TableName()))
+		addTable(&SimpleModel{name: tblName}, inferServiceName(tblName))
 	}
 
-	//读取数据库表结构
+	// 读取每个表的列信息和唯一索引信息
 	for _, tbl := range tblMap {
 		plogger.Debugf("%v---------------------------", tbl.Model.TableName())
 		isMultiPriKey := false
-		val := reflect.ValueOf(tbl.Model).Elem()
-		for i := 0; i < val.NumField(); i++ {
-			field := val.Type().Field(i)
-			tbl.FieldList = append(tbl.FieldList, &field)
 
-			plogger.Debugf("Field[%s] Type[%s] Tag[%v]", field.Name, field.Type, field.Tag)
-			if strings.Contains(field.Tag.Get("gorm"), "primaryKey") {
-				if tbl.PriIdxColName != "" { //TODO
+		// 获取列信息（通过 pdb 封装）
+		cols, err := pdb.GetGormDB().Migrator().ColumnTypes(tbl.Model.TableName())
+		if err != nil {
+			plogger.Errorf("get columns failed: %v", err)
+			return
+		}
+		for _, c := range cols {
+			fieldName := putil.StrToCamelCase(c.Name())
+			if strings.HasSuffix(fieldName, "Id") {
+				// 统一把Id改成ID
+				fieldName = strings.TrimSuffix(fieldName, "Id") + "ID"
+			}
+
+			// 构造 reflect.StructField 用于后续索引匹配
+			t := c.ScanType()
+			if t.String() == "sql.NullTime" {
+				t = reflect.TypeOf(time.Time{})
+			}
+			f := reflect.StructField{
+				Name: fieldName,
+				Type: t,
+				Tag:  "",
+			}
+			tbl.FieldList = append(tbl.FieldList, &f)
+
+			plogger.Debugf("Field[%s] Type[%s]", fieldName, c.ScanType().String())
+			is, ok := c.PrimaryKey()
+			if ok && is {
+				if tbl.PriIdxColName != "" {
 					isMultiPriKey = true
 				}
-				tbl.PriIdxColName = field.Name
-				tbl.PriIdxColType = field.Type.String()
+				tbl.PriIdxColName = fieldName
+				tbl.PriIdxColType = c.ScanType().String()
 				tbl.PriIdxProtoName = putil.StrFirstToLower(tbl.PriIdxColName)
 			}
 		}
 
 		// 尝试从数据库获取索引信息
-		indexes, err := pdb.GetGormDB().Migrator().GetIndexes(tbl.Model)
+		indexes, err := pdb.GetGormDB().Migrator().GetIndexes(tbl.Model.TableName())
 		if err != nil {
 			plogger.Errorf("get indexes failed: %v", err)
 			return
 		}
+		plogger.Debugf("found indexes num: %d", len(indexes))
 		for _, idx := range indexes {
 			pk, _ := idx.PrimaryKey()
 			unique, _ := idx.Unique()
@@ -205,7 +201,7 @@ func main() {
 		plogger.Debug("tbl info : ", tbl)
 	}
 
-	tplTable := newTable(&model.AbandonCode{}, "abandonCode")
+	tplTable := newTable(&SimpleModel{name: "abandon_code"}, "abandonCode")
 	tplTable.PriIdxColName = "Idx1"
 	tplTable.PriIdxColType = "int32"
 	tplTable.PriIdxProtoName = "idx1"
@@ -274,6 +270,33 @@ func inferServiceName(tableName string) string {
 		return "abandonCode"
 	}
 	return "user"
+}
+
+// SimpleModel 用于在没有 orm struct 的情况下提供 TableName
+type SimpleModel struct {
+	name string
+}
+
+func (s *SimpleModel) TableName() string {
+	return s.name
+}
+
+// sqlTypeToReflectType maps common SQL types to Go reflect.Type
+func sqlTypeToReflectType(sqlType string) reflect.Type {
+	switch strings.ToLower(sqlType) {
+	case "tinyint", "smallint", "mediumint", "int", "integer":
+		return reflect.TypeOf(int32(0))
+	case "bigint":
+		return reflect.TypeOf(int64(0))
+	case "float", "double", "real", "decimal":
+		return reflect.TypeOf(float64(0))
+	case "bool", "boolean":
+		return reflect.TypeOf(bool(false))
+	case "date", "datetime", "timestamp", "time":
+		return reflect.TypeOf(time.Time{})
+	default:
+		return reflect.TypeOf("")
+	}
 }
 
 // idxNameToCamelCase 索引名转驼峰，特殊处理 idx_ 前缀
