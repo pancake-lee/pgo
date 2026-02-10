@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // 生成 curd 的 dao 代码
@@ -24,7 +23,7 @@ func genDaoCode(
 	}
 
 	for _, tbl := range tblToSvrMap {
-		plogger.Debugf("gen dao code for tbl[%v]", tbl.Model.TableName())
+		plogger.Debugf("gen dao code for tbl[%v]", tbl.TblName)
 
 		daoTplCode := string(daoTplBytes)
 
@@ -44,7 +43,7 @@ func genDaoCode(
 func daoReplace(codeStr string, tplTable *Table, tbl *Table) string {
 
 	// 如果没有主键，则删除相关代码块
-	if tbl.PriIdxColName == "" {
+	if tbl.PriCol == nil {
 		codeStr = markPairTool.ReplaceAll("MARK REMOVE IF NO PRIMARY KEY", codeStr, "")
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
@@ -68,14 +67,15 @@ func tblIdxReplaceDao(codeStr string, tplTable *Table, tbl *Table) string {
 	indexColDef := ""
 	indexColWhere := ""
 	for _, idx := range tbl.IdxList {
-		for _, f := range idx.Fields {
+		for _, c := range idx.Fields {
+			// 这里不是真的用pbFieldName，只是函数入参用小写开头而已
+			funcInputName := c.pbFieldName
+
 			indexColDef += fmt.Sprintf("%sList []%s,\n",
-				f.IdxProtoName, f.IdxColType)
+				funcInputName, c.ormFieldType)
 
 			indexColWhere += fmt.Sprintf(idxWhereTmp,
-				f.IdxProtoName,
-				putil.StrFirstToUpper(f.IdxProtoName),
-				f.IdxProtoName)
+				funcInputName, c.ormFieldName, funcInputName)
 		}
 	}
 	codeStr = markPairTool.ReplaceAll(
@@ -91,13 +91,13 @@ func tblIdxReplaceDao(codeStr string, tplTable *Table, tbl *Table) string {
 func tblPriIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 替换主键的字段名，参数名，参数类型
 	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.PriIdxColName, tbl.PriIdxColName) // proto id -> dto Id
+		tplTable.PriCol.ormFieldName, tbl.PriCol.ormFieldName) // proto id -> dto Id
 
 	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.PriIdxProtoName, tbl.PriIdxProtoName)
+		tplTable.PriCol.apiFieldName, tbl.PriCol.apiFieldName)
 
 	codeStr = strings.ReplaceAll(codeStr, //TODO 这是怎么工作的，感觉有点问题
-		tplTable.PriIdxColType, tbl.PriIdxColType)
+		tplTable.PriCol.ormFieldType, tbl.PriCol.ormFieldType)
 
 	return codeStr
 }
@@ -106,7 +106,7 @@ func tblPriIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 func tblNameReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	// 把表名的4种命名方式都替换一遍
 	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.Model.TableName(), tbl.Model.TableName())
+		tplTable.TblName, tbl.TblName)
 
 	codeStr = strings.ReplaceAll(codeStr,
 		tplTable.HyphenName, tbl.HyphenName)

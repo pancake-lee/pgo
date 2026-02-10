@@ -50,10 +50,10 @@ func genProtoForOneService(svcName string, tblList []*Table,
 	msgCodeForAllTable := ""
 
 	sort.Slice(tblList, func(i, j int) bool {
-		return tblList[i].Model.TableName() < tblList[j].Model.TableName()
+		return tblList[i].TblName < tblList[j].TblName
 	})
 	for _, tbl := range tblList {
-		plogger.Debugf("gen pb code for tbl[%v]", tbl.Model.TableName())
+		plogger.Debugf("gen pb code for tbl[%v]", tbl.TblName)
 
 		// --------------------------------------------------
 		// 处理接口定义代码
@@ -67,18 +67,9 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		// --------------------------------------------------
 		// 构造pb结构体的字段列表
 		pbColList := ""
-		for i, field := range tbl.FieldList {
-			pbTypeName := ""
-			// TODO 示例所有数据库类型，并且以替换的形式处理，而不是“生成固定代码”
-			switch field.Type.String() {
-			case "time.Time":
-				pbTypeName = "int64"
-			default:
-				pbTypeName = field.Type.String()
-			}
-
+		for i, c := range tbl.ColList {
 			pbColList += fmt.Sprintf("    %v %v = %v;\n",
-				pbTypeName, StrFirstToLowerButID(field.Name), i+1)
+				c.pbFieldType, c.pbFieldName, i+1)
 		}
 
 		msgCode = markPairTool.ReplaceAll("MARK REPLACE PB COL",
@@ -87,9 +78,9 @@ func genProtoForOneService(svcName string, tblList []*Table,
 		// --------------------------------------------------
 		// 处理主键操作
 		pbKeyColList := ""
-		if tbl.PriIdxColName != "" { //TODO 扩展复合主键的情况
+		if tbl.PriCol != nil {
 			pbKeyColList = fmt.Sprintf("    repeated %v %vList = 1;\n",
-				tbl.PriIdxColType, StrFirstToLowerButID(tbl.PriIdxColName))
+				tbl.PriCol.pbFieldType, tbl.PriCol.pbFieldName)
 		}
 		msgCode = markPairTool.ReplaceAll("MARK REPLACE PRIMARY IDX",
 			msgCode, pbKeyColList)
@@ -122,7 +113,7 @@ func pbReplace(
 	codeStr := tplCode
 
 	// 如果没有主键，则删除相关代码块
-	if tbl.PriIdxColName == "" {
+	if tbl.PriCol == nil {
 		codeStr = markPairTool.ReplaceAll("MARK REMOVE IF NO PRIMARY KEY", codeStr, "")
 	} else {
 		codeStr = markPairTool.RemoveMarkSelf("MARK REMOVE IF NO PRIMARY KEY", codeStr)
@@ -142,7 +133,7 @@ func tblIdxReplaceProto(codeStr string, tplTable *Table, tbl *Table) string {
 	for _, idx := range tbl.IdxList {
 		for _, f := range idx.Fields {
 			indexColDef += fmt.Sprintf("    repeated %v %vList = %v;\n",
-				f.IdxColType, f.IdxProtoName, i)
+				f.pbFieldType, f.pbFieldName, i)
 			i++
 		}
 	}

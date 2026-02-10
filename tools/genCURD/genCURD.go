@@ -7,75 +7,161 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
-	"time"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
+	"gorm.io/gorm"
 )
 
-type dbModel interface {
-	TableName() string
+type indexInfo struct {
+	originIdx gorm.Index
+	Name      string     // 索引名
+	Fields    []*colInfo // 索引包含的字段
 }
 
-// 处理复合键、多个索引的情况
-type IndexField struct {
-	IdxColName   string // 索引列名，model字段名
-	IdxColType   string // 索引列类型，model字段类型
-	IdxProtoName string // 索引列名，读写值的参数名
-}
+type colInfo struct {
+	originCol gorm.ColumnType // field_name
 
-type IndexInfo struct {
-	Name   string        // 索引名
-	Fields []*IndexField // 索引包含的字段
+	ormFieldName string // FieldName
+	ormFieldType string
+	apiFieldName string // FieldName
+	apiFieldType string
+	pbFieldName  string // fieldName
+	pbFieldType  string
 }
 
 type Table struct {
+	TblName     string
 	ServiceName string
-	Model       dbModel
+	ColList     []*colInfo
+	PriCol      *colInfo // 暂时只支持单主键，符合主键后续扩展
+	IdxList     []indexInfo
 
 	//生成代码需要的值
-
 	HyphenName     string // 中横线[-]命名
 	LowerCamelName string // 驼峰命名，首字母小写
 	UpperCamelName string // 驼峰命名，首字母大写
-
-	PriIdxColName   string // 索引列名，model字段名
-	PriIdxColType   string // 索引列类型，model字段类型
-	PriIdxProtoName string // 索引列名，读写值的参数名
-
-	IdxList []*IndexInfo // 存储所有唯一索引
-
-	FieldList []*reflect.StructField
 }
 
 func (t *Table) String() string {
 	return fmt.Sprintf("tbl[%v] ServiceName[%v] "+
 		"HyphenName[%v] LowerCamelName[%v] UpperCamelName[%v] "+
 		"IdxColName[%v] IdxColType[%v] IdxParmName[%v]",
-		t.Model.TableName(), t.ServiceName,
+		t.TblName, t.ServiceName,
 		t.HyphenName, t.LowerCamelName, t.UpperCamelName,
-		t.PriIdxColName, t.PriIdxColType, t.PriIdxProtoName)
+		t.PriCol.ormFieldName, t.PriCol.ormFieldType, t.PriCol.ormFieldName)
 }
 
 // --------------------------------------------------
 var tblMap = make(map[string]*Table)
 
-func addTable(m dbModel, svcName string) {
-	tblMap[m.TableName()] = newTable(m, svcName)
+func addTable(tblName string, svcName string) {
+	tblMap[tblName] = newTable(tblName, svcName)
 }
-func newTable(m dbModel, svcName string) *Table {
+func newTable(tblName string, svcName string) *Table {
 	tbl := Table{
+		TblName:     tblName,
 		ServiceName: svcName,
-		Model:       m,
 	}
-	tblName := tbl.Model.TableName()
 	tbl.HyphenName = strings.ReplaceAll(tblName, "_", "-")
 	tbl.UpperCamelName = putil.StrToCamelCase(tblName)
 	tbl.LowerCamelName = putil.StrFirstToLower(tbl.UpperCamelName)
+
+	cols, err := pdb.GetGormDB().Migrator().ColumnTypes(tblName)
+	if err != nil {
+		plogger.Errorf("get columns failed: %v", err)
+		panic(err)
+	}
+
+	isMultiPriKey := false
+	for _, originCol := range cols {
+		var c colInfo
+		c.originCol = originCol
+
+		fieldName := putil.StrToCamelCase(originCol.Name())
+		if strings.HasSuffix(fieldName, "Id") { // 统一把Id改成ID
+			fieldName = strings.TrimSuffix(fieldName, "Id") + "ID"
+		} else if strings.HasSuffix(fieldName, "Url") {
+			fieldName = strings.TrimSuffix(fieldName, "Url") + "URL"
+		}
+		c.ormFieldName = fieldName
+		c.apiFieldName = fieldName
+		c.pbFieldName = StrFirstToLowerButID(fieldName)
+
+		c.ormFieldType = originCol.ScanType().String()
+		c.apiFieldType = originCol.ScanType().String()
+		c.pbFieldType = originCol.ScanType().String()
+
+		// TODO 在abandonCode扩展所有数据库类型的映射
+		if strings.EqualFold(originCol.DatabaseTypeName(), "date") ||
+			strings.EqualFold(originCol.DatabaseTypeName(), "datetime") {
+			c.ormFieldType = "time.Time"
+			c.apiFieldType = "int64"
+			c.pbFieldType = "int64"
+		}
+		if strings.EqualFold(originCol.DatabaseTypeName(), "DECIMAL") {
+			c.ormFieldType = "decimal.Decimal"
+			c.apiFieldType = "string"
+			c.pbFieldType = "string"
+		}
+
+		plogger.Debugf("Field[%s] Type[%s] sqlType[%v] orm[%v][%v] api[%v][%v]",
+			originCol.Name(), originCol.ScanType().String(),
+			originCol.DatabaseTypeName(),
+			c.ormFieldName, c.ormFieldType, c.apiFieldName, c.apiFieldType)
+
+		tbl.ColList = append(tbl.ColList, &c)
+
+		is, ok := originCol.PrimaryKey()
+		if ok && is {
+			if tbl.PriCol != nil {
+				isMultiPriKey = true
+			}
+			tbl.PriCol = &c
+		}
+	}
+
+	if isMultiPriKey { //TODO
+		plogger.Warnf("found multi pri key, skip")
+		tbl.PriCol = nil
+	}
+
+	// --------------------------------------------------
+
+	// 尝试从数据库获取索引信息
+	idxList, err := pdb.GetGormDB().Migrator().GetIndexes(tblName)
+	if err != nil {
+		plogger.Errorf("get indexes failed: %v", err)
+		panic(err)
+	}
+	for _, originIdx := range idxList {
+		var idx indexInfo
+		idx.originIdx = originIdx
+		idx.Name = originIdx.Name()
+
+		for _, idxColName := range originIdx.Columns() {
+			var idxCol *colInfo
+			for _, c := range tbl.ColList {
+				if c.originCol.Name() == idxColName {
+					idxCol = c
+					break
+				}
+			}
+
+			if idxCol == nil {
+				panic(fmt.Sprintf("idxCol[%v] for idx[%v] not found", idxColName, idx.Name))
+			}
+			idx.Fields = append(idx.Fields, idxCol)
+		}
+		tbl.IdxList = append(tbl.IdxList, idx)
+	}
+
+	plogger.Debugf("found indexes num: %d", len(tbl.IdxList))
+
+	plogger.Debugf("got %v table info---------------------------", tblName)
 	return &tbl
 }
 
@@ -99,8 +185,7 @@ func main() {
 	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
 
-	// 通过数据库读取所有表、列和唯一索引信息（废弃基于 orm 的反射）
-
+	// --------------------------------------------------
 	// 获取当前数据库下的所有表名（使用 pdb 封装）
 	tables, err := pdb.GetGormDB().Migrator().GetTables()
 	if err != nil {
@@ -110,104 +195,13 @@ func main() {
 		if tblName == "abandon_code" {
 			continue // 模板表不处理
 		}
-		addTable(&SimpleModel{name: tblName}, inferServiceName(tblName))
+		addTable(tblName, inferServiceName(tblName))
 	}
 
-	// 读取每个表的列信息和唯一索引信息
-	for _, tbl := range tblMap {
-		plogger.Debugf("%v---------------------------", tbl.Model.TableName())
-		isMultiPriKey := false
+	// --------------------------------------------------
+	tplTable := newTable("abandon_code", "abandonCode")
 
-		// 获取列信息（通过 pdb 封装）
-		cols, err := pdb.GetGormDB().Migrator().ColumnTypes(tbl.Model.TableName())
-		if err != nil {
-			plogger.Errorf("get columns failed: %v", err)
-			return
-		}
-		for _, c := range cols {
-			fieldName := putil.StrToCamelCase(c.Name())
-			if strings.HasSuffix(fieldName, "Id") { // 统一把Id改成ID
-				fieldName = strings.TrimSuffix(fieldName, "Id") + "ID"
-			} else if strings.HasSuffix(fieldName, "Url") {
-				fieldName = strings.TrimSuffix(fieldName, "Url") + "URL"
-			}
-			// 构造 reflect.StructField 用于后续索引匹配
-			t := c.ScanType()
-			if t.String() == "sql.NullTime" {
-				t = reflect.TypeOf(time.Time{})
-			}
-			f := reflect.StructField{
-				Name: fieldName,
-				Type: t,
-				Tag:  "",
-			}
-			tbl.FieldList = append(tbl.FieldList, &f)
-
-			plogger.Debugf("Field[%s] Type[%s] sqlType[%v]",
-				fieldName, c.ScanType().String(), c.DatabaseTypeName())
-			is, ok := c.PrimaryKey()
-			if ok && is {
-				if tbl.PriIdxColName != "" {
-					isMultiPriKey = true
-				}
-				tbl.PriIdxColName = fieldName
-				tbl.PriIdxColType = c.ScanType().String()
-				tbl.PriIdxProtoName = putil.StrFirstToLower(tbl.PriIdxColName)
-			}
-		}
-
-		// 尝试从数据库获取索引信息
-		indexes, err := pdb.GetGormDB().Migrator().GetIndexes(tbl.Model.TableName())
-		if err != nil {
-			plogger.Errorf("get indexes failed: %v", err)
-			return
-		}
-		plogger.Debugf("found indexes num: %d", len(indexes))
-		for _, idx := range indexes {
-			pk, _ := idx.PrimaryKey()
-			unique, _ := idx.Unique()
-			plogger.Debugf("Index Name[%s] Primary[%v] Unique[%v]",
-				idx.Name(), pk, unique)
-			if !unique {
-				continue
-			}
-			var idxFields []*IndexField
-			for _, col := range idx.Columns() {
-				// 找到对应的 model 字段
-				for _, f := range tbl.FieldList {
-					if !strings.EqualFold(f.Name, col) {
-						continue
-					}
-					idxFields = append(idxFields, &IndexField{
-						IdxColName:   f.Name, //ID
-						IdxColType:   f.Type.String(),
-						IdxProtoName: StrFirstToLowerButID(f.Name),
-					})
-					break
-				}
-			}
-			if len(idxFields) == 0 {
-				continue
-			}
-			tbl.IdxList = append(tbl.IdxList, &IndexInfo{
-				Name:   idx.Name(),
-				Fields: idxFields,
-			})
-		}
-
-		if isMultiPriKey { //TODO
-			tbl.PriIdxColName = ""
-			tbl.PriIdxColType = ""
-			tbl.PriIdxProtoName = ""
-		}
-		plogger.Debug("tbl info : ", tbl)
-	}
-
-	tplTable := newTable(&SimpleModel{name: "abandon_code"}, "abandonCode")
-	tplTable.PriIdxColName = "Idx1"
-	tplTable.PriIdxColType = "int32"
-	tplTable.PriIdxProtoName = "idx1"
-
+	// --------------------------------------------------
 	genDaoCode(tblMap, tplTable)
 	genProto(tblMap, tplTable)
 
@@ -270,6 +264,12 @@ func inferServiceName(tableName string) string {
 	}
 	if strings.HasPrefix(tableName, "abandon") {
 		return "abandonCode"
+	}
+	if strings.HasPrefix(tableName, "user") {
+		return "user"
+	}
+	if strings.HasPrefix(tableName, "proj") {
+		return "user"
 	}
 	return "default"
 }
