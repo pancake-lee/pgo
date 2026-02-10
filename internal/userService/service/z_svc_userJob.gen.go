@@ -72,6 +72,7 @@ func (s *UserCURDServer) GetUserJobList(
 		ctx.Log.Debugf("GetUserJobList: %v", req.IDList)
 
 		dataList, err = data.UserJobDAO.GetByIndex(ctx,
+            req.JobNameList,
             req.IDList,
 		)
 		if err != nil {

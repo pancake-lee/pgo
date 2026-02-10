@@ -39,10 +39,20 @@ func (*userRoleAssocDAO) GetAll(ctx *papp.AppCtx,
 }
 
 func (*userRoleAssocDAO) GetByIndex(ctx *papp.AppCtx,
+userIDList []int32,
+roleIDList []int32,
 IDList []int32,
 ) ([]*UserRoleAssocDO, error) {
 	q := db.GetQuery().UserRoleAssoc
 	do := q.WithContext(ctx)
+
+	if len(userIDList) > 0 {
+		do = do.Where(q.UserID.In(userIDList...))
+	}
+
+	if len(roleIDList) > 0 {
+		do = do.Where(q.RoleID.In(roleIDList...))
+	}
 
 	if len(IDList) > 0 {
 		do = do.Where(q.ID.In(IDList...))
@@ -66,55 +76,55 @@ func (*userRoleAssocDAO) UpdateByID(ctx *papp.AppCtx, do *UserRoleAssocDO) error
 	return nil
 }
 
-func (*userRoleAssocDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
-	if iD == 0 {
+func (*userRoleAssocDAO) DelByID(ctx *papp.AppCtx, idx1 int32) error {
+	if idx1 == 0 {
 		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserRoleAssoc
-	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(idx1)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleAssocDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
-	if len(iDList) == 0 {
+func (*userRoleAssocDAO) DelByIDList(ctx *papp.AppCtx, idx1List []int32) error {
+	if len(idx1List) == 0 {
 		return nil
 	}
 	q := db.GetQuery().UserRoleAssoc
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Delete()
+		Where(q.ID.In(idx1List...)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userRoleAssocDAO) GetByID(ctx *papp.AppCtx, iD int32,
+func (*userRoleAssocDAO) GetByID(ctx *papp.AppCtx, idx1 int32,
 ) (userRoleAssoc *UserRoleAssocDO, err error) {
-	if iD == 0 {
+	if idx1 == 0 {
 		return userRoleAssoc, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserRoleAssoc
 	userRoleAssoc, err = q.WithContext(ctx).
-		Where(q.ID.Eq(iD)).First()
+		Where(q.ID.Eq(idx1)).First()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}
 	return userRoleAssoc, nil
 }
 
-func (*userRoleAssocDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
+func (*userRoleAssocDAO) GetByIDList(ctx *papp.AppCtx, idx1List []int32,
 ) (userRoleAssocMap map[int32]*UserRoleAssocDO, err error) {
-	if len(iDList) == 0 {
+	if len(idx1List) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetQuery().UserRoleAssoc
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Find()
+		Where(q.ID.In(idx1List...)).Find()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}

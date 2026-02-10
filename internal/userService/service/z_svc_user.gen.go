@@ -76,6 +76,7 @@ func (s *UserCURDServer) GetUserList(
 		ctx.Log.Debugf("GetUserList: %v", req.IDList)
 
 		dataList, err = data.UserDAO.GetByIndex(ctx,
+            req.UserNameList,
             req.IDList,
 		)
 		if err != nil {

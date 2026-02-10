@@ -182,6 +182,12 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetProjectList
             parameters:
+                - name: projNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
                 - name: IDList
                   in: query
                   schema:
@@ -334,6 +340,12 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserList
             parameters:
+                - name: userNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
                 - name: IDList
                   in: query
                   schema:
@@ -411,6 +423,12 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserDeptList
             parameters:
+                - name: deptPathList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
                 - name: IDList
                   in: query
                   schema:
@@ -487,6 +505,20 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserDeptAssocList
             parameters:
+                - name: userIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: deptIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: IDList
                   in: query
                   schema:
@@ -567,6 +599,12 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserJobList
             parameters:
+                - name: jobNameList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
                 - name: IDList
                   in: query
                   schema:
@@ -643,6 +681,20 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserProjectAssocList
             parameters:
+                - name: userIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: projIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: IDList
                   in: query
                   schema:
@@ -795,6 +847,20 @@ paths:
                 - UserCURD
             operationId: UserCURD_GetUserRoleAssocList
             parameters:
+                - name: userIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: roleIDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: IDList
                   in: query
                   schema:

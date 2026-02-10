@@ -70,6 +70,8 @@ func (s *UserCURDServer) GetUserRoleAssocList(
 		ctx.Log.Debugf("GetUserRoleAssocList: %v", req.IDList)
 
 		dataList, err = data.UserRoleAssocDAO.GetByIndex(ctx,
+            req.UserIDList,
+            req.RoleIDList,
             req.IDList,
 		)
 		if err != nil {

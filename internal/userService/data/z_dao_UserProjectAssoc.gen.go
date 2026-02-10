@@ -39,10 +39,20 @@ func (*userProjectAssocDAO) GetAll(ctx *papp.AppCtx,
 }
 
 func (*userProjectAssocDAO) GetByIndex(ctx *papp.AppCtx,
+userIDList []int32,
+projIDList []int32,
 IDList []int32,
 ) ([]*UserProjectAssocDO, error) {
 	q := db.GetQuery().UserProjectAssoc
 	do := q.WithContext(ctx)
+
+	if len(userIDList) > 0 {
+		do = do.Where(q.UserID.In(userIDList...))
+	}
+
+	if len(projIDList) > 0 {
+		do = do.Where(q.ProjID.In(projIDList...))
+	}
 
 	if len(IDList) > 0 {
 		do = do.Where(q.ID.In(IDList...))
@@ -66,55 +76,55 @@ func (*userProjectAssocDAO) UpdateByID(ctx *papp.AppCtx, do *UserProjectAssocDO)
 	return nil
 }
 
-func (*userProjectAssocDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
-	if iD == 0 {
+func (*userProjectAssocDAO) DelByID(ctx *papp.AppCtx, idx1 int32) error {
+	if idx1 == 0 {
 		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserProjectAssoc
-	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(idx1)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userProjectAssocDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
-	if len(iDList) == 0 {
+func (*userProjectAssocDAO) DelByIDList(ctx *papp.AppCtx, idx1List []int32) error {
+	if len(idx1List) == 0 {
 		return nil
 	}
 	q := db.GetQuery().UserProjectAssoc
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Delete()
+		Where(q.ID.In(idx1List...)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userProjectAssocDAO) GetByID(ctx *papp.AppCtx, iD int32,
+func (*userProjectAssocDAO) GetByID(ctx *papp.AppCtx, idx1 int32,
 ) (userProjectAssoc *UserProjectAssocDO, err error) {
-	if iD == 0 {
+	if idx1 == 0 {
 		return userProjectAssoc, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserProjectAssoc
 	userProjectAssoc, err = q.WithContext(ctx).
-		Where(q.ID.Eq(iD)).First()
+		Where(q.ID.Eq(idx1)).First()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}
 	return userProjectAssoc, nil
 }
 
-func (*userProjectAssocDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
+func (*userProjectAssocDAO) GetByIDList(ctx *papp.AppCtx, idx1List []int32,
 ) (userProjectAssocMap map[int32]*UserProjectAssocDO, err error) {
-	if len(iDList) == 0 {
+	if len(idx1List) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetQuery().UserProjectAssoc
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Find()
+		Where(q.ID.In(idx1List...)).Find()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}

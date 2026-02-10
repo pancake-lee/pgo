@@ -208,7 +208,8 @@ func (x *AddProjectResponse) GetProject() *ProjectInfo {
 
 type GetProjectListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	ProjNameList  []string               `protobuf:"bytes,1,rep,name=projNameList,proto3" json:"projNameList,omitempty"`
+	IDList        []int32                `protobuf:"varint,2,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -241,6 +242,13 @@ func (x *GetProjectListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetProjectListRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetProjectListRequest) GetProjNameList() []string {
+	if x != nil {
+		return x.ProjNameList
+	}
+	return nil
 }
 
 func (x *GetProjectListRequest) GetIDList() []int32 {
@@ -618,7 +626,8 @@ func (x *AddUserResponse) GetUser() *UserInfo {
 
 type GetUserListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	UserNameList  []string               `protobuf:"bytes,1,rep,name=userNameList,proto3" json:"userNameList,omitempty"`
+	IDList        []int32                `protobuf:"varint,2,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -651,6 +660,13 @@ func (x *GetUserListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetUserListRequest) GetUserNameList() []string {
+	if x != nil {
+		return x.UserNameList
+	}
+	return nil
 }
 
 func (x *GetUserListRequest) GetIDList() []int32 {
@@ -1020,7 +1036,8 @@ func (x *AddUserDeptResponse) GetUserDept() *UserDeptInfo {
 
 type GetUserDeptListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	DeptPathList  []string               `protobuf:"bytes,1,rep,name=deptPathList,proto3" json:"deptPathList,omitempty"`
+	IDList        []int32                `protobuf:"varint,2,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1053,6 +1070,13 @@ func (x *GetUserDeptListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserDeptListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetUserDeptListRequest) GetDeptPathList() []string {
+	if x != nil {
+		return x.DeptPathList
+	}
+	return nil
 }
 
 func (x *GetUserDeptListRequest) GetIDList() []int32 {
@@ -1430,7 +1454,9 @@ func (x *AddUserDeptAssocResponse) GetUserDeptAssoc() *UserDeptAssocInfo {
 
 type GetUserDeptAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=userIDList,proto3" json:"userIDList,omitempty"`
+	DeptIDList    []int32                `protobuf:"varint,2,rep,packed,name=deptIDList,proto3" json:"deptIDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,3,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1463,6 +1489,20 @@ func (x *GetUserDeptAssocListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserDeptAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserDeptAssocListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetUserDeptAssocListRequest) GetUserIDList() []int32 {
+	if x != nil {
+		return x.UserIDList
+	}
+	return nil
+}
+
+func (x *GetUserDeptAssocListRequest) GetDeptIDList() []int32 {
+	if x != nil {
+		return x.DeptIDList
+	}
+	return nil
 }
 
 func (x *GetUserDeptAssocListRequest) GetIDList() []int32 {
@@ -1824,7 +1864,8 @@ func (x *AddUserJobResponse) GetUserJob() *UserJobInfo {
 
 type GetUserJobListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	JobNameList   []string               `protobuf:"bytes,1,rep,name=jobNameList,proto3" json:"jobNameList,omitempty"`
+	IDList        []int32                `protobuf:"varint,2,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1857,6 +1898,13 @@ func (x *GetUserJobListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserJobListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserJobListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GetUserJobListRequest) GetJobNameList() []string {
+	if x != nil {
+		return x.JobNameList
+	}
+	return nil
 }
 
 func (x *GetUserJobListRequest) GetIDList() []int32 {
@@ -2210,7 +2258,9 @@ func (x *AddUserProjectAssocResponse) GetUserProjectAssoc() *UserProjectAssocInf
 
 type GetUserProjectAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=userIDList,proto3" json:"userIDList,omitempty"`
+	ProjIDList    []int32                `protobuf:"varint,2,rep,packed,name=projIDList,proto3" json:"projIDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,3,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2243,6 +2293,20 @@ func (x *GetUserProjectAssocListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserProjectAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserProjectAssocListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GetUserProjectAssocListRequest) GetUserIDList() []int32 {
+	if x != nil {
+		return x.UserIDList
+	}
+	return nil
+}
+
+func (x *GetUserProjectAssocListRequest) GetProjIDList() []int32 {
+	if x != nil {
+		return x.ProjIDList
+	}
+	return nil
 }
 
 func (x *GetUserProjectAssocListRequest) GetIDList() []int32 {
@@ -3006,7 +3070,9 @@ func (x *AddUserRoleAssocResponse) GetUserRoleAssoc() *UserRoleAssocInfo {
 
 type GetUserRoleAssocListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IDList        []int32                `protobuf:"varint,1,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
+	UserIDList    []int32                `protobuf:"varint,1,rep,packed,name=userIDList,proto3" json:"userIDList,omitempty"`
+	RoleIDList    []int32                `protobuf:"varint,2,rep,packed,name=roleIDList,proto3" json:"roleIDList,omitempty"`
+	IDList        []int32                `protobuf:"varint,3,rep,packed,name=IDList,proto3" json:"IDList,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3039,6 +3105,20 @@ func (x *GetUserRoleAssocListRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserRoleAssocListRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRoleAssocListRequest) Descriptor() ([]byte, []int) {
 	return file_z_userService_gen_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *GetUserRoleAssocListRequest) GetUserIDList() []int32 {
+	if x != nil {
+		return x.UserIDList
+	}
+	return nil
+}
+
+func (x *GetUserRoleAssocListRequest) GetRoleIDList() []int32 {
+	if x != nil {
+		return x.RoleIDList
+	}
+	return nil
 }
 
 func (x *GetUserRoleAssocListRequest) GetIDList() []int32 {
@@ -3642,9 +3722,10 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x11AddProjectRequest\x12*\n" +
 	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"@\n" +
 	"\x12AddProjectResponse\x12*\n" +
-	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"/\n" +
-	"\x15GetProjectListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"L\n" +
+	"\aproject\x18\x01 \x01(\v2\x10.api.ProjectInfoR\aproject\"S\n" +
+	"\x15GetProjectListRequest\x12\"\n" +
+	"\fprojNameList\x18\x01 \x03(\tR\fprojNameList\x12\x16\n" +
+	"\x06IDList\x18\x02 \x03(\x05R\x06IDList\"L\n" +
 	"\x16GetProjectListResponse\x122\n" +
 	"\vprojectList\x18\x01 \x03(\v2\x10.api.ProjectInfoR\vprojectList\"B\n" +
 	"\x14UpdateProjectRequest\x12*\n" +
@@ -3673,9 +3754,10 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x0eAddUserRequest\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"4\n" +
 	"\x0fAddUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\",\n" +
-	"\x12GetUserListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"@\n" +
+	"\x04user\x18\x01 \x01(\v2\r.api.UserInfoR\x04user\"P\n" +
+	"\x12GetUserListRequest\x12\"\n" +
+	"\fuserNameList\x18\x01 \x03(\tR\fuserNameList\x12\x16\n" +
+	"\x06IDList\x18\x02 \x03(\x05R\x06IDList\"@\n" +
 	"\x13GetUserListResponse\x12)\n" +
 	"\buserList\x18\x01 \x03(\v2\r.api.UserInfoR\buserList\"6\n" +
 	"\x11UpdateUserRequest\x12!\n" +
@@ -3703,9 +3785,10 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x12AddUserDeptRequest\x12.\n" +
 	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"E\n" +
 	"\x13AddUserDeptResponse\x12.\n" +
-	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"0\n" +
-	"\x16GetUserDeptListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"P\n" +
+	"\tuser_dept\x18\x01 \x01(\v2\x11.api.UserDeptInfoR\buserDept\"T\n" +
+	"\x16GetUserDeptListRequest\x12\"\n" +
+	"\fdeptPathList\x18\x01 \x03(\tR\fdeptPathList\x12\x16\n" +
+	"\x06IDList\x18\x02 \x03(\x05R\x06IDList\"P\n" +
 	"\x17GetUserDeptListResponse\x125\n" +
 	"\fuserDeptList\x18\x01 \x03(\v2\x11.api.UserDeptInfoR\fuserDeptList\"F\n" +
 	"\x15UpdateUserDeptRequest\x12-\n" +
@@ -3734,9 +3817,15 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x17AddUserDeptAssocRequest\x12>\n" +
 	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"Z\n" +
 	"\x18AddUserDeptAssocResponse\x12>\n" +
-	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"5\n" +
-	"\x1bGetUserDeptAssocListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"d\n" +
+	"\x0fuser_dept_assoc\x18\x01 \x01(\v2\x16.api.UserDeptAssocInfoR\ruserDeptAssoc\"u\n" +
+	"\x1bGetUserDeptAssocListRequest\x12\x1e\n" +
+	"\n" +
+	"userIDList\x18\x01 \x03(\x05R\n" +
+	"userIDList\x12\x1e\n" +
+	"\n" +
+	"deptIDList\x18\x02 \x03(\x05R\n" +
+	"deptIDList\x12\x16\n" +
+	"\x06IDList\x18\x03 \x03(\x05R\x06IDList\"d\n" +
 	"\x1cGetUserDeptAssocListResponse\x12D\n" +
 	"\x11userDeptAssocList\x18\x01 \x03(\v2\x16.api.UserDeptAssocInfoR\x11userDeptAssocList\"Z\n" +
 	"\x1aUpdateUserDeptAssocRequest\x12<\n" +
@@ -3763,9 +3852,10 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x11AddUserJobRequest\x12+\n" +
 	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"A\n" +
 	"\x12AddUserJobResponse\x12+\n" +
-	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"/\n" +
-	"\x15GetUserJobListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"L\n" +
+	"\buser_job\x18\x01 \x01(\v2\x10.api.UserJobInfoR\auserJob\"Q\n" +
+	"\x15GetUserJobListRequest\x12 \n" +
+	"\vjobNameList\x18\x01 \x03(\tR\vjobNameList\x12\x16\n" +
+	"\x06IDList\x18\x02 \x03(\x05R\x06IDList\"L\n" +
 	"\x16GetUserJobListResponse\x122\n" +
 	"\vuserJobList\x18\x01 \x03(\v2\x10.api.UserJobInfoR\vuserJobList\"B\n" +
 	"\x14UpdateUserJobRequest\x12*\n" +
@@ -3787,9 +3877,15 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x1aAddUserProjectAssocRequest\x12G\n" +
 	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"f\n" +
 	"\x1bAddUserProjectAssocResponse\x12G\n" +
-	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"8\n" +
-	"\x1eGetUserProjectAssocListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"p\n" +
+	"\x12user_project_assoc\x18\x01 \x01(\v2\x19.api.UserProjectAssocInfoR\x10userProjectAssoc\"x\n" +
+	"\x1eGetUserProjectAssocListRequest\x12\x1e\n" +
+	"\n" +
+	"userIDList\x18\x01 \x03(\x05R\n" +
+	"userIDList\x12\x1e\n" +
+	"\n" +
+	"projIDList\x18\x02 \x03(\x05R\n" +
+	"projIDList\x12\x16\n" +
+	"\x06IDList\x18\x03 \x03(\x05R\x06IDList\"p\n" +
 	"\x1fGetUserProjectAssocListResponse\x12M\n" +
 	"\x14userProjectAssocList\x18\x01 \x03(\v2\x19.api.UserProjectAssocInfoR\x14userProjectAssocList\"f\n" +
 	"\x1dUpdateUserProjectAssocRequest\x12E\n" +
@@ -3842,9 +3938,15 @@ const file_z_userService_gen_proto_rawDesc = "" +
 	"\x17AddUserRoleAssocRequest\x12>\n" +
 	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"Z\n" +
 	"\x18AddUserRoleAssocResponse\x12>\n" +
-	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"5\n" +
-	"\x1bGetUserRoleAssocListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList\"d\n" +
+	"\x0fuser_role_assoc\x18\x01 \x01(\v2\x16.api.UserRoleAssocInfoR\ruserRoleAssoc\"u\n" +
+	"\x1bGetUserRoleAssocListRequest\x12\x1e\n" +
+	"\n" +
+	"userIDList\x18\x01 \x03(\x05R\n" +
+	"userIDList\x12\x1e\n" +
+	"\n" +
+	"roleIDList\x18\x02 \x03(\x05R\n" +
+	"roleIDList\x12\x16\n" +
+	"\x06IDList\x18\x03 \x03(\x05R\x06IDList\"d\n" +
 	"\x1cGetUserRoleAssocListResponse\x12D\n" +
 	"\x11userRoleAssocList\x18\x01 \x03(\v2\x16.api.UserRoleAssocInfoR\x11userRoleAssocList\"Z\n" +
 	"\x1aUpdateUserRoleAssocRequest\x12<\n" +

@@ -76,6 +76,8 @@ func (s *UserCURDServer) GetUserDeptAssocList(
 		ctx.Log.Debugf("GetUserDeptAssocList: %v", req.IDList)
 
 		dataList, err = data.UserDeptAssocDAO.GetByIndex(ctx,
+            req.UserIDList,
+            req.DeptIDList,
             req.IDList,
 		)
 		if err != nil {

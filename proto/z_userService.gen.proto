@@ -248,7 +248,8 @@ message AddProjectResponse {
 }
 
 message GetProjectListRequest {
-    repeated int32 IDList = 1;
+    repeated string projNameList = 1;
+    repeated int32 IDList = 2;
 }
 message GetProjectListResponse {
     repeated ProjectInfo projectList = 1;
@@ -289,7 +290,8 @@ message AddUserResponse {
 }
 
 message GetUserListRequest {
-    repeated int32 IDList = 1;
+    repeated string userNameList = 1;
+    repeated int32 IDList = 2;
 }
 message GetUserListResponse {
     repeated UserInfo userList = 1;
@@ -329,7 +331,8 @@ message AddUserDeptResponse {
 }
 
 message GetUserDeptListRequest {
-    repeated int32 IDList = 1;
+    repeated string deptPathList = 1;
+    repeated int32 IDList = 2;
 }
 message GetUserDeptListResponse {
     repeated UserDeptInfo userDeptList = 1;
@@ -370,7 +373,9 @@ message AddUserDeptAssocResponse {
 }
 
 message GetUserDeptAssocListRequest {
-    repeated int32 IDList = 1;
+    repeated int32 userIDList = 1;
+    repeated int32 deptIDList = 2;
+    repeated int32 IDList = 3;
 }
 message GetUserDeptAssocListResponse {
     repeated UserDeptAssocInfo userDeptAssocList = 1;
@@ -409,7 +414,8 @@ message AddUserJobResponse {
 }
 
 message GetUserJobListRequest {
-    repeated int32 IDList = 1;
+    repeated string jobNameList = 1;
+    repeated int32 IDList = 2;
 }
 message GetUserJobListResponse {
     repeated UserJobInfo userJobList = 1;
@@ -447,7 +453,9 @@ message AddUserProjectAssocResponse {
 }
 
 message GetUserProjectAssocListRequest {
-    repeated int32 IDList = 1;
+    repeated int32 userIDList = 1;
+    repeated int32 projIDList = 2;
+    repeated int32 IDList = 3;
 }
 message GetUserProjectAssocListResponse {
     repeated UserProjectAssocInfo userProjectAssocList = 1;
@@ -526,7 +534,9 @@ message AddUserRoleAssocResponse {
 }
 
 message GetUserRoleAssocListRequest {
-    repeated int32 IDList = 1;
+    repeated int32 userIDList = 1;
+    repeated int32 roleIDList = 2;
+    repeated int32 IDList = 3;
 }
 message GetUserRoleAssocListResponse {
     repeated UserRoleAssocInfo userRoleAssocList = 1;

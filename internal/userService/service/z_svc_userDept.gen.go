@@ -74,6 +74,7 @@ func (s *UserCURDServer) GetUserDeptList(
 		ctx.Log.Debugf("GetUserDeptList: %v", req.IDList)
 
 		dataList, err = data.UserDeptDAO.GetByIndex(ctx,
+            req.DeptPathList,
             req.IDList,
 		)
 		if err != nil {

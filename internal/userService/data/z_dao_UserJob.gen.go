@@ -39,10 +39,15 @@ func (*userJobDAO) GetAll(ctx *papp.AppCtx,
 }
 
 func (*userJobDAO) GetByIndex(ctx *papp.AppCtx,
+jobNameList []string,
 IDList []int32,
 ) ([]*UserJobDO, error) {
 	q := db.GetQuery().UserJob
 	do := q.WithContext(ctx)
+
+	if len(jobNameList) > 0 {
+		do = do.Where(q.JobName.In(jobNameList...))
+	}
 
 	if len(IDList) > 0 {
 		do = do.Where(q.ID.In(IDList...))
@@ -66,55 +71,55 @@ func (*userJobDAO) UpdateByID(ctx *papp.AppCtx, do *UserJobDO) error {
 	return nil
 }
 
-func (*userJobDAO) DelByID(ctx *papp.AppCtx, iD int32) error {
-	if iD == 0 {
+func (*userJobDAO) DelByID(ctx *papp.AppCtx, idx1 int32) error {
+	if idx1 == 0 {
 		return ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 	q := db.GetQuery().UserJob
-	_, err := q.WithContext(ctx).Where(q.ID.Eq(iD)).Delete()
+	_, err := q.WithContext(ctx).Where(q.ID.Eq(idx1)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) DelByIDList(ctx *papp.AppCtx, iDList []int32) error {
-	if len(iDList) == 0 {
+func (*userJobDAO) DelByIDList(ctx *papp.AppCtx, idx1List []int32) error {
+	if len(idx1List) == 0 {
 		return nil
 	}
 	q := db.GetQuery().UserJob
 	_, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Delete()
+		Where(q.ID.In(idx1List...)).Delete()
 	if err != nil {
 		return ctx.Log.LogErr(err)
 	}
 	return nil
 }
 
-func (*userJobDAO) GetByID(ctx *papp.AppCtx, iD int32,
+func (*userJobDAO) GetByID(ctx *papp.AppCtx, idx1 int32,
 ) (userJob *UserJobDO, err error) {
-	if iD == 0 {
+	if idx1 == 0 {
 		return userJob, ctx.Log.LogErr(perr.ErrParamInvalid)
 	}
 
 	q := db.GetQuery().UserJob
 	userJob, err = q.WithContext(ctx).
-		Where(q.ID.Eq(iD)).First()
+		Where(q.ID.Eq(idx1)).First()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}
 	return userJob, nil
 }
 
-func (*userJobDAO) GetByIDList(ctx *papp.AppCtx, iDList []int32,
+func (*userJobDAO) GetByIDList(ctx *papp.AppCtx, idx1List []int32,
 ) (userJobMap map[int32]*UserJobDO, err error) {
-	if len(iDList) == 0 {
+	if len(idx1List) == 0 {
 		return nil, nil
 	}
 
 	q := db.GetQuery().UserJob
 	l, err := q.WithContext(ctx).
-		Where(q.ID.In(iDList...)).Find()
+		Where(q.ID.In(idx1List...)).Find()
 	if err != nil {
 		return nil, ctx.Log.LogErr(err)
 	}

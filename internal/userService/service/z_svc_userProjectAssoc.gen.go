@@ -70,6 +70,8 @@ func (s *UserCURDServer) GetUserProjectAssocList(
 		ctx.Log.Debugf("GetUserProjectAssocList: %v", req.IDList)
 
 		dataList, err = data.UserProjectAssocDAO.GetByIndex(ctx,
+            req.UserIDList,
+            req.ProjIDList,
             req.IDList,
 		)
 		if err != nil {

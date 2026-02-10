@@ -74,6 +74,7 @@ func (s *UserCURDServer) GetProjectList(
 		ctx.Log.Debugf("GetProjectList: %v", req.IDList)
 
 		dataList, err = data.ProjectDAO.GetByIndex(ctx,
+            req.ProjNameList,
             req.IDList,
 		)
 		if err != nil {
