@@ -88,12 +88,15 @@ gorm:
 
 	rm -rf ${dbCodePath}/model/
 	rm -rf ${dbCodePath}/query/
-	gentool \
-	-db mysql \
-	-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbBuild}?charset=utf8mb4&parseTime=True&loc=Local" \
-	-outPath ${dbCodePath}/query/ \
-	-outFile query.go \
-	-modelPkgName model \
+	
+# 	gentool \
+
+	go run ./tools/genGORM/main.go \
+		-db mysql \
+		-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbBuild}?charset=utf8mb4&parseTime=True&loc=Local" \
+		-outPath ${dbCodePath}/query/ \
+		-outFile query.go \
+		-modelPkgName model \
 
 .PHONY: initDB
 initDB:

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/shopspring/decimal"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/encoding/unicode"
@@ -238,6 +239,19 @@ func StrToFloat64WithDefault(value string, d float64) float64 {
 // StrToBool converts string to bool.
 func StrToBool(value string) (bool, error) {
 	return strconv.ParseBool(strings.ToLower(value))
+}
+
+// --------------------------------------------------
+func StrToDecimal(s string) decimal.Decimal {
+	d, err := decimal.NewFromString(s)
+	if err != nil {
+		return decimal.Zero
+	}
+	return d
+}
+
+func DecimalToStr(d decimal.Decimal) string {
+	return d.String()
 }
 
 // --------------------------------------------------

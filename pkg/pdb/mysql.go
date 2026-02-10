@@ -2,12 +2,14 @@ package pdb
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
-	"gorm.io/driver/mysql"
+	gormMysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	dbLogger "gorm.io/gorm/logger"
 )
@@ -46,34 +48,44 @@ func InitMysqlByConfig() error {
 	return InitMysql(host, conf.Mysql.User, conf.Mysql.Password, conf.Mysql.DbName, port)
 }
 func InitMysql(host, user, password, dbName string, port int32) (err error) {
-
-	gConf = &SqlConfig{
-		Addr:     fmt.Sprintf("%s:%d", host, port),
-		User:     user,
-		Password: password,
-		DbName:   dbName,
-		Host:     host,
-		Port:     port,
-	}
-
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", user, password, host, port, dbName)
 	dsn += "?charset=utf8mb4&parseTime=True&loc=Local"
+	return InitMysqlByDsn(dsn)
+}
+func InitMysqlByDsn(dsn string) (err error) {
+	cfg, err := mysql.ParseDSN(dsn)
+	if err != nil {
+		return err
+	}
+	host, port, _ := strings.Cut(cfg.Addr, ":")
+	p, _ := putil.StrToInt32(port)
 
-	gDB, err = gorm.Open(mysql.New(mysql.Config{
-		DSN:                      dsn,
-		DisableDatetimePrecision: true, // false 时 AutoMigrate 会失败
-	}), &gorm.Config{
-		Logger: dbLogger.New(
-			Writer{},
-			dbLogger.Config{
-				SlowThreshold:             200 * time.Millisecond, // Slow SQL threshold
-				LogLevel:                  dbLogger.Warn,          // Log level LogLevel 值为info打印sql
-				IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
-				Colorful:                  false,                  // Disable color
-			},
-		),
-		SkipDefaultTransaction: true,
-	})
+	gConf = &SqlConfig{
+		Addr:     cfg.Addr,
+		User:     cfg.User,
+		Password: cfg.Passwd,
+		DbName:   cfg.DBName,
+		Host:     host,
+		Port:     p,
+	}
+
+	gDB, err = gorm.Open(
+		gormMysql.New(gormMysql.Config{
+			DSN:                      dsn,
+			DisableDatetimePrecision: true, // false 时 AutoMigrate 会失败
+		}),
+		&gorm.Config{
+			Logger: dbLogger.New(
+				Writer{},
+				dbLogger.Config{
+					SlowThreshold:             200 * time.Millisecond, // Slow SQL threshold
+					LogLevel:                  dbLogger.Warn,          // Log level LogLevel 值为info打印sql
+					IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
+					Colorful:                  false,                  // Disable color
+				},
+			),
+			SkipDefaultTransaction: true,
+		})
 	if err != nil {
 		return err
 	}

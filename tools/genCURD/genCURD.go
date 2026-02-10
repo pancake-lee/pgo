@@ -61,6 +61,7 @@ func (t *Table) String() string {
 		t.PriIdxColName, t.PriIdxColType, t.PriIdxProtoName)
 }
 
+// --------------------------------------------------
 var tblMap = make(map[string]*Table)
 
 func addTable(m dbModel, svcName string) {
@@ -78,6 +79,7 @@ func newTable(m dbModel, svcName string) *Table {
 	return &tbl
 }
 
+// --------------------------------------------------
 // 1：连接数据库
 // 2：获取数据库表结构
 //    但是当前部分逻辑通过orm结构来获取，应该废弃

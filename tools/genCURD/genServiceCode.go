@@ -112,6 +112,8 @@ func genServiceCodeForOneTable(
 	do2dtoCode := ""
 	for _, field := range tbl.FieldList {
 		// TODO 示例所有数据库类型，并且以替换的形式处理，而不是“生成固定代码”
+		plogger.Debugf("Field[%s] Type[%s] sqlType[%v]",
+			field.Name, field.Type.String(), c.DatabaseTypeName())
 		switch field.Type.String() {
 		case "time.Time":
 			do2dtoCode += fmt.Sprintf(
@@ -119,6 +121,12 @@ func genServiceCodeForOneTable(
 				putil.StrToCamelCase(field.Name),
 				putil.StrToCamelCase(field.Name))
 			importPkgList = append(importPkgList, "time")
+		case "decimal.Decimal":
+			do2dtoCode += fmt.Sprintf(
+				"        %v: putil.DecimalToStr(do.%v),\n",
+				putil.StrToCamelCase(field.Name),
+				putil.StrToCamelCase(field.Name))
+			importPkgList = append(importPkgList, "github.com/shopspring/decimal")
 		default:
 			do2dtoCode += fmt.Sprintf(
 				"        %v: do.%v,\n",
@@ -135,6 +143,11 @@ func genServiceCodeForOneTable(
 		case "time.Time":
 			dto2doCode += fmt.Sprintf(
 				"        %v: time.Unix(dto.%v, 0),\n",
+				putil.StrToCamelCase(field.Name),
+				putil.StrToCamelCase(field.Name))
+		case "decimal.Decimal":
+			dto2doCode += fmt.Sprintf(
+				"        %v: putil.StrToDecimal(dto.%v),\n",
 				putil.StrToCamelCase(field.Name),
 				putil.StrToCamelCase(field.Name))
 		default:
