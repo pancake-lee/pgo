@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
@@ -125,11 +124,11 @@ func main() {
 		}
 		for _, c := range cols {
 			fieldName := putil.StrToCamelCase(c.Name())
-			if strings.HasSuffix(fieldName, "Id") {
-				// 统一把Id改成ID
+			if strings.HasSuffix(fieldName, "Id") { // 统一把Id改成ID
 				fieldName = strings.TrimSuffix(fieldName, "Id") + "ID"
+			} else if strings.HasSuffix(fieldName, "Url") {
+				fieldName = strings.TrimSuffix(fieldName, "Url") + "URL"
 			}
-
 			// 构造 reflect.StructField 用于后续索引匹配
 			t := c.ScanType()
 			if t.String() == "sql.NullTime" {
@@ -142,7 +141,8 @@ func main() {
 			}
 			tbl.FieldList = append(tbl.FieldList, &f)
 
-			plogger.Debugf("Field[%s] Type[%s]", fieldName, c.ScanType().String())
+			plogger.Debugf("Field[%s] Type[%s] sqlType[%v]",
+				fieldName, c.ScanType().String(), c.DatabaseTypeName())
 			is, ok := c.PrimaryKey()
 			if ok && is {
 				if tbl.PriIdxColName != "" {
@@ -269,7 +269,7 @@ func inferServiceName(tableName string) string {
 	if strings.HasPrefix(tableName, "abandon") {
 		return "abandonCode"
 	}
-	return "user"
+	return "default"
 }
 
 // SimpleModel 用于在没有 orm struct 的情况下提供 TableName
@@ -279,39 +279,4 @@ type SimpleModel struct {
 
 func (s *SimpleModel) TableName() string {
 	return s.name
-}
-
-// sqlTypeToReflectType maps common SQL types to Go reflect.Type
-func sqlTypeToReflectType(sqlType string) reflect.Type {
-	switch strings.ToLower(sqlType) {
-	case "tinyint", "smallint", "mediumint", "int", "integer":
-		return reflect.TypeOf(int32(0))
-	case "bigint":
-		return reflect.TypeOf(int64(0))
-	case "float", "double", "real", "decimal":
-		return reflect.TypeOf(float64(0))
-	case "bool", "boolean":
-		return reflect.TypeOf(bool(false))
-	case "date", "datetime", "timestamp", "time":
-		return reflect.TypeOf(time.Time{})
-	default:
-		return reflect.TypeOf("")
-	}
-}
-
-// idxNameToCamelCase 索引名转驼峰，特殊处理 idx_ 前缀
-// idx_user_dept -> UserDept
-// idx_2_3 -> Idx23
-func idxNameToCamelCase(str string) string {
-	camel := putil.StrToCamelCase(str)
-	if strings.HasPrefix(camel, "Idx") {
-		// 如果去掉 Idx 后剩余部分首字母不是数字，则去掉 Idx
-		// IdxUserDept -> UserDept
-		// Idx23 -> Idx23
-		rest := camel[3:]
-		if len(rest) > 0 && !unicode.IsDigit(rune(rest[0])) {
-			return rest
-		}
-	}
-	return camel
 }
