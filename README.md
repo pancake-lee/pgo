@@ -100,6 +100,12 @@
   - 各服务健康状况，包括中间件和服务进程和一些自动业务的状态
   - 控的方面更加倾向于用client来承载，同样使用corba交互操作
     - corba似乎更多是命令行执行，但不是连续交互的性质，可能要换库
+- 合并多个命令行工具
+  - tools/genCURD
+  - tools/genGORM
+  - cmd/pgo
+  - client
+- 对于其他项目想要采用该项目的开发模式，需要一个初始化脚本，初始化abandonCode和third_party等
 
 ## AI PROMPT
 

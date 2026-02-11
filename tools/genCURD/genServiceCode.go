@@ -136,7 +136,7 @@ func genServiceCodeForOneTable(
 			dto2doCode += fmt.Sprintf(
 				"        %v: putil.StrToDecimal(dto.%v),\n",
 				c.ormFieldName, c.apiFieldName)
-			importPkgList = append(importPkgList, "github.com/shopspring/decimal")
+			importPkgList = append(importPkgList, "github.com/pancake-lee/pgo/pkg/putil")
 
 		} else {
 			do2dtoCode += fmt.Sprintf(
