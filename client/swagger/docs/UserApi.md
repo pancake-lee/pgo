@@ -1,11 +1,12 @@
 # {{classname}}
 
-All URIs are relative to */*
+All URIs are relative to *http://127.0.0.1:8080*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**UserDelUserDeptAssoc**](UserApi.md#UserDelUserDeptAssoc) | **Delete** /user-dept-assoc | 
 [**UserEditUserName**](UserApi.md#UserEditUserName) | **Patch** /user | 
+[**UserGetUserPermissions**](UserApi.md#UserGetUserPermissions) | **Get** /user/permissions | 
 [**UserLogin**](UserApi.md#UserLogin) | **Post** /user/token | 
 
 # **UserDelUserDeptAssoc**
@@ -67,6 +68,41 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **UserGetUserPermissions**
+> ApiGetUserPermissionsResponse UserGetUserPermissions(ctx, optional)
+
+
+--------------------------------------------------  查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***UserApiUserGetUserPermissionsOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a UserApiUserGetUserPermissionsOpts struct
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **userID** | **optional.Int32**|  | 
+ **projectID** | **optional.Int32**|  | 
+
+### Return type
+
+[**ApiGetUserPermissionsResponse**](api.GetUserPermissionsResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

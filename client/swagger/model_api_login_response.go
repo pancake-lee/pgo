@@ -8,4 +8,5 @@ package swagger
 
 type ApiLoginResponse struct {
 	User *ApiUserInfo `json:"user,omitempty"`
+	Token string `json:"token,omitempty"`
 }

@@ -17,30 +17,60 @@ import "./swagger"
 
 ## Documentation for API Endpoints
 
-All URIs are relative to */*
+All URIs are relative to *http://127.0.0.1:8080*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *AbandonCodeCURDApi* | [**AbandonCodeCURDAddAbandonCode**](docs/AbandonCodeCURDApi.md#abandoncodecurdaddabandoncode) | **Post** /abandon-code | 
 *AbandonCodeCURDApi* | [**AbandonCodeCURDDelAbandonCodeByIdx1List**](docs/AbandonCodeCURDApi.md#abandoncodecurddelabandoncodebyidx1list) | **Delete** /abandon-code | 
 *AbandonCodeCURDApi* | [**AbandonCodeCURDGetAbandonCodeList**](docs/AbandonCodeCURDApi.md#abandoncodecurdgetabandoncodelist) | **Get** /abandon-code | 
+*AbandonCodeCURDApi* | [**AbandonCodeCURDUpdateAbandonCode**](docs/AbandonCodeCURDApi.md#abandoncodecurdupdateabandoncode) | **Patch** /abandon-code | 
 *SchoolCURDApi* | [**SchoolCURDAddCourseSwapRequest**](docs/SchoolCURDApi.md#schoolcurdaddcourseswaprequest) | **Post** /course-swap-request | 
 *SchoolCURDApi* | [**SchoolCURDDelCourseSwapRequestByIDList**](docs/SchoolCURDApi.md#schoolcurddelcourseswaprequestbyidlist) | **Delete** /course-swap-request | 
 *SchoolCURDApi* | [**SchoolCURDGetCourseSwapRequestList**](docs/SchoolCURDApi.md#schoolcurdgetcourseswaprequestlist) | **Get** /course-swap-request | 
+*SchoolCURDApi* | [**SchoolCURDUpdateCourseSwapRequest**](docs/SchoolCURDApi.md#schoolcurdupdatecourseswaprequest) | **Patch** /course-swap-request | 
+*TaskCURDApi* | [**TaskCURDAddTask**](docs/TaskCURDApi.md#taskcurdaddtask) | **Post** /task | 
+*TaskCURDApi* | [**TaskCURDDelTaskByIDList**](docs/TaskCURDApi.md#taskcurddeltaskbyidlist) | **Delete** /task | 
+*TaskCURDApi* | [**TaskCURDGetTaskList**](docs/TaskCURDApi.md#taskcurdgettasklist) | **Get** /task | 
+*TaskCURDApi* | [**TaskCURDUpdateTask**](docs/TaskCURDApi.md#taskcurdupdatetask) | **Patch** /task | 
 *UserApi* | [**UserDelUserDeptAssoc**](docs/UserApi.md#userdeluserdeptassoc) | **Delete** /user-dept-assoc | 
 *UserApi* | [**UserEditUserName**](docs/UserApi.md#usereditusername) | **Patch** /user | 
+*UserApi* | [**UserGetUserPermissions**](docs/UserApi.md#usergetuserpermissions) | **Get** /user/permissions | 
 *UserApi* | [**UserLogin**](docs/UserApi.md#userlogin) | **Post** /user/token | 
+*UserCURDApi* | [**UserCURDAddProject**](docs/UserCURDApi.md#usercurdaddproject) | **Post** /project | 
 *UserCURDApi* | [**UserCURDAddUser**](docs/UserCURDApi.md#usercurdadduser) | **Post** /user | 
 *UserCURDApi* | [**UserCURDAddUserDept**](docs/UserCURDApi.md#usercurdadduserdept) | **Post** /user-dept | 
 *UserCURDApi* | [**UserCURDAddUserDeptAssoc**](docs/UserCURDApi.md#usercurdadduserdeptassoc) | **Post** /user-dept-assoc | 
 *UserCURDApi* | [**UserCURDAddUserJob**](docs/UserCURDApi.md#usercurdadduserjob) | **Post** /user-job | 
+*UserCURDApi* | [**UserCURDAddUserProjectAssoc**](docs/UserCURDApi.md#usercurdadduserprojectassoc) | **Post** /user-project-assoc | 
+*UserCURDApi* | [**UserCURDAddUserRole**](docs/UserCURDApi.md#usercurdadduserrole) | **Post** /user-role | 
+*UserCURDApi* | [**UserCURDAddUserRoleAssoc**](docs/UserCURDApi.md#usercurdadduserroleassoc) | **Post** /user-role-assoc | 
+*UserCURDApi* | [**UserCURDAddUserRolePermissionAssoc**](docs/UserCURDApi.md#usercurdadduserrolepermissionassoc) | **Post** /user-role-permission-assoc | 
+*UserCURDApi* | [**UserCURDDelProjectByIDList**](docs/UserCURDApi.md#usercurddelprojectbyidlist) | **Delete** /project | 
 *UserCURDApi* | [**UserCURDDelUserByIDList**](docs/UserCURDApi.md#usercurddeluserbyidlist) | **Delete** /user | 
 *UserCURDApi* | [**UserCURDDelUserDeptByIDList**](docs/UserCURDApi.md#usercurddeluserdeptbyidlist) | **Delete** /user-dept | 
 *UserCURDApi* | [**UserCURDDelUserJobByIDList**](docs/UserCURDApi.md#usercurddeluserjobbyidlist) | **Delete** /user-job | 
+*UserCURDApi* | [**UserCURDDelUserProjectAssocByIDList**](docs/UserCURDApi.md#usercurddeluserprojectassocbyidlist) | **Delete** /user-project-assoc | 
+*UserCURDApi* | [**UserCURDDelUserRoleAssocByIDList**](docs/UserCURDApi.md#usercurddeluserroleassocbyidlist) | **Delete** /user-role-assoc | 
+*UserCURDApi* | [**UserCURDDelUserRoleByIDList**](docs/UserCURDApi.md#usercurddeluserrolebyidlist) | **Delete** /user-role | 
+*UserCURDApi* | [**UserCURDDelUserRolePermissionAssocByIDList**](docs/UserCURDApi.md#usercurddeluserrolepermissionassocbyidlist) | **Delete** /user-role-permission-assoc | 
+*UserCURDApi* | [**UserCURDGetProjectList**](docs/UserCURDApi.md#usercurdgetprojectlist) | **Get** /project | 
 *UserCURDApi* | [**UserCURDGetUserDeptAssocList**](docs/UserCURDApi.md#usercurdgetuserdeptassoclist) | **Get** /user-dept-assoc | 
 *UserCURDApi* | [**UserCURDGetUserDeptList**](docs/UserCURDApi.md#usercurdgetuserdeptlist) | **Get** /user-dept | 
 *UserCURDApi* | [**UserCURDGetUserJobList**](docs/UserCURDApi.md#usercurdgetuserjoblist) | **Get** /user-job | 
 *UserCURDApi* | [**UserCURDGetUserList**](docs/UserCURDApi.md#usercurdgetuserlist) | **Get** /user | 
+*UserCURDApi* | [**UserCURDGetUserProjectAssocList**](docs/UserCURDApi.md#usercurdgetuserprojectassoclist) | **Get** /user-project-assoc | 
+*UserCURDApi* | [**UserCURDGetUserRoleAssocList**](docs/UserCURDApi.md#usercurdgetuserroleassoclist) | **Get** /user-role-assoc | 
+*UserCURDApi* | [**UserCURDGetUserRoleList**](docs/UserCURDApi.md#usercurdgetuserrolelist) | **Get** /user-role | 
+*UserCURDApi* | [**UserCURDGetUserRolePermissionAssocList**](docs/UserCURDApi.md#usercurdgetuserrolepermissionassoclist) | **Get** /user-role-permission-assoc | 
+*UserCURDApi* | [**UserCURDUpdateProject**](docs/UserCURDApi.md#usercurdupdateproject) | **Patch** /project | 
+*UserCURDApi* | [**UserCURDUpdateUserDept**](docs/UserCURDApi.md#usercurdupdateuserdept) | **Patch** /user-dept | 
+*UserCURDApi* | [**UserCURDUpdateUserDeptAssoc**](docs/UserCURDApi.md#usercurdupdateuserdeptassoc) | **Patch** /user-dept-assoc | 
+*UserCURDApi* | [**UserCURDUpdateUserJob**](docs/UserCURDApi.md#usercurdupdateuserjob) | **Patch** /user-job | 
+*UserCURDApi* | [**UserCURDUpdateUserProjectAssoc**](docs/UserCURDApi.md#usercurdupdateuserprojectassoc) | **Patch** /user-project-assoc | 
+*UserCURDApi* | [**UserCURDUpdateUserRole**](docs/UserCURDApi.md#usercurdupdateuserrole) | **Patch** /user-role | 
+*UserCURDApi* | [**UserCURDUpdateUserRoleAssoc**](docs/UserCURDApi.md#usercurdupdateuserroleassoc) | **Patch** /user-role-assoc | 
+*UserCURDApi* | [**UserCURDUpdateUserRolePermissionAssoc**](docs/UserCURDApi.md#usercurdupdateuserrolepermissionassoc) | **Patch** /user-role-permission-assoc | 
 
 ## Documentation For Models
 
@@ -49,29 +79,78 @@ Class | Method | HTTP request | Description
  - [ApiAddAbandonCodeResponse](docs/ApiAddAbandonCodeResponse.md)
  - [ApiAddCourseSwapRequestRequest](docs/ApiAddCourseSwapRequestRequest.md)
  - [ApiAddCourseSwapRequestResponse](docs/ApiAddCourseSwapRequestResponse.md)
+ - [ApiAddProjectRequest](docs/ApiAddProjectRequest.md)
+ - [ApiAddProjectResponse](docs/ApiAddProjectResponse.md)
+ - [ApiAddTaskRequest](docs/ApiAddTaskRequest.md)
+ - [ApiAddTaskResponse](docs/ApiAddTaskResponse.md)
  - [ApiAddUserDeptAssocRequest](docs/ApiAddUserDeptAssocRequest.md)
  - [ApiAddUserDeptAssocResponse](docs/ApiAddUserDeptAssocResponse.md)
  - [ApiAddUserDeptRequest](docs/ApiAddUserDeptRequest.md)
  - [ApiAddUserDeptResponse](docs/ApiAddUserDeptResponse.md)
  - [ApiAddUserJobRequest](docs/ApiAddUserJobRequest.md)
  - [ApiAddUserJobResponse](docs/ApiAddUserJobResponse.md)
+ - [ApiAddUserProjectAssocRequest](docs/ApiAddUserProjectAssocRequest.md)
+ - [ApiAddUserProjectAssocResponse](docs/ApiAddUserProjectAssocResponse.md)
  - [ApiAddUserRequest](docs/ApiAddUserRequest.md)
  - [ApiAddUserResponse](docs/ApiAddUserResponse.md)
+ - [ApiAddUserRoleAssocRequest](docs/ApiAddUserRoleAssocRequest.md)
+ - [ApiAddUserRoleAssocResponse](docs/ApiAddUserRoleAssocResponse.md)
+ - [ApiAddUserRolePermissionAssocRequest](docs/ApiAddUserRolePermissionAssocRequest.md)
+ - [ApiAddUserRolePermissionAssocResponse](docs/ApiAddUserRolePermissionAssocResponse.md)
+ - [ApiAddUserRoleRequest](docs/ApiAddUserRoleRequest.md)
+ - [ApiAddUserRoleResponse](docs/ApiAddUserRoleResponse.md)
  - [ApiCourseSwapRequestInfo](docs/ApiCourseSwapRequestInfo.md)
  - [ApiEditUserNameRequest](docs/ApiEditUserNameRequest.md)
  - [ApiEmpty](docs/ApiEmpty.md)
  - [ApiGetAbandonCodeListResponse](docs/ApiGetAbandonCodeListResponse.md)
  - [ApiGetCourseSwapRequestListResponse](docs/ApiGetCourseSwapRequestListResponse.md)
+ - [ApiGetProjectListResponse](docs/ApiGetProjectListResponse.md)
+ - [ApiGetTaskListResponse](docs/ApiGetTaskListResponse.md)
  - [ApiGetUserDeptAssocListResponse](docs/ApiGetUserDeptAssocListResponse.md)
  - [ApiGetUserDeptListResponse](docs/ApiGetUserDeptListResponse.md)
  - [ApiGetUserJobListResponse](docs/ApiGetUserJobListResponse.md)
  - [ApiGetUserListResponse](docs/ApiGetUserListResponse.md)
+ - [ApiGetUserPermissionsResponse](docs/ApiGetUserPermissionsResponse.md)
+ - [ApiGetUserProjectAssocListResponse](docs/ApiGetUserProjectAssocListResponse.md)
+ - [ApiGetUserRoleAssocListResponse](docs/ApiGetUserRoleAssocListResponse.md)
+ - [ApiGetUserRoleListResponse](docs/ApiGetUserRoleListResponse.md)
+ - [ApiGetUserRolePermissionAssocListResponse](docs/ApiGetUserRolePermissionAssocListResponse.md)
  - [ApiLoginRequest](docs/ApiLoginRequest.md)
  - [ApiLoginResponse](docs/ApiLoginResponse.md)
+ - [ApiProjectInfo](docs/ApiProjectInfo.md)
+ - [ApiTaskInfo](docs/ApiTaskInfo.md)
+ - [ApiUpdateAbandonCodeRequest](docs/ApiUpdateAbandonCodeRequest.md)
+ - [ApiUpdateAbandonCodeResponse](docs/ApiUpdateAbandonCodeResponse.md)
+ - [ApiUpdateCourseSwapRequestRequest](docs/ApiUpdateCourseSwapRequestRequest.md)
+ - [ApiUpdateCourseSwapRequestResponse](docs/ApiUpdateCourseSwapRequestResponse.md)
+ - [ApiUpdateProjectRequest](docs/ApiUpdateProjectRequest.md)
+ - [ApiUpdateProjectResponse](docs/ApiUpdateProjectResponse.md)
+ - [ApiUpdateTaskRequest](docs/ApiUpdateTaskRequest.md)
+ - [ApiUpdateTaskResponse](docs/ApiUpdateTaskResponse.md)
+ - [ApiUpdateUserDeptAssocRequest](docs/ApiUpdateUserDeptAssocRequest.md)
+ - [ApiUpdateUserDeptAssocResponse](docs/ApiUpdateUserDeptAssocResponse.md)
+ - [ApiUpdateUserDeptRequest](docs/ApiUpdateUserDeptRequest.md)
+ - [ApiUpdateUserDeptResponse](docs/ApiUpdateUserDeptResponse.md)
+ - [ApiUpdateUserJobRequest](docs/ApiUpdateUserJobRequest.md)
+ - [ApiUpdateUserJobResponse](docs/ApiUpdateUserJobResponse.md)
+ - [ApiUpdateUserProjectAssocRequest](docs/ApiUpdateUserProjectAssocRequest.md)
+ - [ApiUpdateUserProjectAssocResponse](docs/ApiUpdateUserProjectAssocResponse.md)
+ - [ApiUpdateUserRequest](docs/ApiUpdateUserRequest.md)
+ - [ApiUpdateUserResponse](docs/ApiUpdateUserResponse.md)
+ - [ApiUpdateUserRoleAssocRequest](docs/ApiUpdateUserRoleAssocRequest.md)
+ - [ApiUpdateUserRoleAssocResponse](docs/ApiUpdateUserRoleAssocResponse.md)
+ - [ApiUpdateUserRolePermissionAssocRequest](docs/ApiUpdateUserRolePermissionAssocRequest.md)
+ - [ApiUpdateUserRolePermissionAssocResponse](docs/ApiUpdateUserRolePermissionAssocResponse.md)
+ - [ApiUpdateUserRoleRequest](docs/ApiUpdateUserRoleRequest.md)
+ - [ApiUpdateUserRoleResponse](docs/ApiUpdateUserRoleResponse.md)
  - [ApiUserDeptAssocInfo](docs/ApiUserDeptAssocInfo.md)
  - [ApiUserDeptInfo](docs/ApiUserDeptInfo.md)
  - [ApiUserInfo](docs/ApiUserInfo.md)
  - [ApiUserJobInfo](docs/ApiUserJobInfo.md)
+ - [ApiUserProjectAssocInfo](docs/ApiUserProjectAssocInfo.md)
+ - [ApiUserRoleAssocInfo](docs/ApiUserRoleAssocInfo.md)
+ - [ApiUserRoleInfo](docs/ApiUserRoleInfo.md)
+ - [ApiUserRolePermissionAssocInfo](docs/ApiUserRolePermissionAssocInfo.md)
 
 ## Documentation For Authorization
  Endpoints do not require authorization.

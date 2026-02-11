@@ -8,7 +8,11 @@ package swagger
 
 // --------------------------------------------------  tbl : user_dept
 type ApiUserDeptInfo struct {
-	ID int32 `json:"iD,omitempty"`
+	ID int32 `json:"ID,omitempty"`
+	CreateTime string `json:"createTime,omitempty"`
+	CreateUser int32 `json:"createUser,omitempty"`
+	UpdateTime string `json:"updateTime,omitempty"`
+	UpdateUser int32 `json:"updateUser,omitempty"`
 	DeptPath string `json:"deptPath,omitempty"`
 	DeptName string `json:"deptName,omitempty"`
 }

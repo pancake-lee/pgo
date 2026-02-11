@@ -2,10 +2,10 @@ package papp
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
-	"github.com/pancake-lee/pgo/api"
 	"github.com/pancake-lee/pgo/internal/pkg/perr"
 	"github.com/pancake-lee/pgo/pkg/putil"
 
@@ -47,11 +47,11 @@ func GenToken(userId int32) (string, error) {
 func GetTokenFromCtx(ctx context.Context) (*claims, error) {
 	token, ok := jwt.FromContext(ctx)
 	if !ok {
-		return nil, api.ErrorUnauthorized("auth failed")
+		return nil, fmt.Errorf("auth failed")
 	}
 	t, ok := token.(*claims)
 	if !ok {
-		return nil, api.ErrorUnauthorized("token format invalid")
+		return nil, fmt.Errorf("token format invalid")
 	}
 	return t, nil
 }
@@ -68,7 +68,7 @@ func ParseToken(tokenString string) (*claims, error) {
 		return nil, err
 	}
 	if !token.Valid {
-		return nil, api.ErrorUnauthorized("token is invalid")
+		return nil, fmt.Errorf("token is invalid")
 	}
 
 	claims, ok := token.Claims.(*claims)
@@ -126,11 +126,11 @@ func authMiddleware2() middleware.Middleware {
 			// https://go-kratos.dev/docs/component/transport/http#middleware-%E4%B8%AD%E5%A4%84%E7%90%86-http-%E8%AF%B7%E6%B1%82
 			tr, ok := transport.FromServerContext(ctx)
 			if !ok {
-				return nil, api.ErrorUnauthorized("no auth")
+				return nil, fmt.Errorf("no auth")
 			}
 			ht, ok := tr.(*http.Transport)
 			if !ok {
-				return nil, api.ErrorUnauthorized("no auth")
+				return nil, fmt.Errorf("no auth")
 			}
 
 			// 检查是否为排除路径
@@ -140,17 +140,17 @@ func authMiddleware2() middleware.Middleware {
 
 			token := ht.Request().Header.Get("Authorization")
 			if token == "" {
-				return nil, api.ErrorUnauthorized("no auth")
+				return nil, fmt.Errorf("no auth")
 			}
 
 			claims, err := ParseToken(token)
 			if err != nil {
-				return nil, api.ErrorUnauthorized(err.Error())
+				return nil, fmt.Errorf("unauthorized: %v", err)
 			}
 
 			// ParseToken里的ParseWithClaims已经做了过期检查
 			// if time.Now().After(claims.ExpiresAt.Time) {
-			// 	return nil, api.ErrorUnauthorized("expired")
+			// 	return nil, fmt.Errorf("expired")
 			// }
 
 			ctx = jwt.NewContext(ctx, claims)

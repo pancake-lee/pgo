@@ -1,12 +1,13 @@
 # {{classname}}
 
-All URIs are relative to */*
+All URIs are relative to *http://127.0.0.1:8080*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**SchoolCURDAddCourseSwapRequest**](SchoolCURDApi.md#SchoolCURDAddCourseSwapRequest) | **Post** /course-swap-request | 
 [**SchoolCURDDelCourseSwapRequestByIDList**](SchoolCURDApi.md#SchoolCURDDelCourseSwapRequestByIDList) | **Delete** /course-swap-request | 
 [**SchoolCURDGetCourseSwapRequestList**](SchoolCURDApi.md#SchoolCURDGetCourseSwapRequestList) | **Get** /course-swap-request | 
+[**SchoolCURDUpdateCourseSwapRequest**](SchoolCURDApi.md#SchoolCURDUpdateCourseSwapRequest) | **Patch** /course-swap-request | 
 
 # **SchoolCURDAddCourseSwapRequest**
 > ApiAddCourseSwapRequestResponse SchoolCURDAddCourseSwapRequest(ctx, body)
@@ -96,6 +97,32 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **SchoolCURDUpdateCourseSwapRequest**
+> ApiUpdateCourseSwapRequestResponse SchoolCURDUpdateCourseSwapRequest(ctx, body)
+
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **body** | [**ApiUpdateCourseSwapRequestRequest**](ApiUpdateCourseSwapRequestRequest.md)|  | 
+
+### Return type
+
+[**ApiUpdateCourseSwapRequestResponse**](api.UpdateCourseSwapRequestResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

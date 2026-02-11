@@ -3,6 +3,11 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**ID** | **int32** |  | [optional] [default to null]
+**CreateTime** | **string** |  | [optional] [default to null]
+**CreateUser** | **int32** |  | [optional] [default to null]
+**UpdateTime** | **string** |  | [optional] [default to null]
+**UpdateUser** | **int32** |  | [optional] [default to null]
 **UserID** | **int32** |  | [optional] [default to null]
 **DeptID** | **int32** |  | [optional] [default to null]
 **JobID** | **int32** |  | [optional] [default to null]

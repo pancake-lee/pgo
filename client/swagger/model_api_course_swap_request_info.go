@@ -8,7 +8,7 @@ package swagger
 
 // --------------------------------------------------  tbl : course_swap_request
 type ApiCourseSwapRequestInfo struct {
-	ID int32 `json:"iD,omitempty"`
+	ID int32 `json:"ID,omitempty"`
 	SrcTeacher string `json:"srcTeacher,omitempty"`
 	SrcDate string `json:"srcDate,omitempty"`
 	SrcCourseNum int32 `json:"srcCourseNum,omitempty"`

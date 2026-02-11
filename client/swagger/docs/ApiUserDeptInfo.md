@@ -4,6 +4,10 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ID** | **int32** |  | [optional] [default to null]
+**CreateTime** | **string** |  | [optional] [default to null]
+**CreateUser** | **int32** |  | [optional] [default to null]
+**UpdateTime** | **string** |  | [optional] [default to null]
+**UpdateUser** | **int32** |  | [optional] [default to null]
 **DeptPath** | **string** |  | [optional] [default to null]
 **DeptName** | **string** |  | [optional] [default to null]
 

@@ -8,6 +8,12 @@ package swagger
 
 // --------------------------------------------------  tbl : user
 type ApiUserInfo struct {
-	ID int32 `json:"iD,omitempty"`
+	ID int32 `json:"ID,omitempty"`
+	CreateTime string `json:"createTime,omitempty"`
+	CreateUser int32 `json:"createUser,omitempty"`
+	UpdateTime string `json:"updateTime,omitempty"`
+	UpdateUser int32 `json:"updateUser,omitempty"`
 	UserName string `json:"userName,omitempty"`
+	Password string `json:"password,omitempty"`
+	LastEditFrom string `json:"lastEditFrom,omitempty"`
 }

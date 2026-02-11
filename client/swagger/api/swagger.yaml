@@ -3,11 +3,14 @@ info:
   title: ""
   version: 0.0.1
 servers:
-- url: /
+- url: http://127.0.0.1:8080
+  description: PGO API
 tags:
 - name: AbandonCodeCURD
   description: '--------------------------------------------------'
 - name: SchoolCURD
+  description: '--------------------------------------------------'
+- name: TaskCURD
   description: '--------------------------------------------------'
 - name: User
   description: 用户服务模块
@@ -22,7 +25,27 @@ paths:
       parameters:
       - name: idx1List
         in: query
-        description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+        description: MARK REPLACE IDX COL START 替换内容，索引字段
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: idx2List
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: idx3List
+        in: query
         required: false
         style: form
         explode: true
@@ -37,7 +60,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetAbandonCodeListResponse'
+                $ref: "#/components/schemas/api.GetAbandonCodeListResponse"
     post:
       tags:
       - AbandonCodeCURD
@@ -50,7 +73,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddAbandonCodeRequest'
+              $ref: "#/components/schemas/api.AddAbandonCodeRequest"
         required: true
       responses:
         "200":
@@ -58,16 +81,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddAbandonCodeResponse'
+                $ref: "#/components/schemas/api.AddAbandonCodeResponse"
     delete:
       tags:
       - AbandonCodeCURD
-      description: MARK REMOVE IF NO PRIMARY KEY START
       operationId: AbandonCodeCURD_DelAbandonCodeByIdx1List
       parameters:
       - name: idx1List
         in: query
-        description: MARK REPLACE REQUEST IDX START 替换内容，索引字段
+        description: MARK REPLACE PRIMARY IDX START
         required: false
         style: form
         explode: true
@@ -82,14 +104,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - AbandonCodeCURD
+      description: MARK REMOVE IF NO PRIMARY KEY START
+      operationId: AbandonCodeCURD_UpdateAbandonCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateAbandonCodeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateAbandonCodeResponse"
   /course-swap-request:
     get:
       tags:
       - SchoolCURD
       operationId: SchoolCURD_GetCourseSwapRequestList
       parameters:
-      - name: iDList
+      - name: IDList
         in: query
         required: false
         style: form
@@ -105,7 +145,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetCourseSwapRequestListResponse'
+                $ref: "#/components/schemas/api.GetCourseSwapRequestListResponse"
     post:
       tags:
       - SchoolCURD
@@ -117,7 +157,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddCourseSwapRequestRequest'
+              $ref: "#/components/schemas/api.AddCourseSwapRequestRequest"
         required: true
       responses:
         "200":
@@ -125,13 +165,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddCourseSwapRequestResponse'
+                $ref: "#/components/schemas/api.AddCourseSwapRequestResponse"
     delete:
       tags:
       - SchoolCURD
       operationId: SchoolCURD_DelCourseSwapRequestByIDList
       parameters:
-      - name: iDList
+      - name: IDList
         in: query
         required: false
         style: form
@@ -147,14 +187,213 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - SchoolCURD
+      operationId: SchoolCURD_UpdateCourseSwapRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateCourseSwapRequestRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateCourseSwapRequestResponse"
+  /project:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetProjectList
+      parameters:
+      - name: projNameList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetProjectListResponse"
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : project
+      operationId: UserCURD_AddProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddProjectRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddProjectResponse"
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelProjectByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateProjectRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateProjectResponse"
+  /task:
+    get:
+      tags:
+      - TaskCURD
+      operationId: TaskCURD_GetTaskList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetTaskListResponse"
+    post:
+      tags:
+      - TaskCURD
+      description: |-
+        --------------------------------------------------
+         tbl : task
+      operationId: TaskCURD_AddTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddTaskRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddTaskResponse"
+    delete:
+      tags:
+      - TaskCURD
+      operationId: TaskCURD_DelTaskByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - TaskCURD
+      operationId: TaskCURD_UpdateTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateTaskRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateTaskResponse"
   /user:
     get:
       tags:
       - UserCURD
       operationId: UserCURD_GetUserList
       parameters:
-      - name: iDList
+      - name: userNameList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: IDList
         in: query
         required: false
         style: form
@@ -170,7 +409,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetUserListResponse'
+                $ref: "#/components/schemas/api.GetUserListResponse"
     post:
       tags:
       - UserCURD
@@ -182,7 +421,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddUserRequest'
+              $ref: "#/components/schemas/api.AddUserRequest"
         required: true
       responses:
         "200":
@@ -190,13 +429,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddUserResponse'
+                $ref: "#/components/schemas/api.AddUserResponse"
     delete:
       tags:
       - UserCURD
       operationId: UserCURD_DelUserByIDList
       parameters:
-      - name: iDList
+      - name: IDList
         in: query
         required: false
         style: form
@@ -212,7 +451,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
     patch:
       tags:
       - User
@@ -222,7 +461,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.EditUserNameRequest'
+              $ref: "#/components/schemas/api.EditUserNameRequest"
         required: true
       responses:
         "200":
@@ -230,14 +469,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
   /user-dept:
     get:
       tags:
       - UserCURD
       operationId: UserCURD_GetUserDeptList
       parameters:
-      - name: iDList
+      - name: deptPathList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: IDList
         in: query
         required: false
         style: form
@@ -253,7 +501,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetUserDeptListResponse'
+                $ref: "#/components/schemas/api.GetUserDeptListResponse"
     post:
       tags:
       - UserCURD
@@ -265,7 +513,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddUserDeptRequest'
+              $ref: "#/components/schemas/api.AddUserDeptRequest"
         required: true
       responses:
         "200":
@@ -273,13 +521,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddUserDeptResponse'
+                $ref: "#/components/schemas/api.AddUserDeptResponse"
     delete:
       tags:
       - UserCURD
       operationId: UserCURD_DelUserDeptByIDList
       parameters:
-      - name: iDList
+      - name: IDList
         in: query
         required: false
         style: form
@@ -295,19 +543,67 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
-  /user-dept-assoc:
-    get:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
       tags:
       - UserCURD
-      operationId: UserCURD_GetUserDeptAssocList
+      operationId: UserCURD_UpdateUserDept
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserDeptRequest"
+        required: true
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetUserDeptAssocListResponse'
+                $ref: "#/components/schemas/api.UpdateUserDeptResponse"
+  /user-dept-assoc:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserDeptAssocList
+      parameters:
+      - name: userIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: deptIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserDeptAssocListResponse"
     post:
       tags:
       - UserCURD
@@ -319,7 +615,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddUserDeptAssocRequest'
+              $ref: "#/components/schemas/api.AddUserDeptAssocRequest"
         required: true
       responses:
         "200":
@@ -327,7 +623,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddUserDeptAssocResponse'
+                $ref: "#/components/schemas/api.AddUserDeptAssocResponse"
     delete:
       tags:
       - User
@@ -356,14 +652,40 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserDeptAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserDeptAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserDeptAssocResponse"
   /user-job:
     get:
       tags:
       - UserCURD
       operationId: UserCURD_GetUserJobList
       parameters:
-      - name: iDList
+      - name: jobNameList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: IDList
         in: query
         required: false
         style: form
@@ -379,7 +701,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.GetUserJobListResponse'
+                $ref: "#/components/schemas/api.GetUserJobListResponse"
     post:
       tags:
       - UserCURD
@@ -391,7 +713,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.AddUserJobRequest'
+              $ref: "#/components/schemas/api.AddUserJobRequest"
         required: true
       responses:
         "200":
@@ -399,13 +721,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.AddUserJobResponse'
+                $ref: "#/components/schemas/api.AddUserJobResponse"
     delete:
       tags:
       - UserCURD
       operationId: UserCURD_DelUserJobByIDList
       parameters:
-      - name: iDList
+      - name: IDList
         in: query
         required: false
         style: form
@@ -421,7 +743,424 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.Empty'
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserJobRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserJobResponse"
+  /user-project-assoc:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserProjectAssocList
+      parameters:
+      - name: userIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: projIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserProjectAssocListResponse"
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_project_assoc
+      operationId: UserCURD_AddUserProjectAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddUserProjectAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddUserProjectAssocResponse"
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserProjectAssocByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserProjectAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserProjectAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserProjectAssocResponse"
+  /user-role:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserRoleList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserRoleListResponse"
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_role
+      operationId: UserCURD_AddUserRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddUserRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddUserRoleResponse"
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserRoleByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserRoleResponse"
+  /user-role-assoc:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserRoleAssocList
+      parameters:
+      - name: userIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: roleIDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserRoleAssocListResponse"
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_role_assoc
+      operationId: UserCURD_AddUserRoleAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddUserRoleAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddUserRoleAssocResponse"
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserRoleAssocByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserRoleAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserRoleAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserRoleAssocResponse"
+  /user-role-permission-assoc:
+    get:
+      tags:
+      - UserCURD
+      operationId: UserCURD_GetUserRolePermissionAssocList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserRolePermissionAssocListResponse"
+    post:
+      tags:
+      - UserCURD
+      description: |-
+        --------------------------------------------------
+         tbl : user_role_permission_assoc
+      operationId: UserCURD_AddUserRolePermissionAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.AddUserRolePermissionAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.AddUserRolePermissionAssocResponse"
+    delete:
+      tags:
+      - UserCURD
+      operationId: UserCURD_DelUserRolePermissionAssocByIDList
+      parameters:
+      - name: IDList
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.Empty"
+    patch:
+      tags:
+      - UserCURD
+      operationId: UserCURD_UpdateUserRolePermissionAssoc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api.UpdateUserRolePermissionAssocRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.UpdateUserRolePermissionAssocResponse"
+  /user/permissions:
+    get:
+      tags:
+      - User
+      description: |-
+        --------------------------------------------------
+         查询用户在某项目内所有权限，去掉角色这一层，直接列出所有拥有的权限值
+      operationId: User_GetUserPermissions
+      parameters:
+      - name: userID
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: projectID
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api.GetUserPermissionsResponse"
   /user/token:
     post:
       tags:
@@ -432,7 +1171,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api.LoginRequest'
+              $ref: "#/components/schemas/api.LoginRequest"
         required: true
       responses:
         "200":
@@ -440,7 +1179,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.LoginResponse'
+                $ref: "#/components/schemas/api.LoginResponse"
 components:
   schemas:
     api.AbandonCodeInfo:
@@ -462,12 +1201,12 @@ components:
       type: object
       properties:
         abandonCode:
-          $ref: '#/components/schemas/api.AbandonCodeInfo'
+          $ref: "#/components/schemas/api.AbandonCodeInfo"
     api.AddAbandonCodeResponse:
       type: object
       properties:
         abandonCode:
-          $ref: '#/components/schemas/api.AbandonCodeInfo'
+          $ref: "#/components/schemas/api.AbandonCodeInfo"
       example:
         abandonCode:
           idx1: 0
@@ -476,12 +1215,12 @@ components:
       type: object
       properties:
         courseSwapRequest:
-          $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+          $ref: "#/components/schemas/api.CourseSwapRequestInfo"
     api.AddCourseSwapRequestResponse:
       type: object
       properties:
         courseSwapRequest:
-          $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+          $ref: "#/components/schemas/api.CourseSwapRequestInfo"
       example:
         courseSwapRequest:
           dstClass: dstClass
@@ -490,75 +1229,208 @@ components:
           srcClass: srcClass
           createTime: createTime
           srcDate: srcDate
-          iD: 0
+          ID: 0
           srcCourseNum: 6
           dstDate: dstDate
           dstTeacher: dstTeacher
           dstCourse: dstCourse
           dstCourseNum: 1
           status: 5
+    api.AddProjectRequest:
+      type: object
+      properties:
+        project:
+          $ref: "#/components/schemas/api.ProjectInfo"
+    api.AddProjectResponse:
+      type: object
+      properties:
+        project:
+          $ref: "#/components/schemas/api.ProjectInfo"
+      example:
+        project:
+          lastEditFrom: lastEditFrom
+          createTime: createTime
+          projName: projName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.AddTaskRequest:
+      type: object
+      properties:
+        task:
+          $ref: "#/components/schemas/api.TaskInfo"
+    api.AddTaskResponse:
+      type: object
+      properties:
+        task:
+          $ref: "#/components/schemas/api.TaskInfo"
+      example:
+        task:
+          metadata: metadata
+          task: task
+          createTime: createTime
+          estimate: 5
+          start: start
+          prevID: 1
+          end: end
+          ID: 0
+          parentID: 6
+          status: 5
+          desc: desc
     api.AddUserDeptAssocRequest:
       type: object
       properties:
         userDeptAssoc:
-          $ref: '#/components/schemas/api.UserDeptAssocInfo'
+          $ref: "#/components/schemas/api.UserDeptAssocInfo"
     api.AddUserDeptAssocResponse:
       type: object
       properties:
         userDeptAssoc:
-          $ref: '#/components/schemas/api.UserDeptAssocInfo'
+          $ref: "#/components/schemas/api.UserDeptAssocInfo"
       example:
         userDeptAssoc:
-          jobID: 1
-          deptID: 6
-          userID: 0
+          jobID: 2
+          createTime: createTime
+          deptID: 5
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+          userID: 5
     api.AddUserDeptRequest:
       type: object
       properties:
         userDept:
-          $ref: '#/components/schemas/api.UserDeptInfo'
+          $ref: "#/components/schemas/api.UserDeptInfo"
     api.AddUserDeptResponse:
       type: object
       properties:
         userDept:
-          $ref: '#/components/schemas/api.UserDeptInfo'
+          $ref: "#/components/schemas/api.UserDeptInfo"
       example:
         userDept:
           deptName: deptName
+          createTime: createTime
           deptPath: deptPath
-          iD: 0
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
     api.AddUserJobRequest:
       type: object
       properties:
         userJob:
-          $ref: '#/components/schemas/api.UserJobInfo'
+          $ref: "#/components/schemas/api.UserJobInfo"
     api.AddUserJobResponse:
       type: object
       properties:
         userJob:
-          $ref: '#/components/schemas/api.UserJobInfo'
+          $ref: "#/components/schemas/api.UserJobInfo"
       example:
         userJob:
           jobName: jobName
-          iD: 0
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.AddUserProjectAssocRequest:
+      type: object
+      properties:
+        userProjectAssoc:
+          $ref: "#/components/schemas/api.UserProjectAssocInfo"
+    api.AddUserProjectAssocResponse:
+      type: object
+      properties:
+        userProjectAssoc:
+          $ref: "#/components/schemas/api.UserProjectAssocInfo"
+      example:
+        userProjectAssoc:
+          projID: 5
+          createTime: createTime
+          createUser: 6
+          ID: 0
+          userID: 1
     api.AddUserRequest:
       type: object
       properties:
         user:
-          $ref: '#/components/schemas/api.UserInfo'
+          $ref: "#/components/schemas/api.UserInfo"
     api.AddUserResponse:
       type: object
       properties:
         user:
-          $ref: '#/components/schemas/api.UserInfo'
+          $ref: "#/components/schemas/api.UserInfo"
       example:
         user:
-          iD: 0
+          lastEditFrom: lastEditFrom
+          password: password
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
           userName: userName
+    api.AddUserRoleAssocRequest:
+      type: object
+      properties:
+        userRoleAssoc:
+          $ref: "#/components/schemas/api.UserRoleAssocInfo"
+    api.AddUserRoleAssocResponse:
+      type: object
+      properties:
+        userRoleAssoc:
+          $ref: "#/components/schemas/api.UserRoleAssocInfo"
+      example:
+        userRoleAssoc:
+          createTime: createTime
+          roleID: 5
+          createUser: 6
+          ID: 0
+          userID: 1
+    api.AddUserRolePermissionAssocRequest:
+      type: object
+      properties:
+        userRolePermissionAssoc:
+          $ref: "#/components/schemas/api.UserRolePermissionAssocInfo"
+    api.AddUserRolePermissionAssocResponse:
+      type: object
+      properties:
+        userRolePermissionAssoc:
+          $ref: "#/components/schemas/api.UserRolePermissionAssocInfo"
+      example:
+        userRolePermissionAssoc:
+          createTime: createTime
+          roleID: 1
+          action: action
+          createUser: 6
+          ID: 0
+          pathPattern: pathPattern
+    api.AddUserRoleRequest:
+      type: object
+      properties:
+        userRole:
+          $ref: "#/components/schemas/api.UserRoleInfo"
+    api.AddUserRoleResponse:
+      type: object
+      properties:
+        userRole:
+          $ref: "#/components/schemas/api.UserRoleInfo"
+      example:
+        userRole:
+          projID: 5
+          isDefault: 5
+          createTime: createTime
+          roleName: roleName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
     api.CourseSwapRequestInfo:
       type: object
       properties:
-        iD:
+        ID:
           type: integer
           format: int32
         srcTeacher:
@@ -598,7 +1470,7 @@ components:
         srcClass: srcClass
         createTime: createTime
         srcDate: srcDate
-        iD: 0
+        ID: 0
         srcCourseNum: 6
         dstDate: dstDate
         dstTeacher: dstTeacher
@@ -623,7 +1495,7 @@ components:
         abandonCodeList:
           type: array
           items:
-            $ref: '#/components/schemas/api.AbandonCodeInfo'
+            $ref: "#/components/schemas/api.AbandonCodeInfo"
       example:
         abandonCodeList:
         - idx1: 0
@@ -636,7 +1508,7 @@ components:
         courseSwapRequestList:
           type: array
           items:
-            $ref: '#/components/schemas/api.CourseSwapRequestInfo'
+            $ref: "#/components/schemas/api.CourseSwapRequestInfo"
       example:
         courseSwapRequestList:
         - dstClass: dstClass
@@ -645,7 +1517,7 @@ components:
           srcClass: srcClass
           createTime: createTime
           srcDate: srcDate
-          iD: 0
+          ID: 0
           srcCourseNum: 6
           dstDate: dstDate
           dstTeacher: dstTeacher
@@ -658,69 +1530,255 @@ components:
           srcClass: srcClass
           createTime: createTime
           srcDate: srcDate
-          iD: 0
+          ID: 0
           srcCourseNum: 6
           dstDate: dstDate
           dstTeacher: dstTeacher
           dstCourse: dstCourse
           dstCourseNum: 1
           status: 5
+    api.GetProjectListResponse:
+      type: object
+      properties:
+        projectList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.ProjectInfo"
+      example:
+        projectList:
+        - lastEditFrom: lastEditFrom
+          createTime: createTime
+          projName: projName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+        - lastEditFrom: lastEditFrom
+          createTime: createTime
+          projName: projName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.GetTaskListResponse:
+      type: object
+      properties:
+        taskList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.TaskInfo"
+      example:
+        taskList:
+        - metadata: metadata
+          task: task
+          createTime: createTime
+          estimate: 5
+          start: start
+          prevID: 1
+          end: end
+          ID: 0
+          parentID: 6
+          status: 5
+          desc: desc
+        - metadata: metadata
+          task: task
+          createTime: createTime
+          estimate: 5
+          start: start
+          prevID: 1
+          end: end
+          ID: 0
+          parentID: 6
+          status: 5
+          desc: desc
     api.GetUserDeptAssocListResponse:
       type: object
       properties:
         userDeptAssocList:
           type: array
           items:
-            $ref: '#/components/schemas/api.UserDeptAssocInfo'
+            $ref: "#/components/schemas/api.UserDeptAssocInfo"
       example:
         userDeptAssocList:
-        - jobID: 1
-          deptID: 6
-          userID: 0
-        - jobID: 1
-          deptID: 6
-          userID: 0
+        - jobID: 2
+          createTime: createTime
+          deptID: 5
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+          userID: 5
+        - jobID: 2
+          createTime: createTime
+          deptID: 5
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+          userID: 5
     api.GetUserDeptListResponse:
       type: object
       properties:
         userDeptList:
           type: array
           items:
-            $ref: '#/components/schemas/api.UserDeptInfo'
+            $ref: "#/components/schemas/api.UserDeptInfo"
       example:
         userDeptList:
         - deptName: deptName
+          createTime: createTime
           deptPath: deptPath
-          iD: 0
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
         - deptName: deptName
+          createTime: createTime
           deptPath: deptPath
-          iD: 0
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
     api.GetUserJobListResponse:
       type: object
       properties:
         userJobList:
           type: array
           items:
-            $ref: '#/components/schemas/api.UserJobInfo'
+            $ref: "#/components/schemas/api.UserJobInfo"
       example:
         userJobList:
         - jobName: jobName
-          iD: 0
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
         - jobName: jobName
-          iD: 0
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
     api.GetUserListResponse:
       type: object
       properties:
         userList:
           type: array
           items:
-            $ref: '#/components/schemas/api.UserInfo'
+            $ref: "#/components/schemas/api.UserInfo"
       example:
         userList:
-        - iD: 0
+        - lastEditFrom: lastEditFrom
+          password: password
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
           userName: userName
-        - iD: 0
+        - lastEditFrom: lastEditFrom
+          password: password
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
           userName: userName
+    api.GetUserPermissionsResponse:
+      type: object
+      properties:
+        actionToPathPattern:
+          type: object
+          additionalProperties:
+            type: string
+      example:
+        actionToPathPattern:
+          key: actionToPathPattern
+    api.GetUserProjectAssocListResponse:
+      type: object
+      properties:
+        userProjectAssocList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.UserProjectAssocInfo"
+      example:
+        userProjectAssocList:
+        - projID: 5
+          createTime: createTime
+          createUser: 6
+          ID: 0
+          userID: 1
+        - projID: 5
+          createTime: createTime
+          createUser: 6
+          ID: 0
+          userID: 1
+    api.GetUserRoleAssocListResponse:
+      type: object
+      properties:
+        userRoleAssocList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.UserRoleAssocInfo"
+      example:
+        userRoleAssocList:
+        - createTime: createTime
+          roleID: 5
+          createUser: 6
+          ID: 0
+          userID: 1
+        - createTime: createTime
+          roleID: 5
+          createUser: 6
+          ID: 0
+          userID: 1
+    api.GetUserRoleListResponse:
+      type: object
+      properties:
+        userRoleList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.UserRoleInfo"
+      example:
+        userRoleList:
+        - projID: 5
+          isDefault: 5
+          createTime: createTime
+          roleName: roleName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+        - projID: 5
+          isDefault: 5
+          createTime: createTime
+          roleName: roleName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.GetUserRolePermissionAssocListResponse:
+      type: object
+      properties:
+        userRolePermissionAssocList:
+          type: array
+          items:
+            $ref: "#/components/schemas/api.UserRolePermissionAssocInfo"
+      example:
+        userRolePermissionAssocList:
+        - createTime: createTime
+          roleID: 1
+          action: action
+          createUser: 6
+          ID: 0
+          pathPattern: pathPattern
+        - createTime: createTime
+          roleID: 1
+          action: action
+          createUser: 6
+          ID: 0
+          pathPattern: pathPattern
     api.LoginRequest:
       type: object
       properties:
@@ -730,14 +1788,333 @@ components:
       type: object
       properties:
         user:
-          $ref: '#/components/schemas/api.UserInfo'
+          $ref: "#/components/schemas/api.UserInfo"
+        token:
+          type: string
       example:
         user:
-          iD: 0
+          lastEditFrom: lastEditFrom
+          password: password
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
           userName: userName
+        token: token
+    api.ProjectInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
+          type: integer
+          format: int32
+        projName:
+          type: string
+        lastEditFrom:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : project
+      example:
+        lastEditFrom: lastEditFrom
+        createTime: createTime
+        projName: projName
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
+    api.TaskInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        parentID:
+          type: integer
+          format: int32
+        prevID:
+          type: integer
+          format: int32
+        task:
+          type: string
+        status:
+          type: integer
+          format: int32
+        estimate:
+          type: integer
+          format: int32
+        start:
+          type: string
+        end:
+          type: string
+        desc:
+          type: string
+        metadata:
+          type: string
+        createTime:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : task
+      example:
+        metadata: metadata
+        task: task
+        createTime: createTime
+        estimate: 5
+        start: start
+        prevID: 1
+        end: end
+        ID: 0
+        parentID: 6
+        status: 5
+        desc: desc
+    api.UpdateAbandonCodeRequest:
+      type: object
+      properties:
+        abandonCode:
+          $ref: "#/components/schemas/api.AbandonCodeInfo"
+      description: MARK REMOVE IF NO PRIMARY KEY START
+    api.UpdateAbandonCodeResponse:
+      type: object
+      properties:
+        abandonCode:
+          $ref: "#/components/schemas/api.AbandonCodeInfo"
+      example:
+        abandonCode:
+          idx1: 0
+          col1: col1
+    api.UpdateCourseSwapRequestRequest:
+      type: object
+      properties:
+        courseSwapRequest:
+          $ref: "#/components/schemas/api.CourseSwapRequestInfo"
+    api.UpdateCourseSwapRequestResponse:
+      type: object
+      properties:
+        courseSwapRequest:
+          $ref: "#/components/schemas/api.CourseSwapRequestInfo"
+      example:
+        courseSwapRequest:
+          dstClass: dstClass
+          srcTeacher: srcTeacher
+          srcCourse: srcCourse
+          srcClass: srcClass
+          createTime: createTime
+          srcDate: srcDate
+          ID: 0
+          srcCourseNum: 6
+          dstDate: dstDate
+          dstTeacher: dstTeacher
+          dstCourse: dstCourse
+          dstCourseNum: 1
+          status: 5
+    api.UpdateProjectRequest:
+      type: object
+      properties:
+        project:
+          $ref: "#/components/schemas/api.ProjectInfo"
+    api.UpdateProjectResponse:
+      type: object
+      properties:
+        project:
+          $ref: "#/components/schemas/api.ProjectInfo"
+      example:
+        project:
+          lastEditFrom: lastEditFrom
+          createTime: createTime
+          projName: projName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.UpdateTaskRequest:
+      type: object
+      properties:
+        task:
+          $ref: "#/components/schemas/api.TaskInfo"
+    api.UpdateTaskResponse:
+      type: object
+      properties:
+        task:
+          $ref: "#/components/schemas/api.TaskInfo"
+      example:
+        task:
+          metadata: metadata
+          task: task
+          createTime: createTime
+          estimate: 5
+          start: start
+          prevID: 1
+          end: end
+          ID: 0
+          parentID: 6
+          status: 5
+          desc: desc
+    api.UpdateUserDeptAssocRequest:
+      type: object
+      properties:
+        userDeptAssoc:
+          $ref: "#/components/schemas/api.UserDeptAssocInfo"
+    api.UpdateUserDeptAssocResponse:
+      type: object
+      properties:
+        userDeptAssoc:
+          $ref: "#/components/schemas/api.UserDeptAssocInfo"
+      example:
+        userDeptAssoc:
+          jobID: 2
+          createTime: createTime
+          deptID: 5
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+          userID: 5
+    api.UpdateUserDeptRequest:
+      type: object
+      properties:
+        userDept:
+          $ref: "#/components/schemas/api.UserDeptInfo"
+    api.UpdateUserDeptResponse:
+      type: object
+      properties:
+        userDept:
+          $ref: "#/components/schemas/api.UserDeptInfo"
+      example:
+        userDept:
+          deptName: deptName
+          createTime: createTime
+          deptPath: deptPath
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.UpdateUserJobRequest:
+      type: object
+      properties:
+        userJob:
+          $ref: "#/components/schemas/api.UserJobInfo"
+    api.UpdateUserJobResponse:
+      type: object
+      properties:
+        userJob:
+          $ref: "#/components/schemas/api.UserJobInfo"
+      example:
+        userJob:
+          jobName: jobName
+          createTime: createTime
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
+    api.UpdateUserProjectAssocRequest:
+      type: object
+      properties:
+        userProjectAssoc:
+          $ref: "#/components/schemas/api.UserProjectAssocInfo"
+    api.UpdateUserProjectAssocResponse:
+      type: object
+      properties:
+        userProjectAssoc:
+          $ref: "#/components/schemas/api.UserProjectAssocInfo"
+      example:
+        userProjectAssoc:
+          projID: 5
+          createTime: createTime
+          createUser: 6
+          ID: 0
+          userID: 1
+    api.UpdateUserRequest:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/api.UserInfo"
+    api.UpdateUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/api.UserInfo"
+    api.UpdateUserRoleAssocRequest:
+      type: object
+      properties:
+        userRoleAssoc:
+          $ref: "#/components/schemas/api.UserRoleAssocInfo"
+    api.UpdateUserRoleAssocResponse:
+      type: object
+      properties:
+        userRoleAssoc:
+          $ref: "#/components/schemas/api.UserRoleAssocInfo"
+      example:
+        userRoleAssoc:
+          createTime: createTime
+          roleID: 5
+          createUser: 6
+          ID: 0
+          userID: 1
+    api.UpdateUserRolePermissionAssocRequest:
+      type: object
+      properties:
+        userRolePermissionAssoc:
+          $ref: "#/components/schemas/api.UserRolePermissionAssocInfo"
+    api.UpdateUserRolePermissionAssocResponse:
+      type: object
+      properties:
+        userRolePermissionAssoc:
+          $ref: "#/components/schemas/api.UserRolePermissionAssocInfo"
+      example:
+        userRolePermissionAssoc:
+          createTime: createTime
+          roleID: 1
+          action: action
+          createUser: 6
+          ID: 0
+          pathPattern: pathPattern
+    api.UpdateUserRoleRequest:
+      type: object
+      properties:
+        userRole:
+          $ref: "#/components/schemas/api.UserRoleInfo"
+    api.UpdateUserRoleResponse:
+      type: object
+      properties:
+        userRole:
+          $ref: "#/components/schemas/api.UserRoleInfo"
+      example:
+        userRole:
+          projID: 5
+          isDefault: 5
+          createTime: createTime
+          roleName: roleName
+          updateUser: 1
+          createUser: 6
+          updateTime: updateTime
+          ID: 0
     api.UserDeptAssocInfo:
       type: object
       properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
+          type: integer
+          format: int32
         userID:
           type: integer
           format: int32
@@ -751,13 +2128,28 @@ components:
         --------------------------------------------------
          tbl : user_dept_assoc
       example:
-        jobID: 1
-        deptID: 6
-        userID: 0
+        jobID: 2
+        createTime: createTime
+        deptID: 5
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
+        userID: 5
     api.UserDeptInfo:
       type: object
       properties:
-        iD:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
           type: integer
           format: int32
         deptPath:
@@ -769,26 +2161,60 @@ components:
          tbl : user_dept
       example:
         deptName: deptName
+        createTime: createTime
         deptPath: deptPath
-        iD: 0
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
     api.UserInfo:
       type: object
       properties:
-        iD:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
           type: integer
           format: int32
         userName:
+          type: string
+        password:
+          type: string
+        lastEditFrom:
           type: string
       description: |-
         --------------------------------------------------
          tbl : user
       example:
-        iD: 0
+        lastEditFrom: lastEditFrom
+        password: password
+        createTime: createTime
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
         userName: userName
     api.UserJobInfo:
       type: object
       properties:
-        iD:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
           type: integer
           format: int32
         jobName:
@@ -798,4 +2224,124 @@ components:
          tbl : user_job
       example:
         jobName: jobName
-        iD: 0
+        createTime: createTime
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
+    api.UserProjectAssocInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        userID:
+          type: integer
+          format: int32
+        projID:
+          type: integer
+          format: int32
+      description: |-
+        --------------------------------------------------
+         tbl : user_project_assoc
+      example:
+        projID: 5
+        createTime: createTime
+        createUser: 6
+        ID: 0
+        userID: 1
+    api.UserRoleAssocInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        userID:
+          type: integer
+          format: int32
+        roleID:
+          type: integer
+          format: int32
+      description: |-
+        --------------------------------------------------
+         tbl : user_role_assoc
+      example:
+        createTime: createTime
+        roleID: 5
+        createUser: 6
+        ID: 0
+        userID: 1
+    api.UserRoleInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        updateTime:
+          type: string
+        updateUser:
+          type: integer
+          format: int32
+        projID:
+          type: integer
+          format: int32
+        roleName:
+          type: string
+        isDefault:
+          type: integer
+          format: int32
+      description: |-
+        --------------------------------------------------
+         tbl : user_role
+      example:
+        projID: 5
+        isDefault: 5
+        createTime: createTime
+        roleName: roleName
+        updateUser: 1
+        createUser: 6
+        updateTime: updateTime
+        ID: 0
+    api.UserRolePermissionAssocInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int32
+        createTime:
+          type: string
+        createUser:
+          type: integer
+          format: int32
+        roleID:
+          type: integer
+          format: int32
+        action:
+          type: string
+        pathPattern:
+          type: string
+      description: |-
+        --------------------------------------------------
+         tbl : user_role_permission_assoc
+      example:
+        createTime: createTime
+        roleID: 1
+        action: action
+        createUser: 6
+        ID: 0
+        pathPattern: pathPattern
