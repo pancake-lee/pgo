@@ -13,7 +13,8 @@ import (
 )
 
 type DeployConfig struct {
-	Files map[string]string `json:"files"`
+	Files   map[string]string `json:"files"`
+	Exclude []string          `json:"exclude"`
 }
 
 func DeployCli() {
@@ -62,11 +63,16 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 	putil.Interact.Infof("Starting deployment check...")
 
 	for src, dst := range cfg.Files {
+		if cfg.ShouldExclude(src) {
+			putil.Interact.Infof("Skipped by exclude rule: %s", src)
+			continue
+		}
+
 		// Handle directory recursion or single file
 		srcPath := putil.NewPathS(src)
 		info, err := os.Stat(srcPath.GetPath())
 		if err != nil {
-			putil.Interact.Warnf("Skipping %s: %v", srcPath, err)
+			putil.Interact.Warnf("Skipping %s: %v", srcPath.GetPath(), err)
 			continue
 		}
 
@@ -77,6 +83,15 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 					if err != nil {
 						return err
 					}
+
+					if cfg.ShouldExclude(path) {
+						putil.Interact.Infof("Skipped by exclude rule: %s", path)
+						if info.IsDir() {
+							return filepath.SkipDir
+						}
+						return nil
+					}
+
 					if info.IsDir() {
 						return nil
 					}
@@ -92,6 +107,11 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 			}
 		} else {
 			// Single file
+			if cfg.ShouldExclude(srcPath.GetPath()) {
+				putil.Interact.Infof("Skipped by exclude rule: %s", srcPath.GetPath())
+				continue
+			}
+
 			dstPath := dstRootPath.Clone().Join(dst)
 			err := deployOneFile(sshCli, srcPath.GetPath(), dstPath.GetPath())
 			if err != nil {
@@ -143,7 +163,49 @@ func loadDeployConfig() (*DeployConfig, error) {
 		putil.Interact.Errorf("Failed to parse deploy config: %v", err)
 		return nil, err
 	}
+
+	if cfg.Files == nil {
+		cfg.Files = map[string]string{}
+	}
+	if cfg.Exclude == nil {
+		cfg.Exclude = []string{}
+	}
+
 	return &cfg, nil
+}
+
+func (d *DeployConfig) ShouldExclude(srcPath string) bool {
+	normSrcPath := putil.NewPath(srcPath).SetIsRel(true).GetPath()
+	for _, rule := range d.Exclude {
+		normRule := putil.NewPath(rule).SetIsRel(true).GetPath()
+		if normRule == "" {
+			continue
+		}
+		if matchExcludeRule(normSrcPath, normRule) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchExcludeRule(srcPath, rule string) bool {
+	hasGlob := strings.ContainsAny(rule, "*?[")
+	if hasGlob {
+		matched, err := filepath.Match(rule, srcPath)
+		if err == nil && matched {
+			return true
+		}
+	}
+
+	prefix := strings.TrimSuffix(rule, "/")
+	if srcPath == prefix {
+		return true
+	}
+	if strings.HasPrefix(srcPath, prefix+"/") {
+		return true
+	}
+
+	return false
 }
 
 func getCachedInput(cachePath, key, prompt, layout string) string {

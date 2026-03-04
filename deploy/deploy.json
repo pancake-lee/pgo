@@ -8,5 +8,6 @@
         "bin/bootCheck": "backend/bootCheck",
         "bin/userService": "backend/userService",
         "deploy/docker/docker-compose.yaml": "docker-compose.yaml"
-    }
+    },
+    "exclude": []
 }

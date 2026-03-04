@@ -62,7 +62,7 @@ func (h *pathHelper) SetOS(o string) *pathHelper {
 	return h
 }
 
-// SetIsRel 设置是否为相对路径
+// SetIsRel 设置是否为相对路径，默认是绝对路径，将自动添加头部斜杠或C盘符
 func (h *pathHelper) SetIsRel(isRel bool) *pathHelper {
 	h.isRel = isRel
 	return h
