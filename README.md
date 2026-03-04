@@ -105,7 +105,10 @@
   - tools/genGORM
   - cmd/pgo
   - client
-- 对于其他项目想要采用该项目的开发模式，需要一个初始化脚本，初始化abandonCode和third_party等
+- 对于其他项目想要采用该项目的开发模式
+  - 需要一个初始化脚本，初始化abandonCode和third_party等
+  - deploy工具需要取反排除某些文件
+  - bootCheck不要依赖orm，才能用于其他项目
 
 ## AI PROMPT
 

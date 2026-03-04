@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -173,17 +172,16 @@ func newTable(tblName string, svcName string) *Table {
 // 3：根据internal/abandonCodeService的代码以及代码中的标记，生成dao/pb/service代码
 
 func main() {
-	l := flag.Bool("l", false, "log to console, default is false")
-	c := flag.String("c", "./configs/pancake.yaml",
-		"config folder, should have common.yaml and ${execName}.yaml")
+	dsn := flag.String("dsn", "", "")
 	flag.Parse()
 
 	rmAllGenFile()
 
-	// TODO 应该和makefile的orm临时表保持一致，而不是读取配置文件运行时的数据库
-	pconfig.MustInitConfig(*c)
-	plogger.InitFromConfig(*l)
-	pdb.MustInitMysqlByConfig()
+	plogger.InitConsoleLogger()
+	err := pdb.InitMysqlByDsn(*dsn)
+	if err != nil {
+		panic(err)
+	}
 
 	// --------------------------------------------------
 	// 获取当前数据库下的所有表名（使用 pdb 封装）

@@ -180,6 +180,7 @@ func (l *MigrationLogger) Trace(ctx context.Context, begin time.Time, fc func() 
 	}
 }
 
+// TODO 如果不依赖model，则可以用于其他项目了
 func getAllModels() []interface{} {
 	return []interface{}{
 		&model.AbandonCode{},

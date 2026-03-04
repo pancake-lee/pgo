@@ -114,7 +114,7 @@ reInitDB:
 .PHONY: curd
 # 根据数据库生成 CURD 代码
 curd:
-	go run ./tools/genCURD/ -l
+	go run ./tools/genCURD/ -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbBuild}?charset=utf8mb4&parseTime=True&loc=Local"
 
 .PHONY: build
 # build

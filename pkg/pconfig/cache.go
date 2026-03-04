@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 var cacheLock sync.Mutex
@@ -15,7 +17,9 @@ func GetDefaultCachePath() string {
 	if err != nil {
 		return "cache.json"
 	}
-	return filepath.Join(home, "pgo", "cache.json")
+	// 目录是~/pgo/但不同项目按项目名称区分缓存文件
+	return filepath.Join(home, "pgo",
+		putil.GetExecFolder()+"cache.json")
 }
 
 // GetCacheValue reads a string value from a JSON file using a dot-separated key path.
