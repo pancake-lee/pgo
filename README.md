@@ -18,6 +18,8 @@
 
 - 基础
   - 双模式运行: 统一核心逻辑，支持 CLI (Cobra) 和 GUI (Fyne/Windows) 两种交互方式。
+  - All in One 入口: 以 `./client` 作为统一程序入口，统一构建为 `pgo` 可执行程序。
+  - 工具聚合菜单: 在连续交互菜单中整合 `genCURD`、`genGORM`、`cmd/pgo` 相关能力。
 - 客户端
   - swagger目录包含了后端接口的生成代码，无需手搓http请求
   - 参考makefile中api-cli命令，可以通过swagger生成其他语言的代码
@@ -110,14 +112,8 @@
   - 各服务健康状况，包括中间件和服务进程和一些自动业务的状态
   - 控的方面更加倾向于用client来承载，同样使用corba交互操作
     - corba似乎更多是命令行执行，但不是连续交互的性质，可能要换库
-- 合并多个命令行工具
-  - tools/genCURD
-  - tools/genGORM
-  - cmd/pgo
-  - client
 - 对于其他项目想要采用该项目的开发模式
   - 需要一个初始化脚本，初始化abandonCode和third_party等
-  - deploy工具需要取反排除某些文件
   - bootCheck不要依赖orm，才能用于其他项目
 
 ## AI PROMPT

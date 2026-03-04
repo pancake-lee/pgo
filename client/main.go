@@ -5,6 +5,8 @@ import (
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/client/devops"
+	"github.com/pancake-lee/pgo/client/tools/prettyCode"
+	"github.com/pancake-lee/pgo/client/tools/psql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"go.uber.org/zap/zapcore"
@@ -26,11 +28,20 @@ func runCli() {
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
 	sel.Reg("Devops CI", devops.MakeCli)
 	sel.Reg("Devops CD", devops.DeployCli)
+	sel.Reg("开发工具 (Dev Tools)", toolsMenuCli)
 
 	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)
 
 	sel.Reg("测试交互 (Test Interact)", testInteraction)
 
+	sel.Loop()
+}
+
+func toolsMenuCli() {
+	sel := putil.Interact.NewSelector("开发工具 (Dev Tools)")
+
+	sel.Reg("美化代码 (Pretty Code)", prettyCode.PrettyCode)
+	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Psql)
 	sel.Loop()
 }
 

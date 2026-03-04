@@ -164,11 +164,11 @@ api-cli:
 	rm -f client/swagger/go.sum
 
 .PHONY: cli
-# build client for current platform
+# build pgo for current platform
 cli:
-	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/client ./client
+	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo ./client
 
 .PHONY: cli-win
-# build client for windows
+# build pgo for windows
 cli-win:
-	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/client.exe ./client
+	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo.exe ./client

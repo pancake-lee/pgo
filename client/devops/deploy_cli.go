@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/pancake-lee/pgo/client/common"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -20,11 +21,11 @@ type DeployConfig struct {
 func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
 
-	sshHost := getCachedInput(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
-	sshPort := getCachedInput(cachePath, "deploy.ssh.port", "SSH Port", "22")
-	sshUser := getCachedInput(cachePath, "deploy.ssh.user", "SSH User", "root")
-	sshPass := getCachedInput(cachePath, "deploy.ssh.pass", "SSH Password", "")
-	remoteRoot := getCachedInput(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
+	sshHost := common.GetCachedInput(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
+	sshPort := common.GetCachedInput(cachePath, "deploy.ssh.port", "SSH Port", "22")
+	sshUser := common.GetCachedInput(cachePath, "deploy.ssh.user", "SSH User", "root")
+	sshPass := common.GetCachedInput(cachePath, "deploy.ssh.pass", "SSH Password", "")
+	remoteRoot := common.GetCachedInput(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
 
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
 	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)
@@ -206,26 +207,6 @@ func matchExcludeRule(srcPath, rule string) bool {
 	}
 
 	return false
-}
-
-func getCachedInput(cachePath, key, prompt, layout string) string {
-	cachedVal := pconfig.GetCacheValue(cachePath, key)
-	defaultVal := layout
-	if cachedVal != "" {
-		defaultVal = cachedVal
-	}
-
-	inputPrompt := fmt.Sprintf("%s (Default: %s)", prompt, defaultVal)
-	val := putil.Interact.Input(inputPrompt)
-
-	if val == "" {
-		val = defaultVal
-	}
-
-	if val != cachedVal {
-		pconfig.SetCacheValue(cachePath, key, val)
-	}
-	return val
 }
 
 func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error {
