@@ -5,7 +5,8 @@ import (
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/client/devops"
-	gengorm "github.com/pancake-lee/pgo/client/tools/genGORM"
+	"github.com/pancake-lee/pgo/client/tools/genCURD"
+	"github.com/pancake-lee/pgo/client/tools/genGORM"
 	"github.com/pancake-lee/pgo/client/tools/prettyCode"
 	"github.com/pancake-lee/pgo/client/tools/psql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -50,7 +51,8 @@ func newRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
 	rootCmd.AddCommand(prettyCode.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(gengorm.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
 
 	return rootCmd
 }
@@ -74,7 +76,8 @@ func toolsMenuCli() {
 
 	sel.Reg("美化代码 (Pretty Code)", prettyCode.Entrypoint.RunInteractive)
 	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Entrypoint.RunInteractive)
-	sel.Reg("生成GORM代码 (cmd/pgo gorm)", gengorm.Entrypoint.RunInteractive)
+	sel.Reg("生成CURD代码 (cmd/pgo curd)", genCURD.Entrypoint.RunInteractive)
+	sel.Reg("生成GORM代码 (cmd/pgo gorm)", genGORM.Entrypoint.RunInteractive)
 	sel.Loop()
 }
 

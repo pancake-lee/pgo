@@ -1,4 +1,4 @@
-package gengorm
+package genGORM
 
 import (
 	"errors"

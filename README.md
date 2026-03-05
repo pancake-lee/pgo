@@ -23,13 +23,12 @@
 
 - 基础
   - all in one = 多模式运行
-    - 复用统一的核心逻辑
+    - 复用统一的核心逻辑，封装在`client/common/tool_entrypoint.go`
     - 支持 CLI (Cobra) 命令行输入参数
     - 支持 CLI (Interactive) 命令行进入程序，持续交互输入参数
     - 支持 GUI (Fyne/Windows)
   - 命令行入口统一为 Cobra：`runCli -> rootCmd.Execute()`，可直接提供 `help` 指引。
   - 运行行为约定：命令行无参数进入持续交互菜单；Windows 双击（无参数）保持 GUI；`client.exe cli` 兼容旧入口。
-  - `prettyCode` 已作为样板完成“三入口”改造：`RunInteractive`（交互）、`NewCobraCommand`（命令行）、`Run`（核心执行）。
 - 工具
   - prettyCode 美化代码
     - 统一规范代码中的分割线注释格式（如 `// -[*50]`）
@@ -182,10 +181,13 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
   - 类型抽象: 非复杂场景优先用基础类型组合，避免为简单函数签名额外定义 `type`；仅在复用明显或封装语义明确时再抽象。
 
 - 客户端工具开发规则（以当前手动代码为准）
-  - 三层入口固定模式：
-    - `RunInteractive()`：只负责交互采参（可带缓存）。
-    - `NewCobraCommand()`：只负责命令注册与参数解析。
-    - `Run(options)`：只负责核心业务逻辑并返回 `error`。
+  - 入口统一为“单例暴露”模式：
+    - 工具内部核心执行函数统一为 `Run(values common.ParamMap) error`。
+    - 每个工具导出 `Entrypoint`（`common.NewToolEntrypoint(...)`）。
+    - 外部统一调用 `Entrypoint` 的3个调用方法
+      - `RunInteractive()`：只负责交互采参（可带缓存）。
+      - `NewCobraCommand()`：只负责命令注册与参数解析。
+      - `Run(options)`：只负责核心业务逻辑并返回 `error`。
   - 参数统一注册，不重复写两套参数：
     - 统一维护参数列表（如 `[]common.ParamItem`），字段包含 `Name/Prompt/Usage/Default`。
     - 通过公共方法同时服务 Cobra 与交互输入（如 `RegParamToCobra`、`ParseParamFromCobra`、`GetCachedParamMap`）。
