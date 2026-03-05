@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/pancake-lee/pgo/client/common"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -21,6 +20,7 @@ const (
 	paramNameDatabase = "database"
 	paramNameFilename = "filename"
 	paramNameCommand  = "command"
+	paramNamePassword = "password"
 	cacheKeyPrefix    = "tools.psql."
 )
 
@@ -51,46 +51,27 @@ var paramSettingList = []common.ParamItem{
 		Default: "",
 	}}
 
-// --------------------------------------------------
-// 交互式运行
-func RunInteractive() {
-	cachePath := pconfig.GetDefaultCachePath()
-	paramMap := common.GetCachedParamMap(
-		cachePath, cacheKeyPrefix, paramSettingList)
-
-	// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
-	password := putil.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
-
-	err := Run(convParamToRunOpt(paramMap, password))
-	if err != nil {
-		plogger.Errorf("psql failed: %v", err)
-	}
-}
-
-// cobra命令行运行
-func NewCobraCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "psql",
-		Short: "执行 PostgreSQL SQL 命令或脚本",
-	}
-
-	flagRefs := common.RegParamToCobra(cmd, paramSettingList)
-	password := cmd.Flags().String("password", "", "postgres password (optional, fallback to env PGPASSWORD)")
-
-	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-		values := common.ParseParamFromCobra(flagRefs)
-		return Run(convParamToRunOpt(values, *password))
-	}
-	return cmd
-}
-
-// 直接运行，可以用于GUI集成
-func RunCommand(args []string) error {
-	cmd := NewCobraCommand()
-	cmd.SilenceUsage = true
-	cmd.SetArgs(args)
-	return cmd.Execute()
-}
+var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+	ToolName:       "psql",
+	Use:            "psql",
+	Short:          "执行 PostgreSQL SQL 命令或脚本",
+	CacheKeyPrefix: cacheKeyPrefix,
+	ParamList:      paramSettingList,
+	Run:            Run,
+	InteractiveHook: func(values common.ParamMap) common.ParamMap {
+		// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
+		password := putil.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
+		values[paramNamePassword] = password
+		return values
+	},
+	CobraSetup: func(cmd *cobra.Command) func(values common.ParamMap) common.ParamMap {
+		password := cmd.Flags().String(paramNamePassword, "", "postgres password (optional, fallback to env PGPASSWORD)")
+		return func(values common.ParamMap) common.ParamMap {
+			values[paramNamePassword] = *password
+			return values
+		}
+	},
+})
 
 // --------------------------------------------------
 // 运行参数，定义的参数列表最终转换成当前程序使用的运行选项
@@ -106,12 +87,12 @@ type RunOptions struct {
 }
 
 // cobra参数值转换为“当前程序的”运行选项
-func convParamToRunOpt(values common.ParamMap, password string) RunOptions {
+func convParamToRunOpt(values common.ParamMap) RunOptions {
 	return RunOptions{
 		Host:     values[paramNameHost],
 		PortStr:  values[paramNamePort],
 		User:     values[paramNameUser],
-		Password: password,
+		Password: values[paramNamePassword],
 		Database: values[paramNameDatabase],
 		Filename: values[paramNameFilename],
 		Command:  values[paramNameCommand],
@@ -119,7 +100,9 @@ func convParamToRunOpt(values common.ParamMap, password string) RunOptions {
 }
 
 // --------------------------------------------------
-func Run(options RunOptions) error {
+func Run(values common.ParamMap) error {
+	options := convParamToRunOpt(values)
+
 	if options.Host == "" {
 		return errors.New("host is empty")
 	}

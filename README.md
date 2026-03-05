@@ -179,6 +179,7 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
 - 其他
   - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
   - 入口函数命名: 习惯将 `main` 方法写到 `internal/<module>` 对应模块的同名代码文件中（例如 `internal/bootCheck/bootCheck.go`），而不是 `cmd/` 下。
+  - 类型抽象: 非复杂场景优先用基础类型组合，避免为简单函数签名额外定义 `type`；仅在复用明显或封装语义明确时再抽象。
 
 - 客户端工具开发规则（以当前手动代码为准）
   - 三层入口固定模式：

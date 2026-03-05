@@ -11,11 +11,9 @@ import (
 	"strings"
 
 	"github.com/pancake-lee/pgo/client/common"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/spf13/cobra"
 )
 
 // 当前只有优化分割线一个功能，后续可以在此增加更多代码美化功能
@@ -48,43 +46,15 @@ var paramSettingList = []common.ParamItem{
 		Default: strings.Join(defaultIncludeFileExts, ","),
 	}}
 
-// --------------------------------------------------
-// 交互式运行
-func RunInteractive() {
-	cachePath := pconfig.GetDefaultCachePath()
-	paramMap := common.GetCachedParamMap(
-		cachePath, cacheKeyPrefix, paramSettingList)
-
-	err := Run(convParamToRunOpt(paramMap))
-	if err != nil {
-		plogger.Errorf("prettyCode failed: %v", err)
-	}
-}
-
-// cobra命令行运行
-func NewCobraCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "pretty",
-		Aliases: []string{"prettyCode"},
-		Short:   "美化代码分割线注释",
-	}
-
-	flagRefs := common.RegParamToCobra(cmd, paramSettingList)
-
-	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-		values := common.ParseParamFromCobra(flagRefs)
-		return Run(convParamToRunOpt(values))
-	}
-	return cmd
-}
-
-// 直接运行，可以用于GUI集成
-func RunCommand(args []string) error {
-	cmd := NewCobraCommand()
-	cmd.SilenceUsage = true
-	cmd.SetArgs(args)
-	return cmd.Execute()
-}
+var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+	ToolName:       "prettyCode",
+	Use:            "pretty",
+	Aliases:        []string{"prettyCode"},
+	Short:          "美化代码分割线注释",
+	CacheKeyPrefix: cacheKeyPrefix,
+	ParamList:      paramSettingList,
+	Run:            Run,
+})
 
 // --------------------------------------------------
 // 运行参数，定义的参数列表最终转换成当前程序使用的运行选项
@@ -110,7 +80,9 @@ func convParamToRunOpt(values common.ParamMap) RunOptions {
 }
 
 // --------------------------------------------------
-func Run(options RunOptions) error {
+func Run(values common.ParamMap) error {
+	options := convParamToRunOpt(values)
+
 	if options.RootDir == "" {
 		return errors.New("root dir is empty")
 	}

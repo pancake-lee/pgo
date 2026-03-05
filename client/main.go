@@ -5,6 +5,7 @@ import (
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/client/devops"
+	gengorm "github.com/pancake-lee/pgo/client/tools/genGORM"
 	"github.com/pancake-lee/pgo/client/tools/prettyCode"
 	"github.com/pancake-lee/pgo/client/tools/psql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -47,8 +48,9 @@ func newRootCommand() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
-	rootCmd.AddCommand(prettyCode.NewCobraCommand())
-	rootCmd.AddCommand(psql.NewCobraCommand())
+	rootCmd.AddCommand(prettyCode.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(gengorm.Entrypoint.NewCobraCommand())
 
 	return rootCmd
 }
@@ -70,8 +72,9 @@ func runInteractiveMenu() {
 func toolsMenuCli() {
 	sel := putil.Interact.NewSelector("开发工具 (Dev Tools)")
 
-	sel.Reg("美化代码 (Pretty Code)", prettyCode.RunInteractive)
-	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.RunInteractive)
+	sel.Reg("美化代码 (Pretty Code)", prettyCode.Entrypoint.RunInteractive)
+	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Entrypoint.RunInteractive)
+	sel.Reg("生成GORM代码 (cmd/pgo gorm)", gengorm.Entrypoint.RunInteractive)
 	sel.Loop()
 }
 
