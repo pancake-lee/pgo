@@ -19,7 +19,7 @@ func GetDefaultCachePath() string {
 	}
 	// 目录是~/pgo/但不同项目按项目名称区分缓存文件
 	return filepath.Join(home, "pgo",
-		putil.GetExecFolder()+"cache.json")
+		putil.NewPathS(putil.GetCurDir()).GetLast()+"cache.json")
 }
 
 // GetCacheValue reads a string value from a JSON file using a dot-separated key path.
@@ -63,6 +63,23 @@ func SetCacheValue(filePath string, keyPath string, value string) error {
 	cacheLock.Lock()
 	defer cacheLock.Unlock()
 
+	dir := filepath.Dir(filePath)
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = os.Stat(filePath)
+	if os.IsNotExist(err) {
+		err = os.WriteFile(filePath, []byte("{}"), 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	var root map[string]interface{}
 	data, err := os.ReadFile(filePath)
 	if err == nil {
@@ -92,14 +109,6 @@ func SetCacheValue(filePath string, keyPath string, value string) error {
 	outData, err := json.MarshalIndent(root, "", "  ")
 	if err != nil {
 		return err
-	}
-
-	// Ensure directory exists
-	dir := filepath.Dir(filePath)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return err
-		}
 	}
 
 	return os.WriteFile(filePath, outData, 0644)

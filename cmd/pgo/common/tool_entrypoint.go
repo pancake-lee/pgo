@@ -1,6 +1,8 @@
 package common
 
 import (
+	"strings"
+
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/spf13/cobra"
@@ -84,6 +86,33 @@ func (x *ToolEntrypoint) NewCobraCommand() *cobra.Command {
 func (x *ToolEntrypoint) RunCommand(args []string) error {
 	cmd := x.NewCobraCommand()
 	cmd.SilenceUsage = true
-	cmd.SetArgs(args)
+	cmd.SetArgs(NormalizeLegacyLongFlagArgs(args))
 	return cmd.Execute()
+}
+
+// NormalizeLegacyLongFlagArgs 兼容历史参数风格：-db -> --db
+// 仅处理“单横杠 + 多字符”参数，保留 -l/-h 这类短参数不变。
+func NormalizeLegacyLongFlagArgs(args []string) []string {
+	if len(args) == 0 {
+		return args
+	}
+
+	norm := make([]string, 0, len(args))
+	for _, arg := range args {
+		if !strings.HasPrefix(arg, "-") || strings.HasPrefix(arg, "--") || len(arg) <= 2 {
+			norm = append(norm, arg)
+			continue
+		}
+
+		// 避免把负数字面量（如 -1、-0.5）误判成参数
+		c := arg[1]
+		if c >= '0' && c <= '9' {
+			norm = append(norm, arg)
+			continue
+		}
+
+		norm = append(norm, "-"+arg)
+	}
+
+	return norm
 }

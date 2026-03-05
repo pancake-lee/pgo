@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
@@ -26,6 +27,7 @@ func initLogger(logToConsole bool) {
 
 func runCli() {
 	rootCmd := newRootCommand()
+	rootCmd.SetArgs(common.NormalizeLegacyLongFlagArgs(os.Args[1:]))
 	if err := rootCmd.Execute(); err != nil {
 		putil.Interact.Errorf("命令执行失败: %v", err)
 		os.Exit(1)
