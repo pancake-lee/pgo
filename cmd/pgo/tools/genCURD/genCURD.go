@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/pancake-lee/pgo/client/common"
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 

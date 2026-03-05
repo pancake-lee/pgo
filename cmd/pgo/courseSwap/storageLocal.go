@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
-	"github.com/pancake-lee/pgo/client/swagger"
+	"github.com/pancake-lee/pgo/cmd/pgo/swagger"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"gorm.io/gorm"
 )

@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/pancake-lee/pgo/client/common"
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	ignore "github.com/sabhiram/go-gitignore"

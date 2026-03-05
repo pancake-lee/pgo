@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	"github.com/pancake-lee/pgo/client/courseSwap"
-	"github.com/pancake-lee/pgo/client/devops"
-	"github.com/pancake-lee/pgo/client/tools/genCURD"
-	"github.com/pancake-lee/pgo/client/tools/genGORM"
-	"github.com/pancake-lee/pgo/client/tools/prettyCode"
-	"github.com/pancake-lee/pgo/client/tools/psql"
+	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
+	"github.com/pancake-lee/pgo/cmd/pgo/devops"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"

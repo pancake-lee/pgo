@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pancake-lee/pgo/client/common"
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"gorm.io/gen"
 	"gorm.io/gorm"

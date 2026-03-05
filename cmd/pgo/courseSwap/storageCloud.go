@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/antihax/optional"
-	"github.com/pancake-lee/pgo/client/swagger"
+	"github.com/pancake-lee/pgo/cmd/pgo/swagger"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 )
 

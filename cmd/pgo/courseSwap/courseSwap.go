@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pancake-lee/pgo/client/swagger"
+	"github.com/pancake-lee/pgo/cmd/pgo/swagger"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
