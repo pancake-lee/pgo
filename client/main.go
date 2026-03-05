@@ -48,6 +48,7 @@ func newRootCommand() *cobra.Command {
 
 	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
 	rootCmd.AddCommand(prettyCode.NewCobraCommand())
+	rootCmd.AddCommand(psql.NewCobraCommand())
 
 	return rootCmd
 }
@@ -70,7 +71,7 @@ func toolsMenuCli() {
 	sel := putil.Interact.NewSelector("开发工具 (Dev Tools)")
 
 	sel.Reg("美化代码 (Pretty Code)", prettyCode.RunInteractive)
-	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Psql)
+	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.RunInteractive)
 	sel.Loop()
 }
 

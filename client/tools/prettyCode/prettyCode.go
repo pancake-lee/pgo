@@ -36,17 +36,14 @@ var defaultIncludeFileExts = []string{"go", "js", "ts"}
 var paramSettingList = []common.ParamItem{
 	{
 		Name:    paramNameRootDir,
-		Prompt:  "Root Directory",
 		Usage:   "root directory to process",
 		Default: putil.GetCurDir(),
 	}, {
 		Name:    paramNameExclude,
-		Prompt:  "Exclude Directories (comma separated)",
 		Usage:   "comma separated exclude directories",
 		Default: strings.Join(defaultExcludeDirs, ","),
 	}, {
 		Name:    paramNameInclude,
-		Prompt:  "Include File Extensions (comma separated)",
 		Usage:   "comma separated file extensions",
 		Default: strings.Join(defaultIncludeFileExts, ","),
 	}}

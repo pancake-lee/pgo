@@ -1,6 +1,8 @@
 package psql
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/pancake-lee/pgo/client/common"
@@ -8,76 +10,158 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
+	"github.com/spf13/cobra"
 )
 
-func Psql() {
+// --------------------------------------------------
+const (
+	paramNameHost     = "host"
+	paramNamePort     = "port"
+	paramNameUser     = "user"
+	paramNameDatabase = "database"
+	paramNameFilename = "filename"
+	paramNameCommand  = "command"
+	cacheKeyPrefix    = "tools.psql."
+)
+
+var paramSettingList = []common.ParamItem{
+	{
+		Name:    paramNameHost,
+		Usage:   "postgres host",
+		Default: "localhost",
+	}, {
+		Name:    paramNamePort,
+		Usage:   "postgres port",
+		Default: "5432",
+	}, {
+		Name:    paramNameUser,
+		Usage:   "postgres user",
+		Default: "root",
+	}, {
+		Name:    paramNameDatabase,
+		Usage:   "postgres database",
+		Default: "postgres",
+	}, {
+		Name:    paramNameFilename,
+		Usage:   "sql file path to execute",
+		Default: "",
+	}, {
+		Name:    paramNameCommand,
+		Usage:   "sql command to execute",
+		Default: "",
+	}}
+
+// --------------------------------------------------
+// 交互式运行
+func RunInteractive() {
 	cachePath := pconfig.GetDefaultCachePath()
+	paramMap := common.GetCachedParamMap(
+		cachePath, cacheKeyPrefix, paramSettingList)
 
-	host := common.GetCachedParam(cachePath,
-		"tools.psql.host",
-		"请输入主机地址 (host): ",
-		"localhost")
-	portStr := common.GetCachedParam(cachePath,
-		"tools.psql.port",
-		"请输入端口号 (port): ",
-		"5432")
+	// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
+	password := putil.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
 
-	port, err := putil.StrToInt32(portStr)
+	err := Run(convParamToRunOpt(paramMap, password))
 	if err != nil {
-		plogger.Errorf("Error: 无效的端口号 %s", portStr)
-		putil.Interact.Input("输入端口号有误，回车返回菜单")
-		return
+		plogger.Errorf("psql failed: %v", err)
+	}
+}
+
+// cobra命令行运行
+func NewCobraCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "psql",
+		Short: "执行 PostgreSQL SQL 命令或脚本",
 	}
 
-	user := common.GetCachedParam(cachePath,
-		"tools.psql.user",
-		"请输入用户名 (user): ",
-		"root")
-	database := common.GetCachedParam(cachePath,
-		"tools.psql.database",
-		"请输入数据库名 (database): ",
-		"postgres")
+	flagRefs := common.RegParamToCobra(cmd, paramSettingList)
+	password := cmd.Flags().String("password", "", "postgres password (optional, fallback to env PGPASSWORD)")
 
-	filename := common.GetCachedParam(cachePath,
-		"tools.psql.filename",
-		"请输入SQL文件路径 (filename): ",
-		"")
+	cmd.RunE = func(cmd *cobra.Command, args []string) error {
+		values := common.ParseParamFromCobra(flagRefs)
+		return Run(convParamToRunOpt(values, *password))
+	}
+	return cmd
+}
 
-	command := common.GetCachedParam(cachePath,
-		"tools.psql.command",
-		"请输入SQL语句 (command): ",
-		"")
+// 直接运行，可以用于GUI集成
+func RunCommand(args []string) error {
+	cmd := NewCobraCommand()
+	cmd.SilenceUsage = true
+	cmd.SetArgs(args)
+	return cmd.Execute()
+}
 
-	// --------------------------------------------------
-	password := putil.Interact.Input("password (可空，空则沿用环境变量PGPASSWORD): ")
+// --------------------------------------------------
+// 运行参数，定义的参数列表最终转换成当前程序使用的运行选项
+
+type RunOptions struct {
+	Host     string
+	PortStr  string
+	User     string
+	Password string
+	Database string
+	Filename string
+	Command  string
+}
+
+// cobra参数值转换为“当前程序的”运行选项
+func convParamToRunOpt(values common.ParamMap, password string) RunOptions {
+	return RunOptions{
+		Host:     values[paramNameHost],
+		PortStr:  values[paramNamePort],
+		User:     values[paramNameUser],
+		Password: password,
+		Database: values[paramNameDatabase],
+		Filename: values[paramNameFilename],
+		Command:  values[paramNameCommand],
+	}
+}
+
+// --------------------------------------------------
+func Run(options RunOptions) error {
+	if options.Host == "" {
+		return errors.New("host is empty")
+	}
+	if options.User == "" {
+		return errors.New("user is empty")
+	}
+	if options.Database == "" {
+		return errors.New("database is empty")
+	}
+
+	port, err := putil.StrToInt32(options.PortStr)
+	if err != nil {
+		return fmt.Errorf("invalid port %q: %w", options.PortStr, err)
+	}
+
+	password := options.Password
 	if password == "" {
 		password = os.Getenv("PGPASSWORD")
 	}
 
 	// --------------------------------------------------
-	err = pdb.InitPG(host, user, password, database, port)
+	err = pdb.InitPG(options.Host, options.User, password, options.Database, port)
 	if err != nil {
-		plogger.Errorf("Error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("init postgres failed: %w", err)
 	}
 
-	if command != "" {
-		plogger.Debugf("sql cmd  [%s]", command)
-		_, err = pdb.Exec(command)
+	if options.Command != "" {
+		plogger.Debugf("sql cmd  [%s]", options.Command)
+		_, err = pdb.Exec(options.Command)
 		if err != nil {
-			plogger.Errorf("Error: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("execute sql command failed: %w", err)
 		}
-		return
+		return nil
 	}
-	if filename != "" {
-		plogger.Debugf("sql file[%s]", filename)
-		err = pdb.ExecFile(filename)
+	if options.Filename != "" {
+		plogger.Debugf("sql file[%s]", options.Filename)
+		err = pdb.ExecFile(options.Filename)
 		if err != nil {
-			plogger.Errorf("Error: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("execute sql file failed: %w", err)
 		}
-		return
+		return nil
 	}
-	plogger.Errorf("Error: either command or file must be provided")
+
+	return errors.New("either command or file must be provided")
 }

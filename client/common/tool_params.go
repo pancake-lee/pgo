@@ -11,7 +11,6 @@ import (
 // 参数定义
 type ParamItem struct {
 	Name    string
-	Prompt  string
 	Usage   string
 	Default string
 }
@@ -54,7 +53,7 @@ func GetCachedParamMap(
 		values[spec.Name] = GetCachedParam(
 			cachePath,
 			cachePrefix+spec.Name,
-			spec.Prompt,
+			spec.Usage,
 			spec.Default)
 	}
 	return values
