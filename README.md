@@ -11,6 +11,9 @@
   - 每次完成一个需求点，我会请你总结“变更内容”到当前文档(readme.md)
   - 你应该按照当前文档的标题结构，分类修改或添加内容
   - 不要单纯追加内容，导致文档无限增长
+- 代码风格以“手动修改代码”为最高优先级
+  - AI在实现需求前，需要先阅读当前相关代码，优先复用你已经手动沉淀的命名、分层、注释和参数组织方式
+  - 当手动代码与历史实现冲突时，以最新手动代码风格为准
 
 ## Features
 
@@ -20,6 +23,9 @@
   - 双模式运行: 统一核心逻辑，支持 CLI (Cobra) 和 GUI (Fyne/Windows) 两种交互方式。
   - All in One 入口: 以 `./client` 作为统一程序入口，统一构建为 `pgo` 可执行程序。
   - 工具聚合菜单: 在连续交互菜单中整合 `genCURD`、`genGORM`、`cmd/pgo` 相关能力。
+  - 命令行入口统一为 Cobra：`runCli -> rootCmd.Execute()`，可直接提供 `help` 指引。
+  - 运行行为约定：命令行无参数进入持续交互菜单；Windows 双击（无参数）保持 GUI；`client.exe cli` 兼容旧入口。
+  - `prettyCode` 已作为样板完成“三入口”改造：`RunInteractive`（交互）、`NewCobraCommand`（命令行）、`Run`（核心执行）。
 - 客户端
   - swagger目录包含了后端接口的生成代码，无需手搓http请求
   - 参考makefile中api-cli命令，可以通过swagger生成其他语言的代码
@@ -163,6 +169,21 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
 - 其他
   - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
   - 入口函数命名: 习惯将 `main` 方法写到 `internal/<module>` 对应模块的同名代码文件中（例如 `internal/bootCheck/bootCheck.go`），而不是 `cmd/` 下。
+
+- 客户端工具开发规则（以当前手动代码为准）
+  - 三层入口固定模式：
+    - `RunInteractive()`：只负责交互采参（可带缓存）。
+    - `NewCobraCommand()`：只负责命令注册与参数解析。
+    - `Run(options)`：只负责核心业务逻辑并返回 `error`。
+  - 参数统一注册，不重复写两套参数：
+    - 统一维护参数列表（如 `[]common.ParamItem`），字段包含 `Name/Prompt/Usage/Default`。
+    - 通过公共方法同时服务 Cobra 与交互输入（如 `RegParamToCobra`、`ParseParamFromCobra`、`GetCachedParamMap`）。
+  - 参数命名与转换分层：
+    - 参数名常量集中定义（如 `paramNameXXX` + `cacheKeyPrefix`）。
+    - 通过单独转换函数（如 `convParamToRunOpt`）把参数映射为运行结构体（`RunOptions`）。
+  - 代码组织风格：
+    - 关键区域使用 `// --------------------------------------------------` 分段。
+    - 注释偏中文、直述意图，先说明“职责”，再写“实现细节”。
 
 #### 4. 工具链细节 (Tooling Insights)
 

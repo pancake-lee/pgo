@@ -2,6 +2,7 @@ package prettyCode
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -14,38 +15,117 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/spf13/cobra"
 )
 
 // 当前只有优化分割线一个功能，后续可以在此增加更多代码美化功能
-func PrettyCode() {
+
+// --------------------------------------------------
+const (
+	paramNameRootDir = "dir"
+	paramNameInclude = "include"
+	paramNameExclude = "exclude"
+	cacheKeyPrefix   = "tools.prettyCode."
+)
+
+// 默认排除的目录和文件模式
+var defaultExcludeDirs = []string{
+	".git", ".vscode", "node_modules", "bin", ".pb.go", "swagger"}
+var defaultIncludeFileExts = []string{"go", "js", "ts"}
+
+var paramSettingList = []common.ParamItem{
+	{
+		Name:    paramNameRootDir,
+		Prompt:  "Root Directory",
+		Usage:   "root directory to process",
+		Default: putil.GetCurDir(),
+	}, {
+		Name:    paramNameExclude,
+		Prompt:  "Exclude Directories (comma separated)",
+		Usage:   "comma separated exclude directories",
+		Default: strings.Join(defaultExcludeDirs, ","),
+	}, {
+		Name:    paramNameInclude,
+		Prompt:  "Include File Extensions (comma separated)",
+		Usage:   "comma separated file extensions",
+		Default: strings.Join(defaultIncludeFileExts, ","),
+	}}
+
+// --------------------------------------------------
+// 交互式运行
+func RunInteractive() {
 	cachePath := pconfig.GetDefaultCachePath()
+	paramMap := common.GetCachedParamMap(
+		cachePath, cacheKeyPrefix, paramSettingList)
 
-	includeFileExtsStr := common.GetCachedInput(cachePath,
-		"tools.prettyCode.includeFileExts",
-		"Include File Extensions (comma separated)",
-		putil.StrListToStr(defaultIncludeFileExts, ","))
+	err := Run(convParamToRunOpt(paramMap))
+	if err != nil {
+		plogger.Errorf("prettyCode failed: %v", err)
+	}
+}
 
-	excludeDirsStr := common.GetCachedInput(cachePath,
-		"tools.prettyCode.excludeDirs",
-		"Exclude Directories (comma separated)",
-		putil.StrListToStr(defaultExcludeDirs, ","))
+// cobra命令行运行
+func NewCobraCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "pretty",
+		Aliases: []string{"prettyCode"},
+		Short:   "美化代码分割线注释",
+	}
 
-	// --------------------------------------------------
-	includeFileExts = putil.StrToStrList(includeFileExtsStr, ",")
-	excludeDirs = putil.StrToStrList(excludeDirsStr, ",")
-	curDir := putil.GetCurDir()
+	flagRefs := common.RegParamToCobra(cmd, paramSettingList)
 
-	// --------------------------------------------------
-	// 显示配置信息
-	plogger.Debugf("Processing files in: %s", curDir)
-	plogger.Debugf("Include extensions : %v", includeFileExts)
-	plogger.Debugf("Exclude directories: %v", excludeDirs)
+	cmd.RunE = func(cmd *cobra.Command, args []string) error {
+		values := common.ParseParamFromCobra(flagRefs)
+		return Run(convParamToRunOpt(values))
+	}
+	return cmd
+}
+
+// 直接运行，可以用于GUI集成
+func RunCommand(args []string) error {
+	cmd := NewCobraCommand()
+	cmd.SilenceUsage = true
+	cmd.SetArgs(args)
+	return cmd.Execute()
+}
+
+// --------------------------------------------------
+// 运行参数，定义的参数列表最终转换成当前程序使用的运行选项
+
+type RunOptions struct {
+	RootDir         string
+	IncludeFileExts []string
+	ExcludeDirs     []string
+}
+
+// cobra参数值转换为“当前程序的”运行选项
+func convParamToRunOpt(values common.ParamMap) RunOptions {
+	rootDir := values[paramNameRootDir]
+	if rootDir == "" {
+		rootDir = putil.GetCurDir()
+	}
+
+	return RunOptions{
+		RootDir:         rootDir,
+		IncludeFileExts: putil.StrToStrList(values[paramNameInclude], ","),
+		ExcludeDirs:     putil.StrToStrList(values[paramNameExclude], ","),
+	}
+}
+
+// --------------------------------------------------
+func Run(options RunOptions) error {
+	if options.RootDir == "" {
+		return errors.New("root dir is empty")
+	}
+	plogger.Debugf("Processing files in: %s", options.RootDir)
+	plogger.Debugf("Include extensions : %v", options.IncludeFileExts)
+	plogger.Debugf("Exclude directories: %v", options.ExcludeDirs)
 
 	// --------------------------------------------------
 	// 初始化 gitignore 处理器
-	initGitignore(curDir)
+	initGitignore(options.RootDir)
 
-	err := filepath.WalkDir(curDir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(options.RootDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -56,15 +136,15 @@ func PrettyCode() {
 		}
 
 		// 只处理特定类型的文件
-		if !isIncludeExt(path) {
+		if !isIncludeExt(path, options.IncludeFileExts) {
 			return nil
 		}
 
-		if isExcludeFile(path, curDir) {
+		if isExcludeFile(path, options.RootDir) {
 			return nil
 		}
 
-		if isExcludeDir(path) {
+		if isExcludeDir(path, options.ExcludeDirs) {
 			return nil
 		}
 
@@ -72,8 +152,10 @@ func PrettyCode() {
 	})
 
 	if err != nil {
-		plogger.Debugf("Error walking directory: %v", err)
+		return fmt.Errorf("walk dir failed: %w", err)
 	}
+
+	return nil
 }
 
 // --------------------------------------------------
@@ -81,6 +163,7 @@ var gitignoreHandler *ignore.GitIgnore
 
 // 初始化 gitignore 处理器
 func initGitignore(rootDir string) {
+	gitignoreHandler = nil
 	gitignorePath := filepath.Join(rootDir, ".gitignore")
 	_, err := os.Stat(gitignorePath)
 	if err != nil {
@@ -114,22 +197,13 @@ func isExcludeFile(filePath, rootDir string) bool {
 }
 
 // --------------------------------------------------
-var defaultIncludeFileExts = []string{"go", "js", "ts"}
-
-// 默认排除的目录和文件模式
-var defaultExcludeDirs = []string{".git", ".vscode", "node_modules", "bin", ".pb.go", "swagger"}
-
-// 运行时使用的排除规则
-var includeFileExts []string
-var excludeDirs []string
-
-func isExcludeDir(path string) bool {
+func isExcludeDir(path string, excludeDirs []string) bool {
 	return slices.ContainsFunc(excludeDirs, func(excludeDir string) bool {
 		return strings.HasPrefix(path, excludeDir)
 	})
 }
 
-func isIncludeExt(path string) bool {
+func isIncludeExt(path string, includeFileExts []string) bool {
 	e := filepath.Ext(path)
 	e = strings.TrimPrefix(e, ".")
 	return slices.Contains(includeFileExts, e)

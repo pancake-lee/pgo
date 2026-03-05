@@ -21,11 +21,11 @@ type DeployConfig struct {
 func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
 
-	sshHost := common.GetCachedInput(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
-	sshPort := common.GetCachedInput(cachePath, "deploy.ssh.port", "SSH Port", "22")
-	sshUser := common.GetCachedInput(cachePath, "deploy.ssh.user", "SSH User", "root")
-	sshPass := common.GetCachedInput(cachePath, "deploy.ssh.pass", "SSH Password", "")
-	remoteRoot := common.GetCachedInput(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
+	sshHost := common.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
+	sshPort := common.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
+	sshUser := common.GetCachedParam(cachePath, "deploy.ssh.user", "SSH User", "root")
+	sshPass := common.GetCachedParam(cachePath, "deploy.ssh.pass", "SSH Password", "")
+	remoteRoot := common.GetCachedParam(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
 
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
 	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)

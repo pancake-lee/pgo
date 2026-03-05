@@ -27,20 +27,17 @@ import (
 )
 
 func runApp() {
-	// windows下通过 client.exe cli 参数启动命令行模式
-	isCli := false
-	for _, arg := range os.Args[1:] {
-		if arg == "cli" {
-			isCli = true
-			break
-		}
+	if len(os.Args) == 1 {
+		runUI()
+		return
 	}
 
-	if isCli {
-		runCli()
-	} else {
-		runUI()
+	// 兼容历史模式: client.exe cli
+	if os.Args[1] == "cli" {
+		os.Args = append(os.Args[:1], os.Args[2:]...)
 	}
+
+	runCli()
 }
 
 func runUI() {

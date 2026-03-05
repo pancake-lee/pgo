@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"os"
 
 	"github.com/pancake-lee/pgo/client/courseSwap"
 	"github.com/pancake-lee/pgo/client/devops"
@@ -9,6 +9,7 @@ import (
 	"github.com/pancake-lee/pgo/client/tools/psql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
+	"github.com/spf13/cobra"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -16,14 +17,42 @@ func main() {
 	runApp()
 }
 
-func runCli() {
-	logToConsole := flag.Bool("l", false, "log to console")
-	flag.Parse()
-
-	// 初始化日志
+func initLogger(logToConsole bool) {
 	plogger.SetJsonLog(false)
-	plogger.InitLogger(*logToConsole, zapcore.DebugLevel, "./logs/")
+	plogger.InitLogger(logToConsole, zapcore.DebugLevel, "./logs/")
+}
 
+func runCli() {
+	rootCmd := newRootCommand()
+	if err := rootCmd.Execute(); err != nil {
+		putil.Interact.Errorf("命令执行失败: %v", err)
+		os.Exit(1)
+	}
+}
+
+func newRootCommand() *cobra.Command {
+	var logToConsole bool
+
+	rootCmd := &cobra.Command{
+		Use:          "pgo",
+		Short:        "PGO all-in-one client",
+		SilenceUsage: true,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			initLogger(logToConsole)
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			runInteractiveMenu()
+			return nil
+		},
+	}
+
+	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
+	rootCmd.AddCommand(prettyCode.NewCobraCommand())
+
+	return rootCmd
+}
+
+func runInteractiveMenu() {
 	// --------------------------------------------------
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
 	sel.Reg("Devops CI", devops.MakeCli)
@@ -40,7 +69,7 @@ func runCli() {
 func toolsMenuCli() {
 	sel := putil.Interact.NewSelector("开发工具 (Dev Tools)")
 
-	sel.Reg("美化代码 (Pretty Code)", prettyCode.PrettyCode)
+	sel.Reg("美化代码 (Pretty Code)", prettyCode.RunInteractive)
 	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Psql)
 	sel.Loop()
 }

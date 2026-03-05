@@ -13,11 +13,11 @@ import (
 func Psql() {
 	cachePath := pconfig.GetDefaultCachePath()
 
-	host := common.GetCachedInput(cachePath,
+	host := common.GetCachedParam(cachePath,
 		"tools.psql.host",
 		"请输入主机地址 (host): ",
 		"localhost")
-	portStr := common.GetCachedInput(cachePath,
+	portStr := common.GetCachedParam(cachePath,
 		"tools.psql.port",
 		"请输入端口号 (port): ",
 		"5432")
@@ -29,21 +29,21 @@ func Psql() {
 		return
 	}
 
-	user := common.GetCachedInput(cachePath,
+	user := common.GetCachedParam(cachePath,
 		"tools.psql.user",
 		"请输入用户名 (user): ",
 		"root")
-	database := common.GetCachedInput(cachePath,
+	database := common.GetCachedParam(cachePath,
 		"tools.psql.database",
 		"请输入数据库名 (database): ",
 		"postgres")
 
-	filename := common.GetCachedInput(cachePath,
+	filename := common.GetCachedParam(cachePath,
 		"tools.psql.filename",
 		"请输入SQL文件路径 (filename): ",
 		"")
 
-	command := common.GetCachedInput(cachePath,
+	command := common.GetCachedParam(cachePath,
 		"tools.psql.command",
 		"请输入SQL语句 (command): ",
 		"")
