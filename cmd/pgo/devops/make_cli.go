@@ -42,6 +42,7 @@ func MakeCli() {
 	// 1. Configure Variables (First)
 	currentVars := make(map[string]string)
 	cachePath := pconfig.GetDefaultCachePath()
+	putil.Interact.Infof("using cache file: %v", cachePath)
 
 	if len(vars) > 0 {
 		putil.Interact.Infof("Configure Variables (Press Enter to use Default)")

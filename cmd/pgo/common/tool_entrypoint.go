@@ -5,6 +5,7 @@ import (
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +38,7 @@ func NewToolEntrypoint(option ToolEntrypointOption) *ToolEntrypoint {
 
 func (x *ToolEntrypoint) RunInteractive() {
 	cachePath := pconfig.GetDefaultCachePath()
+	putil.Interact.Infof("using cache file: %v", cachePath)
 	values := GetCachedParamMap(
 		cachePath,
 		x.option.CacheKeyPrefix,

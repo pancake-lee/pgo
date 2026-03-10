@@ -18,8 +18,16 @@ type DeployConfig struct {
 	Exclude []string          `json:"exclude"`
 }
 
+type DeployConflict struct {
+	LocalPath  string
+	RemotePath string
+	LocalMD5   string
+	RemoteMD5  string
+}
+
 func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
+	putil.Interact.Infof("using cache file: %v", cachePath)
 
 	sshHost := common.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
 	sshPort := common.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
@@ -55,6 +63,7 @@ func DeployCli() {
 
 func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 	dstRootPath := putil.NewPath(remoteRoot)
+	var conflictList []DeployConflict
 
 	cfg, err := loadDeployConfig()
 	if err != nil {
@@ -99,7 +108,11 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 
 					ph := putil.NewPathS(path).CutPrefix(srcPath.GetPath())
 					dstPath := dstRootPath.Clone().Join(dst).Join(ph.GetPath())
-					return deployOneFile(sshCli, path, dstPath.GetPath())
+					conflict, err := deployOneFile(sshCli, path, dstPath.GetPath())
+					if conflict != nil {
+						conflictList = append(conflictList, *conflict)
+					}
+					return err
 				})
 			if err != nil {
 				putil.Interact.Errorf("Failed to deploy directory %s: %v",
@@ -114,7 +127,10 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 			}
 
 			dstPath := dstRootPath.Clone().Join(dst)
-			err := deployOneFile(sshCli, srcPath.GetPath(), dstPath.GetPath())
+			conflict, err := deployOneFile(sshCli, srcPath.GetPath(), dstPath.GetPath())
+			if conflict != nil {
+				conflictList = append(conflictList, *conflict)
+			}
 			if err != nil {
 				putil.Interact.Errorf("Failed to deploy file %s: %v",
 					srcPath.GetPath(), err)
@@ -123,7 +139,16 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 		}
 	}
 
-	putil.Interact.Infof("All files deployed successfully.")
+	if len(conflictList) == 0 {
+		putil.Interact.Infof("All files deployed successfully.")
+	} else {
+		putil.Interact.Warnf("Deployment completed with %d skipped files (remote exists and MD5 mismatch):", len(conflictList))
+		for _, c := range conflictList {
+			putil.Interact.Warnf("SKIPPED: %s -> %s", c.LocalPath, c.RemotePath)
+			putil.Interact.Warnf("  Remote: %s", c.RemoteMD5)
+			putil.Interact.Warnf("  Local : %s", c.LocalMD5)
+		}
+	}
 
 	// 5. Run Docker Compose
 	autoRun := putil.Interact.
@@ -209,7 +234,7 @@ func matchExcludeRule(srcPath, rule string) bool {
 	return false
 }
 
-func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error {
+func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) (*DeployConflict, error) {
 	putil.Interact.Infof("Checking %s -> %s", localPath, remotePath)
 
 	md5Cmd := fmt.Sprintf("md5sum '%s'", remotePath)
@@ -229,27 +254,29 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) error 
 	if remoteExists {
 		localMd5, err := putil.GetFileMd5(localPath)
 		if err != nil {
-			return fmt.Errorf("local md5 fail: %w", err)
+			return nil, fmt.Errorf("local md5 fail: %w", err)
 		}
 
 		if localMd5 == remoteMd5 {
 			putil.Interact.Infof("  Skipped (MD5 Match)")
-			return nil
+			return nil, nil
 		}
 
-		putil.Interact.Warnf("CONFLICT: MD5 Mismatch for %s", remotePath)
-		putil.Interact.Warnf("Remote: %s", remoteMd5)
-		putil.Interact.Warnf("Local : %s", localMd5)
-		putil.Interact.Errorf("Interrupting deployment as per configuration.")
-		return fmt.Errorf("conflict detected for %s", remotePath)
+		putil.Interact.Warnf("  Skipped (Remote exists and MD5 mismatch)")
+		return &DeployConflict{
+			LocalPath:  localPath,
+			RemotePath: remotePath,
+			LocalMD5:   localMd5,
+			RemoteMD5:  remoteMd5,
+		}, nil
 	}
 
 	putil.Interact.Infof("  Copying...")
 	if err := sshCli.Scp(localPath, remotePath); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return nil, nil
 }
 
 // --------------------------------------------------
