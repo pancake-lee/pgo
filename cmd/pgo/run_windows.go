@@ -21,7 +21,7 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/pancake-lee/pgo/client/courseSwap"
+	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )

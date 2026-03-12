@@ -14,6 +14,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.7.2
 	github.com/go-mysql-org/go-mysql v1.13.0
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/kataras/iris/v12 v12.2.11
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
@@ -22,6 +23,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/rs/cors v1.11.1
 	github.com/satori/go.uuid v1.2.0
+	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/cobra v1.9.1
 	github.com/xuri/excelize/v2 v2.9.0
 	go.uber.org/automaxprocs v1.5.1
@@ -64,7 +66,6 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/assert/v2 v2.2.0 // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-text/render v0.2.0 // indirect
 	github.com/go-text/typesetting v0.2.1 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
@@ -110,7 +111,6 @@ require (
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rymdport/portal v0.4.2 // indirect
-	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726 // indirect
 	github.com/siddontang/go-log v0.0.0-20180807004314-8d05993dda07 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect

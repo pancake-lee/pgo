@@ -10,6 +10,7 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
@@ -55,6 +56,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
 
 	return rootCmd
 }
@@ -80,6 +82,7 @@ func toolsMenuCli() {
 	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Entrypoint.RunInteractive)
 	sel.Reg("生成CURD代码 (cmd/pgo curd)", genCURD.Entrypoint.RunInteractive)
 	sel.Reg("生成GORM代码 (cmd/pgo gorm)", genGORM.Entrypoint.RunInteractive)
+	sel.Reg("多维表格转MySQL建表SQL (cmd/pgo sheet2mysql)", sheet2mysql.Entrypoint.RunInteractive)
 	sel.Loop()
 }
 
