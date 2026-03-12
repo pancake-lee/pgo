@@ -35,6 +35,11 @@
   - psql：连接 PostgreSQL 并执行 SQL 语句或 SQL 文件
     - 自己实现的重要原因是官方psql不能参数输入密码，不方便嵌入到自动化流程中
     - 后来才发现可以环境变量输入，不过已经实现好了，就当减少一个依赖吧
+  - sheet2mysql：读取 APITable 表结构并生成 MySQL 建表 SQL
+    - 支持多维表格前端建模（APITable），自动转换表名与字段名为拼音标识符
+    - 参数支持 config 回填：当 url/spaceId/token 参数为空时，从配置文件中自动读取
+    - 生成逻辑简化：始终生成 `DROP TABLE IF EXISTS`，始终跳过计算列（公式/引用/按钮）
+    - 输出到指定文件夹，文件名由表名自动生成（格式：`<resolvedTableName>.sql`）
 - sdk
   - swagger目录包含了后端接口的生成代码，无需手搓http请求
   - 参考makefile中api-cli命令，可以通过swagger生成其他语言的代码
@@ -187,6 +192,9 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
 - 变量命名:
   - 列表/切片后缀使用 `List` (e.g., `userRoleList`, `permissionList`)。
   - Map 结构后缀使用 `Map` (e.g., `roleIDMap`, `permissionMap`)。
+- Go 代码格式化:
+  - 代码逻辑修改时不需要纠结缩进/对齐等格式问题，先直接改逻辑。
+  - 改完后统一使用 `gofmt -w <file>` 处理格式，不用手写脚本修改格式。
 - 测试 (Testing):
   - 编写集成测试 (Integration Tests) 验证 Service 层逻辑。
   - 数据清理: 使用 `defer` 配合清理函数 (e.g., `defer testDelUser(...)`) 移除测试数据。
@@ -210,9 +218,14 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
   - 参数命名与转换分层：
     - 参数名常量集中定义（如 `paramNameXXX` + `cacheKeyPrefix`）。
     - 通过单独转换函数（如 `convParamToRunOpt`）把参数映射为运行结构体（`RunOptions`）。
+  - 参数 config 回填设计：
+    - 特定工具可添加 `config` 参数（指向配置文件路径），当某些参数（如 token、baseUrl、spaceId）为空时，从配置文件中自动读取。
+    - 配置读取示例：检查 `configPath != ""` 且参数为空，则调用 `pconfig.InitConfig(configPath)` 再用 `pconfig.GetStringD()` 读指定 key。
+    - 回填优先级：CLI 参数 > config 文件 > 代码默认值（如默认 `baseUrl="https://aitable.ai"`）。
   - 代码组织风格：
     - 关键区域使用 `// --------------------------------------------------` 分段。
     - 注释偏中文、直述意图，先说明“职责”，再写“实现细节”。
+    - 参数列表拆分时优先按功能组（如认证参数、输出参数），保持 `ParamItem` 声明的可读性。
 
 #### 4. 工具链细节 (Tooling Insights)
 
