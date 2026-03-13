@@ -16,6 +16,7 @@
 - 代码风格以“手动修改代码”为最高优先级
   - AI在实现需求前，需要先阅读当前相关代码，优先复用你已经手动沉淀的命名、分层、注释和参数组织方式
   - 当手动代码与历史实现冲突时，以最新手动代码风格为准
+- 本文的TODO中，已完成的功能从TODO删掉，功能适当写到合适的地方，而不是在TODO中描述实现的功能
 
 ## Features
 
@@ -49,6 +50,12 @@
     - 则make命令不再是死记硬背，而是命令行交互选择功能
     - 参数可以交互式输入，然后记录到缓存文件，下次询问更改或使用旧值
       - 如生成orm代码所需要的数据库host/port/user/pass等
+  - Init Project
+    - 提供`initProj`初始化能力：从当前仓库抽取新项目基础骨架到目标目录。
+    - 拷贝列表配置化：由`deploy/initProj.json`维护`files`与`exclude`，无需改代码即可调整初始化内容。
+    - 安全策略：不自动删除目标目录内容；若检测到目标文件冲突则打印冲突列表并中断，交由用户手动处理。
+    - 模块初始化：不拷贝`go.mod/go.sum`，在目标目录执行`go mod init <目标目录名>`与`go mod tidy`。
+    - 拷贝后文本修正：按目标目录名替换导入前缀，包含`github.com/pancake-lee/pgo/internal` -> `<目标模块>/internal`与`github.com/pancake-lee/pgo/api` -> `<目标模块>/api`。
 - CD
   - 提供首次部署容器的能力
     - 由./deploy/deploy.json定义部署需要的文件列表，kv记录src和远程dst路径映射
@@ -149,7 +156,6 @@
   - 控的方面更加倾向于用client来承载，同样使用corba交互操作
     - corba似乎更多是命令行执行，但不是连续交互的性质，可能要换库
 - 对于其他项目想要采用该项目的开发模式
-  - 需要一个初始化脚本，初始化abandonCode和third_party等
   - bootCheck不要依赖orm，才能用于其他项目
 
 ## AI PROMPT
