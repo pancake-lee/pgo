@@ -1,0 +1,22 @@
+{
+    "files": {
+        ".gitignore": ".gitignore",
+        "Makefile": "Makefile",
+
+        "third_party/": "third_party/",
+
+        "internal/pkg/perr/": "internal/pkg/perr/",
+        "internal/pkg/db/db.go": "internal/pkg/db/db.go",
+        "internal/pkg/db/abandon_code.sql": "internal/pkg/db/abandon_code.sql",
+
+        "internal/abandonCodeService/": "internal/abandonCodeService/",
+
+        "proto/abandonCode.proto": "proto/abandonCode.proto",
+        "proto/common.proto": "proto/common.proto",
+        "proto/error_reason.proto": "proto/error_reason.proto",
+
+        "configs/common.yaml": "configs/common.yaml",
+        "deploy/initReadme.md": "readme.md"
+    },
+    "exclude": []
+}

@@ -18,6 +18,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/kataras/iris/v12 v12.2.11
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/pkg/sftp v1.13.10
 	github.com/pterm/pterm v0.12.82
 	github.com/rabbitmq/amqp091-go v1.10.0

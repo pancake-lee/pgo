@@ -57,6 +57,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(devops.InitProjEntrypoint.NewCobraCommand())
 
 	return rootCmd
 }
@@ -64,7 +65,7 @@ func newRootCommand() *cobra.Command {
 func runInteractiveMenu() {
 	// --------------------------------------------------
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
-	sel.Reg("Devops CI", devops.MakeCli)
+	sel.Reg("Devops CI", devops.CICli)
 	sel.Reg("Devops CD", devops.DeployCli)
 	sel.Reg("开发工具 (Dev Tools)", toolsMenuCli)
 

@@ -20,5 +20,6 @@
             "database": "pgo",
             "username": "pgo"
         }
-    ]
+    ],
+    "protobuf.protoc.path": "/usr/local/bin/protoc"
 }

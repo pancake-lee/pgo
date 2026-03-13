@@ -48,6 +48,7 @@ help:
 env:
 # wget https://github.com/protocolbuffers/protobuf/releases/download/v28.1/protoc-28.1-linux-x86_64.zip
 # unzip protoc-28.1-linux-x86_64.zip -d /usr/local
+# rm -f rm protoc-28.1-linux-x86_64.zip
 # go env -w GOPROXY=https://goproxy.cn,direct
 # git config core.autocrlf false
 # git config core.eol lf
@@ -58,6 +59,8 @@ env:
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
 	go install gorm.io/gen/tools/gentool@latest
+	go install github.com/pancake-lee/pgo/cmd/pgo
+# 	go install ./cmd/pgo
 	go mod tidy
 
 .PHONY: api
@@ -88,9 +91,10 @@ gorm:
 	rm -rf ${dbCodePath}/model/
 	rm -rf ${dbCodePath}/query/
 	
-# 	gentool \
-
-	go run ./cmd/pgo/ genGORM \
+	
+# 	最初用的是GORM的[gentool]，后来因为前后还要嵌入我自己的逻辑，
+#   就集成到pgo里了，底层依然调用了gentool，make env 中安装了 pgo
+	pgo genGORM \
 		-db mysql \
 		-dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local" \
 		-outPath ${dbCodePath}/query/ \
@@ -113,7 +117,7 @@ reInitDB:
 .PHONY: curd
 # 根据数据库生成 CURD 代码
 curd:
-	go run ./cmd/pgo/ genCURD -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local"
+	pgo genCURD -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local"
 
 .PHONY: build
 # build
