@@ -20,7 +20,6 @@ type mysqlColumn struct {
 	SourceType  papitable.FieldType
 	Name        string
 	Type        string
-	Nullable    bool
 	DefaultExpr string
 	Comment     string
 }
@@ -55,7 +54,7 @@ func BuildMysqlCreateTableSQL(tableNameRaw string,
 	sb.WriteString("CREATE TABLE IF NOT EXISTS `")
 	sb.WriteString(tableName)
 	sb.WriteString("` (\n")
-	sb.WriteString("  `id` INT NOT NULL AUTO_INCREMENT,\n")
+	sb.WriteString("  `id` int NOT NULL AUTO_INCREMENT,\n")
 	sb.WriteString("  `last_edit_from` varchar(200) NOT NULL DEFAULT \"\" COMMENT \"ltbl/mtbl, 避免循环触发同步逻辑\",\n\n")
 
 	for _, c := range columnList {
@@ -63,11 +62,7 @@ func BuildMysqlCreateTableSQL(tableNameRaw string,
 		sb.WriteString(c.Name)
 		sb.WriteString("` ")
 		sb.WriteString(c.Type)
-		if c.Nullable {
-			sb.WriteString(" NULL")
-		} else {
-			sb.WriteString(" NOT NULL")
-		}
+		sb.WriteString(" NOT NULL")
 		if c.DefaultExpr != "" {
 			sb.WriteString(" DEFAULT ")
 			sb.WriteString(c.DefaultExpr)
@@ -129,14 +124,16 @@ func buildColumnList(fieldList []*papitable.Field,
 			warningList = append(warningList, warning)
 		}
 
-		nullable, defaultExpr := inferColumnNullAndDefault(colType)
+		defaultExpr := ""
+		if strings.HasPrefix(colType, "varchar") || colType == "text" {
+			defaultExpr = "\"\""
+		}
 
 		columnList = append(columnList, &mysqlColumn{
 			SourceName:  field.Name,
 			SourceType:  field.Type,
 			Name:        colName,
 			Type:        colType,
-			Nullable:    nullable,
 			DefaultExpr: defaultExpr,
 			Comment:     fmt.Sprintf("source[%s/%s]", field.Name, field.Type),
 		})
@@ -145,14 +142,16 @@ func buildColumnList(fieldList []*papitable.Field,
 	return columnList, warningList, nil
 }
 
+// TODO 要逐个测试整个链路每一层的解析情况
 func mapFieldToMysqlType(field *papitable.Field) (mysqlType string, warning string) {
 	switch field.Type {
 	case papitable.FIELD_TYPE_TEXT:
 		return "varchar(255)", ""
 	case papitable.FIELD_TYPE_SINGLE_SELECT:
-		return "varchar(191)", ""
+		// TODO 枚举值动态从列配置中获取，然后记录到一个公共的枚举值kv表，在用id/key关联数据，才能应对apitable直接修改列配置的情况
+		return "varchar(255)", "" // 字符串
 	case papitable.FIELD_TYPE_MULTI_SELECT:
-		return "json", ""
+		return "varchar(255)", "" // 逗号分割的字符串
 	case papitable.FIELD_TYPE_NUMBER:
 		scale := readPrecision(field.Property, 0)
 		return decimalType(scale), ""
@@ -165,10 +164,10 @@ func mapFieldToMysqlType(field *papitable.Field) (mysqlType string, warning stri
 	case papitable.FIELD_TYPE_DATE_TIME,
 		papitable.FIELD_TYPE_CREATED_TIME,
 		papitable.FIELD_TYPE_LAST_MODIFIED_TIME:
-		return "datetime(3)", ""
+		return "datetime(3)", "" // 毫秒精度时间戳
 	case papitable.FIELD_TYPE_ATTACHMENT,
 		papitable.FIELD_TYPE_MEMBER,
-		papitable.FIELD_TYPE_ONE_WAY_LINK,
+		papitable.FIELD_TYPE_ONE_WAY_LINK, //TODO 能否通过列配置获取对应哪个表的数据？
 		papitable.FIELD_TYPE_TWO_WAY_LINK,
 		papitable.FIELD_TYPE_MAGIC_LOOKUP,
 		papitable.FIELD_TYPE_CREATED_BY,
@@ -345,14 +344,6 @@ func convertChineseToPinyin(raw string) (string, error) {
 	}
 
 	return sb.String(), nil
-}
-
-func inferColumnNullAndDefault(colType string) (nullable bool, defaultExpr string) {
-	lower := strings.ToLower(colType)
-	if strings.HasPrefix(lower, "varchar") || lower == "text" {
-		return false, "\"\""
-	}
-	return true, ""
 }
 
 func escapeSQLComment(comment string) string {

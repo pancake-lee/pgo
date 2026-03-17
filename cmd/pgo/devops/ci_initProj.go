@@ -23,11 +23,11 @@ const (
 var initProjParamSettingList = []common.ParamItem{{
 	Name:    paramNameSrcRoot,
 	Usage:   "source project root",
-	Default: ".",
+	Default: ".", // TODO 要从github拉去文件，而不是本地
 }, {
 	Name:    paramNameDstRoot,
 	Usage:   "destination project root",
-	Default: "../in3",
+	Default: ".",
 }}
 
 var InitProjEntrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{

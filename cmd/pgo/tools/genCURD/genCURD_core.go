@@ -209,7 +209,12 @@ func runGenerate(dsn string) error {
 		return err
 	}
 
-	return genServiceCode(tblMap, tplTable)
+	err = genServiceCode(tblMap, tplTable)
+	if err != nil {
+		return err
+	}
+
+	return genMainCode(tblMap, tplTable)
 }
 
 func runMakeApi() error {
@@ -265,20 +270,20 @@ func rmAllGenFile() error {
 }
 
 func inferServiceName(tableName string) string {
-	if strings.HasPrefix(tableName, "task") {
-		return "task"
-	}
-	if strings.HasPrefix(tableName, "course") {
-		return "school"
-	}
-	if strings.HasPrefix(tableName, "abandon") {
-		return "abandonCode"
-	}
-	if strings.HasPrefix(tableName, "user") {
-		return "user"
-	}
-	if strings.HasPrefix(tableName, "proj") {
-		return "user"
-	}
+	// if strings.HasPrefix(tableName, "task") {
+	// 	return "task"
+	// }
+	// if strings.HasPrefix(tableName, "course") {
+	// 	return "school"
+	// }
+	// if strings.HasPrefix(tableName, "abandon") {
+	// 	return "abandonCode"
+	// }
+	// if strings.HasPrefix(tableName, "user") {
+	// 	return "user"
+	// }
+	// if strings.HasPrefix(tableName, "proj") {
+	// 	return "user"
+	// }
 	return "default"
 }

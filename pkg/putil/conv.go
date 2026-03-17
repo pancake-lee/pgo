@@ -582,15 +582,3 @@ func strToUTF8(str string) (string, error) {
 	// 如果没有找到合适的编码，返回错误
 	return str, fmt.Errorf("unknown encoding")
 }
-
-// --------------------------------------------------
-// snake_case
-// lowerCamelCase
-// UpperCamelCase
-
-func StrToUpperCamelCase(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToUpper(string(s[0])) + s[1:]
-}

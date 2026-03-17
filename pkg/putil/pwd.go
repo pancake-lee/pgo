@@ -56,7 +56,7 @@ func GetCurDir() string {
 	if err != nil {
 		return ""
 	}
-	return currentDir
+	return currentDir + "/"
 }
 
 func GetCallerFuncName(skip int) string {

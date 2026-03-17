@@ -26,3 +26,13 @@ func StrPrefixByNum(str string, num int) string {
 	}
 	return str[:num]
 }
+
+func StrToUpperCamelCase(s string) string {
+	return StrFirstToUpper(StrToCamelCase(s))
+}
+
+func StrToLowerCamelCase(s string) string {
+	return StrFirstToLower(StrToCamelCase(s))
+}
+
+// snake_case

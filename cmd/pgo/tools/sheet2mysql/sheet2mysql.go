@@ -82,7 +82,7 @@ type RunOptions struct {
 // cobra参数值转换为“当前程序的”运行选项
 func convParamToRunOpt(values common.ParamMap) (RunOptions, error) {
 	datasheetID := strings.TrimSpace(values[paramNameDatasheetID])
-	if true { // just for test
+	if true && datasheetID == "" { // just for test
 		datasheetID = "dstaBbsMatBLqc84Bh"
 	}
 
