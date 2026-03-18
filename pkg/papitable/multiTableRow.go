@@ -209,6 +209,15 @@ func (doc *MultiTableDoc) iAddRow(rows []*AddRecord) ([]*CommonRecord, error) {
 
 // --------------------------------------------------
 func (doc *MultiTableDoc) EditRow(rows []*UpdateRecord) error {
+	rows, err := doc.filterEditableUpdateRows(rows)
+	if err != nil {
+		return plogger.LogErr(err)
+	}
+	if len(rows) == 0 {
+		plogger.Debugf("EditRow skip, no editable field to update")
+		return nil
+	}
+
 	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/records", g_baseUrl, doc.DatasheetId)
 
 	// 构建请求体
@@ -240,6 +249,77 @@ func (doc *MultiTableDoc) EditRow(rows []*UpdateRecord) error {
 	}
 
 	return nil
+}
+
+func (doc *MultiTableDoc) filterEditableUpdateRows(rows []*UpdateRecord) ([]*UpdateRecord, error) {
+	if len(rows) == 0 {
+		return nil, nil
+	}
+
+	colList, err := doc.GetCols()
+	if err != nil {
+		return nil, err
+	}
+
+	nonEditableTypeMap := map[FieldType]struct{}{
+		FIELD_TYPE_MAGIC_LOOKUP:       {},
+		FIELD_TYPE_FORMULA:            {},
+		FIELD_TYPE_AUTO_NUMBER:        {},
+		FIELD_TYPE_CREATED_TIME:       {},
+		FIELD_TYPE_LAST_MODIFIED_TIME: {},
+		FIELD_TYPE_CREATED_BY:         {},
+		FIELD_TYPE_LAST_MODIFIED_BY:   {},
+		FIELD_TYPE_BUTTON:             {},
+	}
+
+	nonEditableFieldNameMap := make(map[string]FieldType)
+	nonEditableFieldIDMap := make(map[string]FieldType)
+	for _, col := range colList {
+		if col == nil {
+			continue
+		}
+		if _, ok := nonEditableTypeMap[col.Type]; !ok {
+			continue
+		}
+
+		nonEditableFieldNameMap[col.Name] = col.Type
+		nonEditableFieldIDMap[col.Id] = col.Type
+	}
+
+	ret := make([]*UpdateRecord, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+
+		editableFields := make(map[string]any, len(row.Fields))
+		for k, v := range row.Fields {
+			if fieldType, ok := nonEditableFieldNameMap[k]; ok {
+				plogger.Debugf("EditRow skip readonly field[%s], type[%s], recordId[%s]",
+					k, fieldType, row.RecordId)
+				continue
+			}
+			if fieldType, ok := nonEditableFieldIDMap[k]; ok {
+				plogger.Debugf("EditRow skip readonly field[%s], type[%s], recordId[%s]",
+					k, fieldType, row.RecordId)
+				continue
+			}
+
+			editableFields[k] = v
+		}
+
+		if len(editableFields) == 0 {
+			plogger.Debugf("EditRow skip recordId[%s], all fields readonly", row.RecordId)
+			continue
+		}
+
+		ret = append(ret, &UpdateRecord{
+			RecordId: row.RecordId,
+			Fields:   editableFields,
+		})
+	}
+
+	return ret, nil
 }
 
 // --------------------------------------------------
