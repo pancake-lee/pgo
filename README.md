@@ -102,7 +102,7 @@
 
 - 全流程自动化开发 (DB-First)
   - SQL定义优先: 编写 SQL 脚本后，通过 `make gorm` 自动生成 GORM 模型代码。
-  - 代码生成器 (`tools/genCURD`): 根据数据库 Schema 自动生成 Proto 定义、gRPC/HTTP 桩代码、Service 业务层及 Data 数据层的基础 CRUD 代码。
+  - 代码生成器 (`tools/genCURD`): 根据数据库 Schema 自动生成 Proto 定义、gRPC/HTTP 桩代码、Service 业务层、Data 数据层基础 CRUD 代码，以及服务入口 main 文件（基于 `abandonCode` 模板替换生成）。
   - SDK 自动构建: 支持 `make api-cli` 基于 OpenAPI 规范自动生成 Go 语言客户端 SDK。
 
 - 多维表格驱动的混合开发模式（探索中）
@@ -110,6 +110,7 @@
   - 已实现:
     - 基于 MySQL 表结构自动生成 ORM 与基础 CRUD 代码（`make gorm` + `genCURD`）。
     - 已沉淀多维表格集成能力（`pkg/papitable`）与回调同步模块（`ltblCallback` / `mtblCallback`）。
+    - BaseDataProvider 接口代理设计：所有 DataProvider 方法调用通过代理分发，子类可覆盖任意方法实现自定义逻辑（调用 `BindProvider()` 绑定子类实例）。
   - TODO:
     - 增加“多维表格结构 -> MySQL 表结构”生成工具，打通反向建模链路。
     - 补齐双向同步中的冲突处理、幂等与回环抑制策略，降低数据一致性风险。
@@ -174,7 +175,7 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
 - 代码生成 (Code Generation):
   - 使用自定义工具 `genCURD` (`go run ./tools/genCURD/`)。
   - 该工具通过反射 (`reflect`) 读取数据库表结构和索引信息。
-  - 自动生成内容：Proto 定义 (`proto/`)、gRPC/HTTP 桩代码 (`api/`)、Service 层基础 CRUD (`z_svc_*.gen.go`)、Data 层基础 CRUD (`z_dao_*.gen.go`)。
+  - 自动生成内容：Proto 定义 (`proto/`)、gRPC/HTTP 桩代码 (`api/`)、Service 层基础 CRUD (`z_svc_*.gen.go`)、Data 层基础 CRUD (`z_dao_*.gen.go`)、服务入口 main 文件（`internal/<service>Service/<service>Service.go`）。
   - 注意: 以 `z_` 开头 `gen.go`结尾的文件为自动生成，禁止手动修改。
 - 自定义逻辑 (Custom Logic):
   - 在 `proto/` 中定义非 CRUD 的额外 RPC 接口。
@@ -209,6 +210,7 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
   - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
   - 入口函数命名: 习惯将 `main` 方法写到 `internal/<module>` 对应模块的同名代码文件中（例如 `internal/bootCheck/bootCheck.go`），而不是 `cmd/` 下。
   - 类型抽象: 非复杂场景优先用基础类型组合，避免为简单函数签名额外定义 `type`；仅在复用明显或封装语义明确时再抽象。
+  - 接口嵌入与代理：当使用"基础类+接口"模式时，若需要支持子类方法覆盖，让基础类通过接口代理（内部字段持有 DataProvider 接口）而非直接调用 self 方法。子类初始化后调用 `BindProvider(self)` 完成绑定。
 
 - 客户端工具开发规则（以当前手动代码为准）
   - 入口统一为“单例暴露”模式：
@@ -237,6 +239,7 @@ AI 助手启动提示词 (Initial Prompt for AI Assistant)：
 
 - genCURD:
   - 目前已支持通过 GORM `Migrator().GetIndexes()` 识别数据库索引。
+  - 新增 main 文件生成能力：读取 `internal/abandonCodeService/abandonService.go` 模板，按服务名替换 import 路径与 CURDServer 类型后输出到各服务目录。
   - 未来扩展方向：根据识别到的唯一索引 (`UniqueIndex`) 自动生成 `GetBy<IndexColumn>` 等查询方法。
 
 ## [commitlint](`https://github.com/conventional-changelog/commitlint`)

@@ -187,6 +187,25 @@ func ParseSingleOptionValue(value any) (*CellOption, error) {
 	}
 	return nil, fmt.Errorf("invalid option value type: %T", value)
 }
+func ParseMultiOptionValue(value any) ([]*CellOption, error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	if strList, ok := value.([]string); ok {
+		if len(strList) == 0 {
+			return nil, nil
+		}
+		options := make([]*CellOption, 0, len(strList))
+		for _, str := range strList {
+			option := CellOption(str)
+			options = append(options, &option)
+		}
+		return options, nil
+	}
+
+	return nil, fmt.Errorf("invalid multi option value type: %T", value)
+}
 
 // --------------------------------------------------
 // Formula（智能公式）字段值处理，不能直接写入值，只能读取计算结果，类型由列配置的valueType决定

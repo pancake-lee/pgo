@@ -42,7 +42,15 @@ func genMainCode(
 		// 生成的main文件名取决于原始业务单元名, 对于abandonCodeService保持原名
 		// 而其他服务也使用"<serviceName>Service.go"的模式命名
 		mainFileName := svcName + "Service.go"
-		err = os.WriteFile(mainOutputPath+mainFileName, []byte(mainCodeStr), 0644)
+		mainFilePath := mainOutputPath + mainFileName
+		if _, statErr := os.Stat(mainFilePath); statErr == nil {
+			plogger.Debugf("main file exists, skip generate: %v", mainFilePath)
+			continue
+		} else if !os.IsNotExist(statErr) {
+			return fmt.Errorf("check main file failed: %w", statErr)
+		}
+
+		err = os.WriteFile(mainFilePath, []byte(mainCodeStr), 0644)
 		if err != nil {
 			return fmt.Errorf("write main code failed: %w", err)
 		}

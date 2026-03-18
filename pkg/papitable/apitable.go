@@ -19,7 +19,7 @@ var g_token string
 
 var g_baseUrl string = "https://aitable.ai"
 
-var g_limiter = rate.NewLimiter(40, 1)
+var g_limiter = rate.NewLimiter(20, 1) // QPS
 
 func safeHttpDo(req *http.Request) ([]byte, error) {
 	err := g_limiter.Wait(context.Background())

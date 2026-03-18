@@ -31,6 +31,7 @@ func NewMtblProject(_ctx context.Context) *papitable.BaseDataProvider {
 		},
 		DAO: &ProjectDAOWrapper{},
 	}
+	ret.BindProvider(&ret)
 	ctx := papp.NewAppCtx(_ctx)
 	ret.WithLogger(ctx.Log)
 	return &ret

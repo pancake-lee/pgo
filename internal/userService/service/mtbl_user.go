@@ -31,6 +31,7 @@ func NewMtblUser(_ctx context.Context) *papitable.BaseDataProvider {
 		},
 		DAO: &UserDAOWrapper{},
 	}
+	ret.BindProvider(&ret)
 	ctx := papp.NewAppCtx(_ctx)
 	ret.WithLogger(ctx.Log)
 	return &ret

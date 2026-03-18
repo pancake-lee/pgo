@@ -86,6 +86,10 @@ func NewAppCtx(ctx context.Context) *AppCtx {
 	if uid, ok := putil.GetUserIdFromCtx(ctx); ok {
 		appCtx.UserId = uid
 	}
-	appCtx.Log = plogger.GetDefaultLogWarper().WithContext(ctx)
+
+	appCtx.Log = plogger.NewPLogWarper(plogger.GetDefaultLoggerNoCaller()).
+		AddCallerLevel(0).WithContext(ctx)
+	// 不要用GetDefaultLogWarper，这是给plogger.Debug等直接调用的，caller层数不同
+	// appCtx.Log = plogger.GetDefaultLogWarper().WithContext(ctx)
 	return appCtx
 }

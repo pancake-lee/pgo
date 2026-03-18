@@ -52,6 +52,9 @@ type BaseDataProvider struct {
 	Ctx context.Context
 	log *plogger.PLogWarper
 
+	// 通过接口代理自己，确保Base内调用DataProvider方法时能命中子类重写实现
+	provider DataProvider
+
 	// 该字段需要初始化设置好，mtbl事件处理中用于过滤属于当前表的事件
 	DatasheetID string
 	// 初始化总是nil，由 SyncHelper 根据mtbl事件自动加载
@@ -61,9 +64,25 @@ type BaseDataProvider struct {
 	DAO         MtblDAO
 }
 
+// BindProvider 用于将BaseDataProvider绑定到外层DataProvider实现。
+// 子类嵌入BaseDataProvider时，初始化后调用：base.BindProvider(subClass)
+func (h *BaseDataProvider) BindProvider(provider DataProvider) *BaseDataProvider {
+	h.provider = provider
+	return h
+}
+
+func (h *BaseDataProvider) getProvider() DataProvider {
+	if h.provider != nil {
+		return h.provider
+	}
+	h.provider = h
+	return h.provider
+}
+
 func (h *BaseDataProvider) WithLogger(logger *plogger.PLogWarper) *BaseDataProvider {
+	provider := h.getProvider()
 	newLog := log.With(logger.GetLogger(),
-		"mtbl", h.GetTableName(),
+		"mtbl", provider.GetTableName(),
 	)
 	plogger.SetPrefixKeys("mtbl")
 
@@ -81,13 +100,14 @@ type ApiTableEvent struct {
 }
 
 func (h *BaseDataProvider) HandleMtblEvent() error {
+	provider := h.getProvider()
 	if h.Doc == nil {
 		spaceId, err := pconfig.GetStringE("APITable.spaceId")
 		if err != nil {
 			h.log.Errorf("getTaskDoc: APITable.spaceId not found in config: %v", err)
 			return err
 		}
-		h.SetDoc(NewMultiTableDoc(spaceId, h.DatasheetID))
+		provider.SetDoc(NewMultiTableDoc(spaceId, h.DatasheetID))
 	}
 
 	pmqCtx := pmq.GetPMQContext(h.Ctx)
@@ -116,12 +136,13 @@ func (h *BaseDataProvider) HandleMtblEvent() error {
 
 // mtbl中配置删除按钮，触发事件，再删除双方数据，而不是直接删除mtbl数据，没有提供删除回调
 func (h *BaseDataProvider) deleteM2L(recordId string) error {
+	provider := h.getProvider()
 	mtblRecord, err := h.getMtblRecordByRecordId(recordId)
 	if err != nil {
 		return err
 	}
-	localTmp := h.M2L(mtblRecord, nil)
-	localId := h.GetPrimaryVal(localTmp)
+	localTmp := provider.M2L(mtblRecord, nil)
+	localId := provider.GetPrimaryVal(localTmp)
 	localIdInt, err := putil.StrToInt32(localId)
 	if err != nil {
 		return h.log.LogErr(err)
@@ -137,12 +158,13 @@ func (h *BaseDataProvider) deleteM2L(recordId string) error {
 }
 
 func (h *BaseDataProvider) updateM2L(recordId string) error {
+	provider := h.getProvider()
 	row, err := h.getMtblRecordByRecordId(recordId)
 	if err != nil {
 		return err
 	}
 
-	syncHelper := NewSyncHelper(h, h.Doc).
+	syncHelper := NewSyncHelper(provider, h.Doc).
 		WithLogger(h.log)
 	err = syncHelper.UpdateToLTBL(row)
 	if err != nil {
@@ -233,13 +255,14 @@ func (h *BaseDataProvider) GetPrimaryVal(record any) string {
 
 // impl DataProvider
 func (h *BaseDataProvider) GetSyncData() ([]*AddRecord, error) {
+	provider := h.getProvider()
 	list, err := h.DAO.GetAll(h.Ctx)
 	if err != nil {
 		return nil, err
 	}
 	var ret []*AddRecord
 	for _, item := range list {
-		row := h.L2M(item, nil)
+		row := provider.L2M(item, nil)
 		if row == nil {
 			continue
 		}
@@ -275,8 +298,9 @@ func (h *BaseDataProvider) UpdateLastEditToLTBL(localId string, lastEditFrom str
 
 // impl DataProvider
 func (h *BaseDataProvider) GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, error) {
-	localTmp := h.M2L(mtblRecord, nil)
-	localId := h.GetPrimaryVal(localTmp)
+	provider := h.getProvider()
+	localTmp := provider.M2L(mtblRecord, nil)
+	localId := provider.GetPrimaryVal(localTmp)
 	localIdInt, err := putil.StrToInt32(localId)
 	if err != nil {
 		return nil, h.log.LogErr(err)
@@ -288,7 +312,8 @@ func (h *BaseDataProvider) GetLocalRecordByMtbl(mtblRecord *CommonRecord) (any, 
 func (h *BaseDataProvider) CreateOrUpdateLocalRecord(
 	localRecord any, mtblRecord *CommonRecord,
 ) (newRecord any, stop bool, err error) {
-	newDbData := h.M2L(mtblRecord, localRecord)
+	provider := h.getProvider()
+	newDbData := provider.M2L(mtblRecord, localRecord)
 	h.log.Debugf("MTBL recordId %s, parsed data: %v", mtblRecord.RecordId, newDbData)
 
 	if localRecord == nil {
@@ -298,6 +323,7 @@ func (h *BaseDataProvider) CreateOrUpdateLocalRecord(
 		}
 		h.log.Debugf("MTBL add recordId[%s] to LTBL", mtblRecord.RecordId)
 	} else {
+		// TODO 这里是不是漏了设置papitable.LastEditFrom_TEMP
 		err = h.DAO.UpdateByID(h.Ctx, newDbData)
 		if err != nil {
 			return nil, false, err
@@ -319,13 +345,16 @@ func (h *BaseDataProvider) L2M(record any, oldMtblRecord *CommonRecord) map[stri
 	}
 
 	valMap := make(map[string]any)
-	for k, v := range oldMtblRecord.Fields {
-		valMap[k] = v // mtbl数据可能有更多的字段，不要丢弃了
+	if oldMtblRecord != nil {
+		for k, v := range oldMtblRecord.Fields {
+			valMap[k] = v // mtbl数据可能有更多的字段，不要丢弃了
+		}
 	}
 	for _, fieldCfg := range h.TableConfig.ColList {
 		if fieldCfg.DOField == "" {
 			continue
 		}
+
 		fieldVal := val.FieldByName(fieldCfg.DOField)
 		if !fieldVal.IsValid() {
 			h.log.Warnf("Field %s not found in record", fieldCfg.DOField)
