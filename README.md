@@ -110,6 +110,7 @@
   - 已实现:
     - 基于 MySQL 表结构自动生成 ORM 与基础 CRUD 代码（`make gorm` + `genCURD`）。
     - 已沉淀多维表格集成能力（`pkg/papitable`）与回调同步模块（`ltblCallback` / `mtblCallback`）。
+    - 优化 `pkg/papitable`：`GetCols` 添加 1 分钟本地缓存，新增/删除列操作会使缓存失效；`ParseMultiOptionValue` 兼容 `[]interface{}`（`[]any`）类型解析，减少 API 响应处理错误。
     - BaseDataProvider 接口代理设计：所有 DataProvider 方法调用通过代理分发，子类可覆盖任意方法实现自定义逻辑（调用 `BindProvider()` 绑定子类实例）。
   - TODO:
     - 增加“多维表格结构 -> MySQL 表结构”生成工具，打通反向建模链路。

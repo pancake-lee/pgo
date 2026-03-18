@@ -3,6 +3,8 @@ package papitable
 import (
 	"fmt"
 	"time"
+
+	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 // --------------------------------------------------
@@ -191,7 +193,7 @@ func ParseMultiOptionValue(value any) ([]*CellOption, error) {
 	if value == nil {
 		return nil, nil
 	}
-
+	// 支持两种常见返回：[]string 和 []any（即 []interface{}）
 	if strList, ok := value.([]string); ok {
 		if len(strList) == 0 {
 			return nil, nil
@@ -199,6 +201,18 @@ func ParseMultiOptionValue(value any) ([]*CellOption, error) {
 		options := make([]*CellOption, 0, len(strList))
 		for _, str := range strList {
 			option := CellOption(str)
+			options = append(options, &option)
+		}
+		return options, nil
+	}
+
+	if anyList, ok := value.([]any); ok {
+		if len(anyList) == 0 {
+			return nil, nil
+		}
+		options := make([]*CellOption, 0, len(anyList))
+		for _, item := range anyList {
+			option := CellOption(putil.AnyToStr(item))
 			options = append(options, &option)
 		}
 		return options, nil
@@ -219,7 +233,11 @@ func ParseFormulaValue(value any) (string, error) {
 
 // --------------------------------------------------
 // OneWayLink（单向关联）字段值处理
+// ([]string)nil 表示空值
 func NewOneWayLinkValue(recordIds []string) []string {
+	if len(recordIds) == 0 {
+		return nil
+	}
 	return recordIds
 }
 

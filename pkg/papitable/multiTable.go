@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -12,6 +14,11 @@ import (
 type MultiTableDoc struct {
 	SpaceId     string `json:"spaceId"`     // 空间ID
 	DatasheetId string `json:"datasheetId"` // 数据表ID
+
+	// 列缓存与其时间戳与锁
+	colsCacheMu sync.RWMutex
+	colsCache   []*Field
+	colsCacheAt time.Time
 }
 
 func NewMultiTableDoc(spaceId, datasheetId string) *MultiTableDoc {

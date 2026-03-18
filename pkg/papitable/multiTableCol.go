@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -117,12 +118,27 @@ func (doc *MultiTableDoc) DelCol(fieldIds []string) error {
 	}
 
 	plogger.Debug("DelCol success, deleted field count:", len(fieldIds))
+	// 清理列缓存
+	doc.colsCacheMu.Lock()
+	doc.colsCache = nil
+	doc.colsCacheAt = time.Time{}
+	doc.colsCacheMu.Unlock()
 	return nil
 }
 
 // --------------------------------------------------
 // 查询字段
 func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
+	// 先检查缓存（1分钟有效）
+	doc.colsCacheMu.RLock()
+	if doc.colsCache != nil && time.Since(doc.colsCacheAt) < time.Minute {
+		cached := doc.colsCache
+		doc.colsCacheMu.RUnlock()
+		plogger.Debug("GetCols use cache, total fields:", len(cached))
+		return cached, nil
+	}
+	doc.colsCacheMu.RUnlock()
+
 	url := fmt.Sprintf("%s/fusion/v1/datasheets/%s/fields", g_baseUrl, doc.DatasheetId)
 
 	req, err := putil.NewHttpRequestJson(http.MethodGet, url,
@@ -135,7 +151,6 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	if err != nil {
 		return nil, plogger.LogErr(err)
 	}
-	// plogger.Debugf("response: %s", string(resp))
 
 	var respData getFieldResponse
 	err = json.Unmarshal(resp, &respData)
@@ -147,6 +162,12 @@ func (doc *MultiTableDoc) GetCols() ([]*Field, error) {
 	if !respData.Success {
 		return nil, plogger.LogErr(fmt.Errorf("get fields failed: code=%d, message=%s", respData.Code, respData.Message))
 	}
+
+	// 更新缓存
+	doc.colsCacheMu.Lock()
+	doc.colsCache = respData.Data.Fields
+	doc.colsCacheAt = time.Now()
+	doc.colsCacheMu.Unlock()
 
 	plogger.Debug("GetCol success, total fields:", len(respData.Data.Fields))
 	return respData.Data.Fields, nil
@@ -200,6 +221,12 @@ func (doc *MultiTableDoc) AddCol(fields []*AddField) (ret []*Field, err error) {
 
 		plogger.Debug("AddCol success, field_id:", respData.Data.Id)
 	}
+
+	// 清理列缓存，确保后续 GetCols 能获取到最新数据
+	doc.colsCacheMu.Lock()
+	doc.colsCache = nil
+	doc.colsCacheAt = time.Time{}
+	doc.colsCacheMu.Unlock()
 
 	return results, nil
 }

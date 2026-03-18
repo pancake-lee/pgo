@@ -392,7 +392,8 @@ func (h *BaseDataProvider) M2L(mtblRecord *CommonRecord, localRecord any) any {
 	}
 
 	var recordVal reflect.Value
-	if putil.AnyIsNil(localRecord) {
+	inputNil := putil.AnyIsNil(localRecord)
+	if inputNil {
 		if h.TableConfig.NewDO == nil {
 			h.log.Error("NewDO factory is nil")
 			return nil
@@ -404,7 +405,9 @@ func (h *BaseDataProvider) M2L(mtblRecord *CommonRecord, localRecord any) any {
 	if recordVal.Kind() == reflect.Ptr {
 		recordVal = recordVal.Elem()
 	}
-	h.log.Debugf("M2L recordVal: %v", recordVal)
+	if !inputNil {
+		h.log.Debugf("M2L old recordVal: %v", recordVal)
+	}
 
 	// 这里报错未必是这里的问题，是localRecord在传进来之前就有问题
 	if !recordVal.IsValid() || recordVal.Kind() != reflect.Struct {
