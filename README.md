@@ -112,10 +112,22 @@
     - 已沉淀多维表格集成能力（`pkg/papitable`）与回调同步模块（`ltblCallback` / `mtblCallback`）。
     - 优化 `pkg/papitable`：`GetCols` 添加 1 分钟本地缓存，新增/删除列操作会使缓存失效；`ParseMultiOptionValue` 兼容 `[]interface{}`（`[]any`）类型解析，减少 API 响应处理错误。
     - BaseDataProvider 接口代理设计：所有 DataProvider 方法调用通过代理分发，子类可覆盖任意方法实现自定义逻辑（调用 `BindProvider()` 绑定子类实例）。
-  - TODO:
-    - 增加“多维表格结构 -> MySQL 表结构”生成工具，打通反向建模链路。
-    - 补齐双向同步中的冲突处理、幂等与回环抑制策略，降低数据一致性风险。
-    - 逐步适配 APITable 之外的平台（如飞书/企微），降低单平台绑定风险。
+
+    - 实践流程（从 APITable 到双向同步，精简版）：
+      - 在 APITable 设计业务表：确认 `DatasheetID`、`TableName`、首列（`FirstCol`）、列列表（`ColList`）与本地主键（`PrimaryCol`）。
+      - 使用 `sheet2mysql` 生成建表 SQL（输出 `<resolvedTableName>.sql`，默认生成 `DROP TABLE IF EXISTS`，跳过计算列），手工调整字段类型、索引、默认值与约束。
+      - 导入或执行 SQL 后，运行 `make gorm` / `pgo gorm/curd`（底层调用 `tools/genCURD`）生成 GORM model、`proto/`、API 桩与基础 CRUD 代码。
+      - 补充 Data 层实现：编写 `data.xxx.go`，实现 DO/DAO、`UpdateMtblInfo`，并提供 `DAOWrapper`（把 DO/DAO 封装为同步层期望的 `any`）。
+      - 实现 Service 层：在 `internal/<service>/service/` 完成生成的 `Unimplemented*Server` 的具体逻辑，并在 `papp.RunKratosApp` 注册该服务。
+      - 回调与同步组件：
+        - `mtblCallback`：为 APITable 提供 HTTP 回调入口，解析行数据并通过 `NewDO` 转换为本地 DO，再通过 RabbitMQ/队列投递到本地消费流程。
+        - `ltblCallback`：监听本地数据库变更，转换为 APITable 行更新/新增请求并调用 APITable API（注意仓库默认实现偏向 mtbl->ltbl 单向，同步到 APITable 的逻辑可能需要针对表结构扩展）。
+      - 同步锚点与防环策略：
+        - 使用本地数据库的 `PrimaryCol` 作为双方同步的锚点，避免使用 APITable 行 id 作为主同步键。
+        - `TEMP` / 回环标记应区分方向（local→remote 与 remote→local），并实现幂等、冲突解决（时间戳/版本号）与回环抑制。
+      - 数据适配：优先使用 `BaseDataProvider` 实现通用字段的解析/序列化，需要特殊处理时继承或实现 `DataProvider`（例如时间/枚举/复杂结构）。
+      - 测试与可观测性：覆盖本地/远端并发修改场景，使用 RequestID 串联日志与消息，补充失败重试、告警与审计日志，便于排查与补偿。
+      - 常见修改点参考：`service/mtbl_user.go`（`DatasheetID`、`TableName`、`FirstCol`、`ColList`、`NewDO`）、回调入口实现位于 `ltblCallback`/`mtblCallback` 模块。
 
 - 微服务架构支持
   - 基于 Kratos 框架，提供标准化的 gRPC/HTTP 混合接口支持。
@@ -131,7 +143,6 @@
 ## TODO
 
 - 多维表格驱动系统化落地
-  - 新增“多维表格结构 -> MySQL 表结构”生成工具（字段类型映射、索引/约束映射、增量变更策略）。
   - 定义并实现双向同步冲突规则（双端同时修改优先级、版本号/时间戳策略、回环标记规范）。
   - 建立同步可观测性（重试队列、失败补偿、告警与审计日志），支撑后续跨行业推广。
   - 抽象多平台适配层，统一 APITable/飞书/企微等多维表格接入接口。
@@ -155,8 +166,7 @@
   - 除了上面日志平台提供“事后排查”，要提供更多“持续监控”
   - 接口调用频率，耗时，成功率等等数据，还有硬件数据
   - 各服务健康状况，包括中间件和服务进程和一些自动业务的状态
-  - 控的方面更加倾向于用client来承载，同样使用corba交互操作
-    - corba似乎更多是命令行执行，但不是连续交互的性质，可能要换库
+  - 控的方面更加倾向于用pgo来承载，同样使用corba交互操作
 - 对于其他项目想要采用该项目的开发模式
   - bootCheck不要依赖orm，才能用于其他项目
 
