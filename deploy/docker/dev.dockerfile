@@ -3,8 +3,7 @@
 # --------------------------------------------------
 ARG GO_DL_URL="https://go.dev/dl/"
 ARG GO_VERSION=1.24.4
-ARG NODE_VERSION=16.15.0
-ARG FileServer="http://127.0.0.1:9000/download/"
+ARG NODE_VERSION=22.22.1
 ARG PROTOC_VERSION=30.2
 
 # --------------------------------------------------
@@ -27,7 +26,7 @@ RUN echo "Setup Repositories and Install Maintenance Tools" \
         dmidecode nginx wget \
         procps iputils net-tools vim tar xz zip \
         openssh-server \
-        ImageMagick \
+        ImageMagick ffmpeg\
     # SSH 配置
     && ssh-keygen -A \
     && echo 'root:root' | chpasswd \
@@ -41,7 +40,6 @@ RUN echo "Setup Repositories and Install Maintenance Tools" \
 # --------------------------------------------------
 FROM base AS dev
 # 记得声明一下
-ARG FileServer
 ARG GO_DL_URL 
 ARG GO_VERSION
 ARG NODE_VERSION
@@ -85,23 +83,11 @@ RUN echo "Installing development and runtime environments" \
 # --------------------------------------------------
 FROM dev AS dev_ex
 # 记得声明一下
-ARG FileServer
 ARG PROTOC_VERSION
 # --------------------------------------------------
 # 一些运行库和工具
 RUN echo "Installing Runtime Binaries" \
-    && dnf install -y python3-gpg libtasn1 libxslt libcom_err jansson-devel \
-    # --------------------------------------------------
-    && wget ${FileServer}/ffmpeg -O /usr/bin/ffmpeg \
-    && chmod +x /usr/bin/ffmpeg \
-    && wget ${FileServer}/ffprobe -O /usr/bin/ffprobe \
-    && chmod +x /usr/bin/ffprobe \
-    # --------------------------------------------------
-    && wget ${FileServer}/minio-20211229064906.0.0.x86_64.rpm -O /tmp/minio.rpm \
-    && dnf install -y /tmp/minio.rpm \
-    && rm -f /tmp/minio.rpm \
-    # --------------------------------------------------
-    && wget ${FileServer}/hiredis.tar.gz -O /tmp/hiredis.tar.gz \
+    && wget https://github.com/redis/hiredis/archive/refs/tags/v1.3.0.tar.gz -O /tmp/hiredis.tar.gz \
     && tar zxvf /tmp/hiredis.tar.gz -C /usr/local/ \
     && rm -f /tmp/hiredis.tar.gz \
     # --------------------------------------------------
