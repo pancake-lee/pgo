@@ -18,13 +18,13 @@ FROM rockylinux:9.2 AS base
 SHELL ["/bin/bash", "-lc"]
 
 RUN set -euxo pipefail \
-    && dnf install -y dnf-plugins-core epel-release \
+    && dnf install -y --setopt=install_weak_deps=False --setopt=tsflags=nodocs dnf-plugins-core epel-release \
     && dnf config-manager --set-enabled crb \
-    && dnf install -y --nogpgcheck \
+    && dnf install -y --setopt=install_weak_deps=False --setopt=tsflags=nodocs --nogpgcheck \
         https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm \
     && dnf config-manager --add-repo https://pkgs.tailscale.com/stable/rhel/9/tailscale.repo \
-    && dnf install -y \
+    && dnf install -y --setopt=install_weak_deps=False --setopt=tsflags=nodocs \
         dmidecode \
         nginx \
         wget \
@@ -46,7 +46,8 @@ RUN set -euxo pipefail \
         tailscale \
     && ssh-keygen -A \
     && echo 'root:root' | chpasswd \
-    && dnf clean all && rm -rf /var/cache/dnf
+    && dnf clean all \
+    && rm -rf /var/cache/dnf /var/tmp/* /tmp/* /var/log/dnf* /var/log/yum.*
 
 # --------------------------------------------------
 # Stage 2: development runtime
@@ -65,7 +66,7 @@ ENV NVM_DIR=/root/.nvm \
     PATH=/root/.nvm/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:/root/go/bin:${PATH}
 
 RUN set -euxo pipefail \
-    && dnf install -y \
+    && dnf install -y --setopt=install_weak_deps=False --setopt=tsflags=nodocs \
         make \
         git \
         mysql \
@@ -84,19 +85,22 @@ RUN set -euxo pipefail \
     && go env -w GOPROXY=https://goproxy.cn,direct \
     # --------------------------------------------------
     && pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
-    && pip3 install --no-cache-dir usd-core \
+    && pip3 install --no-cache-dir --disable-pip-version-check usd-core \
     # --------------------------------------------------
     && git clone --branch ${NVM_VERSION} --depth 1 https://gitee.com/mirrors/nvm.git ${NVM_DIR} \
+    && rm -rf ${NVM_DIR}/.git \
     && . ${NVM_DIR}/nvm.sh \
     && nvm install ${NODE_VERSION} \
     && nvm alias default ${NODE_VERSION} \
     && nvm use default \
     && npm config set registry https://registry.npmmirror.com \
     && corepack enable \
-    && npm install -g npm@10.9.4 pnpm@10.33.0 yarn@1.22.22 pm2@4.5.6 \
+    && npm install -g npm@10.9.4 pnpm@10.33.0 pm2@4.5.6 \
     && pm2 install pm2-prom-module \
+    && npm cache clean --force \
     # --------------------------------------------------
-    && dnf clean all && rm -rf /var/cache/dnf /root/.cache
+    && dnf clean all \
+    && rm -rf /var/cache/dnf /root/.cache /root/.npm /root/.local/share/pnpm/store /tmp/* /var/tmp/* /var/log/dnf* /var/log/yum.*
 
 # --------------------------------------------------
 # Stage 3: extra runtime binaries
@@ -113,4 +117,5 @@ RUN set -euxo pipefail \
     && rm -f /tmp/hiredis.tar.gz \
     && wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip -O /tmp/protoc.zip \
     && unzip /tmp/protoc.zip -d /usr/local \
-    && rm -f /tmp/protoc.zip
+    && rm -f /tmp/protoc.zip \
+    && rm -rf /tmp/* /var/tmp/*
