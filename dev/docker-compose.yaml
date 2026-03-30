@@ -20,6 +20,12 @@ services:
     volumes:
       - ./share:/root/share/
       - ./startup.sh:/startup.sh
-      
+
+      - ./profile:/etc/profile.d/pancake.sh
+      - ./ssh_config:/etc/ssh/sshd_config.d/pancake.conf
+
+      # 持久化 SSH 密钥（如果需要）
+      # - ssh:/root/.ssh
+
 networks:
     dev-net:

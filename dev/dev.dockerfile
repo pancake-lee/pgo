@@ -17,10 +17,6 @@ FROM rockylinux:9.2 AS base
 
 SHELL ["/bin/bash", "-lc"]
 
-ENV LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH}
-
-RUN set -euxo pipefail \
-    && printf "%s\n" "alias ll='ls -la'" >> /etc/profile.d/pancake.sh
 RUN set -euxo pipefail \
     && dnf install -y dnf-plugins-core epel-release \
     && dnf config-manager --set-enabled crb \
@@ -50,11 +46,7 @@ RUN set -euxo pipefail \
         tailscale \
     && ssh-keygen -A \
     && echo 'root:root' | chpasswd \
-    && printf "%s\n" \
-        "PermitRootLogin yes" \
-        "PasswordAuthentication yes" \
-        > /etc/ssh/sshd_config.d/pancake.conf
-RUN dnf clean all && rm -rf /var/cache/dnf
+    && dnf clean all && rm -rf /var/cache/dnf
 
 # --------------------------------------------------
 # Stage 2: development runtime
@@ -100,19 +92,11 @@ RUN set -euxo pipefail \
     && nvm alias default ${NODE_VERSION} \
     && nvm use default \
     && npm config set registry https://registry.npmmirror.com \
-    && npm install -g npm@10.9.4 pnpm@10.33.0 yarn@1.22.22 pm2@4.5.6 \
     && corepack enable \
-    # --------------------------------------------------
+    && npm install -g npm@10.9.4 pnpm@10.33.0 yarn@1.22.22 pm2@4.5.6 \
     && pm2 install pm2-prom-module \
-    && printf "%s\n" \
-        "export NVM_DIR=${NVM_DIR}" \
-        "export NVM_NODEJS_ORG_MIRROR=${NVM_NODEJS_ORG_MIRROR}" \
-        "export GOPATH=/root/go" \
-        "export GOROOT=/usr/local/go" \
-        "export PATH=${NVM_DIR}/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:/root/go/bin:\$PATH" \
-        "[ -s \"${NVM_DIR}/nvm.sh\" ] && . \"${NVM_DIR}/nvm.sh\"" \
-        >> /etc/profile.d/pancake.sh
-RUN dnf clean all && rm -rf /var/cache/dnf /root/.cache
+    # --------------------------------------------------
+    && dnf clean all && rm -rf /var/cache/dnf /root/.cache
 
 # --------------------------------------------------
 # Stage 3: extra runtime binaries
