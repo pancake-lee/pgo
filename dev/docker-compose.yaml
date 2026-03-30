@@ -1,0 +1,25 @@
+# 记录一些测试/调研的平台
+
+name: pgo
+services:
+  rocky9:
+    container_name: dr9
+    image: dr9:latest
+    restart: always
+    command: /startup.sh
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 10022:22
+      - 10000-10010:10000-10010
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./share:/root/share/
+      - ./startup.sh:/startup.sh
+      
+networks:
+    dev-net:
