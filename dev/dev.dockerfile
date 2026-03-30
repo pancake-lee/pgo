@@ -95,7 +95,7 @@ RUN set -euxo pipefail \
     && nvm use default \
     && npm config set registry https://registry.npmmirror.com \
     && corepack enable \
-    && npm install -g npm@10.9.4 pnpm@10.33.0 pm2@4.5.6 \
+    && npm install -g npm@10.9.4 pm2@4.5.6 \
     && pm2 install pm2-prom-module \
     && npm cache clean --force \
     # --------------------------------------------------
