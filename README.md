@@ -3,20 +3,29 @@
 本仓库是个人习惯的一些封装(pkg)以及个人的小项目。
 主要用于学习/练习/沉淀知识，并未打算称为一个“流行框架”
 
-## AI小规则
+## Go 编码习惯
 
-- 阅读readme然后等待指令
-  - 每次新的对话，我都会让你先阅读readme，了解项目当前情况，你只需要回复收到
-- 请总结变更到readme
-  - 每次完成一个需求点，我会请你总结“变更内容”到当前文档(readme.md)
-  - 你应该按照当前文档的标题结构，分类修改或添加内容
-  - 不要单纯追加内容，导致文档无限增长
-- 不修改
-  - 当我说“不修改”时，则当前内容只希望你分析问题/提供方案，但不要修改代码
-- 代码风格以“手动修改代码”为最高优先级
-  - AI在实现需求前，需要先阅读当前相关代码，优先复用你已经手动沉淀的命名、分层、注释和参数组织方式
-  - 当手动代码与历史实现冲突时，以最新手动代码风格为准
-- 本文的TODO中，已完成的功能从TODO删掉，功能适当写到合适的地方，而不是在TODO中描述实现的功能
+### 命名规范
+
+- **列表/切片**: 后缀 `List` (e.g., `userRoleList`, `permissionList`)
+- **Map 结构**: 后缀 `Map` (e.g., `roleIDMap`, `permissionMap`)
+
+### 代码格式化
+
+- 逻辑修改时不纠结缩进/对齐，改完后统一用 `gofmt -w <file>` 处理
+
+### 测试规范
+
+- 编写集成测试验证 Service 层逻辑
+- 使用 `defer` + 清理函数移除测试数据 (e.g., `defer testDelUser(...)`)
+- **禁忌**: 禁止在测试中修改表结构，差异应正常报错以提醒升级注意
+
+### 个人习惯
+
+- 避免 `if` 中使用 `;` (如 `if d,ok:=data["k"]; ok`)，易造成长代码
+- 入口函数放在 `internal/<module>/<module>.go`，而非 `cmd/`
+- 非复杂场景优先用基础类型组合，仅在复用明显或封装语义明确时抽象 `type`
+- **接口代理模式**: 基础类通过接口代理支持子类覆盖，子类初始化后调用 `BindProvider(self)`
 
 ## Features
 
@@ -169,114 +178,3 @@
   - 控的方面更加倾向于用pgo来承载，同样使用corba交互操作
 - 对于其他项目想要采用该项目的开发模式
   - bootCheck不要依赖orm，才能用于其他项目
-
-## AI PROMPT
-
-### Project PGO Development Context & Guidelines
-
-AI 助手启动提示词 (Initial Prompt for AI Assistant)：
-你好！请先读取项目根目录下的 `README.md` 文件，完整了解 Project PGO 的项目背景、开发模式、分层架构、编码规范及工具链细节。
-当我完成一个需求的开发，我会向你发送 '总结到项目'，你可以选择性把有用的内容回写到根目录下的 `README.md` 中，注意必须是简洁的高度总结，以免篇幅过大。
-注意：本条消息不需要你进行代码编写或回答具体问题。请仅回复 '收到 (Received)' 以确认你已加载项目上下文。具体的开发任务我将在下一条消息中给出。
-
-#### 1. 开发模式 (Development Workflow)
-
-- DB/Model First: 项目以数据库表结构（GORM Model）为核心。
-  - 编写好 `internal/pkg/db`的表定义后使用 `make gorm`生成orm代码
-- 代码生成 (Code Generation):
-  - 使用自定义工具 `genCURD` (`go run ./tools/genCURD/`)。
-  - 该工具通过反射 (`reflect`) 读取数据库表结构和索引信息。
-  - 自动生成内容：Proto 定义 (`proto/`)、gRPC/HTTP 桩代码 (`api/`)、Service 层基础 CRUD (`z_svc_*.gen.go`)、Data 层基础 CRUD (`z_dao_*.gen.go`)、服务入口 main 文件（`internal/<service>Service/<service>Service.go`）。
-  - 注意: 以 `z_` 开头 `gen.go`结尾的文件为自动生成，禁止手动修改。
-- 自定义逻辑 (Custom Logic):
-  - 在 `proto/` 中定义非 CRUD 的额外 RPC 接口。
-  - 在 `internal/<service>/service/` 中实现业务逻辑。
-  - 在 `internal/<service>/data/` 中实现复杂的数据库查询。
-
-#### 2. 分层架构与职责 (Architecture & Responsibilities)
-
-- Service 层 (`internal/<service>/service`):
-  - 职责: 处理业务逻辑，参数校验，调用 Data 层，模型转换 (Model -> Proto)。
-  - 风格: 保持逻辑清晰，尽量不直接操作 DB，而是通过 Data 层接口。
-- Data 层 (`internal/<service>/data`):
-  - 职责: 封装所有数据库操作 (DAO 模式)。
-  - 风格:
-    - 文件拆分: 按表/实体拆分文件 (e.g., `dao_UserRole.go`, `dao_UserRoleAssoc.go`)，避免大杂烩。
-    - 返回值: 尽量返回完整的 Model 对象指针 (`*model.User`) 或列表 (`[]*model.User`)，而非仅仅返回 ID，以便上层灵活使用。
-    - Context: 数据库操作需传递 `context.Context` 以支持链路追踪或超时控制。
-
-#### 3. 编码规范 (Coding Conventions)
-
-- 变量命名:
-  - 列表/切片后缀使用 `List` (e.g., `userRoleList`, `permissionList`)。
-  - Map 结构后缀使用 `Map` (e.g., `roleIDMap`, `permissionMap`)。
-- Go 代码格式化:
-  - 代码逻辑修改时不需要纠结缩进/对齐等格式问题，先直接改逻辑。
-  - 改完后统一使用 `gofmt -w <file>` 处理格式，不用手写脚本修改格式。
-- 测试 (Testing):
-  - 编写集成测试 (Integration Tests) 验证 Service 层逻辑。
-  - 数据清理: 使用 `defer` 配合清理函数 (e.g., `defer testDelUser(...)`) 移除测试数据。
-  - 禁忌: 禁止在测试中直接修改表结构，这会破坏表结构和其他测试的运行。表结构的差异应该正常报错，有利于提醒本次更新涉及到数据库结构更新，升级服务器时需要注意到。
-- 其他
-  - 个人不喜欢 `if`中使用 `;`的写法，很容易造成长代码，如 `if d,ok:=data["k"]; ok`
-  - 入口函数命名: 习惯将 `main` 方法写到 `internal/<module>` 对应模块的同名代码文件中（例如 `internal/bootCheck/bootCheck.go`），而不是 `cmd/` 下。
-  - 类型抽象: 非复杂场景优先用基础类型组合，避免为简单函数签名额外定义 `type`；仅在复用明显或封装语义明确时再抽象。
-  - 接口嵌入与代理：当使用"基础类+接口"模式时，若需要支持子类方法覆盖，让基础类通过接口代理（内部字段持有 DataProvider 接口）而非直接调用 self 方法。子类初始化后调用 `BindProvider(self)` 完成绑定。
-
-- 客户端工具开发规则（以当前手动代码为准）
-  - 入口统一为“单例暴露”模式：
-    - 工具内部核心执行函数统一为 `Run(values common.ParamMap) error`。
-    - 每个工具导出 `Entrypoint`（`common.NewToolEntrypoint(...)`）。
-    - 外部统一调用 `Entrypoint` 的3个调用方法
-      - `RunInteractive()`：只负责交互采参（可带缓存）。
-      - `NewCobraCommand()`：只负责命令注册与参数解析。
-      - `Run(options)`：只负责核心业务逻辑并返回 `error`。
-  - 参数统一注册，不重复写两套参数：
-    - 统一维护参数列表（如 `[]common.ParamItem`），字段包含 `Name/Prompt/Usage/Default`。
-    - 通过公共方法同时服务 Cobra 与交互输入（如 `RegParamToCobra`、`ParseParamFromCobra`、`GetCachedParamMap`）。
-  - 参数命名与转换分层：
-    - 参数名常量集中定义（如 `paramNameXXX` + `cacheKeyPrefix`）。
-    - 通过单独转换函数（如 `convParamToRunOpt`）把参数映射为运行结构体（`RunOptions`）。
-  - 参数 config 回填设计：
-    - 特定工具可添加 `config` 参数（指向配置文件路径），当某些参数（如 token、baseUrl、spaceId）为空时，从配置文件中自动读取。
-    - 配置读取示例：检查 `configPath != ""` 且参数为空，则调用 `pconfig.InitConfig(configPath)` 再用 `pconfig.GetStringD()` 读指定 key。
-    - 回填优先级：CLI 参数 > config 文件 > 代码默认值（如默认 `baseUrl="https://aitable.ai"`）。
-  - 代码组织风格：
-    - 关键区域使用 `// --------------------------------------------------` 分段。
-    - 注释偏中文、直述意图，先说明“职责”，再写“实现细节”。
-    - 参数列表拆分时优先按功能组（如认证参数、输出参数），保持 `ParamItem` 声明的可读性。
-
-#### 4. 工具链细节 (Tooling Insights)
-
-- genCURD:
-  - 目前已支持通过 GORM `Migrator().GetIndexes()` 识别数据库索引。
-  - 新增 main 文件生成能力：读取 `internal/abandonCodeService/abandonService.go` 模板，按服务名替换 import 路径与 CURDServer 类型后输出到各服务目录。
-  - 未来扩展方向：根据识别到的唯一索引 (`UniqueIndex`) 自动生成 `GetBy<IndexColumn>` 等查询方法。
-
-## [commitlint](`https://github.com/conventional-changelog/commitlint`)
-
-| prefix   | desc       |
-| -------- | ---------- |
-| build    | 构建相关   |
-| chore    | 杂项       |
-| ci       | CI/CD 相关 |
-| docs     | 文档       |
-| feat     | 功能       |
-| fix      | 修复       |
-| perf     | 性能       |
-| refactor | 重构       |
-| revert   | 回退       |
-| style    | 代码风格   |
-| test     | 测试       |
-| gen      | 生成代码   |
-| improve  | 优化代码   |
-| tidy     | 整理、清理 |
-
-## [semver](https://semver.org/lang/zh-CN/)
-
-版本格式：主版本号.次版本号.修订号，版本号递增规则如下：
-
-- 主版本号：当你做了不兼容的 API 修改，
-- 次版本号：当你做了向下兼容的功能性新增，
-- 修订号：当你做了向下兼容的问题修正。
-  先行版本号及版本编译信息可以加到“主版本号.次版本号.修订号”的后面，作为延伸。

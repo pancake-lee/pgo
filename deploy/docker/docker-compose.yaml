@@ -18,7 +18,7 @@ name: pgo
 services:
     rocky9:
         container_name: pgo-dr9
-        image: dr9:latest
+        image: pgo:latest
         restart: on-failure:5
         command: /startup.sh
         ports:
