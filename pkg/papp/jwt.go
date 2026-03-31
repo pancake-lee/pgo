@@ -10,8 +10,6 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
-	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwt5 "github.com/golang-jwt/jwt/v5"
@@ -21,6 +19,19 @@ type claims struct {
 	// 其实标准的sub字段可以用来表达用户ID，这里只是示例，方便后续加入更多字段
 	UserID int32 `json:"userId"`
 	jwt5.RegisteredClaims
+}
+
+// Valid implements the jwt.v4 Claims interface
+// Checks expiration and not-before times
+func (c claims) Valid() error {
+	now := time.Now()
+	if c.ExpiresAt != nil && now.After(c.ExpiresAt.Time) {
+		return fmt.Errorf("token expired")
+	}
+	if c.NotBefore != nil && now.Before(c.NotBefore.Time) {
+		return fmt.Errorf("token not yet valid")
+	}
+	return nil
 }
 
 func GenToken(userId int32) (string, error) {
@@ -44,16 +55,17 @@ func GenToken(userId int32) (string, error) {
 }
 
 // --------------------------------------------------
+// contextKey is the key for storing claims in context
+type contextKey string
+
+const claimsContextKey contextKey = "claims"
+
 func GetTokenFromCtx(ctx context.Context) (*claims, error) {
-	token, ok := jwt.FromContext(ctx)
+	c, ok := ctx.Value(claimsContextKey).(*claims)
 	if !ok {
 		return nil, fmt.Errorf("auth failed")
 	}
-	t, ok := token.(*claims)
-	if !ok {
-		return nil, fmt.Errorf("token format invalid")
-	}
-	return t, nil
+	return c, nil
 }
 
 func ParseToken(tokenString string) (*claims, error) {
@@ -100,7 +112,8 @@ func AddWhiteList(paths ...string) {
 }
 
 // --------------------------------------------------
-// 利用kratos的selector和jwt组件实现
+// 利用kratos的selector和jwt组件实现（已废弃，改用authMiddleware2）
+/*
 func authMiddleware() middleware.Middleware {
 	return selector.
 		Server(jwt.Server(
@@ -117,6 +130,7 @@ func authMiddleware() middleware.Middleware {
 		}).
 		Build()
 }
+*/
 
 // --------------------------------------------------
 // 自定义中间件的方式实现
@@ -153,7 +167,7 @@ func authMiddleware2() middleware.Middleware {
 			// 	return nil, fmt.Errorf("expired")
 			// }
 
-			ctx = jwt.NewContext(ctx, claims)
+			ctx = context.WithValue(ctx, claimsContextKey, claims)
 
 			return nextHandler(ctx, req)
 		}

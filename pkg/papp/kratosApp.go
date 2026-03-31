@@ -97,7 +97,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		var opts = []http.ServerOption{
 			http.Middleware(
 				recovery.Recovery(),
-				authMiddleware(),
+				authMiddleware2(),
 			),
 			http.Filter(cors.New(cors.Options{
 				AllowedOrigins: []string{"*"},
