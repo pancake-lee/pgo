@@ -26,14 +26,7 @@ func initLogger(logToConsole bool) {
 	plogger.InitLogger(logToConsole, zapcore.DebugLevel, "./logs/")
 }
 
-func runUI() {
-	app := pclient.NewApp("PGO Client")
-
-	app.RegisterPage("调课", courseSwap.BuildPage)
-
-	app.ShowAndRun()
-}
-
+// --------------------------------------------------
 func runCli() {
 	rootCmd := newRootCommand()
 	rootCmd.SetArgs(pclient.NormalizeLegacyLongFlagArgs(os.Args[1:]))
@@ -43,6 +36,7 @@ func runCli() {
 	}
 }
 
+// 第一层Cobra菜单
 func newRootCommand() *cobra.Command {
 	var logToConsole bool
 
@@ -60,6 +54,7 @@ func newRootCommand() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
+	// TODO 不全
 	rootCmd.AddCommand(prettyCode.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
@@ -70,6 +65,7 @@ func newRootCommand() *cobra.Command {
 	return rootCmd
 }
 
+// 第一层交互菜单
 func runInteractiveMenu() {
 	// --------------------------------------------------
 	sel := putil.Interact.NewSelector("请选择功能 (Select Function)")
@@ -84,6 +80,7 @@ func runInteractiveMenu() {
 	sel.Loop()
 }
 
+// 第二层交互菜单：工具
 func toolsMenuCli() {
 	sel := putil.Interact.NewSelector("开发工具 (Dev Tools)")
 
@@ -95,6 +92,8 @@ func toolsMenuCli() {
 	sel.Loop()
 }
 
+// --------------------------------------------------
+// 交互测试
 func testInteraction() {
 	putil.Interact.PrintLine()
 	putil.Interact.Infof("开始交互组件测试 (Interactive Component Test)")
