@@ -60,8 +60,15 @@ env:
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
 	go install gorm.io/gen/tools/gentool@latest
 	go install github.com/pancake-lee/pgo/cmd/pgo
-# 	go install ./cmd/pgo
+
+# 跨平台编译cli-win时需要
+	dnf install -y libX11-devel mesa-libGL-devel libXcursor-devel libXrandr-devel libXinerama-devel libXi-devel libXxf86vm-devel
+	dnf install -y mingw64-gcc
+
 	go mod tidy
+
+# 安装自己
+# go install ./cmd/pgo
 
 .PHONY: api
 # generate api proto
@@ -125,11 +132,11 @@ build:
 	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%dT%H:%M:%S)" -o ./bin/ ./...
 
 .PHONY: precommit
-# 提交生成的代码[*.pb.go, ./client/swagger/*, *.gen.go, *.gen.proto]
+# 提交生成的代码[*.pb.go, ./cmd/pgo/swagger/*, *.gen.go, *.gen.proto]
 precommit:
 	git add "openapi.yaml"
 	git add "*.pb.go"
-	git add "./client/swagger/*"
+	git add "./cmd/pgo/swagger/*"
 	git add "*.gen.go"
 	git add "*.gen.proto"
 	git add "./internal/pkg/db/model/"
@@ -151,7 +158,7 @@ api-cli:
 # java -jar ~/openapi-generator-cli-7.19.0.jar generate \
 # 	-i ./openapi.yaml \
 # 	-g go \
-# 	-o ./client/swagger \
+# 	-o ./cmd/pgo/swagger \
 # 	-p packageName=swagger \
 # 	-p withGoMod=false \
 
@@ -160,7 +167,7 @@ api-cli:
 	java -jar ~/swagger-codegen-cli.jar generate \
 		-i ./openapi.yaml \
 		-l go \
-		-o ./client/swagger \
+		-o ./cmd/pgo/swagger \
 		-D packageName=swagger \
 	
 	rm -f client/swagger/go.mod
@@ -169,9 +176,9 @@ api-cli:
 .PHONY: cli
 # build pgo for current platform
 cli:
-	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo ./client
+	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo ./cmd/pgo
 
 .PHONY: cli-win
 # build pgo for windows
 cli-win:
-	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo.exe ./client
+	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo.exe ./cmd/pgo

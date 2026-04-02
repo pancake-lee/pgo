@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
@@ -11,6 +10,7 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	runApp()
+	pclient.RunApp(runCli, runUI)
 }
 
 func initLogger(logToConsole bool) {
@@ -28,7 +28,7 @@ func initLogger(logToConsole bool) {
 
 func runCli() {
 	rootCmd := newRootCommand()
-	rootCmd.SetArgs(common.NormalizeLegacyLongFlagArgs(os.Args[1:]))
+	rootCmd.SetArgs(pclient.NormalizeLegacyLongFlagArgs(os.Args[1:]))
 	if err := rootCmd.Execute(); err != nil {
 		putil.Interact.Errorf("命令执行失败: %v", err)
 		os.Exit(1)

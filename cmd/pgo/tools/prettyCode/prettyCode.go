@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	ignore "github.com/sabhiram/go-gitignore"
@@ -31,7 +31,7 @@ var defaultExcludeDirs = []string{
 	".git", ".vscode", "node_modules", "bin", ".pb.go", "swagger"}
 var defaultIncludeFileExts = []string{"go", "js", "ts"}
 
-var paramSettingList = []common.ParamItem{
+var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameRootDir,
 		Usage:   "root directory to process",
@@ -46,7 +46,7 @@ var paramSettingList = []common.ParamItem{
 		Default: strings.Join(defaultIncludeFileExts, ","),
 	}}
 
-var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	ToolName:       "prettyCode",
 	Use:            "pretty",
 	Aliases:        []string{"prettyCode"},
@@ -66,7 +66,7 @@ type RunOptions struct {
 }
 
 // cobra参数值转换为“当前程序的”运行选项
-func convParamToRunOpt(values common.ParamMap) RunOptions {
+func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 	rootDir := values[paramNameRootDir]
 	if rootDir == "" {
 		rootDir = putil.GetCurDir()
@@ -80,7 +80,7 @@ func convParamToRunOpt(values common.ParamMap) RunOptions {
 }
 
 // --------------------------------------------------
-func Run(values common.ParamMap) error {
+func Run(values pclient.ParamMap) error {
 	options := convParamToRunOpt(values)
 
 	if options.RootDir == "" {

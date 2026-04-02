@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -24,7 +24,7 @@ const (
 	cacheKeyPrefix    = "tools.psql."
 )
 
-var paramSettingList = []common.ParamItem{
+var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameHost,
 		Usage:   "postgres host",
@@ -51,22 +51,22 @@ var paramSettingList = []common.ParamItem{
 		Default: "",
 	}}
 
-var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	ToolName:       "psql",
 	Use:            "psql",
 	Short:          "执行 PostgreSQL SQL 命令或脚本",
 	CacheKeyPrefix: cacheKeyPrefix,
 	ParamList:      paramSettingList,
 	Run:            Run,
-	InteractiveHook: func(values common.ParamMap) common.ParamMap {
+	InteractiveHook: func(values pclient.ParamMap) pclient.ParamMap {
 		// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
 		password := putil.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
 		values[paramNamePassword] = password
 		return values
 	},
-	CobraSetup: func(cmd *cobra.Command) func(values common.ParamMap) common.ParamMap {
+	CobraSetup: func(cmd *cobra.Command) func(values pclient.ParamMap) pclient.ParamMap {
 		password := cmd.Flags().String(paramNamePassword, "", "postgres password (optional, fallback to env PGPASSWORD)")
-		return func(values common.ParamMap) common.ParamMap {
+		return func(values pclient.ParamMap) pclient.ParamMap {
 			values[paramNamePassword] = *password
 			return values
 		}
@@ -87,7 +87,7 @@ type RunOptions struct {
 }
 
 // cobra参数值转换为“当前程序的”运行选项
-func convParamToRunOpt(values common.ParamMap) RunOptions {
+func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 	return RunOptions{
 		Host:     values[paramNameHost],
 		PortStr:  values[paramNamePort],
@@ -100,7 +100,7 @@ func convParamToRunOpt(values common.ParamMap) RunOptions {
 }
 
 // --------------------------------------------------
-func Run(values common.ParamMap) error {
+func Run(values pclient.ParamMap) error {
 	options := convParamToRunOpt(values)
 
 	if options.Host == "" {

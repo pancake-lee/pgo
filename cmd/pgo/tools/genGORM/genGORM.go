@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"gorm.io/gen"
 	"gorm.io/gorm"
@@ -20,7 +20,7 @@ const (
 	cacheKeyPrefix        = "tools.genGORM."
 )
 
-var paramSettingList = []common.ParamItem{
+var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameDB,
 		Usage:   "database type, currently only mysql is supported",
@@ -43,7 +43,7 @@ var paramSettingList = []common.ParamItem{
 		Default: "model",
 	}}
 
-var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	ToolName:       "genGORM",
 	Use:            "gorm",
 	Aliases:        []string{"genGORM"},
@@ -65,7 +65,7 @@ type RunOptions struct {
 }
 
 // cobra参数值转换为“当前程序的”运行选项
-func convParamToRunOpt(values common.ParamMap) RunOptions {
+func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 	return RunOptions{
 		DB:           values[paramNameDB],
 		DSN:          values[paramNameDSN],
@@ -76,7 +76,7 @@ func convParamToRunOpt(values common.ParamMap) RunOptions {
 }
 
 // --------------------------------------------------
-func Run(values common.ParamMap) error {
+func Run(values pclient.ParamMap) error {
 	options := convParamToRunOpt(values)
 
 	if options.DB == "" {

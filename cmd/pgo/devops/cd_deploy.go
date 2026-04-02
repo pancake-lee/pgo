@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -29,11 +29,11 @@ func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
 	putil.Interact.Infof("using cache file: %v", cachePath)
 
-	sshHost := common.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
-	sshPort := common.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
-	sshUser := common.GetCachedParam(cachePath, "deploy.ssh.user", "SSH User", "root")
-	sshPass := common.GetCachedParam(cachePath, "deploy.ssh.pass", "SSH Password", "")
-	remoteRoot := common.GetCachedParam(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
+	sshHost := pclient.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
+	sshPort := pclient.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
+	sshUser := pclient.GetCachedParam(cachePath, "deploy.ssh.user", "SSH User", "root")
+	sshPass := pclient.GetCachedParam(cachePath, "deploy.ssh.pass", "SSH Password", "")
+	remoteRoot := pclient.GetCachedParam(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
 
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
 	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)

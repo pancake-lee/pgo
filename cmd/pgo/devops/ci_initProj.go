@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -20,7 +20,7 @@ const (
 	cacheKeyPrefix   = "devops.initProj."
 )
 
-var initProjParamSettingList = []common.ParamItem{{
+var initProjParamSettingList = []pclient.ParamItem{{
 	Name:    paramNameSrcRoot,
 	Usage:   "source project root",
 	Default: ".", // TODO 要从github拉去文件，而不是本地
@@ -30,7 +30,7 @@ var initProjParamSettingList = []common.ParamItem{{
 	Default: ".",
 }}
 
-var InitProjEntrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+var InitProjEntrypoint = pclient.NewTool(pclient.ToolOption{
 	ToolName:       "initProj",
 	Use:            "initProj",
 	Aliases:        []string{"init-proj"},
@@ -68,12 +68,12 @@ func InitProjCli() {
 	InitProjEntrypoint.RunInteractive()
 }
 
-func RunInitProj(values common.ParamMap) error {
+func RunInitProj(values pclient.ParamMap) error {
 	opt := convParamToRunOpt(values)
 	return runInitProject(opt)
 }
 
-func convParamToRunOpt(values common.ParamMap) initProjRunOptions {
+func convParamToRunOpt(values pclient.ParamMap) initProjRunOptions {
 	srcRoot := strings.TrimSpace(values[paramNameSrcRoot])
 	if srcRoot == "" {
 		srcRoot = "."

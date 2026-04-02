@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/papitable"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -25,7 +25,7 @@ const (
 	cacheKeyPrefix       = "tools.sheet2mysql."
 )
 
-var paramSettingList = []common.ParamItem{
+var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameConfig,
 		Usage:   "配置文件路径，用于自动读取 APITable.token/baseUrl/spaceId（对应参数为空时生效）",
@@ -57,7 +57,7 @@ var paramSettingList = []common.ParamItem{
 		Default: "./internal/pkg/db/",
 	}}
 
-var Entrypoint = common.NewToolEntrypoint(common.ToolEntrypointOption{
+var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	ToolName:       "sheet2mysql",
 	Use:            "sheet2mysql",
 	Aliases:        []string{"genSheetDDL"},
@@ -80,7 +80,7 @@ type RunOptions struct {
 }
 
 // cobra参数值转换为“当前程序的”运行选项
-func convParamToRunOpt(values common.ParamMap) (RunOptions, error) {
+func convParamToRunOpt(values pclient.ParamMap) (RunOptions, error) {
 	datasheetID := strings.TrimSpace(values[paramNameDatasheetID])
 	if true && datasheetID == "" { // just for test
 		datasheetID = "dstaBbsMatBLqc84Bh"
@@ -125,7 +125,7 @@ func convParamToRunOpt(values common.ParamMap) (RunOptions, error) {
 }
 
 // --------------------------------------------------
-func Run(values common.ParamMap) error {
+func Run(values pclient.ParamMap) error {
 	options, err := convParamToRunOpt(values)
 	if err != nil {
 		return err
