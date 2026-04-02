@@ -7,6 +7,16 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+/*
+上面"fyne.io/fyne/v2/app"在linux下，vscode会报错
+即使编译通过，也报错，
+github.com/go-gl/gl 带有 CGO 的标签，所以需要 CGO_ENABLED=1
+但是vscode并没有正确识别到go env的设置
+需要专门给vscode配置一下
+在.vscode/settings.json里添加：
+"go.toolsEnvVars": {"CGO_ENABLED": "1"}
+*/
+
 // PageBuilder is a function that builds the center panel content for a page.
 // It receives the App so business code can access OutputPanel, Window, etc.
 type PageBuilder func(app *App) fyne.CanvasObject

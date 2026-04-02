@@ -26,6 +26,14 @@ func initLogger(logToConsole bool) {
 	plogger.InitLogger(logToConsole, zapcore.DebugLevel, "./logs/")
 }
 
+func runUI() {
+	app := pclient.NewApp("PGO Client")
+
+	app.RegisterPage("调课", courseSwap.BuildPage)
+
+	app.ShowAndRun()
+}
+
 func runCli() {
 	rootCmd := newRootCommand()
 	rootCmd.SetArgs(pclient.NormalizeLegacyLongFlagArgs(os.Args[1:]))

@@ -4,6 +4,7 @@ package pclient
 
 import (
 	"os"
+	"syscall"
 )
 
 // RunApp is the platform-aware entrypoint for Windows
@@ -21,4 +22,8 @@ func RunApp(cli func(), ui func()) {
 	}
 
 	cli()
+}
+
+func getExecAttr() *syscall.SysProcAttr {
+	return &syscall.SysProcAttr{HideWindow: true}
 }

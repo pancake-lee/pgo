@@ -21,5 +21,8 @@
             "username": "pgo"
         }
     ],
-    "protobuf.protoc.path": "/usr/local/bin/protoc"
+    "protobuf.protoc.path": "/usr/local/bin/protoc",
+    "go.toolsEnvVars": {
+        "CGO_ENABLED": "1",
+    }
 }
