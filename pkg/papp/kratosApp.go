@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -98,6 +99,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 			http.Middleware(
 				recovery.Recovery(),
 				authMiddleware2(),
+				logging.Server(kLogger),
 			),
 			http.Filter(cors.New(cors.Options{
 				AllowedOrigins: []string{"*"},

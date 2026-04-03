@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 
+	"github.com/pancake-lee/pgo/internal/pkg/db/model"
+	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -23,20 +25,40 @@ func main() {
 	if !pconfig.Has(predis.DefaultConfigGroup) {
 		plogger.Info("Redis config not found, skipping check.")
 	} else {
-		checkRedis()
+		if err := papp.CheckRedis(); err != nil {
+			plogger.Fatalf("Redis check failed: %v", err)
+		}
 	}
 
 	if !pconfig.Has(pmq.DefaultConfigGroup) {
 		plogger.Info("RabbitMQ config not found, skipping check.")
 	} else {
-		checkRabbitMQ()
+		if err := papp.CheckRabbitMQ(); err != nil {
+			plogger.Fatalf("RabbitMQ check failed: %v", err)
+		}
 	}
 
 	// Includes: Create DB if not exists, AutoMigrate
 	if !pconfig.Has(pdb.DefaultConfigGroup) {
 		plogger.Info("Mysql config not found, skipping check.")
 	} else {
-		checkMysql()
+		err := papp.CheckMysql([]any{
+			&model.AbandonCode{},
+			&model.CourseSwapRequest{},
+			&model.Project{},
+			&model.Task{},
+			&model.User{},
+			&model.UserDept{},
+			&model.UserDeptAssoc{},
+			&model.UserJob{},
+			&model.UserProjectAssoc{},
+			&model.UserRole{},
+			&model.UserRoleAssoc{},
+			&model.UserRolePermissionAssoc{},
+		})
+		if err != nil {
+			plogger.Fatalf("MySQL check failed: %v", err)
+		}
 	}
 
 	plogger.Info("BootCheck finished successfully.")
