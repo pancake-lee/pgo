@@ -153,6 +153,16 @@ func initMysqlGorm(conf pdb.MysqlConfig, portStr string) error {
 func runAutoMigrate(db *gorm.DB, models []any) error {
 	plogger.Info("Starting AutoMigrate...")
 
+	plannedSQL, err := collectMigrationSQL(db, models, true)
+	if err != nil {
+		return plogger.LogErr(fmt.Errorf("failed to preview migration sql: %v", err))
+	}
+	if err := validateSafeMigrationSQL(plannedSQL); err != nil {
+		plogger.Warnf("Skip AutoMigrate due to unsafe SQL plan: %v", err)
+		plogger.Warn("MySQL connectivity and DB existence are checked; schema changes require manual SQL/generator alignment.")
+		return nil
+	}
+
 	originalLogger := db.Logger
 	sb := &strings.Builder{}
 	defer func() { db.Logger = originalLogger }()
@@ -163,7 +173,7 @@ func runAutoMigrate(db *gorm.DB, models []any) error {
 		sb:        sb,
 	}
 
-	err := db.AutoMigrate(models...)
+	err = db.AutoMigrate(models...)
 	persistMigrationSQL(sb)
 	if err != nil {
 		return plogger.LogErr(fmt.Errorf("auto migrate failed: %v", err))
@@ -219,5 +229,101 @@ func (l *migrationSQLLogger) Trace(ctx context.Context, begin time.Time, fc func
 		strings.HasPrefix(upper, "RENAME") ||
 		strings.HasPrefix(upper, "TRUNCATE") {
 		l.sb.WriteString(sql + ";\n")
+	}
+}
+
+func collectMigrationSQL(db *gorm.DB, models []any, dryRun bool) ([]string, error) {
+	originalLogger := db.Logger
+	statements := make([]string, 0)
+	defer func() { db.Logger = originalLogger }()
+
+	baseLogger := originalLogger.LogMode(dbLogger.Info)
+	db.Logger = &migrationSQLCollectorLogger{
+		Interface:  baseLogger,
+		statements: &statements,
+	}
+
+	migrationDB := db
+	if dryRun {
+		migrationDB = db.Session(&gorm.Session{DryRun: true})
+	}
+
+	if err := migrationDB.AutoMigrate(models...); err != nil {
+		return nil, err
+	}
+
+	return statements, nil
+}
+
+func validateSafeMigrationSQL(sqlList []string) error {
+	for _, raw := range sqlList {
+		stmt := strings.ToUpper(strings.TrimSpace(raw))
+		if stmt == "" {
+			continue
+		}
+
+		if strings.HasPrefix(stmt, "DROP ") || strings.HasPrefix(stmt, "TRUNCATE ") {
+			return fmt.Errorf("detected destructive migration SQL, please let ops handle manually: %s", raw)
+		}
+
+		if strings.HasPrefix(stmt, "ALTER ") {
+			if !isSafeAlterAddOnly(stmt) {
+				return fmt.Errorf("detected non-additive ALTER SQL, please let ops handle manually: %s", raw)
+			}
+		}
+	}
+	return nil
+}
+
+func isSafeAlterAddOnly(stmt string) bool {
+	if !strings.Contains(stmt, " ADD ") {
+		return false
+	}
+
+	for _, keyword := range []string{
+		" DROP ",
+		" MODIFY ",
+		" CHANGE ",
+		" RENAME ",
+		" ALTER COLUMN ",
+		" DROP COLUMN ",
+		" DROP INDEX ",
+		" DROP PRIMARY KEY ",
+	} {
+		if strings.Contains(stmt, keyword) {
+			return false
+		}
+	}
+
+	return true
+}
+
+type migrationSQLCollectorLogger struct {
+	dbLogger.Interface
+	statements *[]string
+}
+
+func (l *migrationSQLCollectorLogger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {
+	return &migrationSQLCollectorLogger{
+		Interface:  l.Interface.LogMode(level),
+		statements: l.statements,
+	}
+}
+
+func (l *migrationSQLCollectorLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+	l.Interface.Trace(ctx, begin, fc, err)
+
+	sql, _ := fc()
+	if sql == "" {
+		return
+	}
+
+	upper := strings.ToUpper(strings.TrimSpace(sql))
+	if strings.HasPrefix(upper, "CREATE") ||
+		strings.HasPrefix(upper, "ALTER") ||
+		strings.HasPrefix(upper, "DROP") ||
+		strings.HasPrefix(upper, "RENAME") ||
+		strings.HasPrefix(upper, "TRUNCATE") {
+		*l.statements = append(*l.statements, sql)
 	}
 }
