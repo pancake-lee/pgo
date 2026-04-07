@@ -17,8 +17,8 @@ func GetDefaultCachePath() string {
 	if err != nil {
 		return "cache.json"
 	}
-	// 目录是~/pgo/但不同项目按项目名称区分缓存文件
-	return filepath.Join(home, "pgo",
+	// 目录是~/.pgo/但不同项目按项目名称区分缓存文件
+	return filepath.Join(home, ".pgo",
 		putil.NewPathS(putil.GetCurDir()).GetLast()+"cache.json")
 }
 

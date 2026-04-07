@@ -78,8 +78,53 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 			continue
 		}
 
-		// Handle directory recursion or single file
+		// Handle wildcard patterns
 		srcPath := putil.NewPathS(src)
+		if srcPath.HasGlob() {
+			// Expand wildcard and deploy each matched file
+			matches, err := srcPath.Glob()
+			if err != nil {
+				putil.Interact.Warnf("Glob error for %s: %v", src, err)
+				continue
+			}
+			if len(matches) == 0 {
+				putil.Interact.Warnf("No files matched pattern: %s", src)
+				continue
+			}
+
+			// Calculate the base prefix from the wildcard pattern (directory part before the glob)
+			globBase := srcPath.ToFile().GetPath()
+			if srcPath.IsDir() {
+				globBase = srcPath.GetPath()
+			}
+
+			for _, matchPath := range matches {
+				matchInfo, err := os.Stat(matchPath)
+				if err != nil {
+					putil.Interact.Warnf("Skipping %s: %v", matchPath, err)
+					continue
+				}
+				if matchInfo.IsDir() {
+					continue
+				}
+
+				// Calculate relative path from glob base
+				relPath := putil.NewPathS(matchPath).CutPrefix(filepath.Dir(globBase)).ToFile().GetPath()
+				fullDstPath := dstRootPath.Clone().Join(dst).Join(relPath)
+
+				conflict, err := deployOneFile(sshCli, matchPath, fullDstPath.GetPath())
+				if conflict != nil {
+					conflictList = append(conflictList, *conflict)
+				}
+				if err != nil {
+					putil.Interact.Errorf("Failed to deploy file %s: %v", matchPath, err)
+				}
+			}
+			continue
+		}
+
+		// Handle directory recursion or single file
+		srcPath = putil.NewPathS(src)
 		info, err := os.Stat(srcPath.GetPath())
 		if err != nil {
 			putil.Interact.Warnf("Skipping %s: %v", srcPath.GetPath(), err)

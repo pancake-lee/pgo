@@ -94,6 +94,8 @@
       - 用户选择手动，则仅打印提示用户这个命令，选择自动则通过ssh直接执行命令
   - 也提供更新程序的能力，包括更新数据库结构和程序
   - 数据库结构不能drop，仅代码层面废弃即可，实际数据清理需要用户自行操作
+  - `bootCheck` 的 MySQL 检查会先做 DryRun 预检，只允许自动新增表/列/索引
+  - 遇到 `DROP`、`TRUNCATE`、`ALTER ... MODIFY/CHANGE/RENAME`、删索引、删主键等危险 SQL 时，不自动执行，提示运维人工处理
   - 不处理科学上网的问题，但让用户有“自行下载并把所需文件放到指定目录下”的方法
     - 这是很后面的优化提升了，可能是docker-compose或者各个docker镜像的本地安装
 
@@ -161,6 +163,9 @@
 
 - 丰富的组件封装 (`pkg`)
   - 基础设施: 统一封装了 Log, Config, Redis, MySQL, RabbitMQ 等基础组件。
+  - `pkg/papp/bootCheck.go` 已沉淀公共启动检查能力，提供 `CheckRedis()`、`CheckRabbitMQ()`、`CheckMysql(models []any)` 三个直接入口
+  - `internal/bootCheck` 已改为直接复用上述公共入口，不再各自维护 Redis/MySQL/RabbitMQ 的具体检查逻辑
+  - `CheckMysql(models []any)` 保持固定最佳实践：读取配置、连接 MySQL、确保数据库存在、初始化 Gorm、预检迁移 SQL、执行安全迁移、输出 SQL 记录
   - 集成能力: 内置微信生态 (`pweixin`) 及多维表格 (`papitable`) 等第三方服务集成。
 
 - DevOps 友好
@@ -193,5 +198,3 @@
   - 接口调用频率，耗时，成功率等等数据，还有硬件数据
   - 各服务健康状况，包括中间件和服务进程和一些自动业务的状态
   - 控的方面更加倾向于用pgo来承载，同样使用corba交互操作
-- 对于其他项目想要采用该项目的开发模式
-  - bootCheck不要依赖orm，才能用于其他项目

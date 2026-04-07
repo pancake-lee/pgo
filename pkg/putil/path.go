@@ -284,6 +284,29 @@ func (h *pathHelper) IsMatchPattern(pattern string) bool {
 	return ok
 }
 
+// HasGlob 判断路径是否包含通配符
+func (h *pathHelper) HasGlob() bool {
+	return strings.ContainsAny(h.path, "*?[")
+}
+
+// Glob 展开路径中的通配符，返回匹配的文件列表
+func (h *pathHelper) Glob() ([]string, error) {
+	return filepath.Glob(h.path)
+}
+
+// GlobExpand 展开通配符并返回完整的路径对象列表
+func (h *pathHelper) GlobExpand() ([]*pathHelper, error) {
+	matches, err := filepath.Glob(h.path)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*pathHelper, 0, len(matches))
+	for _, m := range matches {
+		result = append(result, NewPathS(m))
+	}
+	return result, nil
+}
+
 // --------------------------------------------------
 // 全局后缀 -> MIME 映射，以及按类型分类的后缀集合
 var (
