@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
-	"github.com/pancake-lee/pgo/pkg/putil"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +67,7 @@ func GetCachedParam(cachePath, key, prompt, layout string) string {
 	}
 
 	inputPrompt := fmt.Sprintf("%s (Default: %s)", prompt, defaultVal)
-	val := putil.Interact.Input(inputPrompt)
+	val := pthird.Interact.Input(inputPrompt)
 
 	if val == "" {
 		val = defaultVal

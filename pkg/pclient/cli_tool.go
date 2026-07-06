@@ -5,7 +5,7 @@ import (
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/putil"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ func NewTool(option ToolOption) *Tool {
 // RunInteractive runs the tool in interactive mode with cached parameters
 func (x *Tool) RunInteractive() {
 	cachePath := pconfig.GetDefaultCachePath()
-	putil.Interact.Infof("using cache file: %v", cachePath)
+	pthird.Interact.Infof("using cache file: %v", cachePath)
 	values := GetCachedParamMap(
 		cachePath,
 		x.option.CacheKeyPrefix,

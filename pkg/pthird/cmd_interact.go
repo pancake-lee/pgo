@@ -1,4 +1,4 @@
-package putil
+package pthird
 
 import (
 	"fmt"
@@ -118,6 +118,9 @@ func (_interact) Warnf(msg string, args ...interface{}) {
 }
 func (_interact) Errorf(msg string, args ...interface{}) {
 	pterm.Println(pterm.Red(fmt.Sprintf(msg, args...)))
+}
+func (_interact) Error(err error) {
+	pterm.Println(pterm.Red(err))
 }
 
 func (_interact) Debugf(msg string, args ...interface{}) {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -28,24 +29,24 @@ func MakeCli() {
 		if _, err := os.Stat("../Makefile"); err == nil {
 			makefile = "../Makefile"
 		} else {
-			putil.Interact.Errorf("Makefile not found in current directory or parent")
+			pthird.Interact.Errorf("Makefile not found in current directory or parent")
 			return
 		}
 	}
 
 	targets, vars := parseMakefile(makefile)
 	if len(targets) == 0 {
-		putil.Interact.Errorf("No targets found in %s", makefile)
+		pthird.Interact.Errorf("No targets found in %s", makefile)
 		return
 	}
 
 	// 1. Configure Variables (First)
 	currentVars := make(map[string]string)
 	cachePath := pconfig.GetDefaultCachePath()
-	putil.Interact.Infof("using cache file: %v", cachePath)
+	pthird.Interact.Infof("using cache file: %v", cachePath)
 
 	if len(vars) > 0 {
-		putil.Interact.Infof("Configure Variables (Press Enter to use Default)")
+		pthird.Interact.Infof("Configure Variables (Press Enter to use Default)")
 		for _, v := range vars {
 
 			// 先赋值为默认值
@@ -60,7 +61,7 @@ func MakeCli() {
 			}
 
 			prompt := fmt.Sprintf("%s (Default: %s)", v.Name, val)
-			input := putil.Interact.Input(prompt)
+			input := pthird.Interact.Input(prompt)
 
 			if input != "" {
 				val = input
@@ -71,7 +72,7 @@ func MakeCli() {
 	}
 
 	// 2. Select Target
-	sel := putil.Interact.NewSelector(fmt.Sprintf("Select Make Target (%s)", makefile))
+	sel := pthird.Interact.NewSelector(fmt.Sprintf("Select Make Target (%s)", makefile))
 
 	for _, t := range targets {
 		tName := t.Name // capture
@@ -85,16 +86,16 @@ func MakeCli() {
 			for name, val := range currentVars {
 				args = append(args, fmt.Sprintf("%s=%s", name, val))
 			}
-			putil.Interact.Infof("Executing: make %s", putil.StrListToStr(args, " "))
+			pthird.Interact.Infof("Executing: make %s", putil.StrListToStr(args, " "))
 
 			// 4. Execute Command
 			out, err := putil.Exec("make", args...)
-			putil.Interact.Infof("%s", out)
+			pthird.Interact.Infof("%s", out)
 			if err != nil {
-				putil.Interact.Errorf("Execution failed: %v", err)
+				pthird.Interact.Errorf("Execution failed: %v", err)
 			}
 
-			putil.Interact.Input("Execution completed. Press Enter to continue...")
+			pthird.Interact.Input("Execution completed. Press Enter to continue...")
 		})
 	}
 

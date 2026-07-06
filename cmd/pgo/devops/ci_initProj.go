@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/pancake-lee/pgo/pkg/pclient"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -58,7 +59,7 @@ type initCopyTask struct {
 }
 
 func CICli() {
-	sel := putil.Interact.NewSelector("Devops CI")
+	sel := pthird.Interact.NewSelector("Devops CI")
 	sel.Reg("Make", MakeCli)
 	sel.Reg("Init Project", InitProjCli)
 	sel.Loop()
@@ -114,7 +115,7 @@ func runInitProject(opt initProjRunOptions) error {
 		return fmt.Errorf("create dstRoot failed: %w", err)
 	}
 
-	putil.Interact.Infof("init project from %s -> %s", srcAbs, dstAbs)
+	pthird.Interact.Infof("init project from %s -> %s", srcAbs, dstAbs)
 	moduleName, err := inferModuleNameFromPath(dstAbs)
 	if err != nil {
 		return err
@@ -136,9 +137,9 @@ func runInitProject(opt initProjRunOptions) error {
 		return err
 	}
 	if len(conflictList) > 0 {
-		putil.Interact.Warnf("found conflict files in destination, please delete them manually:")
+		pthird.Interact.Warnf("found conflict files in destination, please delete them manually:")
 		for _, conflictPath := range conflictList {
-			putil.Interact.Warnf("  %s", conflictPath)
+			pthird.Interact.Warnf("  %s", conflictPath)
 		}
 		return fmt.Errorf("conflict files detected: %d", len(conflictList))
 	}
@@ -155,7 +156,7 @@ func runInitProject(opt initProjRunOptions) error {
 		return err
 	}
 
-	putil.Interact.Infof("init project done: %s", dstAbs)
+	pthird.Interact.Infof("init project done: %s", dstAbs)
 	return nil
 }
 
@@ -228,7 +229,7 @@ func buildCopyTaskList(srcRoot, dstRoot string, cfg *InitProjConfig) ([]initCopy
 		dstRel := cfg.Files[srcRel]
 
 		if cfg.ShouldExclude(srcRel) {
-			putil.Interact.Infof("skip by exclude rule: %s", srcRel)
+			pthird.Interact.Infof("skip by exclude rule: %s", srcRel)
 			continue
 		}
 
@@ -413,6 +414,6 @@ func initTargetGoModule(dstRoot, moduleName string) error {
 		return fmt.Errorf("go mod tidy failed: %w\n%s", err, strings.TrimSpace(string(out)))
 	}
 
-	putil.Interact.Infof("go module initialized: %s", moduleName)
+	pthird.Interact.Infof("go module initialized: %s", moduleName)
 	return nil
 }

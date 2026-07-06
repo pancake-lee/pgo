@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/papitable"
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
-	"github.com/pancake-lee/pgo/pkg/putil"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 )
 
 // --------------------------------------------------
@@ -184,13 +184,13 @@ func Run(values pclient.ParamMap) error {
 		return fmt.Errorf("write sql file failed: %w", err)
 	}
 
-	putil.Interact.Infof("已生成 MySQL 建表 SQL: %s", outFile)
-	putil.Interact.Infof("字段总数: %d", len(fieldList))
+	pthird.Interact.Infof("已生成 MySQL 建表 SQL: %s", outFile)
+	pthird.Interact.Infof("字段总数: %d", len(fieldList))
 
 	if len(warningList) > 0 {
-		putil.Interact.Warnf("生成完成，但有 %d 条提示:", len(warningList))
+		pthird.Interact.Warnf("生成完成，但有 %d 条提示:", len(warningList))
 		for _, warning := range warningList {
-			putil.Interact.Warnf("- %s", warning)
+			pthird.Interact.Warnf("- %s", warning)
 		}
 	}
 

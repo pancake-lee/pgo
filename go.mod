@@ -2,9 +2,7 @@ module github.com/pancake-lee/pgo
 
 // module pgo
 
-go 1.23.0
-
-toolchain go1.24.2
+go 1.24.4
 
 require (
 	fyne.io/fyne/v2 v2.7.1

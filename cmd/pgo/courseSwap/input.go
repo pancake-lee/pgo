@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -62,12 +63,12 @@ func InputParams() (config InputConfig, err error) {
 		prompt += fmt.Sprintf(" (默认: %s)", cache.Path)
 	}
 	prompt += "，以回车结束"
-	config.Path = putil.Interact.Input(prompt)
+	config.Path = pthird.Interact.Input(prompt)
 	if config.Path == "" {
 		config.Path = cache.Path
 	}
 	for config.Path == "" {
-		config.Path = putil.Interact.MustInput("请输入需要导入的课程表文件(excel)，以回车结束")
+		config.Path = pthird.Interact.MustInput("请输入需要导入的课程表文件(excel)，以回车结束")
 	}
 
 	// Teacher
@@ -76,12 +77,12 @@ func InputParams() (config InputConfig, err error) {
 		prompt += fmt.Sprintf(" (默认: %s)", cache.Teacher)
 	}
 	prompt += "，不要输入空格等额外内容，以回车结束"
-	config.Teacher = putil.Interact.Input(prompt)
+	config.Teacher = pthird.Interact.Input(prompt)
 	if config.Teacher == "" {
 		config.Teacher = cache.Teacher
 	}
 	for config.Teacher == "" {
-		config.Teacher = putil.Interact.MustInput("请输入老师名字，不要输入空格等额外内容，以回车结束")
+		config.Teacher = pthird.Interact.MustInput("请输入老师名字，不要输入空格等额外内容，以回车结束")
 	}
 
 	// Date
@@ -90,12 +91,12 @@ func InputParams() (config InputConfig, err error) {
 		prompt += fmt.Sprintf(" (默认: %s)", cache.Date)
 	}
 	prompt += "，以回车结束"
-	config.Date = putil.Interact.Input(prompt)
+	config.Date = pthird.Interact.Input(prompt)
 	if config.Date == "" {
 		config.Date = cache.Date
 	}
 	for config.Date == "" {
-		config.Date = putil.Interact.MustInput("请输入日期，如20240101，以回车结束")
+		config.Date = pthird.Interact.MustInput("请输入日期，如20240101，以回车结束")
 	}
 
 	// CourseNum
@@ -104,14 +105,14 @@ func InputParams() (config InputConfig, err error) {
 		prompt += fmt.Sprintf(" (默认: %d)", cache.CourseNum)
 	}
 	prompt += "，以回车结束"
-	val := putil.Interact.Input(prompt)
+	val := pthird.Interact.Input(prompt)
 	if val == "" && cache.CourseNum != 0 {
 		config.CourseNum = cache.CourseNum
 	} else if val != "" {
 		config.CourseNum, _ = putil.StrToInt(val)
 	}
 	for config.CourseNum == 0 {
-		val := putil.Interact.MustInput("请输入第几节课，1~7，以回车结束")
+		val := pthird.Interact.MustInput("请输入第几节课，1~7，以回车结束")
 		config.CourseNum, _ = putil.StrToInt(val)
 	}
 
@@ -122,7 +123,7 @@ func InputParams() (config InputConfig, err error) {
 		defaultStorage = cache.StorageType
 	}
 	prompt += fmt.Sprintf(" (默认: %s)", defaultStorage)
-	config.StorageType = putil.Interact.Input(prompt)
+	config.StorageType = pthird.Interact.Input(prompt)
 	if config.StorageType == "" {
 		config.StorageType = defaultStorage
 	}
@@ -135,7 +136,7 @@ func InputParams() (config InputConfig, err error) {
 	}
 	prompt += fmt.Sprintf(" (默认: %s)", defaultOdd)
 
-	oddStr := putil.Interact.Input(prompt)
+	oddStr := pthird.Interact.Input(prompt)
 	if oddStr == "" {
 		config.IsOddWeek = cache.IsOddWeek
 	} else {

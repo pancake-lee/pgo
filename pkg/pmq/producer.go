@@ -6,6 +6,7 @@ import (
 
 	"github.com/kataras/iris/v12/x/errors"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -55,7 +56,7 @@ func (cli *AmqpClient) rpcCall(ctx context.Context,
 ) error {
 
 	var req string
-	err := putil.MessageToString(reqPB, &req)
+	err := pthird.MessageToString(reqPB, &req)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
@@ -70,7 +71,7 @@ func (cli *AmqpClient) rpcCall(ctx context.Context,
 		return plogger.LogErr(err)
 	}
 
-	err = putil.StringToMessage(&resp, respPB)
+	err = pthird.StringToMessage(&resp, respPB)
 	if err != nil {
 		return plogger.LogErr(err)
 	}
@@ -95,7 +96,7 @@ func (cli *AmqpClient) rpcCallStr(ctx context.Context,
 		queue += "_" + cli.queueSuffix
 	}
 
-	// 想要打印类似wokerid，reqid之类的外部信息，应该由ctx提供固定参数
+	// 想要打印类似workerID，reqID之类的外部信息，应该由ctx提供固定参数
 	// 而比起固定参数，更好的是提供闭包，则ctx提供logger函数
 	cli.logReqMsg(0, "cli mq send", queue, "", *req)
 

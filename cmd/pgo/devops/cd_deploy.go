@@ -10,6 +10,7 @@ import (
 
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -27,7 +28,7 @@ type DeployConflict struct {
 
 func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
-	putil.Interact.Infof("using cache file: %v", cachePath)
+	pthird.Interact.Infof("using cache file: %v", cachePath)
 
 	sshHost := pclient.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
 	sshPort := pclient.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
@@ -36,22 +37,22 @@ func DeployCli() {
 	remoteRoot := pclient.GetCachedParam(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
 
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
-	putil.Interact.Infof("Connecting to %s@%s...", sshUser, host)
-	sshCli, err := putil.NewSSHClient(sshUser, sshPass, host)
+	pthird.Interact.Infof("Connecting to %s@%s...", sshUser, host)
+	sshCli, err := pthird.NewSSHClient(sshUser, sshPass, host)
 	if err != nil {
-		putil.Interact.Errorf("SSH Connection failed: %v", err)
+		pthird.Interact.Errorf("SSH Connection failed: %v", err)
 		return
 	}
 
 	err = sshCli.InitSftp()
 	if err != nil {
 		sshCli.Close()
-		putil.Interact.Errorf("SFTP Initialization failed: %v", err)
+		pthird.Interact.Errorf("SFTP Initialization failed: %v", err)
 		return
 	}
 
 	// --------------------------------------------------
-	sel := putil.Interact.NewSelector("Deploy Menu")
+	sel := pthird.Interact.NewSelector("Deploy Menu")
 	sel.Reg("First Time Deployment", func() {
 		firstTimeDeploy(sshCli, remoteRoot)
 	})
@@ -61,7 +62,7 @@ func DeployCli() {
 	sel.Run()
 }
 
-func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
+func firstTimeDeploy(sshCli *pthird.SshClient, remoteRoot string) {
 	dstRootPath := putil.NewPath(remoteRoot)
 	var conflictList []DeployConflict
 
@@ -70,11 +71,11 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 		return
 	}
 
-	putil.Interact.Infof("Starting deployment check...")
+	pthird.Interact.Infof("Starting deployment check...")
 
 	for src, dst := range cfg.Files {
 		if cfg.ShouldExclude(src) {
-			putil.Interact.Infof("Skipped by exclude rule: %s", src)
+			pthird.Interact.Infof("Skipped by exclude rule: %s", src)
 			continue
 		}
 
@@ -84,11 +85,11 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 			// Expand wildcard and deploy each matched file
 			matches, err := srcPath.Glob()
 			if err != nil {
-				putil.Interact.Warnf("Glob error for %s: %v", src, err)
+				pthird.Interact.Warnf("Glob error for %s: %v", src, err)
 				continue
 			}
 			if len(matches) == 0 {
-				putil.Interact.Warnf("No files matched pattern: %s", src)
+				pthird.Interact.Warnf("No files matched pattern: %s", src)
 				continue
 			}
 
@@ -101,7 +102,7 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 			for _, matchPath := range matches {
 				matchInfo, err := os.Stat(matchPath)
 				if err != nil {
-					putil.Interact.Warnf("Skipping %s: %v", matchPath, err)
+					pthird.Interact.Warnf("Skipping %s: %v", matchPath, err)
 					continue
 				}
 				if matchInfo.IsDir() {
@@ -117,7 +118,7 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 					conflictList = append(conflictList, *conflict)
 				}
 				if err != nil {
-					putil.Interact.Errorf("Failed to deploy file %s: %v", matchPath, err)
+					pthird.Interact.Errorf("Failed to deploy file %s: %v", matchPath, err)
 				}
 			}
 			continue
@@ -127,7 +128,7 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 		srcPath = putil.NewPathS(src)
 		info, err := os.Stat(srcPath.GetPath())
 		if err != nil {
-			putil.Interact.Warnf("Skipping %s: %v", srcPath.GetPath(), err)
+			pthird.Interact.Warnf("Skipping %s: %v", srcPath.GetPath(), err)
 			continue
 		}
 
@@ -140,7 +141,7 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 					}
 
 					if cfg.ShouldExclude(path) {
-						putil.Interact.Infof("Skipped by exclude rule: %s", path)
+						pthird.Interact.Infof("Skipped by exclude rule: %s", path)
 						if info.IsDir() {
 							return filepath.SkipDir
 						}
@@ -160,14 +161,14 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 					return err
 				})
 			if err != nil {
-				putil.Interact.Errorf("Failed to deploy directory %s: %v",
+				pthird.Interact.Errorf("Failed to deploy directory %s: %v",
 					srcPath.GetPath(), err)
 				return
 			}
 		} else {
 			// Single file
 			if cfg.ShouldExclude(srcPath.GetPath()) {
-				putil.Interact.Infof("Skipped by exclude rule: %s", srcPath.GetPath())
+				pthird.Interact.Infof("Skipped by exclude rule: %s", srcPath.GetPath())
 				continue
 			}
 
@@ -177,7 +178,7 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 				conflictList = append(conflictList, *conflict)
 			}
 			if err != nil {
-				putil.Interact.Errorf("Failed to deploy file %s: %v",
+				pthird.Interact.Errorf("Failed to deploy file %s: %v",
 					srcPath.GetPath(), err)
 				return
 			}
@@ -185,18 +186,18 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 	}
 
 	if len(conflictList) == 0 {
-		putil.Interact.Infof("All files deployed successfully.")
+		pthird.Interact.Infof("All files deployed successfully.")
 	} else {
-		putil.Interact.Warnf("Deployment completed with %d skipped files (remote exists and MD5 mismatch):", len(conflictList))
+		pthird.Interact.Warnf("Deployment completed with %d skipped files (remote exists and MD5 mismatch):", len(conflictList))
 		for _, c := range conflictList {
-			putil.Interact.Warnf("SKIPPED: %s -> %s", c.LocalPath, c.RemotePath)
-			putil.Interact.Warnf("  Remote: %s", c.RemoteMD5)
-			putil.Interact.Warnf("  Local : %s", c.LocalMD5)
+			pthird.Interact.Warnf("SKIPPED: %s -> %s", c.LocalPath, c.RemotePath)
+			pthird.Interact.Warnf("  Remote: %s", c.RemoteMD5)
+			pthird.Interact.Warnf("  Local : %s", c.LocalMD5)
 		}
 	}
 
 	// 5. Run Docker Compose
-	autoRun := putil.Interact.
+	autoRun := pthird.Interact.
 		Input("Run 'docker-compose up -d' automatically? (y/n) [n]: ")
 
 	cmdStr := fmt.Sprintf(`cd %s && `+
@@ -205,33 +206,33 @@ func firstTimeDeploy(sshCli *putil.SshClient, remoteRoot string) {
 		dstRootPath.GetPath())
 
 	if strings.ToLower(autoRun) == "y" {
-		putil.Interact.Infof("Executing: %s", cmdStr)
+		pthird.Interact.Infof("Executing: %s", cmdStr)
 		stdout, stderr, err := sshCli.RunCommand(cmdStr)
 		if err != nil {
-			putil.Interact.Errorf("Command failed: %v\nStderr: %s", err, stderr)
+			pthird.Interact.Errorf("Command failed: %v\nStderr: %s", err, stderr)
 		} else {
-			putil.Interact.Infof("Success:\n%s", stdout)
+			pthird.Interact.Infof("Success:\n%s", stdout)
 		}
 	} else {
-		putil.Interact.Infof("Manual run command:\n%s", cmdStr)
+		pthird.Interact.Infof("Manual run command:\n%s", cmdStr)
 	}
 }
 
 func loadDeployConfig() (*DeployConfig, error) {
 	deployFile := putil.NewPathS("deploy/deploy.json").GetPath()
 	if _, err := os.Stat(deployFile); os.IsNotExist(err) {
-		putil.Interact.Errorf("Deploy config not found: %s", deployFile)
+		pthird.Interact.Errorf("Deploy config not found: %s", deployFile)
 		return nil, err
 	}
 
 	content, err := os.ReadFile(deployFile)
 	if err != nil {
-		putil.Interact.Errorf("Failed to read deploy config: %v", err)
+		pthird.Interact.Errorf("Failed to read deploy config: %v", err)
 		return nil, err
 	}
 	var cfg DeployConfig
 	if err := json.Unmarshal(content, &cfg); err != nil {
-		putil.Interact.Errorf("Failed to parse deploy config: %v", err)
+		pthird.Interact.Errorf("Failed to parse deploy config: %v", err)
 		return nil, err
 	}
 
@@ -279,8 +280,8 @@ func matchExcludeRule(srcPath, rule string) bool {
 	return false
 }
 
-func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) (*DeployConflict, error) {
-	putil.Interact.Infof("Checking %s -> %s", localPath, remotePath)
+func deployOneFile(sshCli *pthird.SshClient, localPath, remotePath string) (*DeployConflict, error) {
+	pthird.Interact.Infof("Checking %s -> %s", localPath, remotePath)
 
 	md5Cmd := fmt.Sprintf("md5sum '%s'", remotePath)
 	stdout, _, err := sshCli.RunCommand(md5Cmd)
@@ -303,11 +304,11 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) (*Depl
 		}
 
 		if localMd5 == remoteMd5 {
-			putil.Interact.Infof("  Skipped (MD5 Match)")
+			pthird.Interact.Infof("  Skipped (MD5 Match)")
 			return nil, nil
 		}
 
-		putil.Interact.Warnf("  Skipped (Remote exists and MD5 mismatch)")
+		pthird.Interact.Warnf("  Skipped (Remote exists and MD5 mismatch)")
 		return &DeployConflict{
 			LocalPath:  localPath,
 			RemotePath: remotePath,
@@ -316,7 +317,7 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) (*Depl
 		}, nil
 	}
 
-	putil.Interact.Infof("  Copying...")
+	pthird.Interact.Infof("  Copying...")
 	if err := sshCli.Scp(localPath, remotePath); err != nil {
 		return nil, err
 	}
@@ -325,7 +326,7 @@ func deployOneFile(sshCli *putil.SshClient, localPath, remotePath string) (*Depl
 }
 
 // --------------------------------------------------
-func updateServiceProcess(sshCli *putil.SshClient, remoteRoot string) {
+func updateServiceProcess(sshCli *pthird.SshClient, remoteRoot string) {
 	dstRootPath := putil.NewPath(remoteRoot)
 
 	cfg, err := loadDeployConfig()
@@ -345,11 +346,11 @@ func updateServiceProcess(sshCli *putil.SshClient, remoteRoot string) {
 	sort.Strings(options)
 
 	if len(options) == 0 {
-		putil.Interact.Warnf("No service process configurations found (starting with bin/)")
+		pthird.Interact.Warnf("No service process configurations found (starting with bin/)")
 		return
 	}
 	var selectedSrc string
-	sel := putil.Interact.NewSelector("Select service to update")
+	sel := pthird.Interact.NewSelector("Select service to update")
 	for _, opt := range options {
 		o := opt
 		sel.Reg(o, func() { selectedSrc = o })
@@ -365,13 +366,13 @@ func updateServiceProcess(sshCli *putil.SshClient, remoteRoot string) {
 	srcPath := putil.NewPathS(selectedSrc)
 	dstPath := dstRootPath.Clone().Join(selectedDst)
 
-	putil.Interact.Infof("Updating %s -> %s",
+	pthird.Interact.Infof("Updating %s -> %s",
 		srcPath.GetPath(), dstPath.GetPath())
 
 	// Check if local exists
 	_, err = os.Stat(srcPath.GetPath())
 	if os.IsNotExist(err) {
-		putil.Interact.Errorf("Local file not found: %s", srcPath.GetPath())
+		pthird.Interact.Errorf("Local file not found: %s", srcPath.GetPath())
 		return
 	}
 
@@ -384,9 +385,9 @@ func updateServiceProcess(sshCli *putil.SshClient, remoteRoot string) {
 
 	err = sshCli.Scp(srcPath.GetPath(), dstPath.GetPath())
 	if err != nil {
-		putil.Interact.Errorf("Failed to copy file: %v", err)
+		pthird.Interact.Errorf("Failed to copy file: %v", err)
 		return
 	}
 
-	putil.Interact.Infof("Update successful!")
+	pthird.Interact.Infof("Update successful!")
 }

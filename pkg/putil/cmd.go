@@ -2,13 +2,8 @@ package putil
 
 import (
 	"errors"
-	"io"
 	"os/exec"
 	"strings"
-
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
 )
 
 // --------------------------------------------------
@@ -102,52 +97,4 @@ func Exec(name string, args ...string) (string, error) {
 	// }
 
 	return outStr, err
-}
-
-func Conv_gbk2utf8(s string) (string, error) {
-	reader := transform.NewReader(strings.NewReader(s),
-		simplifiedchinese.GBK.NewDecoder())
-
-	// 读取转换后的内容
-	utf8Bytes, err := io.ReadAll(reader)
-	if err != nil {
-		return s, err
-	}
-	return string(utf8Bytes), nil
-}
-
-func Conv_gb2312_utf8(s string) (string, error) {
-	reader := transform.NewReader(strings.NewReader(s),
-		simplifiedchinese.HZGB2312.NewDecoder())
-
-	// 读取转换后的内容
-	utf8Bytes, err := io.ReadAll(reader)
-	if err != nil {
-		return s, err
-	}
-	return string(utf8Bytes), nil
-}
-
-func Conv_utf16be_utf8(s string) (string, error) {
-	reader := transform.NewReader(strings.NewReader(s),
-		unicode.UTF16(unicode.BigEndian, unicode.UseBOM).NewDecoder())
-
-	// 读取转换后的内容
-	utf8Bytes, err := io.ReadAll(reader)
-	if err != nil {
-		return s, err
-	}
-	return string(utf8Bytes), nil
-}
-
-func Conv_utf16le_utf8(s string) (string, error) {
-	reader := transform.NewReader(strings.NewReader(s),
-		unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder())
-
-	// 读取转换后的内容
-	utf8Bytes, err := io.ReadAll(reader)
-	if err != nil {
-		return s, err
-	}
-	return string(utf8Bytes), nil
 }

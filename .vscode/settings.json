@@ -8,7 +8,9 @@
     "go.testTimeout": "300s",
     "cSpell.words": [
         "Kratos",
-        "LTBL"
+        "LTBL",
+        "pterm",
+        "simplifiedchinese"
     ],
     "sqltools.connections": [
         {

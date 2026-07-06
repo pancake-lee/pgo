@@ -8,6 +8,7 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +61,7 @@ var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	Run:            Run,
 	InteractiveHook: func(values pclient.ParamMap) pclient.ParamMap {
 		// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
-		password := putil.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
+		password := pthird.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
 		values[paramNamePassword] = password
 		return values
 	},
