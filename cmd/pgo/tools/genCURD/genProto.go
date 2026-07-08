@@ -113,6 +113,16 @@ func pbReplace(
 	}
 
 	codeStr = tblNameReplace(codeStr, tplTable, tbl)
+
+	// 将 proto 字段名中的复数表名替换为单数形式
+	// 例如 photos = 1 → photo = 1
+	if tbl.TblName != tbl.SnakeName {
+		codeStr = strings.ReplaceAll(codeStr,
+			" "+tbl.TblName+" =", " "+tbl.SnakeName+" =")
+		codeStr = strings.ReplaceAll(codeStr,
+			" "+tbl.TblName+"List =", " "+tbl.SnakeName+"List =")
+	}
+
 	return codeStr
 }
 

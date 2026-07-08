@@ -92,10 +92,68 @@ func tblPriIdxReplace(codeStr string, tplTable *Table, tbl *Table) string {
 	codeStr = strings.ReplaceAll(codeStr,
 		tplTable.PriCol.apiFieldName, tbl.PriCol.apiFieldName)
 
-	codeStr = strings.ReplaceAll(codeStr,
-		tplTable.PriCol.ormFieldType, tbl.PriCol.ormFieldType)
+	// 替换主键类型：模板中可能写死了特定类型（如 int32），
+	// 但不同数据库驱动（MySQL/SQLite3）返回的类型可能不同，
+	// 因此对整型变体做单词边界替换，避免 int→string 把 internal 变成 stringernal
+	tplType := tplTable.PriCol.ormFieldType
+	for _, candidate := range priTypeCandidates(tplType) {
+		if candidate != tbl.PriCol.ormFieldType {
+			codeStr = replaceWholeWord(codeStr, candidate, tbl.PriCol.ormFieldType)
+		}
+	}
+
+	// 替换零值比较：int 类型主键用 == 0，string 类型主键用 == ""
+	if tbl.PriCol.ormFieldType == "string" {
+		codeStr = strings.ReplaceAll(codeStr, "== 0", `== ""`)
+		// 修复误替换：len() 返回 int，不应替换
+		codeStr = strings.ReplaceAll(codeStr, `) == ""`, `) == 0`)
+	}
 
 	return codeStr
+}
+
+// priTypeCandidates 返回主键类型可能的所有变体（兼容不同数据库驱动）
+func priTypeCandidates(t string) []string {
+	switch t {
+	case "int32", "int64":
+		return []string{"int64", "int32", "int16", "int8", "uint32", "uint64"}
+	case "string":
+		return []string{"string"}
+	default:
+		return []string{t}
+	}
+}
+
+// replaceWholeWord 仅替换完整单词（以非字母/非数字字符为边界）
+func replaceWholeWord(s, old, new string) string {
+	// 使用简单的 rune 边界检测
+	pat := []byte(old)
+	n := len(pat)
+	var result []byte
+	start := 0
+	for i := 0; i <= len(s)-n; i++ {
+		if s[i:i+n] != old {
+			continue
+		}
+		// 前边界检查
+		if i > 0 && isAlphaNum(rune(s[i-1])) {
+			continue
+		}
+		// 后边界检查
+		if i+n < len(s) && isAlphaNum(rune(s[i+n])) {
+			continue
+		}
+		result = append(result, []byte(s[start:i])...)
+		result = append(result, []byte(new)...)
+		start = i + n
+		i += n - 1 // skip past the match
+	}
+	result = append(result, []byte(s[start:])...)
+	return string(result)
+}
+
+func isAlphaNum(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
 }
 
 // 替换表名相关代码，dao/pb/service都会用到

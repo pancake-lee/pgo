@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jinzhu/inflection"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -38,9 +39,10 @@ type Table struct {
 	IdxList     []indexInfo
 
 	// 生成代码需要的值
-	HyphenName     string // 中横线[-]命名
-	LowerCamelName string // 驼峰命名，首字母小写
-	UpperCamelName string // 驼峰命名，首字母大写
+	HyphenName       string // 中横线[-]命名
+	LowerCamelName   string // 驼峰命名，首字母小写
+	UpperCamelName   string // 驼峰命名，首字母大写
+	SnakeName        string // 单数 snake_case，用于 proto 字段名
 }
 
 func (t *Table) String() string {
@@ -70,8 +72,9 @@ func newTable(tblName string, svcName string) (*Table, error) {
 		ServiceName: svcName,
 	}
 	tbl.HyphenName = strings.ReplaceAll(tblName, "_", "-")
-	tbl.UpperCamelName = putil.StrToCamelCase(tblName)
+	tbl.UpperCamelName = inflection.Singular(putil.StrToCamelCase(tblName))
 	tbl.LowerCamelName = putil.StrFirstToLower(tbl.UpperCamelName)
+	tbl.SnakeName = inflection.Singular(tblName)
 
 	cols, err := pdb.GetGormDB().Migrator().ColumnTypes(tblName)
 	if err != nil {
@@ -97,6 +100,11 @@ func newTable(tblName string, svcName string) (*Table, error) {
 		c.apiFieldType = originCol.ScanType().String()
 		c.pbFieldType = originCol.ScanType().String()
 
+		// SQLite3 驱动返回 sql.Null* 类型，归一化为基本类型
+		c.ormFieldType = normalizeSqlNullType(c.ormFieldType)
+		c.apiFieldType = normalizeSqlNullType(c.apiFieldType)
+		c.pbFieldType = normalizeSqlNullType(c.pbFieldType)
+
 		if strings.EqualFold(originCol.DatabaseTypeName(), "date") ||
 			strings.EqualFold(originCol.DatabaseTypeName(), "datetime") {
 			c.ormFieldType = "time.Time"
@@ -108,6 +116,9 @@ func newTable(tblName string, svcName string) (*Table, error) {
 			c.apiFieldType = "string"
 			c.pbFieldType = "string"
 		}
+
+		// 将 Go 类型映射为合法的 proto 类型
+		c.pbFieldType = goTypeToPBTYPE(c.pbFieldType)
 
 		plogger.Debugf("Field[%s] Type[%s] sqlType[%v] orm[%v][%v] api[%v][%v]",
 			originCol.Name(), originCol.ScanType().String(),
@@ -293,4 +304,44 @@ func inferServiceName(tableName string) string {
 	// 	return "user"
 	// }
 	return "default"
+}
+
+// goTypeToPBTYPE 将 Go 类型映射为合法的 proto 类型
+func goTypeToPBTYPE(t string) string {
+	switch t {
+	case "float64":
+		return "double"
+	case "float32":
+		return "float"
+	default:
+		return t
+	}
+}
+
+// normalizeSqlNullType 将 SQLite3 驱动返回的 sql.Null* 类型归一化为基本 Go 类型
+func normalizeSqlNullType(t string) string {
+	if !strings.HasPrefix(t, "sql.Null") {
+		return t
+	}
+	switch t {
+	case "sql.NullString":
+		return "string"
+	case "sql.NullInt64":
+		return "int32"
+	case "sql.NullInt32":
+		return "int32"
+	case "sql.NullInt16":
+		return "int32"
+	case "sql.NullByte":
+		return "int32"
+	case "sql.NullFloat64":
+		return "float64"
+	case "sql.NullBool":
+		return "bool"
+	case "sql.NullTime":
+		return "time.Time"
+	default:
+		// sql.Null 开头的未知类型，回退为 string
+		return "string"
+	}
 }
