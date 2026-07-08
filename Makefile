@@ -124,7 +124,7 @@ reInitDB:
 .PHONY: curd
 # 根据数据库生成 CURD 代码
 curd:
-	pgo genCURD -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local"
+	pgo genCURD -db mysql -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local"
 
 .PHONY: build
 # build

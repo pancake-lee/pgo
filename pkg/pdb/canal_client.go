@@ -1,3 +1,6 @@
+// 注意：Canal 模块依赖 MySQL binlog 机制，SQLite 不支持此功能。
+// 如需在 SQLite 环境下运行，请跳过 Canal 相关初始化。
+
 package pdb
 
 import (

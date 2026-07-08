@@ -162,7 +162,7 @@ func newTable(tblName string, svcName string) (*Table, error) {
 }
 
 // --------------------------------------------------
-func runGenerate(dsn string) error {
+func runGenerate(dbType, dsn string) error {
 	tblMap = make(map[string]*Table)
 
 	err := rmAllGenFile()
@@ -170,7 +170,14 @@ func runGenerate(dsn string) error {
 		return err
 	}
 
-	err = pdb.InitMysqlByDsn(dsn)
+	switch dbType {
+	case "mysql":
+		err = pdb.InitMysqlByDsn(dsn)
+	case "sqlite3":
+		err = pdb.InitSqlite(dsn)
+	default:
+		return fmt.Errorf("db %q is not supported, only mysql and sqlite3 are supported", dbType)
+	}
 	if err != nil {
 		return err
 	}

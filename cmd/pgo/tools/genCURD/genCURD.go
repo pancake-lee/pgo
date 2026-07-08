@@ -10,6 +10,7 @@ import (
 
 // --------------------------------------------------
 const (
+	paramNameDB      = "db"
 	paramNameDSN     = "dsn"
 	paramNameWorkDir = "workDir"
 	cacheKeyPrefix   = "tools.genCURD."
@@ -17,8 +18,12 @@ const (
 
 var paramSettingList = []pclient.ParamItem{
 	{
+		Name:    paramNameDB,
+		Usage:   "database type, support mysql and sqlite3",
+		Default: "mysql",
+	}, {
 		Name:    paramNameDSN,
-		Usage:   "mysql dsn for genCURD",
+		Usage:   "database connection string (mysql: user:pass@tcp(host:port)/db, sqlite3: /path/to/db.sqlite)",
 		Default: "",
 	}, {
 		Name:    paramNameWorkDir,
@@ -40,11 +45,12 @@ var Entrypoint = pclient.NewTool(pclient.ToolOption{
 // 运行参数，定义的参数列表最终转换成当前程序使用的运行选项
 
 type RunOptions struct {
+	DB      string
 	DSN     string
 	WorkDir string
 }
 
-// cobra参数值转换为“当前程序的”运行选项
+// cobra参数值转换为"当前程序的"运行选项
 func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 	workDir := values[paramNameWorkDir]
 	if workDir == "" {
@@ -52,6 +58,7 @@ func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 	}
 
 	return RunOptions{
+		DB:      values[paramNameDB],
 		DSN:     values[paramNameDSN],
 		WorkDir: workDir,
 	}
@@ -61,6 +68,9 @@ func convParamToRunOpt(values pclient.ParamMap) RunOptions {
 func Run(values pclient.ParamMap) error {
 	options := convParamToRunOpt(values)
 
+	if options.DB == "" {
+		options.DB = "mysql"
+	}
 	if options.DSN == "" {
 		return errors.New("dsn is empty")
 	}
@@ -79,5 +89,5 @@ func Run(values pclient.ParamMap) error {
 	}
 	defer os.Chdir(oldWorkDir)
 
-	return runGenerate(options.DSN)
+	return runGenerate(options.DB, options.DSN)
 }

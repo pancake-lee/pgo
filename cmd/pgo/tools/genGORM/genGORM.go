@@ -23,11 +23,11 @@ const (
 var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameDB,
-		Usage:   "database type, currently only mysql is supported",
+		Usage:   "database type, support mysql and sqlite3",
 		Default: "mysql",
 	}, {
 		Name:    paramNameDSN,
-		Usage:   "mysql dsn",
+		Usage:   "database connection string (mysql: user:pass@tcp(host:port)/db, sqlite3: /path/to/db.sqlite)",
 		Default: "",
 	}, {
 		Name:    paramNameOutPath,
@@ -82,14 +82,25 @@ func Run(values pclient.ParamMap) error {
 	if options.DB == "" {
 		options.DB = "mysql"
 	}
-	if options.DB != "mysql" {
-		return fmt.Errorf("db %q is not supported, only mysql is supported", options.DB)
-	}
-	if options.DSN == "" {
-		return errors.New("dsn is empty")
-	}
-	if options.OutPath == "" {
-		return errors.New("outPath is empty")
+	switch options.DB {
+	case "mysql":
+		if options.DSN == "" {
+			return errors.New("dsn is empty")
+		}
+		err := pdb.InitMysqlByDsn(options.DSN)
+		if err != nil {
+			return fmt.Errorf("init mysql by dsn failed: %w", err)
+		}
+	case "sqlite3":
+		if options.DSN == "" {
+			return errors.New("dsn (sqlite file path) is empty")
+		}
+		err := pdb.InitSqlite(options.DSN)
+		if err != nil {
+			return fmt.Errorf("init sqlite failed: %w", err)
+		}
+	default:
+		return fmt.Errorf("db %q is not supported, only mysql and sqlite3 are supported", options.DB)
 	}
 	if options.OutFile == "" {
 		return errors.New("outFile is empty")
@@ -98,13 +109,7 @@ func Run(values pclient.ParamMap) error {
 		return errors.New("modelPkgName is empty")
 	}
 
-	// 1. 连接数据库
-	err := pdb.InitMysqlByDsn(options.DSN)
-	if err != nil {
-		return fmt.Errorf("init mysql by dsn failed: %w", err)
-	}
-
-	// 2. 初始化 GenTool
+	// 初始化 GenTool
 	g := gen.NewGenerator(gen.Config{
 		OutPath:      options.OutPath,
 		OutFile:      options.OutFile,

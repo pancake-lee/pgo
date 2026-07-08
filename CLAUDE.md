@@ -33,6 +33,7 @@ make precommit
 
 - 所有可执行程序输出到 `./bin/`，不要直接 `go build` 到根目录
 - 本地环境一般设置好了 `GOTOOLCHAIN=local`，不要修改该配置，不使用 Go 自动工具链下载
+- `genGORM` 和 `genCURD` 支持 `-db mysql` 和 `-db sqlite3`，MySQL 的 DSN 为连接字符串，SQLite3 的 DSN 为文件路径。切换数据库时修改 Makefile 中 `gorm`/`curd` 目标的参数即可，详见 `docs/design/sqlite.md`
 
 ## 代码风格
 
