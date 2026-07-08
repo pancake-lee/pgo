@@ -7,7 +7,7 @@ import "time"
 import (
 	"context"
 
-	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/internal/taskService/data"
 	"github.com/pancake-lee/pgo/pkg/papp"
 )

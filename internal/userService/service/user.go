@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	api "github.com/pancake-lee/pgo/api"
+	api "github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
 	"github.com/pancake-lee/pgo/pkg/papp"
 

@@ -9,15 +9,15 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
-type SchoolCURDServer struct {
-	api.UnimplementedSchoolCURDServer
+type DefaultCURDServer struct {
+	api.UnimplementedDefaultCURDServer
 }
 
-func (s *SchoolCURDServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {
+func (s *DefaultCURDServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {
 	if grpcSrv != nil {
-		api.RegisterSchoolCURDServer(grpcSrv, s)
+		api.RegisterDefaultCURDServer(grpcSrv, s)
 	}
 	if httpSrv != nil {
-		api.RegisterSchoolCURDHTTPServer(httpSrv, s)
+		api.RegisterDefaultCURDHTTPServer(httpSrv, s)
 	}
 }

@@ -6,7 +6,7 @@
         "deploy/docker/config/": "config/",
         "deploy/docker/go_into_dr9.sh": "go_into_dr9.sh",
         "bin/bootCheck": "backend/bootCheck",
-        "internal/pkg/db/*sql": "backend/database/",
+        "sql/*sql": "backend/database/",
         "bin/userService": "backend/userService",
         "deploy/docker/docker-compose.yaml": "docker-compose.yaml"
     },

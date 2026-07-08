@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 

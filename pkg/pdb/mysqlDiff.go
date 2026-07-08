@@ -65,6 +65,8 @@ func resolveSchemaSQLDir() (string, error) {
 	candidates := []string{
 		filepath.Join(putil.GetExecFolder(), "database"),
 		filepath.Join(putil.GetExecFolder(), "..", "database"),
+		filepath.Join(putil.GetCurDir(), "sql"),
+		filepath.Join("sql"),
 		filepath.Join(putil.GetCurDir(), "internal", "pkg", "db"),
 		filepath.Join("internal", "pkg", "db"),
 	}
@@ -85,7 +87,7 @@ func resolveSchemaSQLDir() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("schema sql directory not found, expected .sql files under ./internal/pkg/db or ./database")
+	return "", fmt.Errorf("schema sql directory not found, expected .sql files under ./sql, ./internal/pkg/db or ./database")
 }
 
 // planSchemaUpgradeSQL 通过将目标数据库与临时数据库中的规范schema进行对比，计划增量SQL语句。

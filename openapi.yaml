@@ -258,6 +258,82 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.UpdateProjectResponse'
+    /sheet-ceshibiao:
+        get:
+            tags:
+                - DefaultCURD
+            operationId: DefaultCURD_GetSheetCeshibiaoList
+            parameters:
+                - name: IDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.GetSheetCeshibiaoListResponse'
+        post:
+            tags:
+                - DefaultCURD
+            description: |-
+                --------------------------------------------------
+                 tbl : sheet_ceshibiao
+            operationId: DefaultCURD_AddSheetCeshibiao
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.AddSheetCeshibiaoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.AddSheetCeshibiaoResponse'
+        delete:
+            tags:
+                - DefaultCURD
+            operationId: DefaultCURD_DelSheetCeshibiaoByIDList
+            parameters:
+                - name: IDList
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.Empty'
+        patch:
+            tags:
+                - DefaultCURD
+            operationId: DefaultCURD_UpdateSheetCeshibiao
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.UpdateSheetCeshibiaoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.UpdateSheetCeshibiaoResponse'
     /task:
         get:
             tags:
@@ -1096,6 +1172,16 @@ components:
             properties:
                 project:
                     $ref: '#/components/schemas/api.ProjectInfo'
+        api.AddSheetCeshibiaoRequest:
+            type: object
+            properties:
+                sheetCeshibiao:
+                    $ref: '#/components/schemas/api.SheetCeshibiaoInfo'
+        api.AddSheetCeshibiaoResponse:
+            type: object
+            properties:
+                sheetCeshibiao:
+                    $ref: '#/components/schemas/api.SheetCeshibiaoInfo'
         api.AddTaskRequest:
             type: object
             properties:
@@ -1254,6 +1340,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.ProjectInfo'
+        api.GetSheetCeshibiaoListResponse:
+            type: object
+            properties:
+                sheetCeshibiaoList:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.SheetCeshibiaoInfo'
         api.GetTaskListResponse:
             type: object
             properties:
@@ -1359,6 +1452,23 @@ components:
             description: |-
                 --------------------------------------------------
                  tbl : project
+        api.SheetCeshibiaoInfo:
+            type: object
+            properties:
+                ID:
+                    type: integer
+                    format: int32
+                lastEditFrom:
+                    type: string
+                jingtou:
+                    type: string
+                changci:
+                    type: string
+                zhuangtai:
+                    type: string
+            description: |-
+                --------------------------------------------------
+                 tbl : sheet_ceshibiao
         api.TaskInfo:
             type: object
             properties:
@@ -1423,6 +1533,16 @@ components:
             properties:
                 project:
                     $ref: '#/components/schemas/api.ProjectInfo'
+        api.UpdateSheetCeshibiaoRequest:
+            type: object
+            properties:
+                sheetCeshibiao:
+                    $ref: '#/components/schemas/api.SheetCeshibiaoInfo'
+        api.UpdateSheetCeshibiaoResponse:
+            type: object
+            properties:
+                sheetCeshibiao:
+                    $ref: '#/components/schemas/api.SheetCeshibiaoInfo'
         api.UpdateTaskRequest:
             type: object
             properties:
@@ -1700,6 +1820,8 @@ components:
                  tbl : user_role_permission_assoc
 tags:
     - name: AbandonCodeCURD
+      description: '--------------------------------------------------'
+    - name: DefaultCURD
       description: '--------------------------------------------------'
     - name: SchoolCURD
       description: '--------------------------------------------------'

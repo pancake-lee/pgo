@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	api "github.com/pancake-lee/pgo/api"
+	api "github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"

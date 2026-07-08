@@ -6,7 +6,7 @@ package service
 import (
 	"context"
 
-	"github.com/pancake-lee/pgo/api"
+	"github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/internal/abandonCodeService/data"
 	"github.com/pancake-lee/pgo/pkg/papp"
 )

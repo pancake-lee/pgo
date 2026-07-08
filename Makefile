@@ -73,13 +73,13 @@ env:
 .PHONY: api
 # generate api proto
 api:
-	rm -f ./api/*.pb.go
+	rm -f ./internal/pkg/api/*.pb.go
 	protoc --proto_path=./proto/ \
 		--proto_path=./third_party \
-		--go_out=paths=source_relative:./api/ \
-		--go-http_out=paths=source_relative:./api/ \
-		--go-grpc_out=paths=source_relative:./api/ \
-		--go-errors_out=paths=source_relative:./api/ \
+		--go_out=paths=source_relative:./internal/pkg/api/ \
+		--go-http_out=paths=source_relative:./internal/pkg/api/ \
+		--go-grpc_out=paths=source_relative:./internal/pkg/api/ \
+		--go-errors_out=paths=source_relative:./internal/pkg/api/ \
 		--openapi_out=fq_schema_naming=true,default_response=false:. \
 		$(API_PROTO_FILES) \
 
@@ -87,11 +87,12 @@ api:
 	echo "    - description: PGO API" >> ./openapi.yaml
 	echo "      url: http://127.0.0.1:8080" >> ./openapi.yaml
 
+dbSqlPath?=./sql
 dbCodePath?=./internal/pkg/db
 .PHONY: gorm
 gorm:
 	$(dbCmd) -e "DROP DATABASE IF EXISTS ${dbName}_orm; CREATE DATABASE ${dbName}_orm DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
-	for file in ${dbCodePath}/*.sql; do \
+	for file in ${dbSqlPath}/*.sql; do \
 		$(dbCmd) ${dbName}_orm < $$file; \
 	done
 
@@ -111,7 +112,7 @@ gorm:
 .PHONY: initDB
 initDB:
 	$(dbCmd) -e "CREATE DATABASE ${dbName} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
-	for file in ./internal/pkg/db/*.sql; do \
+	for file in ./sql/*.sql; do \
 		$(dbCmd) ${dbName} < $$file; \
 	done
 

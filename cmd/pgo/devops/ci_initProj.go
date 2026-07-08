@@ -381,11 +381,11 @@ func rewriteCopiedFileImport(filePath, moduleName string) error {
 	content := string(contentBytes)
 	nextContent := content
 	nextContent = strings.ReplaceAll(nextContent,
+		"github.com/pancake-lee/pgo/internal/pkg/api",
+		moduleName+"/api")
+	nextContent = strings.ReplaceAll(nextContent,
 		"github.com/pancake-lee/pgo/internal",
 		moduleName+"/internal")
-	nextContent = strings.ReplaceAll(nextContent,
-		"github.com/pancake-lee/pgo/api",
-		moduleName+"/api")
 
 	if nextContent == content {
 		return nil

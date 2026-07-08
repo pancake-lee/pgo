@@ -21,6 +21,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		AbandonCode:             newAbandonCode(db, opts...),
 		CourseSwapRequest:       newCourseSwapRequest(db, opts...),
 		Project:                 newProject(db, opts...),
+		SheetCeshibiao:          newSheetCeshibiao(db, opts...),
 		Task:                    newTask(db, opts...),
 		User:                    newUser(db, opts...),
 		UserDept:                newUserDept(db, opts...),
@@ -39,6 +40,7 @@ type Query struct {
 	AbandonCode             abandonCode
 	CourseSwapRequest       courseSwapRequest
 	Project                 project
+	SheetCeshibiao          sheetCeshibiao
 	Task                    task
 	User                    user
 	UserDept                userDept
@@ -58,6 +60,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		AbandonCode:             q.AbandonCode.clone(db),
 		CourseSwapRequest:       q.CourseSwapRequest.clone(db),
 		Project:                 q.Project.clone(db),
+		SheetCeshibiao:          q.SheetCeshibiao.clone(db),
 		Task:                    q.Task.clone(db),
 		User:                    q.User.clone(db),
 		UserDept:                q.UserDept.clone(db),
@@ -84,6 +87,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		AbandonCode:             q.AbandonCode.replaceDB(db),
 		CourseSwapRequest:       q.CourseSwapRequest.replaceDB(db),
 		Project:                 q.Project.replaceDB(db),
+		SheetCeshibiao:          q.SheetCeshibiao.replaceDB(db),
 		Task:                    q.Task.replaceDB(db),
 		User:                    q.User.replaceDB(db),
 		UserDept:                q.UserDept.replaceDB(db),
@@ -100,6 +104,7 @@ type queryCtx struct {
 	AbandonCode             *abandonCodeDo
 	CourseSwapRequest       *courseSwapRequestDo
 	Project                 *projectDo
+	SheetCeshibiao          *sheetCeshibiaoDo
 	Task                    *taskDo
 	User                    *userDo
 	UserDept                *userDeptDo
@@ -116,6 +121,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		AbandonCode:             q.AbandonCode.WithContext(ctx),
 		CourseSwapRequest:       q.CourseSwapRequest.WithContext(ctx),
 		Project:                 q.Project.WithContext(ctx),
+		SheetCeshibiao:          q.SheetCeshibiao.WithContext(ctx),
 		Task:                    q.Task.WithContext(ctx),
 		User:                    q.User.WithContext(ctx),
 		UserDept:                q.UserDept.WithContext(ctx),

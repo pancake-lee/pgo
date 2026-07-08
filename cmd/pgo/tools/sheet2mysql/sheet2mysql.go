@@ -54,7 +54,7 @@ var paramSettingList = []pclient.ParamItem{
 	}, {
 		Name:    paramNameOutFolder,
 		Usage:   "output sql folder",
-		Default: "./internal/pkg/db/",
+		Default: "./sql/",
 	}}
 
 var Entrypoint = pclient.NewTool(pclient.ToolOption{
@@ -149,7 +149,7 @@ func Run(values pclient.ParamMap) error {
 
 	outFolder := options.OutFolder
 	if outFolder == "" {
-		outFolder = "./internal/pkg/db/"
+		outFolder = "./sql/"
 	}
 	outFile := filepath.Join(outFolder, resolvedTableName+".sql")
 

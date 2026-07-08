@@ -7,7 +7,7 @@
 
         "internal/pkg/perr/": "internal/pkg/perr/",
         "internal/pkg/db/db.go": "internal/pkg/db/db.go",
-        "internal/pkg/db/abandon_code.sql": "internal/pkg/db/abandon_code.sql",
+        "sql/abandon_code.sql": "sql/abandon_code.sql",
 
         "internal/abandonCodeService/": "internal/abandonCodeService/",
 
