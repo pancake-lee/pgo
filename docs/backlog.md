@@ -18,6 +18,10 @@
 | Pending | 11 | 基础设施 | 链路追踪 | 引入 Jaeger，确认 gRPC 接口调用链条 |
 | Pending | 12 | 基础设施 | pprof 性能分析 | 提供 pprof 信息，确认接口内部函数调用链条 |
 | Pending | 13 | 基础设施 | 持续监控 | 接口调用频率/耗时/成功率、硬件数据、服务健康状态，用 pgo CLI 承载 |
+| Pending | 14 | 代码生成 | genCURD inferServiceName 配置化 | 支持通过配置文件或命令行参数（如 `-svc-map "photos:photo,import_jobs:import"`）映射表名到 service 名，替代当前硬编码返回 "default" 的行为 |
+| Pending | 15 | 应用框架 | papp.AppCtx 中间件能力增强 | 增加 TraceID（从 HTTP header 或自动生成）、StartTime（请求耗时日志）、补充 context.Context 嵌合方法 |
+| Pending | 16 | 代码生成 | genCURD 支持多主键表 | 当前多主键时跳过 Update/Delete 生成，后续支持联合主键的 WHERE 条件包含所有主键字段 |
+| Pending | 17 | 代码生成 | genGORM 与 genCURD 合并 | 增加 `pgo genAll` 一键完成 GORM + CURD 生成，减少数据库连接开销。短期分开生成有利于排查问题 |
 
 ---
 
@@ -58,3 +62,30 @@
 ### 13. 持续监控
 
 除了事后排查的日志平台，建立持续监控体系：接口调用频率、耗时、成功率、硬件数据、中间件和服务进程健康状态、自动业务状态。控的方面倾向用 pgo CLI 承载交互操作。
+
+### 14. genCURD inferServiceName 配置化
+
+当前 `inferServiceName()` 函数硬编码返回 `"default"`，所有表归入同一个 service。对于多表分服务的项目不适用。需要支持通过配置文件或命令行参数（如 `-svc-map "photos:photo,import_jobs:import"`）读取表名到 service 名的映射关系。
+
+> 来源：photo-agent backend 重构方案 5.2，暂缓。
+
+### 15. papp.AppCtx 中间件能力增强
+
+当前 `AppCtx` 包含 `UserId`、`Log`、缓存 map，但没有 request-scoped 的 trace ID、请求计时等。需要增加：
+- `TraceID` 字段（从 HTTP header 或自动生成）
+- `StartTime` 字段，方便在日志中输出请求耗时
+- 确认 `context.Context` 嵌合是否有遗漏的方法
+
+> 来源：photo-agent backend 重构方案 5.5，暂缓，等项目实际需要再扩展。
+
+### 16. genCURD 支持多主键表
+
+当前检测到多主键时直接 `tbl.PriCol = nil` 跳过，生成代码不含 Update/Delete。需要支持联合主键的 Update/Delete 生成（WHERE 条件包含所有主键字段）。
+
+> 来源：photo-agent backend 重构方案 5.7，P3 后续优化。
+
+### 17. genGORM 与 genCURD 合并
+
+分两步执行 `make gorm` 再 `make curd`，中间需要保持数据库连接。两个命令各自连接一次数据库。建议增加 `pgo genAll` 命令一次性完成。但短期来看分开生成有利于排查问题，暂不合并。
+
+> 来源：photo-agent backend 重构方案 5.8，P3 后续优化。
