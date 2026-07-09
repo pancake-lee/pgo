@@ -43,6 +43,9 @@ func InitSqlite(dbPath string) (err error) {
 		return err
 	}
 
+	gDriverType = DriverSQLite
+	gSavedFilePath = absPath
+
 	gConf = &SqlConfig{
 		Addr:   absPath,
 		DbName: filepath.Base(absPath),

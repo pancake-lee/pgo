@@ -56,6 +56,9 @@ func InitPG(host, user, password, dbName string, port int32) (err error) {
 		host, user, password, dbName, port)
 	dsn += " sslmode=disable TimeZone=Asia/Shanghai"
 
+	gDriverType = DriverPostgres
+	gSavedDSN = dsn
+
 	gDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return err

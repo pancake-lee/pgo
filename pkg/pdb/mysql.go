@@ -60,6 +60,9 @@ func InitMysqlByDsn(dsn string) (err error) {
 	host, port, _ := strings.Cut(cfg.Addr, ":")
 	p, _ := putil.StrToInt32(port)
 
+	gDriverType = DriverMySQL
+	gSavedDSN = dsn
+
 	gConf = &SqlConfig{
 		Addr:     cfg.Addr,
 		User:     cfg.User,
