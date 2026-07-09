@@ -16,6 +16,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
+	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/rs/cors"
@@ -76,8 +77,14 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		panic(err)
 	}
 
+	hasHTTP := pconfig.Has("Http")
+	hasGRPC := pconfig.Has("Grpc")
+	if !hasHTTP && !hasGRPC {
+		panic("neither Http nor Grpc config found, at least one must be configured")
+	}
+
 	var grpcSrv *grpc.Server
-	{
+	if hasGRPC {
 		var opts = []grpc.ServerOption{
 			grpc.Middleware(
 				recovery.Recovery(),
@@ -94,7 +101,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		grpcSrv = grpc.NewServer(opts...)
 	}
 	var httpSrv *http.Server
-	{
+	if hasHTTP {
 		var opts = []http.ServerOption{
 			http.Middleware(
 				recovery.Recovery(),
@@ -135,13 +142,21 @@ func RunKratosApp(kratosServers ...kratosServer) {
 	}
 	id += name
 
+	var serverList []transport.Server
+	if grpcSrv != nil {
+		serverList = append(serverList, grpcSrv)
+	}
+	if httpSrv != nil {
+		serverList = append(serverList, httpSrv)
+	}
+
 	app := kratos.New(
 		kratos.ID(id),
 		kratos.Name(name),
 		kratos.Version(version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(plogger.GetDefaultLogger()),
-		kratos.Server(grpcSrv, httpSrv),
+		kratos.Server(serverList...),
 	)
 
 	// start and wait for stop signal
