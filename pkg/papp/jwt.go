@@ -111,6 +111,12 @@ func AddWhiteList(paths ...string) {
 	}
 }
 
+var ignoreAuth bool = false
+
+func SetIgnoreAuth() {
+	ignoreAuth = true
+}
+
 // --------------------------------------------------
 // 利用kratos的selector和jwt组件实现（已废弃，改用authMiddleware2）
 /*
@@ -137,6 +143,9 @@ func authMiddleware() middleware.Middleware {
 func authMiddleware2() middleware.Middleware {
 	return func(nextHandler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
+			if ignoreAuth {
+				return nextHandler(ctx, req)
+			}
 			// https://go-kratos.dev/docs/component/transport/http#middleware-%E4%B8%AD%E5%A4%84%E7%90%86-http-%E8%AF%B7%E6%B1%82
 			tr, ok := transport.FromServerContext(ctx)
 			if !ok {

@@ -1,6 +1,7 @@
 package pdb
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	dbLogger "gorm.io/gorm/logger"
 )
 
-const DefaultSqliteConfigGroup = "Sqlite"
+const SqliteConfigGroup = "Sqlite"
 
 type SqliteConfig struct {
 	Path string
@@ -26,7 +27,7 @@ func MustInitSqliteByConfig() {
 
 func InitSqliteByConfig() error {
 	var conf SqliteConfig
-	err := pconfig.Scan(&conf)
+	err := pconfig.MustGetConfig().Value(SqliteConfigGroup).Scan(&conf)
 	if err != nil {
 		return err
 	}
@@ -38,6 +39,12 @@ func InitSqliteByConfig() error {
 // 数据库连接，并默认开启 WAL 模式。适用于交叉编译或无法启用 CGO 的环境。
 // PS: gorm.io/driver/sqlite 驱动需要 CGO
 func InitSqlite(dbPath string) (err error) {
+	plogger.Debugf("load sqlite dbPath: %v", dbPath)
+
+	if dbPath == "" {
+		return fmt.Errorf("sqlite dbPath is empty")
+	}
+
 	absPath, err := filepath.Abs(dbPath)
 	if err != nil {
 		return err

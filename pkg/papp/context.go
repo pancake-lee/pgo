@@ -79,6 +79,9 @@ type AppCtx struct {
 }
 
 func NewAppCtx(ctx context.Context) *AppCtx {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	appCtx := &AppCtx{
 		Context: ctx,
 		cache:   make(map[string]any),

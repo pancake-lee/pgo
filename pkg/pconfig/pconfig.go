@@ -176,3 +176,44 @@ func setFieldValue(field reflect.Value, value string) error {
 	}
 	return nil
 }
+
+// Log 打印所有配置值，key用.拼接
+func Log() {
+	if c == nil {
+		log.Println("[pconfig] config not initialized")
+		return
+	}
+	var m map[string]interface{}
+	err := c.Scan(&m)
+	if err != nil {
+		log.Printf("[pconfig] failed to scan config: %v", err)
+		return
+	}
+	log.Println("[pconfig] ===== config values =====")
+	printConfigMap(m, "")
+	log.Println("[pconfig] ===== config end =====")
+}
+
+func printConfigMap(m map[string]interface{}, prefix string) {
+	for k, v := range m {
+		key := k
+		if prefix != "" {
+			key = prefix + "." + k
+		}
+		switch val := v.(type) {
+		case map[string]interface{}:
+			printConfigMap(val, key)
+		case []interface{}:
+			for i, item := range val {
+				itemKey := fmt.Sprintf("%s.%d", key, i)
+				if itemMap, ok := item.(map[string]interface{}); ok {
+					printConfigMap(itemMap, itemKey)
+				} else {
+					log.Printf("  %s = %v", itemKey, item)
+				}
+			}
+		default:
+			log.Printf("  %s = %v", key, val)
+		}
+	}
+}
