@@ -1,0 +1,89 @@
+# 编码规范
+
+<!-- harness:begin src=pancake/30-Tools/harness/common/handbook-coding-conventions.md 公共骨架：由 pancake 统一同步，勿在此修改；改动请编辑 pancake 后运行 sync.sh push -->
+> 按语言/模块分节。AI 在对应目录下工作时读取相关节。
+> 公共骨架块由 pancake/30-Tools/harness 统一同步（以 harness marker 标记），勿在 marker 内直接修改。
+
+---
+
+## 通用规范
+
+### Markdown 输出
+
+- **减少**使用表格，**优先**使用标题层级（`##` / `###`）+ 无序列表（`-`）+ 缩进组织内容
+  - 长文本内容会把表格撑得很宽，阅读体验差
+  - 仅在数据对比（如配置参数对照）等真正适合表格的场景使用表格
+
+### 文本类文件输出
+
+- 尽量不使用破折号 `--` 或 `——` 来展开，大部分情况下都可以改成 `,` 或 `，`
+- 写文章时，避免"下定义"口吻，保持平和的个人叙述：
+  - 去掉绝对化措辞：本质上、其实很简单、极其、没有任何、就是
+  - 加上个人限定：我觉得、我理解、我目前的看法是、试着
+  - 比喻用于辅助理解，不要写成"这就是真理"的句式
+  - 结论写成阶段性认识，而非终极答案
+
+### 文档设计原则
+
+- **设计文档只描述当前方案**：设计迭代中的中间产物不留痕迹
+- **否决方向记录到 `docs/note.md`**：经审议明确否决的方向，记录拒绝理由，避免未来重复提出
+- **设计文档不写否定性叙述**：不包含"曾考虑 X 但未采用"或"不需要 Y"
+
+### 同级同构（宽泛指引）
+
+- 同一层级的并列事物（参数、目录项、方法、同级标题）在抽象层级、复杂度、命名粒度上保持可比，不混搭；跨层级的事物用命名或结构分层隔开
+- 只对齐当前写/改的局部，不主动重构存量；发现新的混搭场景时沉淀为新的锚点小节
+
+### 调用参数同级同构
+
+- 传给同一个调用的参数，构造层级保持一致：多键 dict / struct 这类重参数先提取命名再传入，调用行只放骨架（如 `invoke(initial, runtime_config)`），不混搭"一个有名、一个匿名临时字面量"
+- 标量与自明的单键小字面量不受此限，不必为它们立名
+
+---
+
+## Go
+
+### 命名规范
+
+- **列表/切片**：后缀 `List`（如 `userRoleList`、`permissionList`）
+- **Map 结构**：后缀 `Map`（如 `roleIDMap`、`permissionMap`），更清晰时用 `keyToValueMap`（如 `idToUserMap`）
+- **函数命名**：统一用"动宾"结构
+  - C: `add` — 新增，尽量让一种数据的创建入口尽可能少
+  - U: `edit` — 主动修改；`update` — 被动更新
+  - R: `get` — 查询
+  - D: `del` — 删除
+  - 关联关系：`addXxxToYyy` / `delXxxFromYyy`
+- **HTTP method**：GET（查询）、POST（创建）、PUT（全量更新）、PATCH（部分更新）、DELETE（删除）
+
+### 格式化
+
+- 逻辑修改后统一用 `gofmt -w <file>` 处理，不纠结缩进对齐
+
+### 代码组织
+
+- 避免 `if` 中使用 `;`（如 `if d, ok := data["k"]; ok`），易造成长代码
+- 入口函数放在 `internal/<module>/<module>.go`，而非 `cmd/`
+- 非复杂场景优先用基础类型组合，仅在复用明显或封装语义明确时抽象 `type`
+- **接口代理模式**：基础类通过接口代理支持子类覆盖，子类初始化后调用 `BindProvider(self)`
+
+### 测试
+
+- 编写集成测试验证 Service 层逻辑
+- 使用 `defer` + 清理函数移除测试数据
+- **禁止**在测试中修改表结构，差异应正常报错以提醒升级注意
+
+### Go 工具链
+
+- Always set `GOTOOLCHAIN=local` before running any `go` command
+- 当 `go.mod` 的 `go` directive 高于系统 Go 版本时，不要依赖 auto-download，修复 go.mod directive 或更新系统 Go
+<!-- harness:end src=pancake/30-Tools/harness/common/handbook-coding-conventions.md -->
+
+---
+
+## Go（本项目补充）
+
+### 禁忌
+
+- 不要直接 `go build` 到根目录，编译产物统一输出到 `./bin/`
+- `bootCheck` 的 MySQL 检查不允许执行 `DROP`、`TRUNCATE`、`ALTER ... MODIFY/CHANGE/RENAME`、删索引、删主键等危险 SQL
+- 数据库结构不能 drop，仅代码层面废弃，实际数据清理由用户自行操作

@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 > pgo 是个人 Go 代码库与脚手架项目（`pkg/` 日常封装 + 客户端/服务端框架能力），详见 `README.md`。
 > 公共规则块（harness marker）由 pancake/30-Tools/harness 统一同步，勿在 marker 内直接修改。
