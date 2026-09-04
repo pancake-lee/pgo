@@ -9,3 +9,9 @@ import (
 func GetQuery() *query.Query {
 	return query.Use(pdb.GetGormDB())
 }
+
+// GetQueryTx returns the query bound to transactionID's active transaction.
+// Existing callers keep using GetQuery; transaction-aware workflows opt in.
+func GetQueryTx(transactionID int32) *query.Query {
+	return query.Use(pdb.GetGormDB(transactionID))
+}

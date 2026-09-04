@@ -54,10 +54,6 @@ func GetDB() (*sql.DB, error) {
 	return gDB.DB()
 }
 
-func GetGormDB() *gorm.DB {
-	return gDB
-}
-
 // GetGormDB_RO 返回只读 *gorm.DB，首次调用时自动懒初始化。
 // 初始化失败返回 nil，后续调用会重试。
 func GetGormDB_RO() *gorm.DB {

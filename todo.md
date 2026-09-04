@@ -10,7 +10,6 @@
   - 抽象多平台适配层，统一 APITable/飞书/企微等多维表格接入接口
 
 ## 待开始
-
 - sheet2mysql: 支持生成 SQLite DDL（ENGINE/AUTO_INCREMENT 等差异适配），当前仅支持 MySQL DDL 生成
 - 多维表格双向同步：TEMP 标记应区分两个方向，当前存在回环误判 BUG
 - 排查 BUG 案例建设：编写包含延时/日志/随机错误/并发的测试接口，通过 RequestID 串联日志，还原业务过程

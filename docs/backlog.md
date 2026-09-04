@@ -22,6 +22,7 @@
 | Pending | 15 | 应用框架 | papp.AppCtx 中间件能力增强 | 增加 TraceID（从 HTTP header 或自动生成）、StartTime（请求耗时日志）、补充 context.Context 嵌合方法 |
 | Pending | 16 | 代码生成 | genCURD 支持多主键表 | 当前多主键时跳过 Update/Delete 生成，后续支持联合主键的 WHERE 条件包含所有主键字段 |
 | Pending | 17 | 代码生成 | genGORM 与 genCURD 合并 | 增加 `pgo genAll` 一键完成 GORM + CURD 生成，减少数据库连接开销。短期分开生成有利于排查问题 |
+| Done | 18 | 基础设施 | 嵌套事务 | 为当前服务设计并实现 `pdb` 嵌套事务：业务传入事务 ID，内层 Begin 复用外层事务、任一层回滚整体回滚、兼容 defer rollback，并按 ID 自动取得事务查询对象 |
 
 ---
 
@@ -89,3 +90,13 @@
 分两步执行 `make gorm` 再 `make curd`，中间需要保持数据库连接。两个命令各自连接一次数据库。建议增加 `pgo genAll` 命令一次性完成。但短期来看分开生成有利于排查问题，暂不合并。
 
 > 来源：photo-agent backend 重构方案 5.8，P3 后续优化。
+
+### 18. 嵌套事务
+
+为当前服务设计并实现 `pkg/pdb` 的嵌套事务能力：
+
+- 第一次 `Begin` 开启真实 GORM 事务并入栈登记；内层 `Begin` 只压栈计数，不新开事务
+- 每层 `Commit` / `Rollback` 只更新本层状态；全部层都提交才真正提交，任一层回滚则整体回滚
+- 兼容 `begin + defer rollback + commit` 惯用写法，commit 后再走到 defer 的 rollback 自动忽略
+- 事务按业务传入的 ID 登记；`GetGormDB(id)` / `GetQueryTx(id)` 自动返回当前事务查询对象，已有 `GetQuery()` 调用无需改动
+- 配套单测：嵌套 commit/rollback 组合矩阵、defer 场景、重复 commit/rollback 的告警分支
