@@ -1,0 +1,24 @@
+groups:
+  - name: pgo-app
+    rules:
+      - alert: PgoApplicationUnavailable
+        expr: up{job="pgo-app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PGO application diagnostics endpoint is unavailable"
+      - alert: PgoRequestErrorRateHigh
+        expr: sum(rate(pgo_http_requests_total{result="error"}[5m])) / clamp_min(sum(rate(pgo_http_requests_total[5m])), 1) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PGO HTTP error rate exceeds 5%"
+      - alert: PgoDependencyUnavailable
+        expr: pgo_dependency_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PGO dependency {{ $labels.dependency }} is unavailable"

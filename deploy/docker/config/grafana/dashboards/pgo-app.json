@@ -1,0 +1,30 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "title": "Request rate",
+      "type": "timeseries",
+      "targets": [{"expr": "sum(rate(pgo_http_requests_total[5m]))", "legendFormat": "requests/s"}]
+    },
+    {
+      "title": "Error rate",
+      "type": "timeseries",
+      "targets": [{"expr": "sum(rate(pgo_http_requests_total{result=\"error\"}[5m])) / clamp_min(sum(rate(pgo_http_requests_total[5m])), 1)", "legendFormat": "error rate"}]
+    },
+    {
+      "title": "p95 latency",
+      "type": "timeseries",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(pgo_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95"}]
+    },
+    {
+      "title": "Dependencies",
+      "type": "stat",
+      "targets": [{"expr": "pgo_dependency_up", "legendFormat": "{{dependency}}"}]
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": ["pgo", "application"],
+  "title": "PGO Application",
+  "uid": "pgo-app"
+}

@@ -1,6 +1,8 @@
 package predis
 
 import (
+	"context"
+	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/kataras/iris/v12/x/errors"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
@@ -67,4 +69,17 @@ func CloseDefaultClient() {
 	if DefaultClient != nil {
 		DefaultClient.Close()
 	}
+}
+
+// IsInitialized reports whether the default Redis client has been configured.
+func IsInitialized() bool {
+	return DefaultClient != nil && DefaultClient.Client != nil
+}
+
+// Ping verifies that the initialized default Redis client is reachable.
+func Ping(ctx context.Context) error {
+	if DefaultClient == nil || DefaultClient.Client == nil {
+		return fmt.Errorf("redis client is not initialized")
+	}
+	return DefaultClient.Client.WithContext(ctx).Ping().Err()
 }

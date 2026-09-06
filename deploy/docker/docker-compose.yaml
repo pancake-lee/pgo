@@ -108,6 +108,7 @@ services:
             - pgo-net
         volumes:
             - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./config/prometheus-rules:/etc/prometheus/rules:ro
             - ./prometheus/data:/prometheus
         depends_on:
             - node-exporter

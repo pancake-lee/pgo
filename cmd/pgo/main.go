@@ -5,6 +5,7 @@ import (
 
 	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/diagnostics"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
@@ -59,6 +60,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(diagnostics.NewCommand())
 	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(devops.InitProjEntrypoint.NewCobraCommand())
 

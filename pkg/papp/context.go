@@ -2,7 +2,9 @@ package papp
 
 import (
 	"context"
+	"time"
 
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -69,7 +71,9 @@ type AppCtx struct {
 	context.Context
 
 	// 业务通用传递字段
-	UserId int32
+	UserId    int32
+	TraceID   string
+	StartTime time.Time
 
 	// 需要与ctx绑定的工具对象
 	Log *plogger.PLogWarper
@@ -83,16 +87,35 @@ func NewAppCtx(ctx context.Context) *AppCtx {
 		ctx = context.Background()
 	}
 	appCtx := &AppCtx{
-		Context: ctx,
-		cache:   make(map[string]any),
+		Context:   ctx,
+		StartTime: time.Now(),
+		cache:     make(map[string]any),
+	}
+	appCtx.TraceID = tracing.TraceID()(ctx).(string)
+	if appCtx.TraceID == "" {
+		appCtx.TraceID, _ = putil.GetTraceIdFromCtx(ctx)
+	}
+	if appCtx.TraceID == "" {
+		appCtx.TraceID = putil.UUID()
+		appCtx.Context = putil.SetTraceIdToCtx(ctx, appCtx.TraceID)
 	}
 	if uid, ok := putil.GetUserIdFromCtx(ctx); ok {
 		appCtx.UserId = uid
 	}
 
 	appCtx.Log = plogger.NewPLogWarper(plogger.GetDefaultLoggerNoCaller()).
-		AddCallerLevel(0).WithContext(ctx)
+		AddCallerLevel(0).WithContext(appCtx.Context)
 	// 不要用GetDefaultLogWarper，这是给plogger.Debug等直接调用的，caller层数不同
 	// appCtx.Log = plogger.GetDefaultLogWarper().WithContext(ctx)
 	return appCtx
+}
+
+// Elapsed returns the time spent since the application context was created.
+func (ctx *AppCtx) Elapsed() time.Duration {
+	return time.Since(ctx.StartTime)
+}
+
+// LogElapsed emits a request-correlated elapsed-time log entry.
+func (ctx *AppCtx) LogElapsed(message string) {
+	ctx.Log.Infof("%s elapsed_ms=%d", message, ctx.Elapsed().Milliseconds())
 }

@@ -9,10 +9,10 @@
 | Done | 2 | 核心框架 | genCURD 代码生成工具 | 通过 ORM 结构体生成基础 CURD 代码，从接口到数据库完整链路 |
 | Done | 3 | 客户端 | 换课功能 | 教师换课/欠课管理，含课程表解析、候选课堂计算、换课记录 CURD |
 | Done | 4 | 核心框架 | 任务管理后端 | task 表 CRUD 接口自动生成，支持树形结构和表格视图 |
-| Approved | 12 | 基础设施 | pprof 性能分析 | 已确认未注册 pprof 端点；仅有间接依赖，不能用于分析 |
-| Approved | 13 | 基础设施 | 持续监控 | 基础监控栈已存在，但没有应用指标、健康检查和 CLI 查询入口 |
+| Done | 12 | 基础设施 | pprof 性能分析 | 独立诊断端口按开关注册 pprof，CLI 支持下载和打开 profile |
+| Done | 13 | 基础设施 | 持续监控 | 已提供应用 RED 指标、依赖健康检查、Prometheus/Grafana/告警配置与 CLI 查询 |
 | Approved | 14 | 代码生成 | genCURD inferServiceName 配置化 | 已确认规则硬编码在生成器中，未提供外部映射配置 |
-| Approved | 15 | 应用框架 | papp.AppCtx 中间件能力增强 | 已有 TraceID 上下文基础，但 AppCtx 未暴露 TraceID/StartTime，HTTP 未接入 tracing middleware |
+| Done | 15 | 应用框架 | papp.AppCtx 中间件能力增强 | 已提供 TraceID、StartTime 与 HTTP/gRPC 追踪及关联日志能力 |
 | Approved | 16 | 代码生成 | genCURD 支持多主键表 | 已确认发现联合主键后清空 PriCol，Update/Delete 不会生成 |
 | Done | 18 | 基础设施 | 嵌套事务 | 为当前服务设计并实现 `pdb` 嵌套事务：业务传入事务 ID，内层 Begin 复用外层事务、任一层回滚整体回滚、兼容 defer rollback，并按 ID 自动取得事务查询对象 |
 
@@ -22,7 +22,7 @@
 
 ### 12. pprof 性能分析
 
-- **状态**：Approved（已规划）
+- **状态**：Done
 - **背景**：项目未导入 `net/http/pprof` 或注册独立诊断端口，现有 `google/pprof` 间接依赖不能提供运行期 profile。
 - **方案**：为服务增加独立、默认关闭的诊断 HTTP 端口，并只在显式配置开启时注册标准 pprof handlers；部署配置限制该端口仅对本机或受保护网络可见。补充 CLI 子命令封装常用 CPU、heap 和 goroutine profile 拉取，避免将诊断端点混入业务 HTTP 路由。
 - **任务列表**：
@@ -30,10 +30,11 @@
   - 在开发部署中验证 CPU、heap、goroutine profile。
   - 增加 CLI 拉取/打开 profile 的交互入口和关闭状态测试。
 - **验收**：开启后可获取三类 profile；默认及生产限制配置下业务端口不暴露 pprof。
+- **实施记录**：新增默认关闭的 `Diagnostics` 端口，`Pprof` 单独开关；CLI 提供 `pgo diagnostics profile {cpu|heap|goroutine}` 及 `--open`。自动验证覆盖关闭状态与三类 profile handler。
 
 ### 13. 持续监控
 
-- **状态**：Approved（已规划；依赖任务 10 的字段约定）
+- **状态**：Done
 - **背景**：Docker 部署已有 node-exporter、cAdvisor、Prometheus、Grafana、Loki 和 pm2 scrape 配置，但没有应用 `/metrics`、业务健康检查、数据库/Redis/RabbitMQ 指标或 `pgo` 的运维查询入口。
 - **方案**：分层补齐应用 RED 指标（请求量、错误率、耗时）、依赖健康检查和业务状态指标；Prometheus 统一抓取，Grafana 展示并基于阈值告警。`pgo` CLI 提供只读健康概览、指标查询链接和常用诊断跳转，不复制 Grafana 的可视化能力。
 - **任务列表**：
@@ -41,6 +42,7 @@
   - 接入指标端点、Prometheus scrape、仪表板和告警规则。
   - 增加 CLI 只读健康查询，覆盖服务不可达和部分依赖失败场景。
 - **验收**：可观察每个服务的吞吐、延迟、错误率和健康状态；依赖异常触发可操作告警；CLI 能汇总当前状态。
+- **实施记录**：增加 `/metrics`、`/healthz`、`/readyz`，已初始化的 MySQL、Redis、RabbitMQ 自动纳入健康状态；增加业务状态注册 API、Prometheus scrape/告警规则、Grafana 应用仪表板与 `pgo diagnostics health`/`metrics-url`。自动验证覆盖指标端点和 CLI 请求路径。
 
 ### 14. genCURD inferServiceName 配置化
 
@@ -55,7 +57,7 @@
 
 ### 15. papp.AppCtx 中间件能力增强
 
-- **状态**：Approved（已规划）
+- **状态**：Done
 - **背景**：`AppCtx` 已匿名嵌入 `context.Context`，不缺失标准方法；`putil` 与 Kratos logger 已有 TraceID 传递，但 `AppCtx` 未暴露 TraceID、StartTime，HTTP 入口也未初始化 tracing middleware。
 - **方案**：在入口 middleware 统一提取受信任的请求标识或生成新标识，并写入 context；`NewAppCtx` 从 Kratos trace、上下文回退值或新标识构造 `TraceID`，同时记录 `StartTime`。日志与响应使用同一标识；保持嵌入 `context.Context`，不另行复制其 API。
 - **任务列表**：
@@ -63,6 +65,7 @@
   - 扩展 AppCtx 的只读请求元数据和耗时日志辅助能力。
   - 测试 header 继承、自动生成、并发隔离、超时及日志关联。
 - **验收**：每个请求都有稳定 TraceID 和开始时间；下游 context/日志/响应一致；标准 context 方法仍可直接使用。
+- **实施记录**：入口 middleware 已接入 HTTP/gRPC tracing，透传或生成合法 `X-Request-ID` 并写回响应；`AppCtx` 暴露 `TraceID`、`StartTime`、`Elapsed`、`LogElapsed`。自动验证覆盖 header 继承、非法 header 回退、并发隔离、超时 context 和 pprof 开关。
 
 ### 16. genCURD 支持多主键表
 

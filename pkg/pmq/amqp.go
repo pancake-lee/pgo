@@ -112,6 +112,22 @@ func (cli *AmqpClient) Close() {
 	cli.closeWorker()
 }
 
+// Ping verifies that the initialized default RabbitMQ connection remains open.
+func Ping() error {
+	if DefaultClient == nil || DefaultClient.conn == nil {
+		return fmt.Errorf("rabbitmq client is not initialized")
+	}
+	if DefaultClient.conn.IsClosed() {
+		return fmt.Errorf("rabbitmq connection is closed")
+	}
+	return nil
+}
+
+// IsInitialized reports whether the default RabbitMQ client has been configured.
+func IsInitialized() bool {
+	return DefaultClient != nil && DefaultClient.conn != nil
+}
+
 func (cli *AmqpClient) connect() (err error) {
 	cli.conn, err = amqp.Dial(cli.url)
 	if err != nil {

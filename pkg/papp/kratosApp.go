@@ -38,9 +38,16 @@ type grpcConfig struct {
 	Timeout int `default:"1000"` // Millisecond
 }
 
+type diagnosticsConfig struct {
+	Enabled bool
+	Addr    string `default:"127.0.0.1:19090"`
+	Pprof   bool
+}
+
 type ServiceConfig struct {
-	Http httpConfig
-	Grpc grpcConfig
+	Http        httpConfig
+	Grpc        grpcConfig
+	Diagnostics diagnosticsConfig
 }
 
 // --------------------------------------------------
@@ -88,6 +95,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		var opts = []grpc.ServerOption{
 			grpc.Middleware(
 				recovery.Recovery(),
+				tracingAndObservabilityMiddleware(),
 			),
 		}
 		if conf.Grpc.Addr != "" {
@@ -105,6 +113,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		var opts = []http.ServerOption{
 			http.Middleware(
 				recovery.Recovery(),
+				tracingAndObservabilityMiddleware(),
 				authMiddleware2(),
 				logging.Server(kLogger),
 			),
@@ -113,7 +122,7 @@ func RunKratosApp(kratosServers ...kratosServer) {
 				AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"*"},
 				ExposedHeaders: []string{"Accept", "Accept-Encoding",
-					"X-CSRF-Token", "Authorization", "Content-Type", "Content-Length"},
+					"X-CSRF-Token", "X-Request-ID", "Authorization", "Content-Type", "Content-Length"},
 				AllowCredentials: true,
 				MaxAge:           60,
 			}).Handler),
@@ -148,6 +157,9 @@ func RunKratosApp(kratosServers ...kratosServer) {
 	}
 	if httpSrv != nil {
 		serverList = append(serverList, httpSrv)
+	}
+	if conf.Diagnostics.Enabled {
+		serverList = append(serverList, newDiagnosticsServer(conf.Diagnostics.Addr, conf.Diagnostics.Pprof))
 	}
 
 	app := kratos.New(

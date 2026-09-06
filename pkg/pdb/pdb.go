@@ -1,6 +1,7 @@
 package pdb
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -51,7 +52,24 @@ func GetSqlConfig() *SqlConfig {
 }
 
 func GetDB() (*sql.DB, error) {
+	if gDB == nil {
+		return nil, fmt.Errorf("database is not initialized")
+	}
 	return gDB.DB()
+}
+
+// IsInitialized reports whether the default database client has been configured.
+func IsInitialized() bool {
+	return gDB != nil
+}
+
+// Ping verifies that the initialized default database accepts queries.
+func Ping(ctx context.Context) error {
+	db, err := GetDB()
+	if err != nil {
+		return err
+	}
+	return db.PingContext(ctx)
 }
 
 // GetGormDB_RO 返回只读 *gorm.DB，首次调用时自动懒初始化。
