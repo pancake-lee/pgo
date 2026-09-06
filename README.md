@@ -57,9 +57,11 @@ make help
 
 ## 文档索引
 
-- [`CLAUDE.md`](./CLAUDE.md)：AI 工作规则（编码规范、编译测试、禁忌清单）
-- [`todo.md`](./todo.md)：当前周期任务清单
-- [`docs/changelog.md`](./docs/changelog.md)：版本历史
-- [`docs/backlog.md`](./docs/backlog.md)：全部需求池
-- [`docs/note.md`](./docs/note.md)：活跃技术备忘
-- [`docs/design/`](./docs/design/)：设计思路与方案记录
+- [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md)：AI 协作规则与工作模式
+- [`docs/prd.md`](./docs/prd.md)：项目定位、范围与质量目标
+- [`docs/tech.md`](./docs/tech.md)：架构、生成链路与技术边界
+- [`docs/harness.md`](./docs/harness.md)：Harness 工程与文档入口
+- [`docs/backlog.md`](./docs/backlog.md)：活跃需求池与任务交接
+- [`docs/note.md`](./docs/note.md)：长期技术备忘与否决记录
+- [`docs/design/`](./docs/design/)：当前专题设计
+- [`docs/archive/`](./docs/archive/)：已完成版本与历史归档

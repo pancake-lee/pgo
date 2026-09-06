@@ -74,7 +74,7 @@ AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-mo
 - **L2** `README.md`（及 `README.en.md`，如存在）— 项目简介、核心价值、快速开始、文档索引。禁区：详细技术方案、任务拆解
 - **L3** `docs/prd.md` — 产品"做什么"：功能范围、用户故事、验收标准、优先级。禁区：API 设计、数据模型、部署命令
 - **L4** `docs/tech.md` — "怎么做"：架构设计、API 契约、数据模型、技术选型。禁区：任务拆分、估时
-- **L4** `docs/harness.md` — Harness 工程架构索引：工作模式、评估系统、Trace 日志的高层概览和文档入口。禁区：实现细节
+- **L4** `docs/harness.md` — 本项目 Harness 工程的架构索引：工作模式、验证/评估、可观测性和文档入口。没有独立评估或 Trace 子系统时，明确写出当前替代机制与后续触发条件。禁区：实现细节、需求池
 - **L5** `docs/design/*-hub.md` — 专题中枢文档：串联同一需求及其衍生需求在多次评估/规划/生成轮次中散落的所有文档、评估报告、backlog 条目、提交记录。是专题的唯一入口
 - **L6** `docs/eval/baseline.md` — 量化评估基线
 - **L7** `docs/backlog.md` — 需求池、演进路线图、Plan → Generate 交接；归档后只保留未完成条目。禁区：API 设计、数据模型
@@ -82,12 +82,16 @@ AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-mo
 - **L9** 代码实现 — 最终事实来源
 
 > 项目专属文档层级（如 `docs/note.md`、`docs/reference.md`、`docs/ui-rules.md` 等）在下方「本项目附加层级」小节中补充，编号沿用对应 L 层。
+>
+> 文件名、各文档的最小结构、backlog 状态与归档规则以 `pancake/30-Tools/harness/common/document-governance.md` 为准。`docs/changelog.md` 不是标准文档：版本完成后写入 `docs/archive/vX.Y.Z.md`，不要新建或保留独立 changelog。
 <!-- harness:end src=pancake/30-Tools/harness/common/claude-doc-levels.md -->
 
 ### 本项目附加层级
 
-- **L1.5** `docs/handbook/eval-guide.md` — 暂未建立（本项目暂无独立评估体系，评估按 work-modes 骨架内联执行）
+- **L1.5** `docs/handbook/eval-guide.md` — 评估操作指南（生成器、基础库和构建验证专项）
 - **L6** `docs/eval/baseline.md` — 暂未建立
+- **L6** `docs/testing.md` — 当前测试策略与待完善项
+- **L7** `docs/note.md` — 长期技术备忘与明确否决记录
 
 ---
 
@@ -130,11 +134,15 @@ make precommit
 ## 文档索引
 
 - [README.md](README.md) — 项目组成与快速开始
+- [docs/prd.md](docs/prd.md) — 项目定位、范围与质量目标
+- [docs/tech.md](docs/tech.md) — 架构、代码生成链路与技术边界
+- [docs/harness.md](docs/harness.md) — Harness 工程概览与文档入口
 - [docs/backlog.md](docs/backlog.md) — 需求池与任务交接
 - [docs/note.md](docs/note.md) — 决策备忘、否决记录
 - [docs/testing.md](docs/testing.md) — 测试策略
 - [docs/design/](docs/design/) — 设计文档
 - [docs/archive/](docs/archive/) — 历史归档
 - [docs/handbook/work-modes.md](docs/handbook/work-modes.md) — 工作模式完整流程
+- [docs/handbook/eval-guide.md](docs/handbook/eval-guide.md) — 评估操作指南
 - [docs/handbook/coding-conventions.md](docs/handbook/coding-conventions.md) — 编码规范（通用 Go 规范 + 本项目禁忌）
 - [docs/handbook/doc-review.md](docs/handbook/doc-review.md) — 文档审阅规范
