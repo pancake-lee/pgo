@@ -123,7 +123,7 @@ make precommit
 ```
 
 - 所有可执行程序输出到 `./bin/`，不要直接 `go build` 到根目录
-- `genGORM` 和 `genCURD` 支持 `-db mysql` 和 `-db sqlite3`，MySQL 的 DSN 为连接字符串，SQLite3 的 DSN 为文件路径。切换数据库时修改 Makefile 中 `gorm`/`curd` 目标的参数即可，详见 `docs/design/sqlite.md`
+- `genGORM` 和 `genCURD` 支持 `-db mysql` 和 `-db sqlite3`，MySQL 的 DSN 为连接字符串，SQLite3 的 DSN 为文件路径。切换数据库时修改 Makefile 中 `gorm`/`curd` 目标的参数即可，详见 `docs/design/2026-07-08-sqlite.md`
 
 ---
 
