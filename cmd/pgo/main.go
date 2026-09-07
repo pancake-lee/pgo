@@ -44,6 +44,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          "pgo",
 		Short:        "PGO all-in-one client",
+		Version:      buildInfo(),
 		SilenceUsage: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			initLogger(logToConsole)

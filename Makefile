@@ -1,9 +1,11 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
+export GOTOOLCHAIN=local
 
 # 取git commit的8位编号，支持通过 make -v VERSION=x.x.x 覆盖
-VERSION?=$(shell git describe --tags --always --dirty)
-COMMIT=$(shell git describe --tags --always --dirty)
+VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo unknown)
+COMMIT=$(shell git rev-parse HEAD 2>/dev/null || echo unknown)
+BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
 dbIP?=127.0.0.1
 dbPort?=3306
@@ -130,7 +132,19 @@ curd:
 .PHONY: build
 # build
 build: 
-	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%dT%H:%M:%S)" -o ./bin/ ./...
+	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(BUILD_DATE)" -o ./bin/ ./...
+
+.PHONY: test
+# run offline unit tests and static checks
+test:
+	GOTOOLCHAIN=local go test ./...
+	GOTOOLCHAIN=local go vet ./...
+
+.PHONY: test-integration
+# run tests requiring .local/my-config.yaml and external services
+test-integration:
+	@test -f .local/my-config.yaml || (echo "integration tests require .local/my-config.yaml plus configured Redis, APITable, WeCom, and MySQL services"; exit 1)
+	GOTOOLCHAIN=local go test -tags=integration ./...
 
 .PHONY: precommit
 # 提交生成的代码[*.pb.go, ./cmd/pgo/swagger/*, *.gen.go, *.gen.proto]
@@ -177,9 +191,9 @@ api-cli:
 .PHONY: cli
 # build pgo for current platform
 cli:
-	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo ./cmd/pgo
+	go build -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(BUILD_DATE)" -o ./bin/pgo ./cmd/pgo
 
 .PHONY: cli-win
 # build pgo for windows
 cli-win:
-	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%Y-%m-%dT%H:%M:%S)" -o ./bin/pgo.exe ./cmd/pgo
+	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -ldflags "-H=windowsgui -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(BUILD_DATE)" -o ./bin/pgo.exe ./cmd/pgo
