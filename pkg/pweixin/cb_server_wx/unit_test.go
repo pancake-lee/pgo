@@ -1,3 +1,5 @@
+//go:build integration
+
 package main
 
 import (
@@ -24,7 +26,9 @@ func TestDecode(t *testing.T) {
 	var err error
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 	token = pconfig.GetStringM("WX.cbToken")
 	encodingAeskey = pconfig.GetStringM("WX.cbEncodingAESKey")
 	receiverId = pconfig.GetStringM("WX.cbReceiverId")

@@ -29,7 +29,7 @@ var paramSettingList = []pclient.ParamItem{
 	{
 		Name:    paramNameConfig,
 		Usage:   "配置文件路径，用于自动读取 APITable.token/baseUrl/spaceId（对应参数为空时生效）",
-		Default: "./configs/pancake.yaml",
+		Default: ".local/my-config.yaml",
 	}, {
 		Name:    paramNameBaseURL,
 		Usage:   "APITable base url（空则从 config 读取）",

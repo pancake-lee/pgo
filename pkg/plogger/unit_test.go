@@ -87,3 +87,13 @@ func TestLogErrReturn(t *testing.T) {
 	log := logger.Sugar()
 	a(func(args ...any) { log.Warnw(args[0].(string)) })
 }
+
+func TestLogErrMsgPreservesPlainText(t *testing.T) {
+	InitLogger(true, zap.DebugLevel, "")
+	if err := LogErrMsg("literal 100% message"); err == nil || err.Error() != "literal 100% message" {
+		t.Fatalf("unexpected plain error: %v", err)
+	}
+	if err := LogErrfMsg("item %d", 7); err == nil || err.Error() != "item 7" {
+		t.Fatalf("unexpected formatted error: %v", err)
+	}
+}

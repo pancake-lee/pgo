@@ -1,3 +1,5 @@
+//go:build integration
+
 package service
 
 import (
@@ -16,6 +18,7 @@ import (
 // 4：检查数据
 // 5：删除数据
 func TestUserDeptJob(t *testing.T) {
+	initUserServiceIntegration(t)
 	ctx := context.Background()
 
 	var userCURDSvr UserCURDServer

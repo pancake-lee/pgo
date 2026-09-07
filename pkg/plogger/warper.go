@@ -2,6 +2,7 @@ package plogger
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kLogger "github.com/go-kratos/kratos/v2/log"
@@ -34,7 +35,7 @@ func (l *PLogWarper) LogErrMsg(errMsg string) error {
 		return nil
 	}
 	l.kLog.Log(kLogger.LevelError, "msg", fmt.Sprintf("got err[%s]", errMsg))
-	return fmt.Errorf(errMsg)
+	return errors.New(errMsg)
 }
 func LogErrMsg(errMsg string) error {
 	return defaultLogWarper.LogErrMsg(errMsg)

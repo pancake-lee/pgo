@@ -1,3 +1,5 @@
+//go:build integration
+
 package service
 
 import (
@@ -6,8 +8,6 @@ import (
 	"time"
 
 	api "github.com/pancake-lee/pgo/internal/pkg/api"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
-	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -18,8 +18,7 @@ import (
 // 4：检查数据，判断拥有的权限和没有的权限
 // 5：删除数据
 func TestUserRolePermission(t *testing.T) {
-	pconfig.MustInitConfig("../../../configs/pancake.yaml")
-	pdb.MustInitMysqlByConfig()
+	initUserServiceIntegration(t)
 
 	// Drop tables to ensure clean state
 	// pdb.GetGormDB().Migrator().DropTable(

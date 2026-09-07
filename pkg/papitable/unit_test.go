@@ -1,3 +1,5 @@
+//go:build integration
+
 package papitable
 
 import (
@@ -15,8 +17,9 @@ func TestGetRow(t *testing.T) {
 	var err error
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(),
-		"../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 
 	err = InitAPITableByConfig()
 	if err != nil {
@@ -84,7 +87,9 @@ func TestGetRow(t *testing.T) {
 func TestAPITable(t *testing.T) {
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 
 	err := InitAPITableByConfig()
 	if err != nil {
@@ -201,7 +206,9 @@ func TestFileCol(t *testing.T) {
 	var err error
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 
 	err = InitAPITableByConfig()
 	if err != nil {
@@ -286,7 +293,9 @@ func TestPermission(t *testing.T) {
 	var err error
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 
 	err = InitAPITableByConfig()
 	if err != nil {

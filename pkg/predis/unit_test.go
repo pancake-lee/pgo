@@ -1,3 +1,5 @@
+//go:build integration
+
 package predis
 
 import (
@@ -7,7 +9,9 @@ import (
 )
 
 func TestRedis(t *testing.T) {
-	pconfig.MustInitConfig("../../configs/pancake.yaml")
+	if err := pconfig.InitConfig("../../.local/my-config.yaml"); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 	err := InitRedisByConfig()
 	if err != nil {
 		t.Fatalf("Failed to initialize Redis client: %v", err)

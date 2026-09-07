@@ -1,3 +1,5 @@
+//go:build integration
+
 package pweixin
 
 import (
@@ -13,7 +15,9 @@ import (
 func TestWX(t *testing.T) {
 	plogger.InitConsoleLogger()
 
-	pconfig.MustInitConfig(filepath.Join(putil.GetCurDir(), "../../configs/pancake.yaml"))
+	if err := pconfig.InitConfig(filepath.Join(putil.GetCurDir(), "../../.local/my-config.yaml")); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
 
 	err := InitWxApiByConfig()
 	if err != nil {

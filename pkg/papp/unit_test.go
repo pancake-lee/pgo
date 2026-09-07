@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
@@ -35,7 +34,7 @@ func TestJwt(t *testing.T) {
 	ctx := context.Background()
 
 	// --------------------------------------------------
-	ctx = jwt.NewContext(ctx, token)
+	ctx = context.WithValue(ctx, claimsContextKey, token)
 	token2, err := GetTokenFromCtx(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -43,6 +42,10 @@ func TestJwt(t *testing.T) {
 	if token2.UserID != userId {
 		plogger.Fatalf("expected userId 1, got %d", token2.UserID)
 		t.FailNow()
+	}
+
+	if _, err = GetTokenFromCtx(context.Background()); err == nil {
+		t.Fatal("expected auth failure without claims")
 	}
 
 	// --------------------------------------------------

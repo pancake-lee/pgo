@@ -1,3 +1,5 @@
+//go:build integration
+
 package service
 
 import (
@@ -7,6 +9,8 @@ import (
 	"time"
 
 	"github.com/pancake-lee/pgo/internal/pkg/api"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
@@ -16,6 +20,7 @@ import (
 // 4：用新的名称登录
 // 5：删除用户
 func TestUserService(t *testing.T) {
+	initUserServiceIntegration(t)
 
 	ctx := context.Background()
 
@@ -63,6 +68,16 @@ func TestUserService(t *testing.T) {
 		if resp.User.ID != userId || resp.User.UserName != newUserName {
 			t.Fatal("user info is error : ", resp.User)
 		}
+	}
+}
+
+func initUserServiceIntegration(t *testing.T) {
+	t.Helper()
+	if err := pconfig.InitConfig("../../../.local/my-config.yaml"); err != nil {
+		t.Fatalf("integration test requires a valid .local/my-config.yaml: %v", err)
+	}
+	if err := pdb.InitMysqlByConfig(); err != nil {
+		t.Fatalf("integration test requires configured MySQL: %v", err)
 	}
 }
 
