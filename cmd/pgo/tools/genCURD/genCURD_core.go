@@ -39,10 +39,10 @@ type Table struct {
 	IdxList     []indexInfo
 
 	// 生成代码需要的值
-	HyphenName       string // 中横线[-]命名
-	LowerCamelName   string // 驼峰命名，首字母小写
-	UpperCamelName   string // 驼峰命名，首字母大写
-	SnakeName        string // 单数 snake_case，用于 proto 字段名
+	HyphenName     string // 中横线[-]命名
+	LowerCamelName string // 驼峰命名，首字母小写
+	UpperCamelName string // 驼峰命名，首字母大写
+	SnakeName      string // 单数 snake_case，用于 proto 字段名
 }
 
 func (t *Table) String() string {
@@ -176,11 +176,7 @@ func newTable(tblName string, svcName string) (*Table, error) {
 func runGenerate(dbType, dsn string) error {
 	tblMap = make(map[string]*Table)
 
-	err := rmAllGenFile()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	switch dbType {
 	case "mysql":
 		err = pdb.InitMysqlByDsn(dsn)
@@ -211,6 +207,15 @@ func runGenerate(dbType, dsn string) error {
 	if err != nil {
 		return err
 	}
+	session, err := newGenerationSession(".")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := session.rollback(); err != nil {
+			plogger.Error("rollback generated files failed: ", err)
+		}
+	}()
 
 	err = genDaoCode(tblMap, tplTable)
 	if err != nil {
@@ -232,7 +237,14 @@ func runGenerate(dbType, dsn string) error {
 		return err
 	}
 
-	return genMainCode(tblMap, tplTable)
+	err = genMainCode(tblMap, tplTable)
+	if err != nil {
+		return err
+	}
+	if err = session.commit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func runMakeApi() error {
@@ -251,40 +263,135 @@ func StrFirstToLowerButID(f string) string {
 	return putil.StrFirstToLower(f)
 }
 
-func rmAllGenFile() error {
-	err := filepath.Walk("internal", func(path string, info os.FileInfo, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+type generationSession struct {
+	root        string
+	backupDir   string
+	snapshotMap map[string]struct{}
+	committed   bool
+}
+
+func newGenerationSession(root string) (*generationSession, error) {
+	backupDir, err := os.MkdirTemp("", "pgo-gencurd-")
+	if err != nil {
+		return nil, fmt.Errorf("create generated-file backup: %w", err)
+	}
+	s := &generationSession{root: root, backupDir: backupDir, snapshotMap: make(map[string]struct{})}
+	pathList, err := s.generatedPathList()
+	if err != nil {
+		_ = os.RemoveAll(backupDir)
+		return nil, err
+	}
+	for _, path := range pathList {
+		if err = s.copyToBackup(path); err != nil {
+			_ = os.RemoveAll(backupDir)
+			return nil, err
 		}
-		if strings.Contains(path, "pkg") {
-			return nil // 不删除 pkg 目录下的文件
-		}
-		if strings.Contains(path, "gen.go") {
-			plogger.Debug("rm file: ", path)
-			err := os.Remove(path)
-			if err != nil {
-				plogger.Debug("rm file failed: ", err)
+		s.snapshotMap[path] = struct{}{}
+	}
+	return s, nil
+}
+
+func (s *generationSession) generatedPathList() ([]string, error) {
+	var pathList []string
+	for _, dir := range []string{"internal", "proto"} {
+		base := filepath.Join(s.root, dir)
+		err := filepath.Walk(base, func(path string, info os.FileInfo, walkErr error) error {
+			if walkErr != nil {
+				if os.IsNotExist(walkErr) {
+					return nil
+				}
+				return walkErr
 			}
+			if !info.IsDir() && isGeneratedPath(filepath.ToSlash(path)) {
+				pathList = append(pathList, path)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
 		}
-		return nil
-	})
+	}
+	openAPIPath := filepath.Join(s.root, "openapi.yaml")
+	if _, err := os.Stat(openAPIPath); err == nil {
+		pathList = append(pathList, openAPIPath)
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+	return pathList, nil
+}
+
+func isGeneratedPath(path string) bool {
+	return strings.HasSuffix(path, ".gen.go") ||
+		strings.HasSuffix(path, ".gen.proto") ||
+		strings.Contains(path, "internal/pkg/api/") && strings.HasSuffix(path, ".pb.go")
+}
+
+func (s *generationSession) copyToBackup(path string) error {
+	relPath, err := filepath.Rel(s.root, path)
 	if err != nil {
 		return err
 	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	backupPath := filepath.Join(s.backupDir, relPath)
+	if err = os.MkdirAll(filepath.Dir(backupPath), 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(backupPath, content, 0644)
+}
 
-	return filepath.Walk("proto", func(path string, info os.FileInfo, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+func (s *generationSession) rollback() error {
+	if s.committed {
+		return os.RemoveAll(s.backupDir)
+	}
+	pathList, err := s.generatedPathList()
+	if err != nil {
+		return err
+	}
+	for _, path := range pathList {
+		if err = os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return err
 		}
-		if strings.Contains(path, "gen.proto") {
-			plogger.Debug("rm file: ", path)
-			err := os.Remove(path)
-			if err != nil {
-				plogger.Debug("rm file failed: ", err)
+	}
+	for path := range s.snapshotMap {
+		relPath, err := filepath.Rel(s.root, path)
+		if err != nil {
+			return err
+		}
+		content, err := os.ReadFile(filepath.Join(s.backupDir, relPath))
+		if err != nil {
+			return err
+		}
+		if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			return err
+		}
+		if err = os.WriteFile(path, content, 0644); err != nil {
+			return err
+		}
+	}
+	return os.RemoveAll(s.backupDir)
+}
+
+func (s *generationSession) commit() error {
+	pathList, err := s.generatedPathList()
+	if err != nil {
+		return err
+	}
+	pathMap := make(map[string]struct{}, len(pathList))
+	for _, path := range pathList {
+		pathMap[path] = struct{}{}
+	}
+	for path := range s.snapshotMap {
+		if _, ok := pathMap[path]; !ok {
+			if err = os.Remove(path); err != nil && !os.IsNotExist(err) {
+				return err
 			}
 		}
-		return nil
-	})
+	}
+	s.committed = true
+	return os.RemoveAll(s.backupDir)
 }
 
 func inferServiceName(tableName string) string {
