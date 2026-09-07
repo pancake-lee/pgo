@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package pgo;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pancake-lee/pgo/internal/pkg/api;api";
+
+extend google.protobuf.ServiceOptions {
+  repeated string tables = 50001;
+}

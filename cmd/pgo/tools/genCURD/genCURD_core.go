@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/jinzhu/inflection"
@@ -96,9 +97,13 @@ func newTable(tblName string, svcName string) (*Table, error) {
 		c.apiFieldName = fieldName
 		c.pbFieldName = StrFirstToLowerButID(fieldName)
 
-		c.ormFieldType = originCol.ScanType().String()
-		c.apiFieldType = originCol.ScanType().String()
-		c.pbFieldType = originCol.ScanType().String()
+		scanTypeName, err := getColumnScanTypeName(originCol)
+		if err != nil {
+			return nil, err
+		}
+		c.ormFieldType = scanTypeName
+		c.apiFieldType = scanTypeName
+		c.pbFieldType = scanTypeName
 
 		// SQLite3 驱动返回 sql.Null* 类型，归一化为基本类型
 		c.ormFieldType = normalizeSqlNullType(c.ormFieldType)
@@ -121,7 +126,7 @@ func newTable(tblName string, svcName string) (*Table, error) {
 		c.pbFieldType = goTypeToPBTYPE(c.pbFieldType)
 
 		plogger.Debugf("Field[%s] Type[%s] sqlType[%v] orm[%v][%v] api[%v][%v]",
-			originCol.Name(), originCol.ScanType().String(),
+			originCol.Name(), scanTypeName,
 			originCol.DatabaseTypeName(),
 			c.ormFieldName, c.ormFieldType, c.apiFieldName, c.apiFieldType)
 
@@ -172,6 +177,24 @@ func newTable(tblName string, svcName string) (*Table, error) {
 	return &tbl, nil
 }
 
+func getColumnScanTypeName(originCol gorm.ColumnType) (string, error) {
+	if scanType := originCol.ScanType(); scanType != nil {
+		return scanType.String(), nil
+	}
+	switch strings.ToUpper(originCol.DatabaseTypeName()) {
+	case "INT", "INTEGER", "BIGINT":
+		return "int64", nil
+	case "FLOAT", "DOUBLE", "REAL":
+		return "float64", nil
+	case "BOOL", "BOOLEAN":
+		return "bool", nil
+	case "TEXT", "VARCHAR", "CHAR":
+		return "string", nil
+	default:
+		return "", fmt.Errorf("column %q has no Go scan type for database type %q", originCol.Name(), originCol.DatabaseTypeName())
+	}
+}
+
 // --------------------------------------------------
 func runGenerate(dbType, dsn string) error {
 	tblMap = make(map[string]*Table)
@@ -189,15 +212,23 @@ func runGenerate(dbType, dsn string) error {
 		return err
 	}
 
-	tables, err := pdb.GetGormDB().Migrator().GetTables()
+	tableNameList, err := pdb.GetGormDB().Migrator().GetTables()
 	if err != nil {
 		return fmt.Errorf("get tables failed: %w", err)
 	}
-	for _, tblName := range tables {
+	tableToServiceMap, err := readTableToServiceMap(tableNameList)
+	if err != nil {
+		return err
+	}
+	for _, tblName := range tableNameList {
 		if tblName == "abandon_code" {
 			continue // 模板表不处理
 		}
-		err = addTable(tblName, inferServiceName(tblName))
+		serviceName := tableToServiceMap[tblName]
+		if serviceName == "" {
+			serviceName = "default"
+		}
+		err = addTable(tblName, serviceName)
 		if err != nil {
 			return err
 		}
@@ -226,8 +257,12 @@ func runGenerate(dbType, dsn string) error {
 	if err != nil {
 		return err
 	}
+	err = removeStaleGeneratedProtoFiles(tblMap)
+	if err != nil {
+		return err
+	}
 
-	err = runMakeApi()
+	err = runAPIGenerator()
 	if err != nil {
 		return err
 	}
@@ -244,7 +279,46 @@ func runGenerate(dbType, dsn string) error {
 	if err = session.commit(); err != nil {
 		return err
 	}
+	logTableMappingSummary(tblMap)
 	return nil
+}
+
+func removeStaleGeneratedProtoFiles(tblToSvrMap map[string]*Table) error {
+	expectedPathMap := make(map[string]struct{})
+	for _, tbl := range tblToSvrMap {
+		expectedPathMap[filepath.Join("proto", "z_"+tbl.ServiceName+"Service.gen.proto")] = struct{}{}
+	}
+	return filepath.Walk("proto", func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if info.IsDir() || !strings.HasSuffix(path, ".gen.proto") {
+			return nil
+		}
+		if _, ok := expectedPathMap[path]; ok {
+			return nil
+		}
+		return os.Remove(path)
+	})
+}
+
+func logTableMappingSummary(tblToSvrMap map[string]*Table) {
+	serviceNameSet := make(map[string]struct{})
+	for _, tbl := range tblToSvrMap {
+		serviceNameSet[tbl.ServiceName] = struct{}{}
+	}
+	var serviceNameList []string
+	for serviceName := range serviceNameSet {
+		serviceNameList = append(serviceNameList, serviceName)
+	}
+	sort.Strings(serviceNameList)
+	for _, serviceName := range serviceNameList {
+		plogger.Infof("genCURD service[%s] tables=%s", serviceName,
+			strings.Join(tableNameListForService(tblToSvrMap, serviceName), ","))
+	}
+	if defaultTableNameList := tableNameListForService(tblToSvrMap, "default"); len(defaultTableNameList) > 0 {
+		plogger.Infof("genCURD default service contains unmapped tables=%s; move their pgo.tables options to a custom service proto and rerun", strings.Join(defaultTableNameList, ","))
+	}
 }
 
 func runMakeApi() error {
@@ -255,6 +329,8 @@ func runMakeApi() error {
 	}
 	return nil
 }
+
+var runAPIGenerator = runMakeApi
 
 func StrFirstToLowerButID(f string) string {
 	if strings.HasPrefix(f, "ID") {
@@ -392,25 +468,6 @@ func (s *generationSession) commit() error {
 	}
 	s.committed = true
 	return os.RemoveAll(s.backupDir)
-}
-
-func inferServiceName(tableName string) string {
-	if strings.HasPrefix(tableName, "task") {
-		return "task"
-	}
-	if strings.HasPrefix(tableName, "course") {
-		return "school"
-	}
-	if strings.HasPrefix(tableName, "abandon") {
-		return "abandonCode"
-	}
-	if strings.HasPrefix(tableName, "user") {
-		return "user"
-	}
-	if strings.HasPrefix(tableName, "proj") {
-		return "user"
-	}
-	return "default"
 }
 
 // goTypeToPBTYPE 将 Go 类型映射为合法的 proto 类型

@@ -8,7 +8,7 @@
 
 | 状态 | 分组 | 编号 | 任务 | 评估 |
 | ---- | ---- | ---- | ---- | ---- |
-| 已规划 | 代码生成 | 14 | genCURD inferServiceName 配置化 | |
+| Done | 代码生成 | 14 | genCURD Proto 表归属映射 | |
 | 已规划 | 代码生成 | 16 | genCURD 支持多主键表 | |
 | Done | 质量门禁 | 17 | 全量测试与静态检查不可通过 | 5.6 |
 | Done | 测试基础设施 | 18 | 外部依赖测试未隔离，干净环境 panic | 5.6 |
@@ -21,16 +21,18 @@
 
 ## 详细说明
 
-### 14. genCURD inferServiceName 配置化
+### 14. genCURD Proto 表归属映射
 
-- **状态**：已规划
+- **状态**：Done
 - **背景**：`inferServiceName` 在 `cmd/pgo/tools/genCURD/genCURD_core.go` 内硬编码 `task`、`course` 等前缀和 `default` 回退；调用方无法覆盖规则。
-- **方案**：为 genCURD 增加表名到服务名的显式映射参数，并支持从项目配置读取同一映射；显式参数优先于配置，未命中时保留当前前缀兼容规则并输出提示。开始生成前校验映射格式、重复表名和非法服务名，防止生成到意外目录。
+- **方案**：以服务 Proto 的 PGO 自定义 option 作为表到服务的唯一映射来源，不引入独立配置或命令行交互。生成前读取全部 Proto 中的已映射表，未映射表统一登记到生成器维护的 `z_defaultService.gen.proto`，并生成 default service 的 CRUD 代码。用户将映射声明从 default Proto 剪切到自定义服务 Proto 后重新生成，代码随映射迁移；生成器在默认 Proto 的映射区和控制台同时提示待归属表与迁移方式。详见 [Proto 表归属映射](design/2026-09-07-proto-table-mapping.md)。
 - **任务列表**：
-  - 扩展 CLI 参数与配置解析，并定义优先级和兼容回退。
-  - 将服务名推断改为可注入规则，保留现有项目的生成结果。
-  - 添加映射解析、优先级、非法输入和生成目录的单元测试。
-- **验收**：指定表可生成到目标 service；无新配置时已有项目生成结果不变；非法映射在写文件前失败。
+  - 定义并随工具提供 Proto 表归属 option，解析全部服务 Proto 的映射并校验重复、未知表与非法服务声明。
+  - 生成和维护 default service Proto 的映射区、简短迁移注释及对应 CRUD 代码，确保 SQL 起步可直接生成。
+  - 按 Proto 映射替代服务名猜测，输出服务到表的生成摘要和 default service 待归属提示。
+  - 建立 SQL 起步、映射迁移、未映射表、重复映射和未知表的离线 fixture 回归。
+- **验收**：仅提供 SQL 时生成包含全部表的 default service；用户剪切映射到自定义 Proto 后 CRUD 代码迁移到该服务；default service 与控制台均准确显示未映射表；冲突映射在写文件前失败。
+- **实施与验证**：新增 `pgo.tables` 服务 option 和 Proto 映射解析。未映射表生成到 default service，并在 default Proto 写入迁移说明和映射；生成日志输出各服务表集合与待迁移表。定向映射测试、Proto 编译和离线全仓质量检查通过。
 
 ### 16. genCURD 支持多主键表
 

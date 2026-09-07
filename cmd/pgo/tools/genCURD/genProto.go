@@ -88,6 +88,9 @@ func genProtoForOneService(
 	pbCodeStr = strings.ReplaceAll(pbCodeStr, tplTable.ServiceName, svcName)
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT API", pbCodeStr, apiCodeForAllTable)
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT MSG", pbCodeStr, msgCodeForAllTable)
+	if svcName == "default" {
+		pbCodeStr = addDefaultTableMappings(pbCodeStr, tblList)
+	}
 
 	_ = os.MkdirAll(pbOutputPath, 0755)
 	err := os.WriteFile(pbOutputPath+"z_"+svcName+"Service.gen.proto", []byte(pbCodeStr), 0644)
@@ -95,6 +98,21 @@ func genProtoForOneService(
 		return fmt.Errorf("write pb code failed: %w", err)
 	}
 	return nil
+}
+
+func addDefaultTableMappings(protoCode string, tblList []*Table) string {
+	var mapping strings.Builder
+	mapping.WriteString("    // PGO table mappings: move an option to a custom service proto, then rerun genCURD.\n")
+	sort.Slice(tblList, func(i, j int) bool {
+		return tblList[i].TblName < tblList[j].TblName
+	})
+	for _, tbl := range tblList {
+		mapping.WriteString(fmt.Sprintf("    option (pgo.tables) = \"%s\";\n", tbl.TblName))
+	}
+	protoCode = strings.Replace(protoCode,
+		`import "common.proto";`,
+		"import \"common.proto\";\nimport \"pgo/options.proto\";", 1)
+	return strings.Replace(protoCode, "service defaultCURD {", "service defaultCURD {\n"+mapping.String(), 1)
 }
 
 func pbReplace(
