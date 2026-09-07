@@ -1,0 +1,31 @@
+{
+  "report_id": "2026-09-07-repository",
+  "backlog_id": "17-21",
+  "created_at": "2026-09-07T01:10:00Z",
+  "target": "PGO 仓库全面评估",
+  "overall": 5.6,
+  "dimension_scores": {
+    "正确性": 5.0,
+    "健壮性": 5.5,
+    "可维护性": 6.0,
+    "简洁性": 6.0,
+    "功能完整性": 5.5,
+    "一致性": 6.0,
+    "开发者可用性": 5.0
+  },
+  "findings_for_backlog": [
+    "全量测试无法作为通过门槛：JWT 用例稳定失败，plogger 被 go vet 阻断。严重程度：高。",
+    "多项测试依赖未提交的 .local/my-config.yaml、外部服务或已初始化数据库，未区分集成测试，默认全量测试直接 panic。严重程度：高。",
+    "genCURD 在连接数据库和读取表结构前删除既有生成文件；连接或读取失败时会留下不完整工作树。严重程度：高。",
+    "Makefile build 目标的 main.commit 与 main.date 链接参数为空，构建产物缺少提交和构建时间元数据。严重程度：中。",
+    "genCURD、genGORM、sheet2mysql 及大部分服务包没有自动化测试；未发现持续集成配置。严重程度：中。"
+  ],
+  "verification_runtime": [
+    "GOTOOLCHAIN=local make build PASS",
+    "GOTOOLCHAIN=local go test ./... FAIL",
+    "GOTOOLCHAIN=local go vet ./... FAIL",
+    "GOTOOLCHAIN=local go mod tidy -diff reported module metadata drift",
+    "No generator run: Makefile gorm target drops a database and was intentionally not executed"
+  ],
+  "verification_commits": {}
+}
