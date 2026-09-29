@@ -92,7 +92,7 @@ func InitMysqlByDsn(dsn string) (err error) {
 	if err != nil {
 		return err
 	}
-	return nil
+	return registerQueryObservability(gDB)
 }
 
 type Writer struct{}

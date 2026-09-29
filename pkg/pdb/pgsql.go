@@ -63,5 +63,5 @@ func InitPG(host, user, password, dbName string, port int32) (err error) {
 	if err != nil {
 		return err
 	}
-	return nil
+	return registerQueryObservability(gDB)
 }

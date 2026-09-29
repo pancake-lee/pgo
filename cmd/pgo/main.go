@@ -11,6 +11,7 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/userload"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pthird"
@@ -63,6 +64,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(diagnostics.NewCommand())
 	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
+	rootCmd.AddCommand(userload.NewCommand())
 	rootCmd.AddCommand(devops.InitProjEntrypoint.NewCobraCommand())
 
 	return rootCmd

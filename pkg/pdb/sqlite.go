@@ -77,6 +77,9 @@ func InitSqlite(dbPath string) (err error) {
 	if err = gDB.Exec("PRAGMA journal_mode=WAL").Error; err != nil {
 		plogger.Warnf("failed to enable WAL mode: %v", err)
 	}
+	if err = registerQueryObservability(gDB); err != nil {
+		return err
+	}
 
 	plogger.Infof("sqlite (pure go) connected: %s", absPath)
 	return nil

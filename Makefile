@@ -70,7 +70,9 @@ env:
 	go mod tidy
 
 # 安装自己
-# go install ./cmd/pgo
+.PHONY: install
+install:
+	go install ./cmd/pgo
 
 .PHONY: api
 # generate api proto
@@ -161,12 +163,13 @@ precommit:
 # --------------------------------------------------
 .PHONY: api-cli
 # generate cli sdk from openapi.yaml
+swaggerCodePath=./cmd/pgo/swagger
 api-cli:
 
 # openapitools/openapi-generator-cli不管是docker还是jar包，都有一个问题：
 # proto通过gnostic生成的openapi.yaml不带required标识，所有字段都是可选
 # 这导致生成go客户端代码时，所有字段都是指针类型，使用起来非常麻烦
-# docker run --rm -v ./:/local openapitools/openapi-generator-cli:v7.18.0 generate -i /local/openapi.yaml -g go -o /local/client/swagger -p packageName=swagger
+# docker run --rm -v ./:/local openapitools/openapi-generator-cli:v7.18.0 generate -i /local/openapi.yaml -g go -o /local/cmd/pgo/swagger -p packageName=swagger
 
 # dnf install -y java-11-openjdk-headless
 # wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.19.0/openapi-generator-cli-7.19.0.jar
@@ -182,11 +185,11 @@ api-cli:
 	java -jar ~/swagger-codegen-cli.jar generate \
 		-i ./openapi.yaml \
 		-l go \
-		-o ./cmd/pgo/swagger \
+		-o ${swaggerCodePath} \
 		-D packageName=swagger \
 	
-	rm -f client/swagger/go.mod
-	rm -f client/swagger/go.sum
+	rm -f ${swaggerCodePath}/go.mod
+	rm -f ${swaggerCodePath}/go.sum
 
 .PHONY: cli
 # build pgo for current platform

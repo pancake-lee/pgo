@@ -12,6 +12,7 @@
 - **prettyCode**：统一代码中的分割线注释格式
 - **psql**：连接 PostgreSQL 并执行 SQL，可嵌入自动化流程
 - **sheet2mysql**：读取 APITable 表结构，生成 MySQL 建表 SQL
+- **user-load**：通过真实 HTTP 准备、验证和清理 userService 性能实验批次
 - **CI Make**：交互式选择并执行 Makefile 目标
 - **CI Init Project**：从当前仓库抽取项目基础骨架
 - **CD Deploy**：首次部署容器及后续更新程序
@@ -63,5 +64,6 @@ make help
 - [`docs/harness.md`](./docs/harness.md)：Harness 工程与文档入口
 - [`docs/backlog.md`](./docs/backlog.md)：活跃需求池与任务交接
 - [`docs/note.md`](./docs/note.md)：长期技术备忘与否决记录
+- [`docs/eval/performance/user-login-baseline.md`](./docs/eval/performance/user-login-baseline.md)：多用户注册与登录性能评估
 - [`docs/design/`](./docs/design/)：当前专题设计
 - [`docs/archive/`](./docs/archive/)：已完成版本与历史归档
