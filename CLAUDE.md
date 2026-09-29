@@ -13,6 +13,7 @@
 - **方案选择**：存在多个可行方案时，先列出方案（含核心利弊）让用户选择，不要自行决定
 - **单任务串行**：一个对话回合只沿一条线索推进一个任务。不要同时诊断两个 bug、同时提两个方案、同时问两个不相关的问题
 - **规划任务落点**：方案、子任务和实施步骤必须写入 `docs/backlog.md` 对应条目，作为 Plan → Generate 的唯一交接载体；不创建独立任务计划文档或 exec plan
+- **轻量方案载体**：少于 100 行的设计直接写入 `docs/backlog.md` 对应条目的「方案」字段，不创建独立设计文档；仅需长期保留且超过该规模的设计才写入 `docs/design/`
 - **避免上下文爆炸**：一次只聚焦一个具体问题，先读取最小必要代码，分析并解决后再继续
 <!-- harness:end src=pancake/30-Tools/harness/common/claude-rules-a.md -->
 
@@ -127,6 +128,7 @@ make precommit
 ```
 
 - 所有可执行程序输出到 `./bin/`，不要直接 `go build` 到根目录
+- `proto/*.proto` 是接口唯一来源；`*.pb.go`、`*_grpc.pb.go`、`*_http.pb.go` 和 OpenAPI 均只能由 `make api` 生成，禁止手工修改。修改 Proto 后先运行 `make api`，再以新生成的接口调整 Service 和业务代码
 - `genGORM` 和 `genCURD` 支持 `-db mysql` 和 `-db sqlite3`，MySQL 的 DSN 为连接字符串，SQLite3 的 DSN 为文件路径。切换数据库时修改 Makefile 中 `gorm`/`curd` 目标的参数即可，详见 `docs/design/2026-07-08-sqlite.md`
 
 ---
