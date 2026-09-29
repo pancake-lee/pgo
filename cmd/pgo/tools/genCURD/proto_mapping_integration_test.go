@@ -34,7 +34,7 @@ func TestRunGenerateMovesTableFromDefaultService(t *testing.T) {
 	}
 	defer os.Chdir(oldWorkDir)
 	oldRunAPIGenerator := runAPIGenerator
-	runAPIGenerator = func() error { return nil }
+	runAPIGenerator = func(string) error { return nil }
 	defer func() { runAPIGenerator = oldRunAPIGenerator }()
 
 	if err = runGenerate("sqlite3", dbPath); err != nil {
@@ -72,6 +72,10 @@ service Task {
 	taskProto, err := os.ReadFile(filepath.Join("proto", "z_taskService.gen.proto"))
 	if err != nil || !strings.Contains(string(taskProto), "service taskCURD") {
 		t.Fatalf("custom service proto was not generated: %v\n%s", err, taskProto)
+	}
+	if strings.Contains(string(taskProto), "abandon_code") ||
+		strings.Contains(string(taskProto), "MARK TEMPLATE EXAMPLE ONLY") {
+		t.Fatalf("template-only mapping leaked into generated proto: %s", taskProto)
 	}
 }
 

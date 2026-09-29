@@ -2,6 +2,9 @@ syntax = "proto3";
 package api;
 import "google/api/annotations.proto";
 import "common.proto";
+// MARK TEMPLATE EXAMPLE ONLY START 仅用于展示手写 Proto 的表归属，生成时移除
+import "pgo/options.proto";
+// MARK TEMPLATE EXAMPLE ONLY END
 option go_package = "github.com/pancake-lee/pgo/api;api";
 
 // --------------------------------------------------
@@ -34,6 +37,9 @@ service abandonCodeCURD { // 该命名应该全文唯一
     }
     // MARK REMOVE IF NO PRIMARY KEY END
     // MARK REPEAT API END
+    // MARK TEMPLATE EXAMPLE ONLY START 仅用于展示手写 Proto 的表归属，生成时移除
+    option (pgo.tables) = "abandon_code";
+    // MARK TEMPLATE EXAMPLE ONLY END
 }
 
 // MARK REPEAT MSG START 一个表的数据定义

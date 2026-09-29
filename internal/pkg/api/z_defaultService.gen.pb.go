@@ -9,6 +9,7 @@
 package api
 
 import (
+	_ "github.com/pancake-lee/pgo/internal/pkg/api/pgo"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -414,7 +415,7 @@ var File_z_defaultService_gen_proto protoreflect.FileDescriptor
 
 const file_z_defaultService_gen_proto_rawDesc = "" +
 	"\n" +
-	"\x1az_defaultService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"\x9a\x01\n" +
+	"\x1az_defaultService.gen.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\x1a\x11pgo/options.proto\"\x9a\x01\n" +
 	"\x12SheetCeshibiaoInfo\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\x05R\x02ID\x12\"\n" +
 	"\flastEditFrom\x18\x02 \x01(\tR\flastEditFrom\x12\x18\n" +
@@ -434,13 +435,13 @@ const file_z_defaultService_gen_proto_rawDesc = "" +
 	"\x1cUpdateSheetCeshibiaoResponse\x12?\n" +
 	"\x0esheetCeshibiao\x18\x01 \x01(\v2\x17.api.SheetCeshibiaoInfoR\x0esheetCeshibiao\":\n" +
 	" DelSheetCeshibiaoByIDListRequest\x12\x16\n" +
-	"\x06IDList\x18\x01 \x03(\x05R\x06IDList2\xdc\x03\n" +
+	"\x06IDList\x18\x01 \x03(\x05R\x06IDList2\xf1\x03\n" +
 	"\vdefaultCURD\x12o\n" +
 	"\x11AddSheetCeshibiao\x12\x1d.api.AddSheetCeshibiaoRequest\x1a\x1e.api.AddSheetCeshibiaoResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/sheet-ceshibiao\x12x\n" +
 	"\x15GetSheetCeshibiaoList\x12!.api.GetSheetCeshibiaoListRequest\x1a\".api.GetSheetCeshibiaoListResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/sheet-ceshibiao\x12x\n" +
 	"\x14UpdateSheetCeshibiao\x12 .api.UpdateSheetCeshibiaoRequest\x1a!.api.UpdateSheetCeshibiaoResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*2\x10/sheet-ceshibiao\x12h\n" +
 	"\x19DelSheetCeshibiaoByIDList\x12%.api.DelSheetCeshibiaoByIDListRequest\x1a\n" +
-	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/sheet-ceshibiaoB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
+	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/sheet-ceshibiao\x1a\x13\x8a\xb5\x18\x0fsheet_ceshibiaoB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
 
 var (
 	file_z_defaultService_gen_proto_rawDescOnce sync.Once

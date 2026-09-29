@@ -17,6 +17,7 @@ dbCmd=mysql -h $(dbIP) -P ${dbPort} -u $(dbUser) -p$(dbPass)
 
 # 遍历所有proto文件
 # every developer has a Git. run in GitBash.
+# genCURD 可传入生成完成后的文件清单
 API_PROTO_FILES=$(shell find ./proto -name *.proto)
 
 # --------------------------------------------------
@@ -127,7 +128,7 @@ reInitDB:
 	make initDB
 
 .PHONY: curd
-# 根据数据库生成 CURD 代码
+# 根据数据库生成 CURD 代码，内部集成make api命令
 curd:
 	pgo genCURD -db mysql -dsn "${dbUser}:${dbPass}@tcp(${dbIP}:${dbPort})/${dbName}_orm?charset=utf8mb4&parseTime=True&loc=Local"
 

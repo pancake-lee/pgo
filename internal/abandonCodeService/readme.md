@@ -3,8 +3,8 @@
 abandon的取名只是为了排序靠前，并且表示非业务有效代码。
 同时作为字典第一个单词，比较有趣而已。
 
-主要作用是作为 `tools/genCURD`生成代码时的模板
-该工具将读取本目录的代码，通过替换表名的方法，生成基础的CURD代码
+主要作用是作为 `tools/genCURD` 生成代码时的模板。
+该工具将读取本目录的代码，通过替换表名的方法，生成基础的 CURD 代码。Proto 模板位于 [`proto/abandonCode.proto`](../../proto/abandonCode.proto)，其中的 `pgo.tables` option 同时是手写服务声明表归属的使用示例。
 
 Q：为什么不是采用类似 `html/template`等模板文件填入变量的方式？
 A：因为模板文件的编写无法得到代码提示/编译错误等，而abandonCodeService的编写过程和常规服务的体验完全一致。

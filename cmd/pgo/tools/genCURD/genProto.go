@@ -88,6 +88,7 @@ func genProtoForOneService(
 	pbCodeStr = strings.ReplaceAll(pbCodeStr, tplTable.ServiceName, svcName)
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT API", pbCodeStr, apiCodeForAllTable)
 	pbCodeStr = markPairTool.ReplaceAll("MARK REPEAT MSG", pbCodeStr, msgCodeForAllTable)
+	pbCodeStr = markPairTool.ReplaceAll("MARK TEMPLATE EXAMPLE ONLY", pbCodeStr, "")
 	if svcName == "default" {
 		pbCodeStr = addDefaultTableMappings(pbCodeStr, tblList)
 	}
@@ -103,16 +104,32 @@ func genProtoForOneService(
 func addDefaultTableMappings(protoCode string, tblList []*Table) string {
 	var mapping strings.Builder
 	mapping.WriteString("    // PGO table mappings: move an option to a custom service proto, then rerun genCURD.\n")
+	// 固定映射顺序，避免数据库返回顺序变化导致生成文件产生无意义 diff。
 	sort.Slice(tblList, func(i, j int) bool {
 		return tblList[i].TblName < tblList[j].TblName
 	})
 	for _, tbl := range tblList {
 		mapping.WriteString(fmt.Sprintf("    option (pgo.tables) = \"%s\";\n", tbl.TblName))
 	}
+	// 模板中的 pgo option import 仅供示例编译，生成时会被移除。
+	// default service 会保存未归属表的 option，因此需要重新导入扩展定义。
 	protoCode = strings.Replace(protoCode,
 		`import "common.proto";`,
 		"import \"common.proto\";\nimport \"pgo/options.proto\";", 1)
-	return strings.Replace(protoCode, "service defaultCURD {", "service defaultCURD {\n"+mapping.String(), 1)
+
+	// 映射块必须插入到完整的 service 声明行之后。不直接替换左花括号，
+	// 否则模板中跟在左花括号后的行尾注释会被挪到 option 后面。
+	serviceOffset := strings.Index(protoCode, "service defaultCURD {")
+	if serviceOffset < 0 {
+		return protoCode
+	}
+	lineEndOffset := strings.Index(protoCode[serviceOffset:], "\n")
+	if lineEndOffset < 0 {
+		return protoCode
+	}
+	// lineEndOffset 相对于 serviceOffset，加一后定位到下一行行首。
+	insertOffset := serviceOffset + lineEndOffset + 1
+	return protoCode[:insertOffset] + mapping.String() + protoCode[insertOffset:]
 }
 
 func pbReplace(

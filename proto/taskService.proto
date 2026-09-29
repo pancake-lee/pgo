@@ -1,0 +1,10 @@
+syntax = "proto3";
+package api;
+
+import "pgo/options.proto";
+
+option go_package = "github.com/pancake-lee/pgo/api;api";
+
+service Task {
+    option (pgo.tables) = "task";
+}

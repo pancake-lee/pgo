@@ -4,7 +4,7 @@ package pgo;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/pancake-lee/pgo/internal/pkg/api;api";
+option go_package = "github.com/pancake-lee/pgo/internal/pkg/api/pgo;pgo";
 
 extend google.protobuf.ServiceOptions {
   repeated string tables = 50001;

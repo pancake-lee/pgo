@@ -1,12 +1,23 @@
 syntax = "proto3";
 package api;
 import "common.proto";
+import "pgo/options.proto";
 import "z_userService.gen.proto";
 import "google/api/annotations.proto";
 option go_package = "github.com/pancake-lee/pgo/api;api";
 
 // 用户服务模块
 service User {
+    option (pgo.tables) = "project";
+    option (pgo.tables) = "user";
+    option (pgo.tables) = "user_dept";
+    option (pgo.tables) = "user_dept_assoc";
+    option (pgo.tables) = "user_job";
+    option (pgo.tables) = "user_project_assoc";
+    option (pgo.tables) = "user_role";
+    option (pgo.tables) = "user_role_assoc";
+    option (pgo.tables) = "user_role_permission_assoc";
+
     // 登录或注册，其实可以理解为只是通过用户账号密码新建一个token，用于其他接口鉴权
     rpc Login (LoginRequest) returns (LoginResponse) {
         option (google.api.http) = {

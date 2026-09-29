@@ -198,8 +198,11 @@ func getColumnScanTypeName(originCol gorm.ColumnType) (string, error) {
 // --------------------------------------------------
 func runGenerate(dbType, dsn string) error {
 	tblMap = make(map[string]*Table)
+	projectRoot, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("get project root failed: %w", err)
+	}
 
-	var err error
 	switch dbType {
 	case "mysql":
 		err = pdb.InitMysqlByDsn(dsn)
@@ -262,7 +265,7 @@ func runGenerate(dbType, dsn string) error {
 		return err
 	}
 
-	err = runAPIGenerator()
+	err = runAPIGenerator(projectRoot)
 	if err != nil {
 		return err
 	}
@@ -321,8 +324,40 @@ func logTableMappingSummary(tblToSvrMap map[string]*Table) {
 	}
 }
 
-func runMakeApi() error {
-	cmd := exec.Command("make", "api")
+func getProtoFileList(projectRoot string) ([]string, error) {
+	protoRoot := filepath.Join(projectRoot, "proto")
+	var protoFileList []string
+	err := filepath.Walk(protoRoot, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if info.IsDir() || filepath.Ext(path) != ".proto" {
+			return nil
+		}
+		relativePath, err := filepath.Rel(projectRoot, path)
+		if err != nil {
+			return err
+		}
+		protoFileList = append(protoFileList, "./"+filepath.ToSlash(relativePath))
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("collect proto files failed: %w", err)
+	}
+	if len(protoFileList) == 0 {
+		return nil, fmt.Errorf("no proto files found under %s", protoRoot)
+	}
+	sort.Strings(protoFileList)
+	return protoFileList, nil
+}
+
+func runMakeApi(projectRoot string) error {
+	protoFileList, err := getProtoFileList(projectRoot)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("make", "api", "API_PROTO_FILES="+strings.Join(protoFileList, " "))
+	cmd.Dir = projectRoot
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("make api failed: %w\n%s", err, strings.TrimSpace(string(out)))

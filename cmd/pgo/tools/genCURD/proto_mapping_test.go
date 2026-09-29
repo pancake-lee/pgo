@@ -54,12 +54,15 @@ service Two { option (pgo.tables) = "task"; }
 }
 
 func TestAddDefaultTableMappings(t *testing.T) {
-	protoCode := "service defaultCURD {\n}\n"
+	protoCode := "service defaultCURD { // service comment\n}\n"
 	tblList := []*Table{{TblName: "z_table"}, {TblName: "a_table"}}
 	result := addDefaultTableMappings(protoCode, tblList)
 	if !strings.Contains(result, `option (pgo.tables) = "a_table";`) ||
 		!strings.Contains(result, `option (pgo.tables) = "z_table";`) ||
 		strings.Index(result, "a_table") > strings.Index(result, "z_table") {
 		t.Fatalf("unexpected default mapping block: %s", result)
+	}
+	if !strings.Contains(result, "service defaultCURD { // service comment\n    // PGO table mappings") {
+		t.Fatalf("mapping block moved the service comment: %s", result)
 	}
 }

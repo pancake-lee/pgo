@@ -7,6 +7,7 @@
 package api
 
 import (
+	_ "github.com/pancake-lee/pgo/internal/pkg/api/pgo"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -408,7 +409,7 @@ var File_abandonCode_proto protoreflect.FileDescriptor
 
 const file_abandonCode_proto_rawDesc = "" +
 	"\n" +
-	"\x11abandonCode.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\"9\n" +
+	"\x11abandonCode.proto\x12\x03api\x1a\x1cgoogle/api/annotations.proto\x1a\fcommon.proto\x1a\x11pgo/options.proto\"9\n" +
 	"\x0fAbandonCodeInfo\x12\x12\n" +
 	"\x04idx1\x18\x01 \x01(\x05R\x04idx1\x12\x12\n" +
 	"\x04col1\x18\x02 \x01(\tR\x04col1\"P\n" +
@@ -427,13 +428,13 @@ const file_abandonCode_proto_rawDesc = "" +
 	"\x19UpdateAbandonCodeResponse\x126\n" +
 	"\vabandonCode\x18\x01 \x01(\v2\x14.api.AbandonCodeInfoR\vabandonCode\"=\n" +
 	"\x1fDelAbandonCodeByIdx1ListRequest\x12\x1a\n" +
-	"\bidx1List\x18\x01 \x03(\x05R\bidx1List2\xb7\x03\n" +
+	"\bidx1List\x18\x01 \x03(\x05R\bidx1List2\xc9\x03\n" +
 	"\x0fabandonCodeCURD\x12c\n" +
 	"\x0eAddAbandonCode\x12\x1a.api.AddAbandonCodeRequest\x1a\x1b.api.AddAbandonCodeResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/abandon-code\x12l\n" +
 	"\x12GetAbandonCodeList\x12\x1e.api.GetAbandonCodeListRequest\x1a\x1f.api.GetAbandonCodeListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/abandon-code\x12l\n" +
 	"\x11UpdateAbandonCode\x12\x1d.api.UpdateAbandonCodeRequest\x1a\x1e.api.UpdateAbandonCodeResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*2\r/abandon-code\x12c\n" +
 	"\x18DelAbandonCodeByIdx1List\x12$.api.DelAbandonCodeByIdx1ListRequest\x1a\n" +
-	".api.Empty\"\x15\x82\xd3\xe4\x93\x02\x0f*\r/abandon-codeB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
+	".api.Empty\"\x15\x82\xd3\xe4\x93\x02\x0f*\r/abandon-code\x1a\x10\x8a\xb5\x18\fabandon_codeB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
 
 var (
 	file_abandonCode_proto_rawDescOnce sync.Once

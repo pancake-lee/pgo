@@ -56,6 +56,31 @@ make build
 make help
 ```
 
+### genCURD 表归属映射
+
+`genCURD` 通过手写 Proto 中的 `pgo.tables` option 确定每张表属于哪个服务。例如，将 `task` 表归入 Task 服务：
+
+```proto
+syntax = "proto3";
+package api;
+
+import "pgo/options.proto";
+
+service Task {
+    option (pgo.tables) = "task";
+}
+```
+
+使用流程：
+
+1. 首次执行 `make curd`。未映射的表会生成到 `proto/z_defaultService.gen.proto`。
+2. 在手写的服务 Proto 中导入 `pgo/options.proto`，并把 default service 中对应的 `option (pgo.tables)` 声明移入该服务。
+3. 再次执行 `make curd`。生成器会将 Proto、Service 和 Data 代码迁移到目标服务。
+
+一个服务可以重复声明 `pgo.tables` 以归属多张表。同一张表不能归属多个服务，映射中的表名也必须存在于当前数据库，否则生成器会在写入文件前报错。`z_*Service.gen.proto` 是生成文件，不要直接维护其中的映射。
+
+完整的生成模板和可运行示例见 [`proto/abandonCode.proto`](./proto/abandonCode.proto) 与 [`internal/abandonCodeService/`](./internal/abandonCodeService/)。前者展示表归属、CRUD RPC、HTTP 路由、消息和字段生成规则，后者展示 Service 与 Data 层的模板结构。
+
 ## 文档索引
 
 - [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md)：AI 协作规则与工作模式

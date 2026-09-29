@@ -7,6 +7,7 @@
 package api
 
 import (
+	_ "github.com/pancake-lee/pgo/internal/pkg/api/pgo"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -322,7 +323,7 @@ var File_userService_proto protoreflect.FileDescriptor
 
 const file_userService_proto_rawDesc = "" +
 	"\n" +
-	"\x11userService.proto\x12\x03api\x1a\fcommon.proto\x1a\x17z_userService.gen.proto\x1a\x1cgoogle/api/annotations.proto\"*\n" +
+	"\x11userService.proto\x12\x03api\x1a\fcommon.proto\x1a\x11pgo/options.proto\x1a\x17z_userService.gen.proto\x1a\x1cgoogle/api/annotations.proto\"*\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\buserName\x18\x01 \x01(\tR\buserName\"H\n" +
 	"\rLoginResponse\x12!\n" +
@@ -341,7 +342,7 @@ const file_userService_proto_rawDesc = "" +
 	"\x13actionToPathPattern\x18\x01 \x03(\v28.api.GetUserPermissionsResponse.ActionToPathPatternEntryR\x13actionToPathPattern\x1aF\n" +
 	"\x18ActionToPathPatternEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xe0\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xf6\x03\n" +
 	"\x04User\x12F\n" +
 	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/user/token\x12F\n" +
 	"\fEditUserName\x12\x18.api.EditUserNameRequest\x1a\n" +
@@ -349,7 +350,7 @@ const file_userService_proto_rawDesc = "" +
 	":\x01*2\x05/user\x12V\n" +
 	"\x10DelUserDeptAssoc\x12\x1c.api.DelUserDeptAssocRequest\x1a\n" +
 	".api.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/user-dept-assoc\x12p\n" +
-	"\x12GetUserPermissions\x12\x1e.api.GetUserPermissionsRequest\x1a\x1f.api.GetUserPermissionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/user/permissionsB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
+	"\x12GetUserPermissions\x12\x1e.api.GetUserPermissionsRequest\x1a\x1f.api.GetUserPermissionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/user/permissions\x1a\x93\x01\x8a\xb5\x18\aproject\x8a\xb5\x18\x04user\x8a\xb5\x18\tuser_dept\x8a\xb5\x18\x0fuser_dept_assoc\x8a\xb5\x18\buser_job\x8a\xb5\x18\x12user_project_assoc\x8a\xb5\x18\tuser_role\x8a\xb5\x18\x0fuser_role_assoc\x8a\xb5\x18\x1auser_role_permission_assocB$Z\"github.com/pancake-lee/pgo/api;apib\x06proto3"
 
 var (
 	file_userService_proto_rawDescOnce sync.Once

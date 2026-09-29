@@ -13,6 +13,7 @@
 | 待规划 | 测试基础设施 | 22 | 外部客户端缺少可注入依赖与离线契约测试 | |
 | 待规划 | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
 | 待用户验收 | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
+| Done | 代码生成 | 26 | genCURD 嵌套执行 make api 遗漏新生成 Proto | |
 
 ---
 
@@ -92,3 +93,21 @@
 - **最小回传**：成功时回复“25 已通过”；仍失败时回传 `rocky9` 从首次依赖检查到最终错误的日志片段。
 - **AI 自动验证**：`GOTOOLCHAIN=local make test`、`GOTOOLCHAIN=local make build` 和 `sh -n deploy/docker/config/startup.sh` 均通过。
 - **关单方式**：用户回复确认后，直接将任务 25 更新为 `Done` 并注明确认日期，不追加核验。
+
+### 26. genCURD 嵌套执行 make api 遗漏新生成 Proto
+
+- **状态**：Done
+- **背景**：从 `make curd` 启动 `pgo genCURD` 时，生成器内部调用 `make api` 报告手写 Proto 导入的 `z_userService.gen.proto` 不存在；失败回滚后单独执行 `make api` 可成功。
+- **分析**：真实 MySQL 回归确认工作目录正确，且子 make 收到了调用时实际存在的 Proto 清单。根因是任务 14 引入 `pgo.tables` 后，当前项目没有将 user、task、school 表归属迁移到手写 Proto；生成器因此将对应的 `z_*Service.gen.proto` 当作过期文件删除。随后的回滚恢复了旧文件，造成手工 `make api` 可成功的表象。
+- **方案**：保留 `make api` 作为唯一 API 生成入口，`genCURD` 显式传入生成和清理完成后的最新 Proto 清单，并固定子进程项目根目录。按现有 Proto 表归属契约为 user、task、school 补齐 `pgo.tables` 声明，修正 option 生成包路径和 default 映射插入位置，并在 README 补充面向使用者的操作说明。
+- **任务列表**：
+  - 收敛 API 生成调用的项目根目录和 Proto 文件清单，保证清单反映本轮生成后的文件状态，且顺序稳定。
+  - 调整 `make api` 的调用契约，允许 `genCURD` 显式传入 Proto 清单，同时保留用户直接执行 `make api` 时的自动发现行为。
+  - 增加不依赖真实数据库和 protoc 的回归测试，覆盖新生成 Proto、清理过期 Proto、工作目录和子 make 失败信息。
+  - 运行定向测试、全仓测试和构建，确认生成失败时的回滚行为不回归。
+- **验收**：
+  - 从 `make curd` 启动时，同一轮新建的 `z_*Service.gen.proto` 全部进入 protoc 输入，不再需要手工补跑 `make api`。
+  - 已删除的过期生成 Proto 不会残留在 protoc 输入中，文件清单在相同输入下顺序一致。
+  - 从项目外部通过 `workDir` 执行 `pgo genCURD` 与在项目根目录执行的结果一致；单独执行 `make api` 仍可自动发现所有 Proto。
+  - API 生成失败时返回可诊断错误，并恢复本轮修改前的生成文件；`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 通过。
+- **实施与验证**：`genCURD` 实时收集并排序 Proto 清单，通过命令行变量传给固定工作目录的子 make；项目 Proto 已持久化 user、task、school 表归属，`pgo.tables` 扩展生成到独立 `api/pgo` 包；`abandonCode.proto` 增加仅用于模板展示的表归属 option，生成时会移除该示例，README 和 `abandonCodeService` 说明已增加互相引导。使用真实 MySQL DSN 执行新 CLI 的完整 `make curd` 链路成功，无需补跑 `make api`，且模板映射未泄漏到生成 Proto；定向测试、`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 均通过。

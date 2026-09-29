@@ -4,10 +4,13 @@ syntax = "proto3";
 package api;
 import "google/api/annotations.proto";
 import "common.proto";
+import "pgo/options.proto";
 option go_package = "github.com/pancake-lee/pgo/api;api";
 
 // --------------------------------------------------
 service defaultCURD { // 该命名应该全文唯一
+    // PGO table mappings: move an option to a custom service proto, then rerun genCURD.
+    option (pgo.tables) = "sheet_ceshibiao";
     // --------------------------------------------------
     // tbl : sheet_ceshibiao
     rpc AddSheetCeshibiao (AddSheetCeshibiaoRequest) returns (AddSheetCeshibiaoResponse) {
