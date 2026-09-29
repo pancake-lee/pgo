@@ -32,9 +32,12 @@ services:
             - ./config/startup.sh:/startup.sh
             - ./backend:/backend
         depends_on:
-            - mysql
-            - redis
-            - rabbitmq
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
         
     mysql:
         container_name: pgo-mysql
@@ -51,6 +54,12 @@ services:
         volumes:
             - ./config/my.cnf:/etc/mysql/conf.d/my.cnf
             - ./mysql/data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
+            start_period: 20s
 
     redis:
         container_name: pgo-redis
@@ -61,9 +70,17 @@ services:
             - 26379:6379
         networks:
             - pgo-net
+        environment:
+            REDISCLI_AUTH: pgo
         volumes:
             - ./config/redis.conf:/usr/local/etc/redis/redis.conf
             - ./redis/data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
+            start_period: 5s
 
     rabbitmq:
         container_name: pgo-rabbitmq
@@ -79,6 +96,12 @@ services:
             RABBITMQ_DEFAULT_USER: pgo 
             RABBITMQ_DEFAULT_PASS: pgo
             RABBITMQ_DEFAULT_VHOST: pgo_vhost
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
+            start_period: 10s
 
     swagger:
         container_name: pgo-swagger

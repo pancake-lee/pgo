@@ -12,6 +12,7 @@
 | 暂缓 | 代码生成 | 16 | genCURD 支持多主键表 | |
 | 待规划 | 测试基础设施 | 22 | 外部客户端缺少可注入依赖与离线契约测试 | |
 | 待规划 | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
+| 待用户验收 | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
 
 ---
 
@@ -74,3 +75,20 @@
 - **背景**：`deploy/docker/docker-compose.yaml` 中的 RabbitMQ、Swagger UI、Prometheus、Grafana、cAdvisor 等组件分别提供网页入口，目前需要记忆并手动访问各自端口。后续增加一个统一入口页面，集中展示这些组件并提供跳转，降低本地开发和运维时查找入口的成本。
 - **期望**：启动 Docker Compose 环境后，可从一个固定地址进入导航页，并从中跳转到各个已配置的网页组件；组件增删或端口调整时，入口信息应便于同步维护。
 - **待规划项**：确定入口页面的承载方式、组件清单与展示信息、访问地址生成规则，以及不可用组件的呈现方式。
+
+### 25. BootCheck 等待 RabbitMQ 和 Redis 就绪
+
+- **状态**：待用户验收
+- **背景**：首次 Docker Compose 部署时，RabbitMQ 容器已进入运行状态，但 AMQP 端口尚未监听；Rocky 9 仅依赖容器启动顺序，BootCheck 立即连接后收到 `connection refused`，并可能在 RabbitMQ 就绪前耗尽容器重启次数。
+- **方案**：为 MySQL、Redis 和 RabbitMQ 增加容器健康检查，并让 Rocky 9 等待三个依赖全部健康后再启动；同时让 BootCheck 对 RabbitMQ 和 Redis 进行限时重试，覆盖 Compose 之外的启动时序，MySQL 沿用已有重试。容器启动脚本显式启用 BootCheck 控制台日志，使每次失败和最终错误可由 Docker 日志查看。
+- **任务列表**：
+  - 增加 MySQL、Redis 和 RabbitMQ healthcheck，并将 Rocky 9 的三个依赖全部改为 `service_healthy`。
+  - 为 RabbitMQ 和 Redis 检查增加固定次数、固定间隔的重试，最终错误保留依赖名与最后一次失败原因。
+  - 验证重试成功、重试耗尽、Compose 配置和全仓回归。
+- **验收**：首次启动时 Rocky 9 不会在 RabbitMQ 就绪前执行 BootCheck；RabbitMQ 或 Redis 短暂未就绪时 BootCheck 可在限定时间内恢复；持续不可用时容器日志包含具体依赖和最终连接错误。
+- **实施与验证**：MySQL、Redis 和 RabbitMQ 分别使用容器内的 `mysqladmin ping`、`redis-cli ping` 和 `rabbitmq-diagnostics -q ping` 执行健康检查，Rocky 9 等待三者全部健康；BootCheck 对 RabbitMQ 和 Redis 最多尝试 12 次、间隔 5 秒，最终错误保留最后一次失败原因；启动脚本使用 `bootCheck -l` 输出容器日志。重试单测、启动脚本语法、全仓测试、`go vet` 和全量构建通过；当前环境没有 Docker CLI，Compose 解析与真实启动留待部署环境验收。
+- **（用户）验收操作**：使用 PGO CD 更新部署文件和 `bootCheck`，重新执行 `docker compose up -d`，观察 `docker compose ps` 与 `docker compose logs rocky9`。
+- **预期结果**：MySQL、Redis 和 RabbitMQ 全部进入 healthy，随后 Rocky 9 启动；短暂未就绪时日志显示重试并最终成功，服务进程正常运行。
+- **最小回传**：成功时回复“25 已通过”；仍失败时回传 `rocky9` 从首次依赖检查到最终错误的日志片段。
+- **AI 自动验证**：`GOTOOLCHAIN=local make test`、`GOTOOLCHAIN=local make build` 和 `sh -n deploy/docker/config/startup.sh` 均通过。
+- **关单方式**：用户回复确认后，直接将任务 25 更新为 `Done` 并注明确认日期，不追加核验。

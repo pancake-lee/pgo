@@ -16,15 +16,17 @@ import (
 
 func CheckRabbitMQ() error {
 	plogger.Info("Checking RabbitMQ...")
-	if err := pmq.InitMQByConfig(); err != nil {
-		// Treat as warning/skip if config is missing or invalid,
-		// assuming not all services need RabbitMQ.
-		// If it's critical, user should see the log.
+	err := checkDependencyWithRetry("RabbitMQ", func() error {
+		if err := pmq.InitMQByConfig(); err != nil {
+			return err
+		}
+		if pmq.DefaultClient == nil {
+			return fmt.Errorf("RabbitMQ DefaultClient is nil")
+		}
+		return nil
+	})
+	if err != nil {
 		return plogger.LogErr(err)
-	}
-
-	if pmq.DefaultClient == nil {
-		return plogger.LogErr(fmt.Errorf("RabbitMQ DefaultClient is nil"))
 	}
 
 	plogger.Info("RabbitMQ connected.")
@@ -34,19 +36,54 @@ func CheckRabbitMQ() error {
 // --------------------------------------------------
 func CheckRedis() error {
 	plogger.Info("Checking Redis...")
-
-	if err := predis.InitRedisByConfig(); err != nil {
-		return plogger.LogErr(fmt.Errorf("failed to init redis: %v", err))
-	}
-	if predis.DefaultClient == nil {
-		return plogger.LogErr(fmt.Errorf("redis client is nil"))
-	}
-
-	pong, err := predis.DefaultClient.Ping().Result()
+	var pong string
+	err := checkDependencyWithRetry("Redis", func() error {
+		if err := predis.InitRedisByConfig(); err != nil {
+			return fmt.Errorf("failed to init redis: %w", err)
+		}
+		if predis.DefaultClient == nil {
+			return fmt.Errorf("redis client is nil")
+		}
+		var pingErr error
+		pong, pingErr = predis.DefaultClient.Ping().Result()
+		if pingErr != nil {
+			predis.CloseDefaultClient()
+			return fmt.Errorf("redis ping failed: %w", pingErr)
+		}
+		return nil
+	})
 	if err != nil {
-		return plogger.LogErr(fmt.Errorf("redis ping failed: %v", err))
+		return plogger.LogErr(err)
 	}
 	plogger.Infof("Redis ping success: %s", pong)
+	return nil
+}
+
+const (
+	dependencyMaxAttempts   = 12
+	dependencyRetryInterval = 5 * time.Second
+)
+
+func checkDependencyWithRetry(name string, check func() error) error {
+	return checkDependencyWithRetryConfig(name, dependencyMaxAttempts, dependencyRetryInterval, check)
+}
+
+func checkDependencyWithRetryConfig(name string, maxAttempts int, interval time.Duration, check func() error) error {
+	if maxAttempts <= 0 {
+		return fmt.Errorf("%s check max attempts must be positive", name)
+	}
+	var attempts int
+	err := NewRunner("check_"+strings.ToLower(name)).RunRetry(maxAttempts-1, interval, func() error {
+		attempts++
+		err := check()
+		if err != nil && attempts < maxAttempts {
+			plogger.Warnf("%s not ready, attempt %d/%d failed: %v", name, attempts, maxAttempts, err)
+		}
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("%s unavailable after %d attempts: %w", name, attempts, err)
+	}
 	return nil
 }
 

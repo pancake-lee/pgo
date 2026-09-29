@@ -5,7 +5,7 @@ set -e
 
 # check bootCheck result
 chmod +x /backend/bootCheck
-if ! /backend/bootCheck; then
+if ! /backend/bootCheck -l; then
     echo "Boot check failed, exiting..."
     exit 1
 fi
