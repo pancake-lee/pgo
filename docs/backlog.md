@@ -12,8 +12,9 @@
 | 暂缓 | 代码生成 | 16 | genCURD 支持多主键表 | |
 | 待规划 | 测试基础设施 | 22 | 外部客户端缺少可注入依赖与离线契约测试 | |
 | 待规划 | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
-| 待用户验收 | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
+| Done | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
 | Done | 代码生成 | 26 | genCURD 嵌套执行 make api 遗漏新生成 Proto | |
+| 已规划 | CLI 交互 | 27 | CI/CD 参数确认与批量跳过 | |
 
 ---
 
@@ -79,7 +80,7 @@
 
 ### 25. BootCheck 等待 RabbitMQ 和 Redis 就绪
 
-- **状态**：待用户验收
+- **状态**：Done
 - **背景**：首次 Docker Compose 部署时，RabbitMQ 容器已进入运行状态，但 AMQP 端口尚未监听；Rocky 9 仅依赖容器启动顺序，BootCheck 立即连接后收到 `connection refused`，并可能在 RabbitMQ 就绪前耗尽容器重启次数。
 - **方案**：为 MySQL、Redis 和 RabbitMQ 增加容器健康检查，并让 Rocky 9 等待三个依赖全部健康后再启动；同时让 BootCheck 对 RabbitMQ 和 Redis 进行限时重试，覆盖 Compose 之外的启动时序，MySQL 沿用已有重试。容器启动脚本显式启用 BootCheck 控制台日志，使每次失败和最终错误可由 Docker 日志查看。
 - **任务列表**：
@@ -93,6 +94,7 @@
 - **最小回传**：成功时回复“25 已通过”；仍失败时回传 `rocky9` 从首次依赖检查到最终错误的日志片段。
 - **AI 自动验证**：`GOTOOLCHAIN=local make test`、`GOTOOLCHAIN=local make build` 和 `sh -n deploy/docker/config/startup.sh` 均通过。
 - **关单方式**：用户回复确认后，直接将任务 25 更新为 `Done` 并注明确认日期，不追加核验。
+- **用户确认**：2026-09-29，部署环境验收通过，任务关单。
 
 ### 26. genCURD 嵌套执行 make api 遗漏新生成 Proto
 
@@ -111,3 +113,19 @@
   - 从项目外部通过 `workDir` 执行 `pgo genCURD` 与在项目根目录执行的结果一致；单独执行 `make api` 仍可自动发现所有 Proto。
   - API 生成失败时返回可诊断错误，并恢复本轮修改前的生成文件；`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 通过。
 - **实施与验证**：`genCURD` 实时收集并排序 Proto 清单，通过命令行变量传给固定工作目录的子 make；项目 Proto 已持久化 user、task、school 表归属，`pgo.tables` 扩展生成到独立 `api/pgo` 包；`abandonCode.proto` 增加仅用于模板展示的表归属 option，生成时会移除该示例，README 和 `abandonCodeService` 说明已增加互相引导。使用真实 MySQL DSN 执行新 CLI 的完整 `make curd` 链路成功，无需补跑 `make api`，且模板映射未泄漏到生成 Proto；定向测试、`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 均通过。
+
+### 27. CI/CD 参数确认与批量跳过
+
+- **状态**：已规划
+- **背景**：PGO 的 CI 和 CD 交互式子命令会为多个参数依次提问。这些参数已有代码默认值或上次执行的缓存值，但用户在无需修改时仍必须连续回车，增加了重复操作。
+- **分析**：`pkg/pclient` 已封装参数定义、默认值与缓存值合并逻辑，CI 的 Init Project 已使用该入口；CI 的 Make 变量和 CD 的 SSH 参数仍各自组织交互。本需求只改变交互式参数确认流程，不改变 Cobra 非交互命令的参数行为。
+- **方案**：扩展现有的批量参数读取能力，先按“缓存值优先，否则代码默认值”计算全部当前有效值，再统一展示参数摘要并询问是否直接使用。该问题默认为是，用户直接回车或输入 `y` 时跳过后续所有参数提问，输入 `n` 时才按原有顺序逐个编辑；编辑时继续以当前有效值作为默认值并仅在值变化时更新缓存。摘要中普通参数显示实际值，SSH 密码等敏感参数只显示“已设置/未设置”。CI Make、CI Init Project 和 CD Deploy 共用该流程，保留各子命令现有参数来源、顺序和缓存键。
+- **任务列表**：
+  - 在现有参数交互封装中增加当前有效值汇总、敏感值脱敏和“直接使用/逐个修改”分支，不引入新的交互依赖。
+  - 让 CI Make、CI Init Project 和 CD Deploy 复用同一套批量确认逻辑，清理重复的默认值与缓存读取代码。
+  - 增加可注入的交互测试，覆盖回车跳过、`y` 跳过、`n` 后逐个编辑、默认值/缓存值优先级、缓存更新与密码脱敏。
+- **验收**：
+  - 进入 CI Make、CI Init Project 或 CD Deploy 时，在逐个提问前能看到全部待输入参数的当前有效值，敏感值不以明文出现。
+  - 在确认问题上直接回车或输入 `y` 后，立即沿用当前值继续执行，不再逐个询问参数。
+  - 输入 `n` 后，按原有顺序逐个询问；单个参数直接回车仍使用已展示的当前值，新值在后续执行中生效并按原有规则缓存。
+  - Cobra 非交互调用、参数名、缓存键和 CI/CD 后续执行行为保持不变；定向测试、`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 通过。
