@@ -83,7 +83,7 @@ service Task {
 
 ### Docker Compose 组件导航
 
-启动 `deploy/docker/docker-compose.yaml` 后，访问 `http://<部署主机>:20080`。导航页集中提供 RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor 入口，并显示浏览器侧可达状态。组件地址使用导航页当前主机名生成，本机与远程部署无需分别修改 IP。
+启动 `deploy/docker/docker-compose.yaml` 后，访问 `http://<部署主机>:20080`。导航页集中提供后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor 入口，并显示浏览器侧可达状态。组件地址使用导航页当前主机名生成，本机与远程部署无需分别修改 IP。pprof 只有在 `Diagnostics.Pprof` 启用时才可访问，不应将诊断端口暴露到公网。
 
 ## 文档索引
 
