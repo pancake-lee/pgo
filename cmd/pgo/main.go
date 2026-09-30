@@ -8,10 +8,10 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/diagnostics"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools/performance"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/userload"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pthird"
@@ -63,8 +63,8 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
 	rootCmd.AddCommand(diagnostics.NewCommand())
+	rootCmd.AddCommand(performance.NewCommand())
 	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(userload.NewCommand())
 	rootCmd.AddCommand(devops.InitProjEntrypoint.NewCobraCommand())
 
 	return rootCmd
@@ -76,6 +76,7 @@ func runInteractiveMenu() {
 	sel := pthird.Interact.NewSelector("请选择功能 (Select Function)")
 	sel.Reg("Devops CI", devops.CICli)
 	sel.Reg("Devops CD", devops.DeployCli)
+	sel.Reg("性能测试 (Performance)", performance.RunInteractive)
 	sel.Reg("开发工具 (Dev Tools)", toolsMenuCli)
 
 	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)

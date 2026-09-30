@@ -1,4 +1,4 @@
-package userload
+package login
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 
 	"github.com/antihax/optional"
 	"github.com/pancake-lee/pgo/cmd/pgo/swagger"
-	"github.com/spf13/cobra"
 )
 
 const manifestVersion = 1
@@ -55,135 +54,6 @@ type vegetaTarget struct {
 	Header map[string][]string `json:"header"`
 }
 
-func NewCommand() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "user-load",
-		Short: "Prepare and verify user HTTP load-test batches",
-	}
-	command.AddCommand(newPrepareCommand(), newVerifyCommand(), newCleanupCommand(), newTargetsCommand())
-	return command
-}
-
-func newPrepareCommand() *cobra.Command {
-	var baseURL, batchID, output string
-	var count, concurrency int
-	var timeout time.Duration
-	command := &cobra.Command{
-		Use:   "prepare",
-		Short: "Register a batch of users through HTTP",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, err := NewClient(baseURL, timeout)
-			if err != nil {
-				return err
-			}
-			startedAt := time.Now()
-			manifest, err := Prepare(cmd.Context(), client, output, batchID, count, concurrency)
-			if manifest == nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "batch=%s prepared=%d failed=%d duration=%s manifest=%s\n",
-				manifest.BatchID, len(manifest.Users), count-len(manifest.Users), time.Since(startedAt).Round(time.Millisecond), output)
-			return err
-		},
-	}
-	command.Flags().StringVar(&baseURL, "base-url", "http://127.0.0.1:8000", "user service HTTP base URL")
-	command.Flags().StringVar(&batchID, "batch", "", "batch ID, generated when omitted")
-	command.Flags().StringVar(&output, "output", ".local/performance/users.json", "batch manifest path")
-	command.Flags().IntVar(&count, "count", 100, "number of users")
-	command.Flags().IntVar(&concurrency, "concurrency", 10, "concurrent HTTP requests")
-	command.Flags().DurationVar(&timeout, "timeout", 5*time.Second, "per-request timeout")
-	return command
-}
-
-func newVerifyCommand() *cobra.Command {
-	var manifestPath string
-	var concurrency int
-	var timeout time.Duration
-	command := &cobra.Command{
-		Use:   "verify",
-		Short: "Log in every batch user and verify authenticated access",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			manifest, err := ReadManifest(manifestPath)
-			if err != nil {
-				return err
-			}
-			client, err := NewClient(manifest.BaseURL, timeout)
-			if err != nil {
-				return err
-			}
-			startedAt := time.Now()
-			if err = Verify(cmd.Context(), client, manifest, concurrency); err != nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "batch=%s verified=%d duration=%s\n",
-				manifest.BatchID, len(manifest.Users), time.Since(startedAt).Round(time.Millisecond))
-			return nil
-		},
-	}
-	command.Flags().StringVar(&manifestPath, "manifest", ".local/performance/users.json", "batch manifest path")
-	command.Flags().IntVar(&concurrency, "concurrency", 10, "concurrent HTTP requests")
-	command.Flags().DurationVar(&timeout, "timeout", 5*time.Second, "per-request timeout")
-	return command
-}
-
-func newCleanupCommand() *cobra.Command {
-	var manifestPath string
-	var concurrency int
-	var timeout time.Duration
-	command := &cobra.Command{
-		Use:   "cleanup",
-		Short: "Delete only users listed in a batch manifest",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			manifest, err := ReadManifest(manifestPath)
-			if err != nil {
-				return err
-			}
-			client, err := NewClient(manifest.BaseURL, timeout)
-			if err != nil {
-				return err
-			}
-			startedAt := time.Now()
-			if err = Cleanup(cmd.Context(), client, manifest, concurrency); err != nil {
-				return err
-			}
-			now := time.Now().UTC()
-			manifest.CleanedAt = &now
-			if err = WriteManifest(manifestPath, manifest); err != nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "batch=%s cleaned=%d duration=%s\n",
-				manifest.BatchID, len(manifest.Users), time.Since(startedAt).Round(time.Millisecond))
-			return nil
-		},
-	}
-	command.Flags().StringVar(&manifestPath, "manifest", ".local/performance/users.json", "batch manifest path")
-	command.Flags().IntVar(&concurrency, "concurrency", 10, "concurrent HTTP requests")
-	command.Flags().DurationVar(&timeout, "timeout", 5*time.Second, "per-request timeout")
-	return command
-}
-
-func newTargetsCommand() *cobra.Command {
-	var manifestPath, output string
-	command := &cobra.Command{
-		Use:   "targets",
-		Short: "Generate Vegeta JSON targets for batch logins",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			manifest, err := ReadManifest(manifestPath)
-			if err != nil {
-				return err
-			}
-			if err = WriteTargets(output, manifest); err != nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "batch=%s targets=%d output=%s\n", manifest.BatchID, len(manifest.Users), output)
-			return nil
-		},
-	}
-	command.Flags().StringVar(&manifestPath, "manifest", ".local/performance/users.json", "batch manifest path")
-	command.Flags().StringVar(&output, "output", ".local/performance/login-targets.json", "Vegeta JSON targets path")
-	return command
-}
-
 func NewClient(baseURL string, timeout time.Duration) (*Client, error) {
 	baseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
 	parsedURL, err := url.Parse(baseURL)
@@ -195,7 +65,11 @@ func NewClient(baseURL string, timeout time.Duration) (*Client, error) {
 	}
 	configuration := swagger.NewConfiguration()
 	configuration.BasePath = baseURL
-	configuration.HTTPClient = &http.Client{Timeout: timeout}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	// Batch preparation and cleanup are control traffic, not measured load. Avoid reusing
+	// a connection that an older HTTP server may close without advertising Connection: close.
+	transport.DisableKeepAlives = true
+	configuration.HTTPClient = &http.Client{Timeout: timeout, Transport: transport}
 	return &Client{baseURL: baseURL, apiClient: swagger.NewAPIClient(configuration)}, nil
 }
 
