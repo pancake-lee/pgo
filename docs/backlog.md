@@ -11,7 +11,7 @@
 | Done | 性能基线 | 23 | 多用户注册与登录的 HTTP 压测及观测闭环 | |
 | 暂缓 | 代码生成 | 16 | genCURD 支持多主键表 | |
 | 待规划 | 测试基础设施 | 22 | 外部客户端缺少可注入依赖与离线契约测试 | |
-| 待用户验收 | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
+| Done | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
 | Done | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
 | Done | 代码生成 | 26 | genCURD 嵌套执行 make api 遗漏新生成 Proto | |
 | Done | CLI 交互 | 27 | CI/CD 参数确认与批量跳过 | |
@@ -80,7 +80,7 @@
 
 ### 24. Docker Compose 网页组件统一入口
 
-- **状态**：待用户验收
+- **状态**：Done
 - **背景**：`deploy/docker/docker-compose.yaml` 中的 RabbitMQ、Swagger UI、Prometheus、Grafana、cAdvisor 等组件分别提供网页入口，目前需要记忆并手动访问各自端口。后续增加一个统一入口页面，集中展示这些组件并提供跳转，降低本地开发和运维时查找入口的成本。
 - **期望**：启动 Docker Compose 环境后，可从一个固定地址进入导航页，并从中跳转到各个已配置的网页组件；组件增删或端口调整时，入口信息应便于同步维护。
 - **方案**：在 Docker Compose 中增加独立的轻量 Nginx 导航容器，以只读方式挂载仓库内的静态页面，通过固定端口对外提供入口。导航页集中展示后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor，根据当前页面的主机名、各组件对外端口与可选路径生成 HTTP 跳转地址，适配本机和远程部署。页面在浏览器中执行轻量可达性探测，区分检测中、可访问和未响应；组件名称、说明、端口和路径集中在同一页面数据区维护。部署文件清单同步包含导航页目录。
@@ -93,12 +93,13 @@
   - 通过 localhost 或远程主机名访问时，组件链接使用相同主机名，不依赖写死 IP。
   - 不可达组件仍保留入口并显示未响应状态；新增或调整组件时可在单一数据区同步导航信息。
   - Compose 配置、CD 部署映射、页面结构检查、`make test` 和 `make build` 通过。
-- **实施与验证**：Compose 新增 `pgo-portal` Nginx 容器，以只读方式挂载 `deploy/docker/portal/` 并发布到宿主机 `20080` 端口。导航页的单一组件数据区包含后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor，根据当前主机名生成 HTTP 链接，支持 pprof 的 `/debug/pprof/` 子路径，并通过限时浏览器请求显示可访问或未响应。CD 文件映射和 README 入口说明已同步。回归测试锁定 Compose 入口端口、组件端口、pprof 路径和部署映射；页面 JavaScript 语法检查、`go test ./cmd/pgo/devops`、`make test` 与 `make build` 均通过。当前环境无 Docker CLI，未执行容器级验证。
+- **实施与验证**：Compose 新增 `pgo-portal` Nginx 容器，以只读方式挂载 `deploy/docker/portal/` 并发布到宿主机 `20080` 端口。导航页的单一组件数据区包含后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor，根据当前主机名生成 HTTP 链接，支持 pprof 的 `/debug/pprof/` 子路径，并通过限时浏览器请求显示可访问或未响应。userService 新增无需鉴权的 `GET /`，返回 `hello, this is userService`，使后端 API 卡片存在明确的根地址响应。CD 文件映射和 README 入口说明已同步。回归测试锁定 Compose 入口端口、组件端口、pprof 路径、部署映射和根处理器响应；页面 JavaScript 语法检查、定向测试、`make test` 与 `make build` 均通过。
 - **（用户）验收操作**：在部署主机更新 Compose 和 `portal/` 目录，执行 `docker compose up -d portal`，然后打开 `http://<部署主机>:20080`并任选一张显示“可访问”的组件卡片点击。
 - **预期结果**：导航页显示七个入口及其状态，点击后在新窗口打开同一部署主机上的对应地址。pprof 未启用时该入口可显示未响应。
 - **最小回传**：回复“24 已通过”；若失败，回传未打开的页面地址与 `docker compose ps portal` 输出。
 - **AI 自动验证**：页面 JavaScript 语法检查、部署配置回归测试、`make test` 和 `make build` 均通过；本轮启动的测试与构建进程已全部退出。
 - **关单方式**：用户回复确认后，同一轮将任务改为 `Done` 并注明确认日期，不追加核验。
+- **用户确认**：2026-09-30，导航页其他验收项已通过；根处理器补充并完成自动验证后关单。
 
 ### 25. BootCheck 等待 RabbitMQ 和 Redis 就绪
 

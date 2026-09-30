@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	nethttp "net/http"
 
 	api "github.com/pancake-lee/pgo/internal/pkg/api"
 	"github.com/pancake-lee/pgo/internal/userService/data"
@@ -20,8 +21,13 @@ func (s *UserServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {
 		api.RegisterUserServer(grpcSrv, s)
 	}
 	if httpSrv != nil {
+		httpSrv.Route("/").GET("/", getRoot)
 		api.RegisterUserHTTPServer(httpSrv, s)
 	}
+}
+
+func getRoot(ctx http.Context) error {
+	return ctx.String(nethttp.StatusOK, "hello, this is userService")
 }
 
 func (s *UserServer) Login(
