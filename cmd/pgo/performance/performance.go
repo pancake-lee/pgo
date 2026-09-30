@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/performance/login"
+	"github.com/pancake-lee/pgo/cmd/pgo/performance/login"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pthird"
@@ -157,7 +157,7 @@ func getInteractiveLoginConfig() (loginConfig, error) {
 	if err != nil {
 		return loginConfig{}, err
 	}
-	config.Concurrency, err = getInteractiveInt(cachePath, cachePrefix+"concurrency", "preparation concurrency", config.Concurrency)
+	config.Concurrency, err = getInteractiveInt(cachePath, cachePrefix+"concurrency", "user preparation concurrency", config.Concurrency)
 	if err != nil {
 		return loginConfig{}, err
 	}

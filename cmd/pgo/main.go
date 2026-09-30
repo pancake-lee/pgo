@@ -5,10 +5,10 @@ import (
 
 	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
+	"github.com/pancake-lee/pgo/cmd/pgo/performance"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/diagnostics"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/performance"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
