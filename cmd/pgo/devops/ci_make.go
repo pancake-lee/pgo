@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -46,29 +47,14 @@ func MakeCli() {
 	pthird.Interact.Infof("using cache file: %v", cachePath)
 
 	if len(vars) > 0 {
-		pthird.Interact.Infof("Configure Variables (Press Enter to use Default)")
+		paramList := make([]pclient.ParamItem, 0, len(vars))
 		for _, v := range vars {
-
-			// 先赋值为默认值
-			val := v.Value
-
-			// 尝试从缓存读取，覆盖默认值
-			key := fmt.Sprintf("client.make.%s", v.Name)
-			cachedVal := pconfig.GetCacheValue(cachePath, key)
-			if cachedVal != "" {
-				val = cachedVal
-				currentVars[v.Name] = val
-			}
-
-			prompt := fmt.Sprintf("%s (Default: %s)", v.Name, val)
-			input := pthird.Interact.Input(prompt)
-
-			if input != "" {
-				val = input
-				currentVars[v.Name] = val
-				pconfig.SetCacheValue(cachePath, key, val)
-			}
+			paramList = append(paramList, pclient.ParamItem{
+				Name: v.Name, Usage: v.Name, Default: v.Value,
+			})
 		}
+		currentVars = pclient.GetCachedParamMap(
+			cachePath, "client.make.", paramList)
 	}
 
 	// 2. Select Target

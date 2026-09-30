@@ -30,11 +30,19 @@ func DeployCli() {
 	cachePath := pconfig.GetDefaultCachePath()
 	pthird.Interact.Infof("using cache file: %v", cachePath)
 
-	sshHost := pclient.GetCachedParam(cachePath, "deploy.ssh.host", "SSH Host", "127.0.0.1")
-	sshPort := pclient.GetCachedParam(cachePath, "deploy.ssh.port", "SSH Port", "22")
-	sshUser := pclient.GetCachedParam(cachePath, "deploy.ssh.user", "SSH User", "root")
-	sshPass := pclient.GetCachedParam(cachePath, "deploy.ssh.pass", "SSH Password", "")
-	remoteRoot := pclient.GetCachedParam(cachePath, "deploy.ssh.dir", "Remote Root Dir", "/root/pgo")
+	paramList := []pclient.ParamItem{
+		{Name: "host", Usage: "SSH Host", Default: "127.0.0.1"},
+		{Name: "port", Usage: "SSH Port", Default: "22"},
+		{Name: "user", Usage: "SSH User", Default: "root"},
+		{Name: "pass", Usage: "SSH Password", Sensitive: true},
+		{Name: "dir", Usage: "Remote Root Dir", Default: "/root/pgo"},
+	}
+	values := pclient.GetCachedParamMap(cachePath, "deploy.ssh.", paramList)
+	sshHost := values["host"]
+	sshPort := values["port"]
+	sshUser := values["user"]
+	sshPass := values["pass"]
+	remoteRoot := values["dir"]
 
 	host := fmt.Sprintf("%s:%s", sshHost, sshPort)
 	pthird.Interact.Infof("Connecting to %s@%s...", sshUser, host)
