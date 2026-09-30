@@ -81,6 +81,10 @@ service Task {
 
 完整的生成模板和可运行示例见 [`proto/abandonCode.proto`](./proto/abandonCode.proto) 与 [`internal/abandonCodeService/`](./internal/abandonCodeService/)。前者展示表归属、CRUD RPC、HTTP 路由、消息和字段生成规则，后者展示 Service 与 Data 层的模板结构。
 
+### Docker Compose 组件导航
+
+启动 `deploy/docker/docker-compose.yaml` 后，访问 `http://<部署主机>:20080`。导航页集中提供 RabbitMQ、Swagger UI、Prometheus、Grafana 和 cAdvisor 入口，并显示浏览器侧可达状态。组件地址使用导航页当前主机名生成，本机与远程部署无需分别修改 IP。
+
 ## 文档索引
 
 - [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md)：AI 协作规则与工作模式

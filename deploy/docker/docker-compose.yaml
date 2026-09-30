@@ -4,6 +4,7 @@
 
 # 启动顺序
 # mysql/redis/rabbitmq/swagger
+# portal
 # rocky9
 # node-exporter/cadvisor
 # loki/prometheus
@@ -16,6 +17,17 @@
 
 name: pgo
 services:
+    portal:
+        container_name: pgo-portal
+        image: nginx:1.27.5-alpine
+        restart: unless-stopped
+        ports:
+            - "20080:80"
+        networks:
+            - pgo-net
+        volumes:
+            - ./portal:/usr/share/nginx/html:ro
+
     rocky9:
         container_name: pgo-dr9
         image: pgo:latest
