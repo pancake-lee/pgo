@@ -190,3 +190,4 @@
 - **最小回传**：成功时回复“28 已通过”；失败时只需回传失败容器的 `docker compose logs --tail=100 <服务名>` 或性能命令的首个错误。
 - **AI 自动验证**：`go test -race ./pkg/papp ./cmd/pgo/performance ./cmd/pgo/tools/diagnostics`、`make test`、`go vet ./...`、`make build`、CLI help、Alloy 1.20.1 `fmt/validate`、YAML 解析、profilecli 2.2.0 参数和 Pyroscope 2.2.0 启动参数检查均通过；临时验证二进制已删除，无本轮进程遗留。
 - **关单方式**：用户回复确认后，同一轮将任务 28 更新为 `Done` 并注明确认日期，不追加核验。
+- **验收修复**：2026-10-01 首次宿主机启动时，Loki 3.5.9 的非 root 用户无法在 bind mount 的 `/data/loki` 下创建 `rules`，导致 `ruler-storage` 初始化失败。Compose 已按当前 Prometheus、Grafana 的部署策略让 Loki 使用 `0:0`，数据仍写入原宿主机目录；回归检查锁定该运行用户，避免权限问题复发。

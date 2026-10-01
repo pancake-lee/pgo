@@ -230,6 +230,7 @@ services:
         container_name: pgo-loki
         image: grafana/loki:3.5.9
         restart: unless-stopped
+        user: "0:0" # bind mount 的数据目录由 Loki 创建子目录
         command: "-config.file=/etc/loki/loki.yaml"
         ports:
             - 23100:3100
