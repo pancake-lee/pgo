@@ -17,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/performance/login"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pthird"
@@ -48,8 +47,7 @@ const (
 	summaryFileName          = "40-summary.md"
 )
 
-type loginConfig struct {
-	APIURL         string        `json:"apiURL"`
+type loadConfig struct {
 	PprofURL       string        `json:"pprofURL"`
 	PyroscopeURL   string        `json:"pyroscopeURL"`
 	GrafanaURL     string        `json:"grafanaURL"`
@@ -60,11 +58,19 @@ type loginConfig struct {
 	Users          int           `json:"users"`
 	Concurrency    int           `json:"concurrency"`
 	RPS            int           `json:"rps"`
+	RPSInput       string        `json:"-"`
 	Warmup         time.Duration `json:"warmup"`
 	Duration       time.Duration `json:"duration"`
 	Timeout        time.Duration `json:"timeout"`
 	OutputDir      string        `json:"outputDir"`
 	VegetaPath     string        `json:"vegetaPath"`
+}
+
+type loginConfig struct {
+	loadConfig
+	APIURL      string `json:"apiURL"`
+	Users       int    `json:"users"`
+	Concurrency int    `json:"concurrency"`
 }
 
 type commandRunner interface {
@@ -80,7 +86,7 @@ func (execRunner) Run(ctx context.Context, name string, args []string, stdout, s
 	return command.Run()
 }
 
-type loginRunner struct {
+type loadRunner struct {
 	commandRunner   commandRunner
 	httpClient      *http.Client
 	checkVegeta     func(string) error
@@ -114,8 +120,8 @@ func newLoginCommand() *cobra.Command {
 		Use:   "login",
 		Short: "Run the complete user login load-test and diagnostics workflow",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			runner := newLoginRunner(config.Timeout)
-			return runner.run(cmd.Context(), config, cmd.OutOrStdout(), cmd.ErrOrStderr())
+			runner := newLoadRunner(config.Timeout)
+			return runLoginPlan(cmd.Context(), runner, config, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	command.Flags().StringVar(&config.APIURL, "api", config.APIURL, "user service HTTP base URL")
@@ -128,7 +134,7 @@ func newLoginCommand() *cobra.Command {
 	command.Flags().BoolVar(&config.RuntimeTrace, "runtime-trace", config.RuntimeTrace, "capture one runtime trace during measured load")
 	command.Flags().IntVar(&config.Users, "users", config.Users, "number of users in the test batch")
 	command.Flags().IntVar(&config.Concurrency, "concurrency", config.Concurrency, "concurrent user preparation and verification requests")
-	command.Flags().IntVar(&config.RPS, "rps", config.RPS, "login requests per second")
+	command.Flags().StringVar(&config.RPSInput, "rps", config.RPSInput, "login requests per second, or auto for the built-in load ladder")
 	command.Flags().DurationVar(&config.Warmup, "warmup", config.Warmup, "warmup duration")
 	command.Flags().DurationVar(&config.Duration, "duration", config.Duration, "measured load duration")
 	command.Flags().DurationVar(&config.Timeout, "timeout", config.Timeout, "per-request timeout")
@@ -139,21 +145,24 @@ func newLoginCommand() *cobra.Command {
 
 func defaultLoginConfig() loginConfig {
 	return loginConfig{
-		APIURL:         "http://127.0.0.1:20000",
-		PprofURL:       "http://127.0.0.1:20002/debug/pprof/",
-		PyroscopeURL:   "http://127.0.0.1:24040",
-		GrafanaURL:     "http://127.0.0.1:23000",
-		ProfileSource:  profileSourcePyroscope,
-		ProfileCLIPath: "profilecli",
-		ProfileService: "pgo-app",
-		Users:          100,
-		Concurrency:    10,
-		RPS:            10,
-		Warmup:         10 * time.Second,
-		Duration:       60 * time.Second,
-		Timeout:        5 * time.Second,
-		OutputDir:      ".local/performance/login",
-		VegetaPath:     "vegeta",
+		loadConfig: loadConfig{
+			PprofURL:       "http://127.0.0.1:20002/debug/pprof/",
+			PyroscopeURL:   "http://127.0.0.1:24040",
+			GrafanaURL:     "http://127.0.0.1:23000",
+			ProfileSource:  profileSourcePyroscope,
+			ProfileCLIPath: "profilecli",
+			ProfileService: "pgo-app",
+			RPS:            10,
+			RPSInput:       "10",
+			Warmup:         10 * time.Second,
+			Duration:       60 * time.Second,
+			Timeout:        5 * time.Second,
+			OutputDir:      ".local/performance/login",
+			VegetaPath:     "vegeta",
+		},
+		APIURL:      "http://127.0.0.1:20000",
+		Users:       100,
+		Concurrency: 10,
 	}
 }
 
@@ -164,8 +173,8 @@ func runLoginInteractive() {
 		return
 	}
 	pthird.Interact.Infof("Starting login performance test; artifacts: %s", config.OutputDir)
-	runner := newLoginRunner(config.Timeout)
-	if err = runner.run(context.Background(), config, os.Stdout, os.Stderr); err != nil {
+	runner := newLoadRunner(config.Timeout)
+	if err = runLoginPlan(context.Background(), runner, config, os.Stdout, os.Stderr); err != nil {
 		pthird.Interact.Errorf("Login performance test failed: %v", err)
 	}
 }
@@ -192,10 +201,7 @@ func getInteractiveLoginConfig() (loginConfig, error) {
 	if err != nil {
 		return loginConfig{}, err
 	}
-	config.RPS, err = getInteractiveInt(cachePath, cachePrefix+"rps", "login requests per second", config.RPS)
-	if err != nil {
-		return loginConfig{}, err
-	}
+	config.RPSInput = pclient.GetCachedParam(cachePath, cachePrefix+"rps", "login requests per second (positive integer or auto)", config.RPSInput)
 	config.Warmup, err = getInteractiveDuration(cachePath, cachePrefix+"warmup", "warmup duration", config.Warmup)
 	if err != nil {
 		return loginConfig{}, err
@@ -229,9 +235,9 @@ func getInteractiveDuration(cachePath, key, prompt string, defaultValue time.Dur
 	return parsedValue, nil
 }
 
-func newLoginRunner(timeout time.Duration) *loginRunner {
+func newLoadRunner(timeout time.Duration) *loadRunner {
 	clientTimeout := timeout + 75*time.Second
-	return &loginRunner{
+	return &loadRunner{
 		commandRunner:   execRunner{},
 		httpClient:      &http.Client{Timeout: clientTimeout},
 		checkVegeta:     checkVegetaVersion,
@@ -240,8 +246,22 @@ func newLoginRunner(timeout time.Duration) *loginRunner {
 	}
 }
 
-func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, stderr io.Writer) (runErr error) {
+func (runner *loadRunner) runLoginStage(ctx context.Context, config loginConfig, stdout, stderr io.Writer) (runErr error) {
 	if err := validateLoginConfig(config); err != nil {
+		return err
+	}
+	scenario := newLoginScenario(config, runner.now, stdout)
+	return runner.runScenarioStage(ctx, config, scenario, stdout, stderr)
+}
+
+func (runner *loadRunner) runScenarioStage(
+	ctx context.Context,
+	config loginConfig,
+	scenario performanceScenario,
+	stdout io.Writer,
+	stderr io.Writer,
+) (runErr error) {
+	if err := validateLoadConfig(config.loadConfig); err != nil {
 		return err
 	}
 	if err := runner.checkVegeta(config.VegetaPath); err != nil {
@@ -259,44 +279,22 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 		return err
 	}
 
-	client, err := login.NewClient(normalizeHTTPURL(config.APIURL), config.Timeout)
-	if err != nil {
-		return err
-	}
-	manifestPath := filepath.Join(config.OutputDir, usersFileName)
-	targetPath := filepath.Join(config.OutputDir, loginTargetsFileName)
-	batchID := runner.now().UTC().Format("060102150405")
-
-	fmt.Fprintf(stdout, "[1/7] preparing %d users\n", config.Users)
-	manifest, err := login.Prepare(ctx, client, manifestPath, batchID, config.Users, config.Concurrency)
-	if manifest != nil {
+	targetPath, cleanup, err := scenario.Prepare(ctx, config.OutputDir)
+	if cleanup != nil {
 		defer func() {
-			fmt.Fprintln(stdout, "[7/7] cleaning test users")
-			cleanupErr := login.Cleanup(context.WithoutCancel(ctx), client, manifest, config.Concurrency)
-			if cleanupErr == nil {
-				now := runner.now().UTC()
-				manifest.CleanedAt = &now
-				cleanupErr = login.WriteManifest(manifestPath, manifest)
-			}
-			runErr = errors.Join(runErr, cleanupErr)
+			runErr = errors.Join(runErr, cleanup())
 		}()
 	}
 	if err != nil {
 		return err
 	}
+	return runner.runLoadStage(ctx, config.loadConfig, targetPath, stdout, stderr)
+}
 
-	fmt.Fprintln(stdout, "[2/7] verifying identities and authenticated access")
-	if err = login.Verify(ctx, client, manifest, config.Concurrency); err != nil {
-		return err
-	}
-	fmt.Fprintln(stdout, "[3/7] generating Vegeta login targets")
-	if err = login.WriteTargets(targetPath, manifest); err != nil {
-		return err
-	}
-
+func (runner *loadRunner) runLoadStage(ctx context.Context, config loadConfig, targetPath string, stdout, stderr io.Writer) error {
 	if config.Warmup > 0 {
 		fmt.Fprintf(stdout, "[4/7] warming up for %s at %d RPS\n", config.Warmup, config.RPS)
-		if err = runner.runAttack(ctx, config, targetPath, config.Warmup, io.Discard, stderr); err != nil {
+		if err := runner.runAttack(ctx, config, targetPath, config.Warmup, io.Discard, stderr); err != nil {
 			return fmt.Errorf("Vegeta warmup: %w", err)
 		}
 	}
@@ -305,7 +303,7 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 	printObservabilityGuidance(stdout, config)
 	metricsBeforePath := filepath.Join(config.OutputDir, metricsBeforeFileName)
 	metricsAfterPath := filepath.Join(config.OutputDir, metricsAfterFileName)
-	if err = runner.download(metricsURL(config.PprofURL), metricsBeforePath); err != nil {
+	if err := runner.download(metricsURL(config.PprofURL), metricsBeforePath); err != nil {
 		return fmt.Errorf("collect metrics before load: %w", err)
 	}
 	resultPath := filepath.Join(config.OutputDir, vegetaResultsFileName)
@@ -353,9 +351,9 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 	return nil
 }
 
-func (runner *loginRunner) runAttack(
+func (runner *loadRunner) runAttack(
 	ctx context.Context,
-	config loginConfig,
+	config loadConfig,
 	targetPath string,
 	duration time.Duration,
 	stdout io.Writer,
@@ -374,7 +372,7 @@ func (runner *loginRunner) runAttack(
 	return runner.commandRunner.Run(ctx, config.VegetaPath, argumentList, stdout, stderr)
 }
 
-func (runner *loginRunner) collectProfilesDuringLoad(ctx context.Context, config loginConfig) error {
+func (runner *loadRunner) collectProfilesDuringLoad(ctx context.Context, config loadConfig) error {
 	cpuSeconds := int(config.Duration / time.Second)
 	if cpuSeconds > 30 {
 		cpuSeconds = 30
@@ -446,9 +444,9 @@ func (runner *loginRunner) collectProfilesDuringLoad(ctx context.Context, config
 	return errors.Join(errorList...)
 }
 
-func (runner *loginRunner) collectPyroscopeProfiles(
+func (runner *loadRunner) collectPyroscopeProfiles(
 	ctx context.Context,
-	config loginConfig,
+	config loadConfig,
 	start time.Time,
 	end time.Time,
 	stderr io.Writer,
@@ -483,7 +481,7 @@ func (runner *loginRunner) collectPyroscopeProfiles(
 	return errors.Join(errorList...)
 }
 
-func (runner *loginRunner) post(address string) error {
+func (runner *loadRunner) post(address string) error {
 	request, err := http.NewRequest(http.MethodPost, address, nil)
 	if err != nil {
 		return err
@@ -500,7 +498,7 @@ func (runner *loginRunner) post(address string) error {
 	return nil
 }
 
-func (runner *loginRunner) download(address, output string) error {
+func (runner *loadRunner) download(address, output string) error {
 	request, err := http.NewRequest(http.MethodGet, address, nil)
 	if err != nil {
 		return err
@@ -523,17 +521,24 @@ func (runner *loginRunner) download(address, output string) error {
 }
 
 func validateLoginConfig(config loginConfig) error {
-	if config.Users <= 0 || config.Concurrency <= 0 || config.RPS <= 0 {
-		return errors.New("users, concurrency, and rps must be positive")
+	if config.Users <= 0 || config.Concurrency <= 0 {
+		return errors.New("users and concurrency must be positive")
+	}
+	if _, err := url.ParseRequestURI(normalizeHTTPURL(config.APIURL)); err != nil {
+		return fmt.Errorf("invalid API URL: %w", err)
+	}
+	return validateLoadConfig(config.loadConfig)
+}
+
+func validateLoadConfig(config loadConfig) error {
+	if config.RPS <= 0 {
+		return errors.New("rps must be positive")
 	}
 	if config.Duration <= 0 || config.Timeout <= 0 || config.Warmup < 0 {
 		return errors.New("duration and timeout must be positive; warmup must not be negative")
 	}
 	if strings.TrimSpace(config.OutputDir) == "" {
 		return errors.New("output directory is required")
-	}
-	if _, err := url.ParseRequestURI(normalizeHTTPURL(config.APIURL)); err != nil {
-		return fmt.Errorf("invalid API URL: %w", err)
 	}
 	if _, err := url.ParseRequestURI(normalizeHTTPURL(config.PprofURL)); err != nil {
 		return fmt.Errorf("invalid pprof URL: %w", err)
@@ -571,7 +576,7 @@ func checkProfileCLIVersion(path string) error {
 	return nil
 }
 
-func printObservabilityGuidance(writer io.Writer, config loginConfig) {
+func printObservabilityGuidance(writer io.Writer, config loadConfig) {
 	fmt.Fprintf(writer, "Observability: Grafana %s, Pyroscope %s\n", normalizeHTTPURL(config.GrafanaURL), normalizeHTTPURL(config.PyroscopeURL))
 	fmt.Fprintf(writer, "Runtime profiles: POST %s\n", joinPprofURL(config.PprofURL, "runtime?seconds=60&profiles=goroutine,block,mutex"))
 	fmt.Fprintf(writer, "Runtime trace: GET %s\n", joinPprofURL(config.PprofURL, "runtime-trace?seconds=10"))
@@ -626,7 +631,7 @@ func writeJSON(path string, value any) error {
 	return os.WriteFile(path, append(content, '\n'), 0o600)
 }
 
-func writeSummary(path string, config loginConfig, reportPath, beforePath, afterPath string) error {
+func writeSummary(path string, config loadConfig, reportPath, beforePath, afterPath string) error {
 	report, err := os.ReadFile(reportPath)
 	if err != nil {
 		return err

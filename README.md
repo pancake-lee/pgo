@@ -12,7 +12,7 @@
 - **prettyCode**：统一代码中的分割线注释格式
 - **psql**：连接 PostgreSQL 并执行 SQL，可嵌入自动化流程
 - **sheet2mysql**：读取 APITable 表结构，生成 MySQL 建表 SQL
-- **performance**：自动执行可复现的性能测试场景，当前包含 userService 登录压测与服务端观测闭环
+- **performance**：自动执行可复现的性能测试场景，当前包含 userService 登录单档压测、`--rps auto` 固定阶梯升压与服务端观测闭环
 - **CI Make**：交互式选择并执行 Makefile 目标
 - **CI Init Project**：从当前仓库抽取项目基础骨架
 - **CD Deploy**：首次部署容器及后续更新程序

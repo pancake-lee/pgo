@@ -17,11 +17,20 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 `pgo performance login` 会检查 Vegeta 二进制中的模块版本，不符合 `v12.13.0` 时会在创建测试用户前停止。
 
-默认 profile 来源还需要安装官方 `profilecli v2.2.0`。程序会在创建测试用户前检查版本。没有运行 Alloy/Pyroscope 时，可通过 `--profile-source pprof` 改为直接从应用诊断端口采集。
+默认 profile 来源还需要安装官方 `profilecli v2.2.0`。Linux AMD64 可直接使用对应发布包：
+
+```shell
+curl -fLO https://github.com/grafana/pyroscope/releases/download/v2.2.0/profilecli_2.2.0_linux_amd64.tar.gz
+tar -xzf profilecli_2.2.0_linux_amd64.tar.gz
+install -m 0755 profilecli "$(go env GOPATH)/bin/profilecli"
+profilecli --version
+```
+
+其他系统或架构从 [Pyroscope v2.2.0 Releases](https://github.com/grafana/pyroscope/releases/tag/v2.2.0) 选择对应文件。程序会在创建测试用户前检查版本。没有安装 `profilecli` 或没有运行 Alloy/Pyroscope 时，可通过 `--profile-source pprof` 改为直接从应用诊断端口采集。
 
 服务由维护者使用本地配置在前台启动，结束时按 Ctrl+C，不使用 `nohup` 或无人管理的后台进程。
 
-## 2. 一条命令执行完整闭环
+## 2. 单档模式
 
 `pgo` 默认无参数启动时进入交互菜单，但 Cobra 子命令支持一次传入全部参数，不需要回答交互问题：
 
@@ -55,9 +64,38 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 6. **生成报告**：输出 Vegeta 原始结果、文本报告和带指标含义的综合摘要。
 7. **清理用户**：只删除批次清单中的用户。前面任一步骤失败时也会尝试清理，并保留已经生成的诊断文件。
 
-先完成 100 用户、10 RPS 的小档闭环，再分别调整 `--users` 和 `--rps` 执行 1,000、10,000 用户以及 50、100 RPS。一次只运行一个批次，每轮使用不同输出目录。
+数字形式的 `--rps` 只运行一个压力等级，适合复现某一档结果或针对单个压力点调试。
 
-## 3. 输出文件
+## 3. 自动升压模式
+
+将 `--rps` 改为 `auto` 即可依次运行内置的 `10、25、50、100、200、500 RPS`，不需要设置起始值、步长或上限：
+
+```shell
+./bin/pgo performance login \
+  --api http://127.0.0.1:20000 \
+  --pprof http://127.0.0.1:20002/debug/pprof/ \
+  --pyroscope http://127.0.0.1:24040 \
+  --grafana http://127.0.0.1:23000 \
+  --profile-source pyroscope \
+  --profile-service pgo-app \
+  --users 100 \
+  --concurrency 10 \
+  --rps auto \
+  --warmup 10s \
+  --duration 60s \
+  --timeout 5s \
+  --output .local/performance/login-auto
+```
+
+各档串行执行完整的准备、验证、负载、观测、报告和清理流程，产物分别写入 `rps-010/` 至 `rps-500/`。某档执行失败或出现非成功响应时停止后续升压，已完成档位和失败档位的现有产物会保留，失败批次仍会执行用户清理。
+
+自动模式根目录额外包含：
+
+- `00-auto-run.json`：固定阶梯和运行模式。
+- `40-auto-results.json`：机器可读的逐档结果。
+- `41-auto-summary.md`：吞吐、成功率、P50/P95/P99、服务端耗时、数据库耗时、连接等待、CPU、内存和 goroutine 的跨档对比。
+
+## 4. 单档输出文件
 
 命令结束时会先打印一行输出目录，再逐项打印文件名及用途，不在每个文件名前重复父目录。每个输出目录包含：
 
@@ -78,7 +116,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 如果使用示例中的 shell 重定向，输出目录旁还会有 `login-100u-10rps-cli-output.txt`。它记录自动化程序自身的阶段进度与产物说明，由执行命令的 shell 创建。
 
-## 4. 指标阅读边界
+## 5. 指标阅读边界
 
 `40-summary.md` 聚焦本轮登录压测直接需要的证据：
 
@@ -91,7 +129,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 负载前后 metrics 是同一轮正式负载的边界快照。计数器增长反映区间内累计工作量，gauge 反映采样时刻状态；CPU、heap、goroutine、block 和 mutex profile 为后续规则化判断保留输入，本阶段仍以实际基线为准，不预设问题阈值。
 
-## 5. 实验记录
+## 6. 实验记录
 
 ### 环境
 
