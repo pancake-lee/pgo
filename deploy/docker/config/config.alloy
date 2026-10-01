@@ -1,0 +1,100 @@
+logging {
+	level  = "info"
+	format = "logfmt"
+}
+
+local.file_match "pgo_logs" {
+	path_targets = [{
+		__path__ = "/opt/app_logs/*.log",
+		env      = "prod",
+		job      = "pgo",
+	}]
+}
+
+loki.source.file "pgo_logs" {
+	targets    = local.file_match.pgo_logs.targets
+	forward_to = [loki.process.pgo_logs.receiver]
+}
+
+loki.process "pgo_logs" {
+	stage.regex {
+		expression = "/(?P<app>[^/]+?)(?:_(?P<date>\\d{8}))?\\.log$"
+		source     = "filename"
+	}
+
+	stage.labels {
+		values = {
+			app  = "",
+			date = "",
+		}
+	}
+
+	stage.json {
+		expressions = {
+			caller    = "caller",
+			level     = "L",
+			message   = "M",
+			timestamp = "T",
+			trace_id  = "tid",
+		}
+	}
+
+	stage.timestamp {
+		source            = "timestamp"
+		format            = "060102 15:04:05.999"
+		action_on_failure = "skip"
+	}
+
+	stage.output {
+		source = "message"
+	}
+
+	forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+	endpoint {
+		url = "http://pgo-loki:3100/loki/api/v1/push"
+	}
+}
+
+pyroscope.write "local" {
+	endpoint {
+		url = "http://pgo-pyroscope:4040"
+	}
+}
+
+pyroscope.scrape "pgo_app" {
+	targets = [{
+		__address__  = "pgo-dr9:20002",
+		service_name = "pgo-app",
+	}]
+
+	scrape_interval = "15s"
+	scrape_timeout  = "14s"
+
+	profiling_config {
+		profile.process_cpu {
+			enabled = true
+		}
+
+		profile.memory {
+			enabled = true
+			path    = "/debug/pprof/heap"
+		}
+
+		profile.goroutine {
+			enabled = false
+		}
+
+		profile.block {
+			enabled = false
+		}
+
+		profile.mutex {
+			enabled = false
+		}
+	}
+
+	forward_to = [pyroscope.write.local.receiver]
+}

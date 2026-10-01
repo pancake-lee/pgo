@@ -37,7 +37,7 @@ PGO 由工具入口、代码生成链路、可复用基础库和示例服务组�
 - Kratos 承载服务端 HTTP/gRPC 分层与接口生成。
 - GORM 负责 ORM 代码生成和数据访问；支持 MySQL 与 SQLite。
 - Redis、RabbitMQ 通过 `pkg/` 封装集成；是否启用由具体服务配置决定。
-- Prometheus/pprof 和结构化日志提供应用诊断与观测能力。
+- Prometheus 提供指标，Loki 保存结构化日志，Alloy 负责日志与 pprof 采集，Pyroscope 保存持续 CPU/heap profile；高开销 runtime profile 通过限时诊断接口获取。
 
 ## 5. 接口与数据契约
 

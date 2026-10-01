@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultAddress = "http://127.0.0.1:19090"
+const defaultAddress = "http://127.0.0.1:20002"
 
 // NewCommand creates read-only operational commands for a papp diagnostics port.
 func NewCommand() *cobra.Command {
@@ -58,7 +58,7 @@ func newProfileCommand() *cobra.Command {
 	var seconds int
 	var open bool
 	command := &cobra.Command{
-		Use:   "profile {cpu|heap|goroutine}",
+		Use:   "profile {cpu|heap|goroutine|block|mutex|trace}",
 		Short: "Download a pprof profile and optionally open it with go tool pprof",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,7 +81,7 @@ func newProfileCommand() *cobra.Command {
 	}
 	command.Flags().StringVar(&address, "addr", defaultAddress, "diagnostics base address")
 	command.Flags().StringVarP(&output, "output", "o", "", "output profile path")
-	command.Flags().IntVar(&seconds, "seconds", 30, "CPU profile duration in seconds")
+	command.Flags().IntVar(&seconds, "seconds", 30, "profile duration in seconds (trace maximum 10; runtime profiles maximum 60)")
 	command.Flags().BoolVar(&open, "open", false, "open the downloaded profile in go tool pprof")
 	return command
 }
@@ -111,8 +111,27 @@ func downloadProfile(address, profileType string, seconds int, output string) er
 			return fmt.Errorf("seconds must be positive")
 		}
 		path = fmt.Sprintf("/debug/pprof/profile?seconds=%d", seconds)
-	case "heap", "goroutine":
+	case "heap":
 		path = "/debug/pprof/" + profileType
+	case "goroutine", "block", "mutex":
+		if seconds <= 0 || seconds > 60 {
+			return fmt.Errorf("seconds must be between 1 and 60")
+		}
+		activatePath := fmt.Sprintf("/debug/pprof/runtime?seconds=%d&profiles=%s", seconds, profileType)
+		response, err := httpClient().Post(endpoint(address, activatePath), "application/json", nil)
+		if err != nil {
+			return err
+		}
+		response.Body.Close()
+		if response.StatusCode != http.StatusOK {
+			return fmt.Errorf("activate profile returned %s", response.Status)
+		}
+		path = "/debug/pprof/" + profileType
+	case "trace":
+		if seconds <= 0 || seconds > 10 {
+			return fmt.Errorf("trace seconds must be between 1 and 10")
+		}
+		path = fmt.Sprintf("/debug/pprof/runtime-trace?seconds=%d", seconds)
 	default:
 		return fmt.Errorf("unsupported profile type %q", profileType)
 	}
@@ -153,5 +172,5 @@ func endpoint(address, path string) string {
 }
 
 func httpClient() *http.Client {
-	return &http.Client{Timeout: 35 * time.Second}
+	return &http.Client{Timeout: 65 * time.Second}
 }

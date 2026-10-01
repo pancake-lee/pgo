@@ -22,7 +22,7 @@ flowchart TD
 ## 2. 验证与可观测性
 
 - 当前没有 photo-agent 那样独立的评估报告系统；评估以代码审阅、定向/全量 Go 测试、生成结果编译和 Makefile 验证为主，记录在 backlog 条目或版本归档。
-- `pkg/plogger`、`pkg/papp/observability.go` 与 pprof/Prometheus 能力提供结构化日志、请求指标和诊断入口。具体实现以代码为准。
+- `pkg/plogger`、`pkg/papp/observability.go`、Prometheus、Loki、Alloy 与 Pyroscope 提供结构化日志、请求指标、持续 profiling 和限时诊断入口。具体实现以代码与部署配置为准。
 - 当生成器或基础库需要稳定量化指标时，再在 `docs/eval/` 建立基线与报告格式；在此之前不制造空的评估数据。
 
 ## 3. 中央同步

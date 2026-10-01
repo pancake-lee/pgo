@@ -24,7 +24,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const expectedVegetaVersion = "v12.13.0"
+const (
+	expectedVegetaVersion     = "v12.13.0"
+	expectedProfileCLIVersion = "2.2.0"
+	profileSourcePyroscope    = "pyroscope"
+	profileSourcePprof        = "pprof"
+)
 
 const (
 	runFileName              = "00-run.json"
@@ -37,20 +42,29 @@ const (
 	cpuProfileFileName       = "30-cpu.pprof"
 	goroutineProfileFileName = "31-goroutine.pprof"
 	heapProfileFileName      = "32-heap.pprof"
+	blockProfileFileName     = "33-block.pprof"
+	mutexProfileFileName     = "34-mutex.pprof"
+	runtimeTraceFileName     = "35-runtime.trace"
 	summaryFileName          = "40-summary.md"
 )
 
 type loginConfig struct {
-	APIURL      string        `json:"apiURL"`
-	PprofURL    string        `json:"pprofURL"`
-	Users       int           `json:"users"`
-	Concurrency int           `json:"concurrency"`
-	RPS         int           `json:"rps"`
-	Warmup      time.Duration `json:"warmup"`
-	Duration    time.Duration `json:"duration"`
-	Timeout     time.Duration `json:"timeout"`
-	OutputDir   string        `json:"outputDir"`
-	VegetaPath  string        `json:"vegetaPath"`
+	APIURL         string        `json:"apiURL"`
+	PprofURL       string        `json:"pprofURL"`
+	PyroscopeURL   string        `json:"pyroscopeURL"`
+	GrafanaURL     string        `json:"grafanaURL"`
+	ProfileSource  string        `json:"profileSource"`
+	ProfileCLIPath string        `json:"profileCLIPath"`
+	ProfileService string        `json:"profileService"`
+	RuntimeTrace   bool          `json:"runtimeTrace"`
+	Users          int           `json:"users"`
+	Concurrency    int           `json:"concurrency"`
+	RPS            int           `json:"rps"`
+	Warmup         time.Duration `json:"warmup"`
+	Duration       time.Duration `json:"duration"`
+	Timeout        time.Duration `json:"timeout"`
+	OutputDir      string        `json:"outputDir"`
+	VegetaPath     string        `json:"vegetaPath"`
 }
 
 type commandRunner interface {
@@ -67,10 +81,11 @@ func (execRunner) Run(ctx context.Context, name string, args []string, stdout, s
 }
 
 type loginRunner struct {
-	commandRunner commandRunner
-	httpClient    *http.Client
-	checkVegeta   func(string) error
-	now           func() time.Time
+	commandRunner   commandRunner
+	httpClient      *http.Client
+	checkVegeta     func(string) error
+	checkProfileCLI func(string) error
+	now             func() time.Time
 }
 
 type artifact struct {
@@ -105,6 +120,12 @@ func newLoginCommand() *cobra.Command {
 	}
 	command.Flags().StringVar(&config.APIURL, "api", config.APIURL, "user service HTTP base URL")
 	command.Flags().StringVar(&config.PprofURL, "pprof", config.PprofURL, "pprof base URL")
+	command.Flags().StringVar(&config.PyroscopeURL, "pyroscope", config.PyroscopeURL, "Pyroscope server URL")
+	command.Flags().StringVar(&config.GrafanaURL, "grafana", config.GrafanaURL, "Grafana URL")
+	command.Flags().StringVar(&config.ProfileSource, "profile-source", config.ProfileSource, "CPU and heap source: pyroscope or pprof")
+	command.Flags().StringVar(&config.ProfileCLIPath, "profilecli", config.ProfileCLIPath, "profilecli executable path")
+	command.Flags().StringVar(&config.ProfileService, "profile-service", config.ProfileService, "Pyroscope service_name label")
+	command.Flags().BoolVar(&config.RuntimeTrace, "runtime-trace", config.RuntimeTrace, "capture one runtime trace during measured load")
 	command.Flags().IntVar(&config.Users, "users", config.Users, "number of users in the test batch")
 	command.Flags().IntVar(&config.Concurrency, "concurrency", config.Concurrency, "concurrent user preparation and verification requests")
 	command.Flags().IntVar(&config.RPS, "rps", config.RPS, "login requests per second")
@@ -118,16 +139,21 @@ func newLoginCommand() *cobra.Command {
 
 func defaultLoginConfig() loginConfig {
 	return loginConfig{
-		APIURL:      "http://127.0.0.1:20000",
-		PprofURL:    "http://127.0.0.1:19090/debug/pprof/",
-		Users:       100,
-		Concurrency: 10,
-		RPS:         10,
-		Warmup:      10 * time.Second,
-		Duration:    60 * time.Second,
-		Timeout:     5 * time.Second,
-		OutputDir:   ".local/performance/login",
-		VegetaPath:  "vegeta",
+		APIURL:         "http://127.0.0.1:20000",
+		PprofURL:       "http://127.0.0.1:20002/debug/pprof/",
+		PyroscopeURL:   "http://127.0.0.1:24040",
+		GrafanaURL:     "http://127.0.0.1:23000",
+		ProfileSource:  profileSourcePyroscope,
+		ProfileCLIPath: "profilecli",
+		ProfileService: "pgo-app",
+		Users:          100,
+		Concurrency:    10,
+		RPS:            10,
+		Warmup:         10 * time.Second,
+		Duration:       60 * time.Second,
+		Timeout:        5 * time.Second,
+		OutputDir:      ".local/performance/login",
+		VegetaPath:     "vegeta",
 	}
 }
 
@@ -150,6 +176,11 @@ func getInteractiveLoginConfig() (loginConfig, error) {
 	const cachePrefix = "client.performance.login."
 	config.APIURL = pclient.GetCachedParam(cachePath, cachePrefix+"api", "API address", config.APIURL)
 	config.PprofURL = pclient.GetCachedParam(cachePath, cachePrefix+"pprof", "pprof address", config.PprofURL)
+	config.PyroscopeURL = pclient.GetCachedParam(cachePath, cachePrefix+"pyroscope", "Pyroscope address", config.PyroscopeURL)
+	config.GrafanaURL = pclient.GetCachedParam(cachePath, cachePrefix+"grafana", "Grafana address", config.GrafanaURL)
+	config.ProfileSource = pclient.GetCachedParam(cachePath, cachePrefix+"profile-source", "profile source (pyroscope/pprof)", config.ProfileSource)
+	config.ProfileCLIPath = pclient.GetCachedParam(cachePath, cachePrefix+"profilecli", "profilecli executable", config.ProfileCLIPath)
+	config.ProfileService = pclient.GetCachedParam(cachePath, cachePrefix+"profile-service", "Pyroscope service name", config.ProfileService)
 	config.OutputDir = pclient.GetCachedParam(cachePath, cachePrefix+"output", "artifact output directory", config.OutputDir)
 	config.VegetaPath = pclient.GetCachedParam(cachePath, cachePrefix+"vegeta", "Vegeta executable", config.VegetaPath)
 	var err error
@@ -199,12 +230,13 @@ func getInteractiveDuration(cachePath, key, prompt string, defaultValue time.Dur
 }
 
 func newLoginRunner(timeout time.Duration) *loginRunner {
-	clientTimeout := timeout + 35*time.Second
+	clientTimeout := timeout + 75*time.Second
 	return &loginRunner{
-		commandRunner: execRunner{},
-		httpClient:    &http.Client{Timeout: clientTimeout},
-		checkVegeta:   checkVegetaVersion,
-		now:           time.Now,
+		commandRunner:   execRunner{},
+		httpClient:      &http.Client{Timeout: clientTimeout},
+		checkVegeta:     checkVegetaVersion,
+		checkProfileCLI: checkProfileCLIVersion,
+		now:             time.Now,
 	}
 }
 
@@ -214,6 +246,11 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 	}
 	if err := runner.checkVegeta(config.VegetaPath); err != nil {
 		return err
+	}
+	if config.ProfileSource == profileSourcePyroscope {
+		if err := runner.checkProfileCLI(config.ProfileCLIPath); err != nil {
+			return err
+		}
 	}
 	if err := os.MkdirAll(config.OutputDir, 0o700); err != nil {
 		return err
@@ -265,6 +302,7 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 	}
 
 	fmt.Fprintf(stdout, "[5/7] running measured load for %s at %d RPS and collecting diagnostics\n", config.Duration, config.RPS)
+	printObservabilityGuidance(stdout, config)
 	metricsBeforePath := filepath.Join(config.OutputDir, metricsBeforeFileName)
 	metricsAfterPath := filepath.Join(config.OutputDir, metricsAfterFileName)
 	if err = runner.download(metricsURL(config.PprofURL), metricsBeforePath); err != nil {
@@ -279,8 +317,13 @@ func (runner *loginRunner) run(ctx context.Context, config loginConfig, stdout, 
 	go func() {
 		attackErrChannel <- runner.runAttack(ctx, config, targetPath, config.Duration, resultFile, stderr)
 	}()
-	profileErr := runner.collectProfiles(ctx, config)
+	profileStart := runner.now().UTC()
+	profileErr := runner.collectProfilesDuringLoad(ctx, config)
 	attackErr := <-attackErrChannel
+	profileEnd := runner.now().UTC()
+	if config.ProfileSource == profileSourcePyroscope {
+		profileErr = errors.Join(profileErr, runner.collectPyroscopeProfiles(ctx, config, profileStart, profileEnd, stderr))
+	}
 	closeErr := resultFile.Close()
 	if err = runner.download(metricsURL(config.PprofURL), metricsAfterPath); err != nil {
 		profileErr = errors.Join(profileErr, fmt.Errorf("collect metrics after load: %w", err))
@@ -331,7 +374,7 @@ func (runner *loginRunner) runAttack(
 	return runner.commandRunner.Run(ctx, config.VegetaPath, argumentList, stdout, stderr)
 }
 
-func (runner *loginRunner) collectProfiles(ctx context.Context, config loginConfig) error {
+func (runner *loginRunner) collectProfilesDuringLoad(ctx context.Context, config loginConfig) error {
 	cpuSeconds := int(config.Duration / time.Second)
 	if cpuSeconds > 30 {
 		cpuSeconds = 30
@@ -340,13 +383,26 @@ func (runner *loginRunner) collectProfiles(ctx context.Context, config loginConf
 		cpuSeconds = 1
 	}
 	var waitGroup sync.WaitGroup
-	errorChannel := make(chan error, 3)
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
-		profileURL := joinPprofURL(config.PprofURL, fmt.Sprintf("profile?seconds=%d", cpuSeconds))
-		errorChannel <- runner.download(profileURL, filepath.Join(config.OutputDir, cpuProfileFileName))
-	}()
+	errorChannel := make(chan error, 4)
+	if config.ProfileSource == profileSourcePprof {
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+			profileURL := joinPprofURL(config.PprofURL, fmt.Sprintf("profile?seconds=%d", cpuSeconds))
+			errorChannel <- runner.download(profileURL, filepath.Join(config.OutputDir, cpuProfileFileName))
+		}()
+	}
+	leaseSeconds := int(config.Duration/time.Second) + 1
+	if leaseSeconds > 60 {
+		leaseSeconds = 60
+	}
+	if leaseSeconds < 1 {
+		leaseSeconds = 1
+	}
+	activateURL := joinPprofURL(config.PprofURL, fmt.Sprintf("runtime?seconds=%d&profiles=goroutine,block,mutex", leaseSeconds))
+	if err := runner.post(activateURL); err != nil {
+		return fmt.Errorf("activate runtime profiles: %w", err)
+	}
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
@@ -358,10 +414,27 @@ func (runner *loginRunner) collectProfiles(ctx context.Context, config loginConf
 			return
 		case <-timer.C:
 		}
-		heapErr := runner.download(joinPprofURL(config.PprofURL, "heap"), filepath.Join(config.OutputDir, heapProfileFileName))
+		var heapErr error
+		if config.ProfileSource == profileSourcePprof {
+			heapErr = runner.download(joinPprofURL(config.PprofURL, "heap"), filepath.Join(config.OutputDir, heapProfileFileName))
+		}
 		goroutineErr := runner.download(joinPprofURL(config.PprofURL, "goroutine"), filepath.Join(config.OutputDir, goroutineProfileFileName))
-		errorChannel <- errors.Join(heapErr, goroutineErr)
+		blockErr := runner.download(joinPprofURL(config.PprofURL, "block"), filepath.Join(config.OutputDir, blockProfileFileName))
+		mutexErr := runner.download(joinPprofURL(config.PprofURL, "mutex"), filepath.Join(config.OutputDir, mutexProfileFileName))
+		errorChannel <- errors.Join(heapErr, goroutineErr, blockErr, mutexErr)
 	}()
+	if config.RuntimeTrace {
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+			traceSeconds := cpuSeconds
+			if traceSeconds > 10 {
+				traceSeconds = 10
+			}
+			traceURL := joinPprofURL(config.PprofURL, fmt.Sprintf("runtime-trace?seconds=%d", traceSeconds))
+			errorChannel <- runner.download(traceURL, filepath.Join(config.OutputDir, runtimeTraceFileName))
+		}()
+	}
 	waitGroup.Wait()
 	close(errorChannel)
 	var errorList []error
@@ -371,6 +444,60 @@ func (runner *loginRunner) collectProfiles(ctx context.Context, config loginConf
 		}
 	}
 	return errors.Join(errorList...)
+}
+
+func (runner *loginRunner) collectPyroscopeProfiles(
+	ctx context.Context,
+	config loginConfig,
+	start time.Time,
+	end time.Time,
+	stderr io.Writer,
+) error {
+	profileList := []struct {
+		profileType string
+		output      string
+	}{
+		{profileType: "process_cpu:cpu:nanoseconds:cpu:nanoseconds", output: cpuProfileFileName},
+		{profileType: "memory:inuse_space:bytes:space:bytes", output: heapProfileFileName},
+	}
+	var errorList []error
+	for _, profile := range profileList {
+		argumentList := []string{
+			"query", "profile",
+			"--url=" + normalizeHTTPURL(config.PyroscopeURL),
+			"--profile-type=" + profile.profileType,
+			fmt.Sprintf("--query={service_name=%q}", config.ProfileService),
+			"--from=" + strconv.FormatInt(start.Unix(), 10),
+			"--to=" + strconv.FormatInt(end.Unix(), 10),
+			"--output=pprof=" + filepath.Join(config.OutputDir, profile.output),
+		}
+		if err := runner.commandRunner.Run(ctx, config.ProfileCLIPath, argumentList, io.Discard, stderr); err != nil {
+			errorList = append(errorList, fmt.Errorf("export %s from Pyroscope: %w", profile.output, err))
+			continue
+		}
+		profileInfo, err := os.Stat(filepath.Join(config.OutputDir, profile.output))
+		if err != nil || profileInfo.Size() == 0 {
+			errorList = append(errorList, fmt.Errorf("export %s from Pyroscope produced no profile", profile.output))
+		}
+	}
+	return errors.Join(errorList...)
+}
+
+func (runner *loginRunner) post(address string) error {
+	request, err := http.NewRequest(http.MethodPost, address, nil)
+	if err != nil {
+		return err
+	}
+	response, err := runner.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 4096))
+		return fmt.Errorf("POST %s returned %s: %s", address, response.Status, strings.TrimSpace(string(body)))
+	}
+	return nil
 }
 
 func (runner *loginRunner) download(address, output string) error {
@@ -411,7 +538,43 @@ func validateLoginConfig(config loginConfig) error {
 	if _, err := url.ParseRequestURI(normalizeHTTPURL(config.PprofURL)); err != nil {
 		return fmt.Errorf("invalid pprof URL: %w", err)
 	}
+	if _, err := url.ParseRequestURI(normalizeHTTPURL(config.GrafanaURL)); err != nil {
+		return fmt.Errorf("invalid Grafana URL: %w", err)
+	}
+	if config.ProfileSource != profileSourcePyroscope && config.ProfileSource != profileSourcePprof {
+		return fmt.Errorf("profile source must be %q or %q", profileSourcePyroscope, profileSourcePprof)
+	}
+	if config.ProfileSource == profileSourcePyroscope {
+		if _, err := url.ParseRequestURI(normalizeHTTPURL(config.PyroscopeURL)); err != nil {
+			return fmt.Errorf("invalid Pyroscope URL: %w", err)
+		}
+		if strings.TrimSpace(config.ProfileCLIPath) == "" || strings.TrimSpace(config.ProfileService) == "" {
+			return errors.New("profilecli path and profile service are required for Pyroscope")
+		}
+	}
 	return nil
+}
+
+func checkProfileCLIVersion(path string) error {
+	resolvedPath, err := exec.LookPath(path)
+	if err != nil {
+		return fmt.Errorf("find profilecli: %w", err)
+	}
+	command := exec.Command(resolvedPath, "--version")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("read profilecli version: %w: %s", err, strings.TrimSpace(string(output)))
+	}
+	if !strings.Contains(string(output), expectedProfileCLIVersion) {
+		return fmt.Errorf("profilecli %s is required, found %s", expectedProfileCLIVersion, strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+func printObservabilityGuidance(writer io.Writer, config loginConfig) {
+	fmt.Fprintf(writer, "Observability: Grafana %s, Pyroscope %s\n", normalizeHTTPURL(config.GrafanaURL), normalizeHTTPURL(config.PyroscopeURL))
+	fmt.Fprintf(writer, "Runtime profiles: POST %s\n", joinPprofURL(config.PprofURL, "runtime?seconds=60&profiles=goroutine,block,mutex"))
+	fmt.Fprintf(writer, "Runtime trace: GET %s\n", joinPprofURL(config.PprofURL, "runtime-trace?seconds=10"))
 }
 
 func checkVegetaVersion(path string) error {
@@ -480,6 +643,8 @@ func writeSummary(path string, config loginConfig, reportPath, beforePath, after
 	fmt.Fprintf(&builder, "# Login performance result\n\n")
 	fmt.Fprintf(&builder, "- Users: %d\n- Target rate: %d requests/s\n- Warmup: %s\n- Measured duration: %s\n- Request timeout: %s\n\n",
 		config.Users, config.RPS, config.Warmup, config.Duration, config.Timeout)
+	fmt.Fprintf(&builder, "- Profile source: %s\n- Profile service: %s\n- Grafana: %s\n- Pyroscope: %s\n\n",
+		config.ProfileSource, config.ProfileService, normalizeHTTPURL(config.GrafanaURL), normalizeHTTPURL(config.PyroscopeURL))
 	builder.WriteString("## Vegeta report\n\n```text\n")
 	builder.Write(report)
 	builder.WriteString("```\n\n")
@@ -566,7 +731,12 @@ func printArtifacts(writer io.Writer, outputDir string) {
 		{Path: cpuProfileFileName, Description: "CPU samples captured during measured load"},
 		{Path: goroutineProfileFileName, Description: "goroutine snapshot captured during measured load"},
 		{Path: heapProfileFileName, Description: "heap snapshot captured during measured load"},
+		{Path: blockProfileFileName, Description: "blocking profile captured during measured load"},
+		{Path: mutexProfileFileName, Description: "mutex contention profile captured during measured load"},
 		{Path: summaryFileName, Description: "formatted result summary and metric explanations"},
+	}
+	if _, err := os.Stat(filepath.Join(outputDir, runtimeTraceFileName)); err == nil {
+		artifactList = append(artifactList, artifact{Path: runtimeTraceFileName, Description: "optional Go runtime trace"})
 	}
 	fmt.Fprintf(writer, "Output directory: %s\n", outputDir)
 	fmt.Fprintln(writer, "Artifacts:")

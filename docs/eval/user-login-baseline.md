@@ -7,7 +7,7 @@
 ## 1. 前置条件
 
 - 使用带 MySQL 的 userService 配置，HTTP 和 diagnostics 端口仅暴露在受控环境。
-- 将 `Diagnostics.Enabled` 和 `Diagnostics.Pprof` 设为 `true`，完成实验后按需关闭 pprof。
+- 将 `Diagnostics.Enabled` 和 `Diagnostics.Pprof` 设为 `true`；配置 block、mutex 采样参数。CPU、heap 默认由 Alloy 持续写入 Pyroscope。
 - 使用 `make build` 构建仓库。
 - 安装固定版本 Vegeta：
 
@@ -16,6 +16,8 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 ```
 
 `pgo performance login` 会检查 Vegeta 二进制中的模块版本，不符合 `v12.13.0` 时会在创建测试用户前停止。
+
+默认 profile 来源还需要安装官方 `profilecli v2.2.0`。程序会在创建测试用户前检查版本。没有运行 Alloy/Pyroscope 时，可通过 `--profile-source pprof` 改为直接从应用诊断端口采集。
 
 服务由维护者使用本地配置在前台启动，结束时按 Ctrl+C，不使用 `nohup` 或无人管理的后台进程。
 
@@ -27,6 +29,10 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 ./bin/pgo performance login \
   --api http://127.0.0.1:20000 \
   --pprof http://127.0.0.1:20002/debug/pprof/ \
+  --pyroscope http://127.0.0.1:24040 \
+  --grafana http://127.0.0.1:23000 \
+  --profile-source pyroscope \
+  --profile-service pgo-app \
   --users 100 \
   --concurrency 10 \
   --rps 10 \
@@ -45,7 +51,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 2. **验证正确性**：逐个重新登录，核对身份与 token，验证受保护接口拒绝无效鉴权。该步骤防止把数据错误误判为性能问题。
 3. **生成目标**：把批次用户转换成 Vegeta JSON targets。这一步只准备请求定义，不产生正式负载。
 4. **预热**：按目标 RPS 运行 Vegeta，预热结果不计入正式报告。
-5. **正式负载与观测**：Vegeta 产生登录负载；程序同时保存负载前后 metrics、持续 CPU profile，并在负载期间获取 heap 和 goroutine 快照。
+5. **正式负载与观测**：Vegeta 产生登录负载；程序保存负载前后 metrics，自动开启限时诊断并采集 goroutine、block、mutex。默认使用 `profilecli` 导出同一时间窗的 CPU、heap；`--profile-source pprof` 改为 HTTP 直采。只有显式传入 `--runtime-trace` 才会额外采集最长 10 秒的 runtime trace。
 6. **生成报告**：输出 Vegeta 原始结果、文本报告和带指标含义的综合摘要。
 7. **清理用户**：只删除批次清单中的用户。前面任一步骤失败时也会尝试清理，并保留已经生成的诊断文件。
 
@@ -65,6 +71,9 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 - `30-cpu.pprof`：正式负载期间持续采集的 CPU profile。
 - `31-goroutine.pprof`：正式负载期间的 goroutine 快照。
 - `32-heap.pprof`：正式负载期间的堆快照。
+- `33-block.pprof`：正式负载期间的阻塞 profile。
+- `34-mutex.pprof`：正式负载期间的锁竞争 profile。
+- `35-runtime.trace`：仅在 `--runtime-trace` 开启时生成的运行时 trace。
 - `40-summary.md`：格式化的 Vegeta 结果、重点服务指标及其意义。
 
 如果使用示例中的 shell 重定向，输出目录旁还会有 `login-100u-10rps-cli-output.txt`。它记录自动化程序自身的阶段进度与产物说明，由执行命令的 shell 创建。
@@ -80,7 +89,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 - `go_*` 说明 Go 运行时内存、GC 和 goroutine 状态。
 - `process_*` 说明服务进程的 CPU 与常驻内存。
 
-负载前后 metrics 是同一轮正式负载的边界快照。计数器增长反映区间内累计工作量，gauge 反映采样时刻状态；CPU、heap 和 goroutine profile 用于继续定位热点，不由摘要自动给出业务结论。
+负载前后 metrics 是同一轮正式负载的边界快照。计数器增长反映区间内累计工作量，gauge 反映采样时刻状态；CPU、heap、goroutine、block 和 mutex profile 为后续规则化判断保留输入，本阶段仍以实际基线为准，不预设问题阈值。
 
 ## 5. 实验记录
 
@@ -91,6 +100,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 - Go 版本：待填写
 - MySQL 版本：待填写
 - Vegeta 版本：v12.13.0
+- profilecli 版本：v2.2.0
 - 配置摘要：待填写，仅记录超时、连接池和 diagnostics 开关
 
 ### 条件

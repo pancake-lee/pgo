@@ -7,12 +7,12 @@
 # portal
 # rocky9
 # node-exporter/cadvisor
-# loki/prometheus
-# promtail
+# loki/prometheus/pyroscope
+# alloy
 # grafana
 
 # 比较特别的是，loki和prometheus依赖关系不同
-# promtail 主动上报loki，所以先启动 loki
+# alloy 主动上报 loki 与 pyroscope，所以先启动两个存储服务
 # prometheus 主动拉取数据，所以先启动 node-exporter 等数据生产者
 
 name: pgo
@@ -162,6 +162,7 @@ services:
         environment:
             # 初始管理员密码（首次登录后会要求修改）
             - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_PLUGINS_PREINSTALL_SYNC=grafana-pyroscope-app
         volumes:
             # 挂载数据源配置
             - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
@@ -172,6 +173,7 @@ services:
         depends_on:
             - prometheus
             - loki
+            - pyroscope
 
     # --------------------------------------------------
     # 宿主机监控
@@ -237,18 +239,42 @@ services:
             - ./config/loki.yaml:/etc/loki/loki.yaml
             - ./loki/data:/data/loki
 
-    promtail:
-        container_name: pgo-promtail
-        image: grafana/promtail:3.5.9
+    pyroscope:
+        container_name: pgo-pyroscope
+        image: grafana/pyroscope:2.2.0
         restart: unless-stopped
-        command: -config.file=/etc/promtail/promtail.yaml
+        command:
+            - -storage.backend=filesystem
+            - -storage.filesystem.dir=/var/lib/pyroscope
+            - -usage-stats.enabled=false
+        ports:
+            - "24040:4040"
+        networks:
+            - pgo-net
+        volumes:
+            - ./pyroscope/data:/var/lib/pyroscope
+
+    alloy:
+        container_name: pgo-alloy
+        image: grafana/alloy:v1.20.1
+        restart: unless-stopped
+        command:
+            - run
+            - --server.http.listen-addr=0.0.0.0:12345
+            - --storage.path=/var/lib/alloy/data
+            - --disable-reporting
+            - /etc/alloy/config.alloy
+        ports:
+            - "21235:12345"
         networks:
             - pgo-net
         volumes:
             - ./backend/logs:/opt/app_logs:ro
-            - ./config/promtail.yaml:/etc/promtail/promtail.yaml
+            - ./config/config.alloy:/etc/alloy/config.alloy:ro
+            - ./alloy/data:/var/lib/alloy/data
         depends_on:
             - loki
+            - pyroscope
             - rocky9
 
 networks:

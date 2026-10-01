@@ -39,9 +39,12 @@ type grpcConfig struct {
 }
 
 type diagnosticsConfig struct {
-	Enabled bool
-	Addr    string `default:"127.0.0.1:19090"`
-	Pprof   bool
+	Enabled              bool
+	Addr                 string `default:"127.0.0.1:19090"`
+	Pprof                bool
+	MemProfileRate       int
+	BlockProfileRate     int
+	MutexProfileFraction int
 }
 
 type ServiceConfig struct {
@@ -159,7 +162,11 @@ func RunKratosApp(kratosServers ...kratosServer) {
 		serverList = append(serverList, httpSrv)
 	}
 	if conf.Diagnostics.Enabled {
-		serverList = append(serverList, newDiagnosticsServer(conf.Diagnostics.Addr, conf.Diagnostics.Pprof))
+		diagnosticsSrv, diagnosticsErr := newDiagnosticsServer(conf.Diagnostics)
+		if diagnosticsErr != nil {
+			panic(diagnosticsErr)
+		}
+		serverList = append(serverList, diagnosticsSrv)
 	}
 
 	app := kratos.New(

@@ -29,6 +29,13 @@ func (runner *fakeCommandRunner) Run(_ context.Context, name string, args []stri
 		_, _ = io.WriteString(stdout, "raw-result")
 		return nil
 	}
+	if name == "profilecli" {
+		for _, argument := range args {
+			if strings.HasPrefix(argument, "--output=pprof=") {
+				return os.WriteFile(strings.TrimPrefix(argument, "--output=pprof="), []byte("profile-data"), 0o600)
+			}
+		}
+	}
 	_, _ = io.WriteString(stdout, "Requests      [total, rate, throughput]  1, 1.00, 1.00\nSuccess       [ratio]                     100.00%\n")
 	return nil
 }
@@ -51,22 +58,25 @@ func TestLoginRunnerCompletesWorkflow(t *testing.T) {
 	defer server.Close()
 	commandRunner := &fakeCommandRunner{}
 	runner := &loginRunner{
-		commandRunner: commandRunner,
-		httpClient:    server.Client(),
-		checkVegeta:   func(string) error { return nil },
-		now:           func() time.Time { return time.Date(2026, 9, 30, 1, 2, 3, 0, time.UTC) },
+		commandRunner:   commandRunner,
+		httpClient:      server.Client(),
+		checkVegeta:     func(string) error { return nil },
+		checkProfileCLI: func(string) error { return nil },
+		now:             func() time.Time { return time.Date(2026, 9, 30, 1, 2, 3, 0, time.UTC) },
 	}
 	outputDir := t.TempDir()
 	config := loginConfig{
-		APIURL:      server.URL,
-		PprofURL:    server.URL + "/debug/pprof/",
-		Users:       3,
-		Concurrency: 2,
-		RPS:         5,
-		Duration:    20 * time.Millisecond,
-		Timeout:     time.Second,
-		OutputDir:   outputDir,
-		VegetaPath:  "vegeta",
+		APIURL:        server.URL,
+		PprofURL:      server.URL + "/debug/pprof/",
+		GrafanaURL:    server.URL,
+		ProfileSource: profileSourcePprof,
+		Users:         3,
+		Concurrency:   2,
+		RPS:           5,
+		Duration:      20 * time.Millisecond,
+		Timeout:       time.Second,
+		OutputDir:     outputDir,
+		VegetaPath:    "vegeta",
 	}
 	var stdout strings.Builder
 	if err := runner.run(t.Context(), config, &stdout, io.Discard); err != nil {
@@ -75,6 +85,7 @@ func TestLoginRunnerCompletesWorkflow(t *testing.T) {
 	for _, name := range []string{
 		runFileName, usersFileName, loginTargetsFileName, vegetaResultsFileName, vegetaReportFileName,
 		metricsAfterFileName, metricsBeforeFileName, cpuProfileFileName, goroutineProfileFileName, heapProfileFileName, summaryFileName,
+		blockProfileFileName, mutexProfileFileName,
 	} {
 		if _, err := os.Stat(filepath.Join(outputDir, name)); err != nil {
 			t.Errorf("artifact %s: %v", name, err)
@@ -103,6 +114,42 @@ func TestLoginRunnerCompletesWorkflow(t *testing.T) {
 	}
 }
 
+func TestCollectPyroscopeProfiles(t *testing.T) {
+	commandRunner := &fakeCommandRunner{}
+	runner := &loginRunner{commandRunner: commandRunner}
+	config := loginConfig{
+		PyroscopeURL:   "http://pyroscope:4040",
+		ProfileCLIPath: "profilecli",
+		ProfileService: "user-service",
+		OutputDir:      t.TempDir(),
+	}
+	start := time.Unix(100, 0)
+	end := time.Unix(200, 0)
+	if err := runner.collectPyroscopeProfiles(t.Context(), config, start, end, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{cpuProfileFileName, heapProfileFileName} {
+		if _, err := os.Stat(filepath.Join(config.OutputDir, name)); err != nil {
+			t.Fatalf("profile %s: %v", name, err)
+		}
+	}
+	commandRunner.mu.Lock()
+	commandList := append([]string(nil), commandRunner.commands...)
+	commandRunner.mu.Unlock()
+	joined := strings.Join(commandList, "\n")
+	if !strings.Contains(joined, "--from=100") || !strings.Contains(joined, "--to=200") || !strings.Contains(joined, `--query={service_name="user-service"}`) {
+		t.Fatalf("profilecli commands = %s", joined)
+	}
+}
+
+func TestValidateLoginConfigRejectsProfileSource(t *testing.T) {
+	config := defaultLoginConfig()
+	config.ProfileSource = "unknown"
+	if err := validateLoginConfig(config); err == nil {
+		t.Fatal("expected profile source error")
+	}
+}
+
 func TestPerformanceCommandContainsLoginOnly(t *testing.T) {
 	command := NewCommand()
 	if len(command.Commands()) != 1 || command.Commands()[0].Name() != "login" {
@@ -126,6 +173,10 @@ func (server *fakePerformanceServer) ServeHTTP(writer http.ResponseWriter, reque
 		return
 	}
 	if strings.HasPrefix(request.URL.Path, "/debug/pprof/") {
+		if request.URL.Path == "/debug/pprof/runtime" && request.Method != http.MethodPost {
+			http.Error(writer, "method", http.StatusMethodNotAllowed)
+			return
+		}
 		_, _ = io.WriteString(writer, "profile-data")
 		return
 	}

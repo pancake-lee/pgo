@@ -9,3 +9,10 @@ datasources:
     type: loki
     access: proxy
     url: http://pgo-loki:3100
+  - name: pyroscope
+    type: grafana-pyroscope-datasource
+    uid: pyroscope
+    access: proxy
+    url: http://pgo-pyroscope:4040
+    jsonData:
+      minStep: 15s

@@ -71,6 +71,12 @@ git commit --amend
 
 ## 调试备忘
 
+### 持续 profiling 采集方式
+
+- 2026-10-01 决定由 Grafana Alloy 拉取应用 pprof 并写入 Pyroscope，不在应用内集成 `pyroscope-go` 推送 SDK。这样 CPU、heap 与日志采集统一放在部署层，应用只维护标准且受控的诊断端点。
+- 性能测试工具默认通过官方 `profilecli v2.2.0` 从 Pyroscope 导出本轮 CPU、heap，避免与 Alloy 争用 Go 的全局 CPU profiler；开发环境可通过参数切换为直接请求应用 pprof HTTP。
+- 两种来源都自动采集 goroutine、block、mutex 和 metrics，runtime trace 仅在显式参数开启时采集。产物结构保持一致，后续可在稳定基线之上增加规则化问题判断。
+
 ### vscode debug
 
 - 没有配置的情况下直接 debug，将调试当前正在编辑的文件

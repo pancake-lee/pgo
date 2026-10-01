@@ -8,6 +8,8 @@ import (
 	"net"
 	stdhttp "net/http"
 	"net/http/pprof"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +26,11 @@ import (
 )
 
 const requestIDHeader = "X-Request-ID"
+
+const (
+	maxRuntimeProfileDuration = 60 * time.Second
+	maxRuntimeTraceDuration   = 10 * time.Second
+)
 
 var requestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "pgo_http_requests_total",
@@ -168,21 +175,218 @@ type diagnosticsServer struct {
 	server   *stdhttp.Server
 	listener net.Listener
 	mu       sync.Mutex
+	profiles *runtimeProfileController
 }
 
-func newDiagnosticsServer(address string, enablePprof bool) *diagnosticsServer {
+type runtimeProfileController struct {
+	mu                   sync.Mutex
+	activeProfileMap     map[string]bool
+	expiresAt            time.Time
+	generation           uint64
+	blockProfileRate     int
+	mutexProfileFraction int
+	cpuMu                sync.Mutex
+	traceActive          bool
+}
+
+func newDiagnosticsServer(config diagnosticsConfig) (*diagnosticsServer, error) {
+	if config.MemProfileRate < 0 || config.BlockProfileRate < 0 || config.MutexProfileFraction < 0 {
+		return nil, errors.New("diagnostics profile rates must not be negative")
+	}
+	if config.MemProfileRate > 0 {
+		runtime.MemProfileRate = config.MemProfileRate
+	}
+	controller := &runtimeProfileController{
+		activeProfileMap:     make(map[string]bool),
+		blockProfileRate:     config.BlockProfileRate,
+		mutexProfileFraction: config.MutexProfileFraction,
+	}
 	mux := stdhttp.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/readyz", healthHandler)
-	if enablePprof {
-		mux.HandleFunc("/debug/pprof/", pprof.Index)
-		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	if config.Pprof {
+		mux.HandleFunc("/debug/pprof/profile", controller.cpuProfileHandler)
+		mux.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+		mux.HandleFunc("/debug/pprof/runtime", controller.runtimeProfileHandler)
+		mux.HandleFunc("/debug/pprof/runtime-trace", controller.runtimeTraceHandler)
+		for _, profileType := range []string{"goroutine", "block", "mutex"} {
+			mux.Handle("/debug/pprof/"+profileType, controller.gatedProfileHandler(profileType))
+		}
 	}
-	return &diagnosticsServer{address: address, handler: mux}
+	return &diagnosticsServer{address: config.Addr, handler: mux, profiles: controller}, nil
+}
+
+func (controller *runtimeProfileController) cpuProfileHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+	controller.cpuMu.Lock()
+	defer controller.cpuMu.Unlock()
+	pprof.Profile(writer, request)
+}
+
+func (controller *runtimeProfileController) runtimeProfileHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+	if request.Method != stdhttp.MethodPost {
+		writer.Header().Set("Allow", stdhttp.MethodPost)
+		stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
+		return
+	}
+	duration, err := parseLimitedDuration(request, maxRuntimeProfileDuration)
+	if err != nil {
+		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+		return
+	}
+	profileList, err := parseRuntimeProfileList(request.URL.Query().Get("profiles"))
+	if err != nil {
+		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+		return
+	}
+
+	controller.mu.Lock()
+	defer controller.mu.Unlock()
+	controller.expireLocked(time.Now())
+	if len(controller.activeProfileMap) > 0 {
+		stdhttp.Error(writer, "runtime profiles already active", stdhttp.StatusConflict)
+		return
+	}
+	if containsString(profileList, "block") && controller.blockProfileRate == 0 {
+		stdhttp.Error(writer, "Diagnostics.BlockProfileRate must be configured", stdhttp.StatusServiceUnavailable)
+		return
+	}
+	if containsString(profileList, "mutex") && controller.mutexProfileFraction == 0 {
+		stdhttp.Error(writer, "Diagnostics.MutexProfileFraction must be configured", stdhttp.StatusServiceUnavailable)
+		return
+	}
+	for _, profileType := range profileList {
+		controller.activeProfileMap[profileType] = true
+	}
+	if controller.activeProfileMap["block"] {
+		runtime.SetBlockProfileRate(controller.blockProfileRate)
+	}
+	if controller.activeProfileMap["mutex"] {
+		runtime.SetMutexProfileFraction(controller.mutexProfileFraction)
+	}
+	controller.expiresAt = time.Now().Add(duration)
+	controller.generation++
+	generation := controller.generation
+	time.AfterFunc(duration, func() { controller.expire(generation) })
+	writer.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(writer).Encode(map[string]any{
+		"profiles":  profileList,
+		"expiresAt": controller.expiresAt.UTC(),
+	})
+}
+
+func (controller *runtimeProfileController) gatedProfileHandler(profileType string) stdhttp.Handler {
+	return stdhttp.HandlerFunc(func(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+		controller.mu.Lock()
+		controller.expireLocked(time.Now())
+		active := controller.activeProfileMap[profileType]
+		controller.mu.Unlock()
+		if !active {
+			stdhttp.Error(writer, "runtime profile is not active", stdhttp.StatusForbidden)
+			return
+		}
+		pprof.Handler(profileType).ServeHTTP(writer, request)
+	})
+}
+
+func (controller *runtimeProfileController) runtimeTraceHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+	if request.Method != stdhttp.MethodGet {
+		writer.Header().Set("Allow", stdhttp.MethodGet)
+		stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
+		return
+	}
+	if _, err := parseLimitedDuration(request, maxRuntimeTraceDuration); err != nil {
+		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+		return
+	}
+	controller.mu.Lock()
+	if controller.traceActive {
+		controller.mu.Unlock()
+		stdhttp.Error(writer, "runtime trace already active", stdhttp.StatusConflict)
+		return
+	}
+	controller.traceActive = true
+	controller.mu.Unlock()
+	defer func() {
+		controller.mu.Lock()
+		controller.traceActive = false
+		controller.mu.Unlock()
+	}()
+	pprof.Trace(writer, request)
+}
+
+func parseLimitedDuration(request *stdhttp.Request, maximum time.Duration) (time.Duration, error) {
+	seconds, err := strconv.Atoi(request.URL.Query().Get("seconds"))
+	if err != nil || seconds <= 0 {
+		return 0, errors.New("seconds must be a positive integer")
+	}
+	duration := time.Duration(seconds) * time.Second
+	if duration > maximum {
+		return 0, fmt.Errorf("seconds must not exceed %d", int(maximum/time.Second))
+	}
+	return duration, nil
+}
+
+func parseRuntimeProfileList(value string) ([]string, error) {
+	if strings.TrimSpace(value) == "" {
+		return nil, errors.New("profiles is required")
+	}
+	seenMap := make(map[string]bool)
+	var profileList []string
+	for _, profileType := range strings.Split(value, ",") {
+		profileType = strings.TrimSpace(profileType)
+		switch profileType {
+		case "goroutine", "block", "mutex":
+		default:
+			return nil, fmt.Errorf("unsupported runtime profile %q", profileType)
+		}
+		if !seenMap[profileType] {
+			seenMap[profileType] = true
+			profileList = append(profileList, profileType)
+		}
+	}
+	return profileList, nil
+}
+
+func containsString(valueList []string, target string) bool {
+	for _, value := range valueList {
+		if value == target {
+			return true
+		}
+	}
+	return false
+}
+
+func (controller *runtimeProfileController) expire(generation uint64) {
+	controller.mu.Lock()
+	defer controller.mu.Unlock()
+	if controller.generation == generation {
+		controller.disableLocked()
+	}
+}
+
+func (controller *runtimeProfileController) expireLocked(now time.Time) {
+	if !controller.expiresAt.IsZero() && !now.Before(controller.expiresAt) {
+		controller.disableLocked()
+	}
+}
+
+func (controller *runtimeProfileController) disableLocked() {
+	if controller.activeProfileMap["block"] {
+		runtime.SetBlockProfileRate(0)
+	}
+	if controller.activeProfileMap["mutex"] {
+		runtime.SetMutexProfileFraction(0)
+	}
+	clear(controller.activeProfileMap)
+	controller.expiresAt = time.Time{}
+	controller.generation++
+}
+
+func (controller *runtimeProfileController) stop() {
+	controller.mu.Lock()
+	defer controller.mu.Unlock()
+	controller.disableLocked()
 }
 
 func (s *diagnosticsServer) Start(context.Context) error {
@@ -206,6 +410,7 @@ func (s *diagnosticsServer) Start(context.Context) error {
 }
 
 func (s *diagnosticsServer) Stop(ctx context.Context) error {
+	s.profiles.stop()
 	s.mu.Lock()
 	server := s.server
 	s.mu.Unlock()

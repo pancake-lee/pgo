@@ -10,11 +10,17 @@ Grpc:
   Timeout: 1000
 
 # 独立诊断端口只供容器网络内的 Prometheus 与运维 CLI 使用。
-# Pprof 默认关闭，需要时显式改为 true，且不要将该端口暴露到公网。
+# CPU/heap 供 Alloy 持续采集，其余 profile 仅能通过限时接口开启。
+# 诊断端口不得暴露到公网。
 Diagnostics:
   Enabled: true
   Addr: "0.0.0.0:20002"
-  Pprof: false
+  Pprof: true
+  # CPU 使用 net/http/pprof 固定的默认 100 Hz；MemProfileRate 为 0 时沿用 runtime 默认值。
+  MemProfileRate: 0
+  # block/mutex 只在限时诊断窗口内使用以下采样参数。
+  BlockProfileRate: 1
+  MutexProfileFraction: 1
 
 Pgsql:
   Addr: "pgo-pgsql:5432"

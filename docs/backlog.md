@@ -15,6 +15,7 @@
 | Done | 部署可靠性 | 25 | BootCheck 等待 RabbitMQ 和 Redis 就绪 | |
 | Done | 代码生成 | 26 | genCURD 嵌套执行 make api 遗漏新生成 Proto | |
 | Done | CLI 交互 | 27 | CI/CD 参数确认与批量跳过 | |
+| 待用户验收 | 可观测性 | 28 | Alloy、Pyroscope 与受控运行时诊断 | |
 
 ---
 
@@ -153,3 +154,39 @@
   - 输入 `n` 后，按原有顺序逐个询问；单个参数直接回车仍使用已展示的当前值，新值在后续执行中生效并按原有规则缓存。
   - Cobra 非交互调用、参数名、缓存键和 CI/CD 后续执行行为保持不变；定向测试、`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 通过。
 - **实施与验证**：`pkg/pclient` 先合并默认值与缓存值，统一输出参数摘要并提供默认为是的批量确认；选择修改时仍按原顺序逐项输入，只缓存相对当前有效值的变化。Make 变量、Init Project 与 CD SSH 参数共用该流程，SSH 密码摘要仅显示“set/not set”。离线测试覆盖回车与 `y` 跳过、`n` 后编辑、缓存优先级、变更缓存和密码脱敏；`go test ./pkg/pclient ./cmd/pgo/devops`、`make test` 和 `make build` 均通过。
+
+### 28. Alloy、Pyroscope 与受控运行时诊断
+
+- **状态**：待用户验收
+- **背景**：当前诊断服务通过一个总开关暴露标准 pprof 全部端点，goroutine、block、mutex 和 runtime trace 没有开启时限；部署侧仍由已经停止维护的 Promtail 采集日志，尚未部署 Pyroscope，CPU 与 heap profile 只能由性能工具临时下载到本地，无法形成长期观测。
+- **分析**：CPU 和 heap 适合由 Alloy 从应用诊断端口持续拉取并写入 Pyroscope；goroutine、block、mutex 和 runtime trace 开销与敏感度更高，只应按需限时开放。Alloy 只负责抓取和转发，性能工具需要从 Pyroscope 查询负载时间窗才能获得可保存、可分析的 profile。Go 进程同一时间只能运行一个 CPU profile，因此默认模式应复用 Alloy 已采集的数据；仍保留直连 pprof 模式，用于没有部署观测栈或需要独立原始采样的开发环境。现有 Loki 数据源仍在，但 Promtail 的读取位置未持久化，且 Loki 配置中的实际存储路径与挂载目录不一致，日志链路需要随迁移一并验证和修正。
+- **方案**：保留 Prometheus 现有指标链路，在 Docker Compose 中增加单体 Pyroscope 和 Alloy。Alloy 替代 Promtail，复用现有日志文件挂载、解析规则与 Loki 写入目标，并持久化文件读取位置；同时只从应用诊断端口持续拉取 CPU 和 heap，写入 Pyroscope。Grafana 预置 Pyroscope 数据源，导航入口同步增加 Pyroscope 和 Alloy。应用侧不引入 Pyroscope SDK，诊断服务只长期提供 Alloy 所需的 CPU、heap 端点；CPU 使用 `net/http/pprof` 固定的默认 100 Hz，heap 未配置时沿用 Go runtime 默认采样值，配置文件提供正数时覆盖 heap、block、mutex 的 runtime 参数，非法值在启动阶段明确报错。goroutine、block、mutex 共用一个限时开启接口，请求必须指定不超过 60 秒的持续时间和需要开启的类型，到期后自动关闭 block、mutex runtime 采样并撤销对应 profile 访问；runtime trace 使用另一个直接返回采集结果的限时接口，请求持续时间不得超过 10 秒。并发开启同一种全局 profile 或 trace 时明确拒绝，服务退出时确保恢复关闭状态。性能测试工具保留完整自动化采集，默认通过固定版本的官方 `profilecli v2.2.0` 按负载起止时间和服务标签从 Pyroscope 导出 CPU、heap pprof，通过参数可切换为直接请求应用 pprof HTTP；两种模式都在负载窗口内自动调用受控接口采集 goroutine、block、mutex，并继续采集 metrics、保存负载结果和生成综合摘要。runtime trace 仅在显式参数开启时采集，避免默认影响性能基线。采集结果保持机器可读，为后续按阈值和 profile 特征增加自动问题判断保留稳定输入。直连 CPU 与 Alloy 抓取由诊断服务串行处理，性能工具限时等待或重试；超过等待上限时明确报告采集冲突，保留其他产物并完成业务清理。
+- **任务列表**：
+  - 收紧诊断服务的长期端点，只保留 metrics、健康检查、CPU 和 heap；CPU 沿用标准 handler 的 100 Hz，增加 heap、block、mutex 可选采样参数的启动校验与 runtime 设置。
+  - 增加 goroutine、block、mutex 的统一限时开启接口，固定最大 60 秒；覆盖类型校验、必填时长、到期关闭、重复开启、并发安全和服务停止清理。
+  - 增加独立 runtime trace 采集接口，固定最大 10 秒；以流式结果响应，并覆盖超时、客户端取消、并发冲突和自动停止。
+  - 在 Compose 中部署 Pyroscope 与 Alloy，用 Alloy 明确启用 CPU、heap 并关闭 goroutine、block、mutex 的周期抓取；为 Pyroscope 数据和 Alloy 状态配置持久化目录及健康依赖。
+  - 将 Promtail 日志发现、JSON 解析、时间戳和标签规则迁移为 Alloy 原生组件，删除 Promtail 服务与配置，修正 Loki 存储挂载，并验证已有日志可以从 Grafana Loki 数据源查询。
+  - 为 Grafana 预置 Pyroscope 数据源，同步导航页、部署文件映射、README 与可观测性说明，使 Grafana、Pyroscope、Alloy 和 Loki 的入口及职责可追溯。
+  - 为 `pgo performance login` 增加 profile 来源参数，默认校验并调用官方 `profilecli v2.2.0`，按本轮负载时间窗与服务标签导出 Pyroscope 中的 CPU、heap；直连模式沿用应用 pprof HTTP 获取 CPU、heap，且两种模式生成一致的产物结构和摘要输入。
+  - 让性能工具在负载窗口内自动开启 goroutine、block、mutex 并保存对应 profile；为 runtime trace 增加默认关闭的显式参数，启用时在 10 秒限制内采集，同时打印 Grafana、Pyroscope 和受控诊断接口指引。
+  - 保留 metrics、负载原始结果、业务校验、批次清理和综合摘要，明确记录 profile 来源、查询标签和采集时间窗；先稳定机器可读数据，不在本任务内预设未经基线验证的问题判断规则。
+  - 增加诊断处理器单元测试、两种 profile 来源的性能工具离线编排回归、`profilecli` 缺失或版本不符检查，以及部署配置静态检查；运行全仓测试、竞态测试、构建，并在真实 Compose 环境完成两种采集模式、Loki 日志与限时诊断验收。
+- **验收**：
+  - CPU 保持 `net/http/pprof` 默认 100 Hz；heap 未配置时沿用 runtime 默认值，heap、block、mutex 提供合法正数时覆盖生效，负数配置不能静默启动。
+  - Alloy 能持续采集且只采集 CPU、heap，Pyroscope 中可按服务和时间范围查询，两类 profile 不依赖性能工具运行。
+  - goroutine、block、mutex 未开启时不能读取；合法请求可在最多 60 秒内临时开放，到期、取消或服务停止后 block、mutex 均恢复关闭；同类型并发请求不会互相覆盖状态。
+  - runtime trace 必须携带合法时长且最长 10 秒，响应可由 `go tool trace` 读取；到期、取消或服务停止后不遗留采集状态，并发 trace 被明确拒绝。
+  - Promtail 已从 Compose 与部署文件中移除；Alloy 重启后从持久化位置续读日志，Grafana 中可通过 Loki 查询新日志，时间戳、应用标签和最终消息保持现有语义。
+  - Grafana 可连接 Prometheus、Loki 和 Pyroscope；导航页可进入 Grafana、Pyroscope 与 Alloy，相关服务重启后历史日志和 profile 数据仍保留。
+  - `pgo performance login` 默认通过 `profilecli v2.2.0` 导出负载时间窗内的 CPU、heap，通过参数可切换为直接请求 pprof HTTP；两种模式均自动保存 goroutine、block、mutex 和 metrics，并生成一致的综合摘要。
+  - 直连 CPU 与 Alloy 同时采集时不会产生无界等待或并发破坏；性能工具可在限定时间内取得采集权，或输出明确冲突原因并保留其他产物、完成清理。
+  - 默认执行不采集 runtime trace；显式开启后只采集一次不超过 10 秒的 trace，失败时保留其他已完成产物并继续执行清理。
+  - 结果参数和摘要明确记录 profile 来源、服务标签、采集起止时间及观测平台地址，产物可供后续规则化问题判断读取；负载、业务验证和批次清理不回归。
+  - 自动测试、竞态测试、Compose 配置检查和构建通过；真实部署验收后无本轮启动的采集或测试进程遗留。
+- **实施与验证**：诊断服务仅长期开放 CPU、heap，goroutine、block、mutex 通过最长 60 秒的租约开启，runtime trace 单次最长 10 秒；CPU handler 串行化，block、mutex 到期或服务停止时恢复关闭。Compose 新增 Pyroscope 2.2.0 与 Alloy 1.20.1，Promtail 已移除；Alloy 同时续读文件日志到 Loki，并只持续抓取 CPU、heap 到 Pyroscope，Grafana 数据源和导航入口已同步。`performance login` 默认使用 `profilecli v2.2.0` 导出负载时间窗的 CPU、heap，可切换 HTTP 直采；两种来源均自动保存 metrics、goroutine、block、mutex，可选采集 runtime trace，并记录观测地址与 profile 来源。定向竞态测试、全仓测试、`go vet`、全量构建、CLI help、Alloy 官方校验器、YAML 解析、profilecli 参数和 Pyroscope 启动参数检查均通过。当前执行环境没有宿主机 Docker 控制权，未启动任何部署服务。
+- **（用户）验收操作**：在宿主机进入更新后的 `deploy/docker/`，执行 `docker compose up -d loki pyroscope alloy grafana rocky9`；待容器稳定后运行一次默认来源的 `pgo performance login`，并在 Grafana Explore 中分别确认 Loki 有本轮应用日志、Pyroscope 有同一时间窗的 CPU/heap，输出目录含 CPU、heap、goroutine、block、mutex 文件。
+- **预期结果**：Alloy、Pyroscope、Loki、Grafana 与应用保持运行；Alloy 页面无配置错误，日志可查询，CPU/heap 可按 `service_name=pgo-app` 查询；性能命令完成负载、报告与用户清理，五类 profile 文件均非空。
+- **最小回传**：成功时回复“28 已通过”；失败时只需回传失败容器的 `docker compose logs --tail=100 <服务名>` 或性能命令的首个错误。
+- **AI 自动验证**：`go test -race ./pkg/papp ./cmd/pgo/performance ./cmd/pgo/tools/diagnostics`、`make test`、`go vet ./...`、`make build`、CLI help、Alloy 1.20.1 `fmt/validate`、YAML 解析、profilecli 2.2.0 参数和 Pyroscope 2.2.0 启动参数检查均通过；临时验证二进制已删除，无本轮进程遗留。
+- **关单方式**：用户回复确认后，同一轮将任务 28 更新为 `Done` 并注明确认日期，不追加核验。

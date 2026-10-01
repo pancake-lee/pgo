@@ -105,10 +105,13 @@ func TestDiagnosticsPprofSwitch(t *testing.T) {
 		{name: "enabled", enablePprof: true, status: http.StatusOK},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
-			server := newDiagnosticsServer("127.0.0.1:0", testCase.enablePprof)
-			pathList := []string{"/debug/pprof/goroutine"}
+			server, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0", Pprof: testCase.enablePprof})
+			if err != nil {
+				t.Fatal(err)
+			}
+			pathList := []string{"/debug/pprof/heap"}
 			if testCase.enablePprof {
-				pathList = append(pathList, "/debug/pprof/heap", "/debug/pprof/profile?seconds=1")
+				pathList = append(pathList, "/debug/pprof/profile?seconds=1")
 			}
 			for _, path := range pathList {
 				response := httptest.NewRecorder()
@@ -122,7 +125,10 @@ func TestDiagnosticsPprofSwitch(t *testing.T) {
 }
 
 func TestDiagnosticsMetrics(t *testing.T) {
-	server := newDiagnosticsServer("127.0.0.1:0", false)
+	server, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	response := httptest.NewRecorder()
 	server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/metrics", nil))
 	if response.Code != http.StatusOK {
@@ -130,6 +136,73 @@ func TestDiagnosticsMetrics(t *testing.T) {
 	}
 	if body := response.Body.String(); body == "" || !containsMetric(body, "pgo_http_requests_total") {
 		t.Fatal("metrics response does not expose application request metrics")
+	}
+}
+
+func TestDiagnosticsRuntimeProfileLease(t *testing.T) {
+	server, err := newDiagnosticsServer(diagnosticsConfig{
+		Addr:                 "127.0.0.1:0",
+		Pprof:                true,
+		BlockProfileRate:     1,
+		MutexProfileFraction: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.profiles.stop()
+
+	for _, path := range []string{"/debug/pprof/goroutine", "/debug/pprof/block", "/debug/pprof/mutex"} {
+		response := httptest.NewRecorder()
+		server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
+		if response.Code != http.StatusForbidden {
+			t.Fatalf("inactive %s status = %d", path, response.Code)
+		}
+	}
+
+	response := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/debug/pprof/runtime?seconds=1&profiles=goroutine,block,mutex", nil)
+	server.handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("activate status = %d, body = %s", response.Code, response.Body.String())
+	}
+	response = httptest.NewRecorder()
+	server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/goroutine", nil))
+	if response.Code != http.StatusOK {
+		t.Fatalf("active goroutine status = %d", response.Code)
+	}
+	server.profiles.stop()
+	response = httptest.NewRecorder()
+	server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/goroutine", nil))
+	if response.Code != http.StatusForbidden {
+		t.Fatalf("stopped goroutine status = %d", response.Code)
+	}
+}
+
+func TestDiagnosticsRuntimeLimits(t *testing.T) {
+	server, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0", Pprof: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, testCase := range []struct {
+		method string
+		path   string
+		status int
+	}{
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=61&profiles=goroutine", status: http.StatusBadRequest},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profiles=unknown", status: http.StatusBadRequest},
+		{method: http.MethodGet, path: "/debug/pprof/runtime-trace?seconds=11", status: http.StatusBadRequest},
+	} {
+		response := httptest.NewRecorder()
+		server.handler.ServeHTTP(response, httptest.NewRequest(testCase.method, testCase.path, nil))
+		if response.Code != testCase.status {
+			t.Fatalf("%s status = %d, want %d", testCase.path, response.Code, testCase.status)
+		}
+	}
+}
+
+func TestDiagnosticsRejectsNegativeProfileRate(t *testing.T) {
+	if _, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0", MemProfileRate: -1}); err == nil {
+		t.Fatal("expected negative profile rate error")
 	}
 }
 

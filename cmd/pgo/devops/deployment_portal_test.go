@@ -33,6 +33,8 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 		"Swagger UI": "28080",
 		"Prometheus": "29090",
 		"Grafana":    "23000",
+		"Pyroscope":  "24040",
+		"Alloy":      "21235",
 		"cAdvisor":   "28081",
 	}
 	for name, port := range componentMap {
@@ -49,7 +51,7 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 	if !strings.Contains(compose, "20000-20010:20000-20010") {
 		t.Error("compose missing published backend port range")
 	}
-	if !strings.Contains(portal, `path: "/debug/pprof/"`) {
+	if !strings.Contains(portal, `path: "/debug/pprof/heap"`) {
 		t.Error("portal missing pprof path")
 	}
 
@@ -61,6 +63,34 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 	}
 	if got := deployConfig.Files["deploy/docker/portal/"]; got != "portal/" {
 		t.Fatalf("portal deploy mapping = %q, want portal/", got)
+	}
+}
+
+func TestDeploymentObservabilityConfiguration(t *testing.T) {
+	projectRoot := filepath.Join("..", "..", "..")
+	compose := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "docker-compose.yaml"))
+	alloy := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "config.alloy"))
+	loki := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "loki.yaml"))
+	datasources := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "grafana", "datasources", "datasource.yml"))
+
+	for _, expected := range []string{
+		"grafana/alloy:v1.20.1",
+		"grafana/pyroscope:2.2.0",
+		"pyroscope.scrape \"pgo_app\"",
+		"profile.goroutine",
+		"enabled = false",
+		"/debug/pprof/heap",
+		"loki.source.file",
+		"http://pgo-loki:3100/loki/api/v1/push",
+		"type: grafana-pyroscope-datasource",
+		"/data/loki",
+	} {
+		if !strings.Contains(compose+alloy+loki+datasources, expected) {
+			t.Errorf("observability configuration missing %q", expected)
+		}
+	}
+	if strings.Contains(compose, "promtail:") {
+		t.Error("compose still contains Promtail")
 	}
 }
 
