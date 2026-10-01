@@ -22,7 +22,7 @@ scrape_configs:
 
   - job_name: 'pgo-app'
     static_configs:
-      - targets: ['pgo-dr9:19090']
+      - targets: ['pgo-dr9:20002']
 
   # - job_name: 'redis'
   #   static_configs:
