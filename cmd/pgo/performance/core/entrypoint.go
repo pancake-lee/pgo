@@ -28,7 +28,7 @@ const (
 	discoveryTimeout     = 5 * time.Second
 )
 
-var autoRPSList = []int{200, 500, 1000, 1500, 2000, 3000}
+var autoRPSList = []int{200, 400, 600, 800, 1000}
 
 // Scenario defines the behavior supplied by one performance scenario.
 type Scenario struct {
