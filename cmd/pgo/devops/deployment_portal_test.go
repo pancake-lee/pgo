@@ -86,7 +86,24 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 	compose := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "docker-compose.yaml"))
 	alloy := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "config.alloy"))
 	loki := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "loki.yaml"))
-	datasources := readDeploymentTestFile(t, filepath.Join(projectRoot, "deploy", "docker", "config", "grafana", "datasources", "datasource.yml"))
+	datasources := readDeploymentTestFile(
+		t,
+		filepath.Join(
+			projectRoot,
+			"deploy/docker/config/grafana/datasources/datasource.yml",
+		),
+	)
+	dashboard := readDeploymentTestFile(
+		t,
+		filepath.Join(
+			projectRoot,
+			"deploy/docker/config/grafana/dashboards/pgo-app.json",
+		),
+	)
+	prometheus := readDeploymentTestFile(
+		t,
+		filepath.Join(projectRoot, "deploy/docker/config/prometheus.yml"),
+	)
 
 	for _, expected := range []string{
 		"grafana/alloy:v1.20.1",
@@ -108,6 +125,47 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 	}
 	if strings.Contains(compose, "promtail:") {
 		t.Error("compose still contains Promtail")
+	}
+	if !strings.Contains(
+		dashboard,
+		"sum(irate(pgo_http_requests_total[1m]))",
+	) {
+		t.Error("request rate dashboard does not use irate with 1m window")
+	}
+	if !strings.Contains(datasources, "timeInterval: 15s") {
+		t.Error("Grafana Prometheus interval is not 15s")
+	}
+	if !strings.Contains(prometheus, "scrape_interval: 15s") {
+		t.Error("Prometheus scrape interval is not 15s")
+	}
+	var dashboardConfig struct {
+		Panels []struct {
+			Title         string
+			MaxDataPoints int
+			Targets       []struct {
+				Interval string
+			}
+		}
+	}
+	err := json.Unmarshal([]byte(dashboard), &dashboardConfig)
+	if err != nil {
+		t.Fatalf("parse application dashboard: %v", err)
+	}
+	found := false
+	for _, panel := range dashboardConfig.Panels {
+		if panel.Title != "Request rate" {
+			continue
+		}
+		found = true
+		if panel.MaxDataPoints != 2000 || len(panel.Targets) != 1 {
+			t.Fatal("request rate panel must have 2000 points and one query")
+		}
+		if panel.Targets[0].Interval != "15s" {
+			t.Error("request rate query Min step must be 15s")
+		}
+	}
+	if !found {
+		t.Error("request rate panel missing")
 	}
 }
 

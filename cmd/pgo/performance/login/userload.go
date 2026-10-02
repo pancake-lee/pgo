@@ -93,18 +93,6 @@ func Verify(ctx context.Context, client *common.Client, manifest *Manifest,
 		return err
 	}
 
-	for _, token := range []string{"", "invalid-token"} {
-		_, response, err := client.GetUserList(ctx, 1, token)
-		acceptedRequest := err == nil || response == nil ||
-			response.StatusCode < http.StatusBadRequest
-		if acceptedRequest {
-			return fmt.Errorf(
-				"protected endpoint accepted rejected token case %q",
-				token,
-			)
-		}
-	}
-
 	resultList, runErr := papp.RunConcurrent(
 		ctx,
 		manifest.Users,

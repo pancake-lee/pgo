@@ -5,6 +5,8 @@ datasources:
     access: proxy
     url: http://pgo-prometheus:9090
     isDefault: true
+    jsonData:
+      timeInterval: 15s
   - name: loki
     type: loki
     access: proxy

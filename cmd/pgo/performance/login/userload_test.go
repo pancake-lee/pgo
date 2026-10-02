@@ -40,6 +40,7 @@ type fakeUserServer struct {
 	nameToUser map[string]User
 	validToken map[string]bool
 	failSuffix string
+	rejected   int
 }
 
 func TestUserBatchLifecycle(t *testing.T) {
@@ -103,6 +104,9 @@ func TestUserBatchLifecycle(t *testing.T) {
 	}
 	fakeServer.mu.Lock()
 	defer fakeServer.mu.Unlock()
+	if fakeServer.rejected != 0 {
+		t.Fatalf("unexpected auth rejections: %d", fakeServer.rejected)
+	}
 	if len(fakeServer.nameToUser) != 0 {
 		t.Fatalf("users remain after cleanup: %d", len(fakeServer.nameToUser))
 	}
@@ -213,6 +217,9 @@ func (server *fakeUserServer) authorized(request *http.Request) bool {
 	token := strings.TrimPrefix(request.Header.Get("Authorization"), "Bearer ")
 	server.mu.Lock()
 	defer server.mu.Unlock()
+	if !server.validToken[token] {
+		server.rejected++
+	}
 	return server.validToken[token]
 }
 

@@ -156,12 +156,14 @@
       "pluginVersion": "12.3.11",
       "targets": [
         {
-          "expr": "sum(rate(pgo_http_requests_total[5m]))",
+          "expr": "sum(irate(pgo_http_requests_total[1m]))",
+          "interval": "15s",
           "legendFormat": "requests/s",
           "refId": "A"
         }
       ],
       "title": "Request rate",
+      "maxDataPoints": 2000,
       "type": "timeseries"
     },
     {

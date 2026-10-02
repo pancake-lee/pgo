@@ -55,7 +55,7 @@ func newRootCommand() *cobra.Command {
 		&logToConsole,
 		"log-to-console",
 		"l",
-		false,
+		true,
 		"log to console",
 	)
 	for _, registration := range newCommandGroups() {
