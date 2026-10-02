@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
 )
@@ -58,6 +59,7 @@ func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 	config := Config{
 		APIURL:    "http://127.0.0.1:20000",
 		RPS:       5,
+		Duration:  30 * time.Second,
 		OutputDir: t.TempDir(),
 	}
 	err := runner.Run(t.Context(), config, preparer)
@@ -92,10 +94,14 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 	config := Config{
 		APIURL:    "http://127.0.0.1:20000",
 		RPS:       10,
+		Duration:  time.Minute,
 		OutputDir: t.TempDir(),
 	}
 	var visitedList []int
 	runStage := func(_ context.Context, stageConfig Config) error {
+		if stageConfig.Duration != config.Duration {
+			return fmt.Errorf("duration = %s", stageConfig.Duration)
+		}
 		visitedList = append(visitedList, stageConfig.RPS)
 		if stageConfig.RPS == 25 {
 			return errors.New("injected failure")
@@ -139,6 +145,7 @@ func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	config := Config{
 		APIURL:    "http://127.0.0.1:20000",
 		RPS:       10,
+		Duration:  time.Minute,
 		OutputDir: t.TempDir(),
 	}
 	var visitedList []int

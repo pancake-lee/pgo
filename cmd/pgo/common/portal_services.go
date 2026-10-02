@@ -104,6 +104,9 @@ func DiscoverPortalServices(ctx context.Context, client *http.Client, portalAddr
 
 func parsePortalURL(address string) (*url.URL, error) {
 	address = strings.TrimSpace(address)
+	if address != "" && !strings.Contains(address, "://") {
+		address = "http://" + address
+	}
 	parsedURL, err := url.Parse(address)
 	if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") || parsedURL.Hostname() == "" {
 		return nil, fmt.Errorf("portal URL must be an absolute HTTP URL, got %q", address)

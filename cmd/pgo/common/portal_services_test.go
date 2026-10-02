@@ -103,7 +103,28 @@ func TestPortalServiceURLSupportsHTTPSAndIPv6(t *testing.T) {
 }
 
 func TestParsePortalURL(t *testing.T) {
-	for _, address := range []string{"", "localhost:20080", "ftp://localhost", "http://user:pass@localhost"} {
+	validAddressMap := map[string]string{
+		"localhost:20080":       "http://localhost:20080",
+		"192.168.3.18:20080":    "http://192.168.3.18:20080",
+		"[2001:db8::1]:20080/x": "http://[2001:db8::1]:20080/x",
+	}
+	for address, expected := range validAddressMap {
+		portalURL, err := parsePortalURL(address)
+		if err != nil {
+			t.Errorf("parse portal URL %q: %v", address, err)
+			continue
+		}
+		if portalURL.String() != expected {
+			t.Errorf("portal URL = %q, want %q", portalURL, expected)
+		}
+	}
+
+	invalidAddressList := []string{
+		"",
+		"ftp://localhost",
+		"http://user:pass@localhost",
+	}
+	for _, address := range invalidAddressList {
 		if _, err := parsePortalURL(address); err == nil {
 			t.Errorf("expected portal URL error for %q", address)
 		}

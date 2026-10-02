@@ -22,7 +22,6 @@ const (
 	expectedVegetaVersion = "v12.13.0"
 	defaultVegetaPath     = "vegeta"
 	defaultWarmup         = 10 * time.Second
-	defaultDuration       = 60 * time.Second
 	defaultTimeout        = 5 * time.Second
 )
 
@@ -34,9 +33,10 @@ const (
 
 // Config 保存所有性能场景共用的单档负载配置。
 type Config struct {
-	APIURL    string `json:"apiURL"`
-	RPS       int    `json:"rps"`
-	OutputDir string `json:"outputDir"`
+	APIURL    string        `json:"apiURL"`
+	RPS       int           `json:"rps"`
+	Duration  time.Duration `json:"duration"`
+	OutputDir string        `json:"outputDir"`
 }
 
 // Preparer 定义单档负载执行前的场景准备契约。
@@ -128,7 +128,7 @@ func (runner *Runner) runLoad(
 		"step",
 		"5/7",
 		"duration",
-		defaultDuration,
+		config.Duration,
 		"rps",
 		config.RPS,
 	)
@@ -146,7 +146,7 @@ func (runner *Runner) runLoad(
 		ctx,
 		config,
 		targetPath,
-		defaultDuration,
+		config.Duration,
 		resultFile,
 	)
 	closeErr := resultFile.Close()
@@ -266,6 +266,9 @@ func (config Config) validate() error {
 	}
 	if config.RPS <= 0 {
 		return errors.New("rps must be positive")
+	}
+	if config.Duration <= 0 {
+		return errors.New("duration must be positive")
 	}
 	if strings.TrimSpace(config.OutputDir) == "" {
 		return errors.New("output directory is required")

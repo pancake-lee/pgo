@@ -18,6 +18,7 @@
 | 待用户验收 | 可观测性 | 28 | Alloy、Pyroscope 与受控运行时诊断 | |
 | Done | 性能基线 | 29 | 登录场景逐级加压与负载结果记录 | |
 | Done | 性能基线 | 30 | 性能框架与登录场景解耦 | |
+| Done | 性能基线 | 32 | 性能场景公共参数收口到 core | |
 
 ---
 
@@ -175,6 +176,28 @@
   - 定向竞态测试、`make test`、`go vet ./...`、`make build` 和 CLI help 检查通过，验证结束后无相关进程遗留。
 - **实施与验证**：performance 已收口为初始化期场景注册、单档 Vegeta 执行和通用自动升压；注册表拒绝缺失字段和重复标识。login 通过初始化注册提供 Cobra 命令与交互入口，并在 `command.go` 内统一管理导航服务发现、RPS 模式、默认阶梯、用户准备清理和登录汇总文案。自动升压通过单档回调复用同一执行链，通用包不再包含登录符号或文案；CLI 组合根仅匿名引入 login 以触发注册。场景注册、单档产物与清理、阶梯回调、执行失败和非 100% 成功率停止、登录准备清理与 CLI 契约均有回归测试。`go test -race ./cmd/pgo/performance/... ./cmd/pgo`、`make test`（含 `go vet ./...`）、`make build` 及 performance/login help 检查通过，结束后无 Go 测试、pgo performance 或 Vegeta 进程遗留。
 - **可读性整理**：2026-10-02 将 performance/login 生产代码与测试统一限制为 80 字符行宽，拆分 `if` 初始化语句，并按校验、准备、执行、结果与清理阶段留白。函数声明在仅返回部分导致超长时保留同行参数；函数调用可容纳时完整单行，否则从左括号后换行，每个实参独占一行。定向竞态测试、`make test`（含 `go vet ./...`）与 `make build` 通过。
+
+### 32. 性能场景公共参数收口到 core
+
+- **专题中枢**：[登录性能测试闭环](design/2026-09-30-01-login-performance-hub.md)
+- **状态**：Done
+- **背景**：当前 `portal-url` 和 `rps` 由 login 命令读取与解析，`duration` 则在 core 内固定为 60 秒。这三项都是所有性能场景共用的运行参数，继续放在 login 会让后续场景重复实现 CLI、交互输入和校验逻辑。
+- **分析**：公共参数的输入形式、默认值、校验和转换应只有一个事实来源。core 已经拥有单档负载与自动升压执行链，由它同时生成 Cobra 和交互入口，可以使场景只描述自身准备行为与自动升压档位。`portal-url` 解析后得到的 API URL、单档 RPS 与持续时间统一进入通用负载配置；自动模式只替换各档 RPS，每档共用同一持续时间。
+- **方案**：由 core 提供统一的性能场景入口，集中定义 Cobra 参数、交互输入、缓存读取、服务发现、默认值和错误提示。公共入口读取 `portal-url`、`rps` 和 `duration`，其中 RPS 保留正整数单档与 `auto` 两种模式，duration 使用 Go 时长格式并保留 60 秒默认行为。场景向 core 提供名称、输出目录分段、准备器、自动档位和汇总文案；login 删除通用参数处理与执行编排，仅保留用户准备、验证、targets 生成及清理。
+- **任务列表**：
+  - 在 core 建立性能场景的公共入口和场景配置契约，统一生成 Cobra 命令与交互执行流程。
+  - 将 `portal-url`、`rps` 和 `duration` 的读取、默认值、解析与校验迁入 core，并将解析结果写入通用单档负载配置和运行产物。
+  - 调整单档与自动升压执行链使用指定 duration，自动模式每档保持同一时长。
+  - 收缩 login 入口，通过场景契约提供登录专属信息与准备器，删除其中的公共参数解析、服务发现和负载编排。
+  - 迁移测试责任：core 覆盖三项参数的 CLI、交互、非法输入、默认值与单档/自动传递，login 只覆盖场景契约和准备清理。
+  - 同步 CLI help、性能基线说明和专题中枢，运行定向竞态测试、全仓测试、静态检查与构建。
+- **验收**：
+  - 新增性能场景时无需重复定义或解析 `portal-url`、`rps` 和 `duration`，Cobra 与交互模式共用同一套规则。
+  - `pgo performance login <portal-url> --rps <positive|auto> --duration <duration>` 可用，未指定时保留现有自动阶梯和 60 秒单档时长。
+  - 无效 portal URL、非正整数 RPS、非法或非正 duration 均在 core 返回可定位错误，不进入场景准备。
+  - 单档与自动升压的预热、正式负载、失败停止、结果产物和清理行为不回归，运行记录包含实际 duration。
+  - core 和 login 定向竞态测试、`make test`、`go vet ./...`、`make build` 及 CLI help 检查通过，验证后无相关进程遗留。
+- **实施与验证**：core 已新增通用场景入口，统一生成 Cobra 命令和交互参数，并负责 portal 服务发现、RPS 单档/自动模式解析、duration 校验、输出目录和单档/自动执行编排。`Config` 已保存 duration，每个自动档位复用同一时长；固定预热策略保持不变。login 已收缩为场景元数据、自动阶梯、准备器与用户数据生命周期。公共 Portal 解析后续已支持无协议的主机与端口，默认补全 `http://`，并保留 HTTP/HTTPS 显式协议校验。定向竞态测试、全仓 `make test`（含 `go vet ./...`）、`make build` 和 CLI help 检查通过，默认参数为 `--rps auto --duration 60s`。
 
 ### 31. pclient 两层命令菜单
 

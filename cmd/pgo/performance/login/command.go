@@ -2,173 +2,34 @@ package login
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"net/http"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
-	"github.com/pancake-lee/pgo/pkg/pclient"
-	"github.com/pancake-lee/pgo/pkg/pconfig"
-	"github.com/pancake-lee/pgo/pkg/plogger"
-	"github.com/pancake-lee/pgo/pkg/pthird"
-	"github.com/spf13/cobra"
 )
 
 const (
-	defaultPortalURL  = "http://127.0.0.1:20080"
-	defaultOutputRoot = ".local/performance"
-	defaultTimeout    = 5 * time.Second
-	loginUserCount    = 100
-	usersFileName     = "01-users.json"
-	targetsFileName   = "02-login-targets.jsonl"
+	loginUserCount  = 100
+	usersFileName   = "01-users.json"
+	targetsFileName = "02-login-targets.jsonl"
 )
 
 var autoRPSList = []int{10, 25, 50, 100, 200, 500}
 
-type entrypoint struct{}
-
 // Entrypoint exposes login load testing without knowing its menu placement.
-var Entrypoint entrypoint
-
-func (entrypoint) NewCobraCommand() *cobra.Command {
-	return newLoginCommand()
-}
-
-func (entrypoint) RunInteractive() {
-	runLoginInteractive()
-}
-
-// newLoginCommand 创建只接收导航页地址和可选 RPS 的登录压测命令。
-func newLoginCommand() *cobra.Command {
-	rpsInput := "auto"
-	command := &cobra.Command{
-		Use:   "login <portal-url>",
-		Short: "Run the user login load-test workflow",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := klog.NewStdLogger(cmd.OutOrStdout())
-			runner := performance.NewRunner(logger)
-			config, err := defaultLoadConfig(cmd.Context(), args[0], time.Now())
-			if err != nil {
-				return err
-			}
-			return runPlan(cmd.Context(), runner, logger, config, rpsInput)
-		},
-	}
-	command.Flags().StringVar(
-		&rpsInput,
-		"rps",
-		rpsInput,
-		"run one positive RPS level instead of the "+
-			"built-in automatic ladder",
-	)
-	return command
-}
-
-func runLoginInteractive() {
-	cachePath := pconfig.GetDefaultCachePath()
-	portalURL := pclient.GetCachedParam(
-		cachePath,
-		"client.performance.login.portal",
-		"portal URL",
-		defaultPortalURL,
-	)
-	logger := plogger.GetDefaultLoggerNoCaller()
-	runner := performance.NewRunner(logger)
-	ctx := context.Background()
-	config, err := defaultLoadConfig(ctx, portalURL, time.Now())
-	if err != nil {
-		pthird.Interact.Errorf("Invalid performance parameter: %v", err)
-		return
-	}
-
-	pthird.Interact.Infof(
-		"Starting login performance test; artifacts: %s",
-		config.OutputDir,
-	)
-	err = runPlan(ctx, runner, logger, config, "auto")
-	if err != nil {
-		pthird.Interact.Errorf("Login performance test failed: %v", err)
-	}
-}
-
-func defaultLoadConfig(ctx context.Context, portalURL string, now time.Time,
-) (performance.Config, error) {
-	discoveryContext, cancelDiscovery := context.WithTimeout(ctx, defaultTimeout)
-	defer cancelDiscovery()
-
-	httpClient := &http.Client{Timeout: defaultTimeout}
-	serviceList, err := common.DiscoverPortalServices(
-		discoveryContext,
-		httpClient,
-		portalURL,
-	)
-	if err != nil {
-		return performance.Config{}, err
-	}
-
-	timestamp := now.UTC().Format("20060102-150405.000000000Z")
-	return performance.Config{
-		APIURL:    serviceList.APIURL,
-		RPS:       10,
-		OutputDir: filepath.Join(defaultOutputRoot, "login", timestamp),
-	}, nil
-}
-
-func runPlan(
-	ctx context.Context,
-	runner *performance.Runner,
-	logger klog.Logger,
-	config performance.Config,
-	rpsInput string,
-) error {
-	rpsList, automatic, err := resolveRPSList(rpsInput, config.RPS)
-	if err != nil {
-		return err
-	}
-	runStage := func(ctx context.Context, stageConfig performance.Config) error {
-		return runner.Run(ctx, stageConfig, newPreparer(stageConfig, logger))
-	}
-	if !automatic {
-		config.RPS = rpsList[0]
-		return runStage(ctx, config)
-	}
-
-	options := performance.AutomaticOptions{
-		RPSList:      rpsList,
-		SummaryTitle: "Login automatic load result",
-		SummaryIntroduction: "Built-in RPS ladder: " +
-			"`10, 25, 50, 100, 200, 500`.",
-	}
-	return performance.RunAutomatic(ctx, runner, config, options, runStage)
-}
-
-func resolveRPSList(input string, fallback int) ([]int, bool, error) {
-	input = strings.TrimSpace(strings.ToLower(input))
-	if input == "" {
-		if fallback <= 0 {
-			return nil, false, errors.New("rps must be a positive integer or auto")
-		}
-		return []int{fallback}, false, nil
-	}
-	if input == "auto" {
-		return append([]int(nil), autoRPSList...), true, nil
-	}
-	rps, err := strconv.Atoi(input)
-	if err != nil || rps <= 0 {
-		return nil, false, fmt.Errorf(
-			"rps must be a positive integer or auto, got %q",
-			input,
-		)
-	}
-	return []int{rps}, false, nil
-}
+var Entrypoint = performance.NewEntrypoint(performance.Scenario{
+	Name:                     "login",
+	Short:                    "Run the user login load-test workflow",
+	AutomaticRPSList:         autoRPSList,
+	AutomaticSummaryTitle:    "Login automatic load result",
+	AutomaticSummaryOverview: "Built-in RPS ladder: `10, 25, 50, 100, 200, 500`.",
+	NewPreparer: func(config performance.Config, logger klog.Logger,
+	) performance.Preparer {
+		return newPreparer(config, logger)
+	},
+})
 
 type preparer struct {
 	config performance.Config

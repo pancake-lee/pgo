@@ -21,14 +21,16 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 数字形式的 `--rps` 只运行一个压力等级：
 
 ```shell
-./bin/pgo performance login http://127.0.0.1:20080 --rps 50
+./bin/pgo performance login http://127.0.0.1:20080 \
+  --rps 50 --duration 60s
 ```
 
 命令依次完成测试用户准备与验证、Vegeta targets 生成、预热、正式负载、负载报告和用户清理。前面任一步骤失败时仍尝试精确清理已创建用户。
+`--duration` 使用 Go 时长格式并控制每档正式负载，默认为 `60s`；预热时长由性能框架固定管理。
 
 ## 3. 自动升压模式
 
-省略 `--rps` 后依次运行内置的 `10、25、50、100、200、500 RPS`：
+省略 `--rps` 后依次运行内置的 `10、25、50、100、200、500 RPS`，每档共用同一 `--duration`：
 
 ```shell
 ./bin/pgo performance login http://127.0.0.1:20080
