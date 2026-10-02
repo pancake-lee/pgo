@@ -92,6 +92,7 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 		"grafana/alloy:v1.20.1",
 		"grafana/pyroscope:2.2.0",
 		"user: \"0:0\" # bind mount 的数据目录由 Loki 创建子目录",
+		"user: \"0:0\" # bind mount 的数据目录由 Pyroscope 创建子目录",
 		"pyroscope.scrape \"pgo_app\"",
 		"profile.goroutine",
 		"enabled = false",

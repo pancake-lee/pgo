@@ -215,22 +215,24 @@
 
 - **状态**：待用户验收
 - **背景**：部署侧需要以持续、独立于压测命令的方式保存服务日志、Prometheus 指标和 CPU/heap profile，同时限制 goroutine、block、mutex 与 runtime trace 的开放时间。
-- **分析**：Grafana、Prometheus、Loki、Alloy 和 Pyroscope 是服务侧观测链路。它们应持续工作并按时间范围关联分析，不依赖 performance 命令触发或导出数据。
-- **方案**：保留 Prometheus 指标链路；在 Docker Compose 中由 Alloy 替代 Promtail，将文件日志写入 Loki，并持续拉取应用 CPU、heap profile 写入 Pyroscope；Grafana 预置对应数据源。应用诊断服务长期提供健康检查、metrics、CPU 和 heap，goroutine、block、mutex 通过最长 60 秒的受控接口按需开放，runtime trace 通过最长 10 秒的独立接口采集。该任务不向 performance 包提供采集、导出或报告职责。
+- **分析**：Grafana、Prometheus、Loki、Alloy 和 Pyroscope 是服务侧观测链路。它们应持续工作并按时间范围关联分析，不依赖 performance 命令触发或导出数据。2026-10-02 真实部署发现 Pyroscope 以非 root 用户运行时无法在宿主机 bind mount 中创建 `segments`，导致 profile 写入返回 500；当前 Compose 已对同类 Loki 数据目录显式使用 root 用户，Pyroscope 配置遗漏了相同处理。
+- **方案**：保留 Prometheus 指标链路；在 Docker Compose 中由 Alloy 替代 Promtail，将文件日志写入 Loki，并持续拉取应用 CPU、heap profile 写入 Pyroscope；Grafana 预置对应数据源。应用诊断服务长期提供健康检查、metrics、CPU 和 heap，goroutine、block、mutex 通过最长 60 秒的受控接口按需开放，runtime trace 通过最长 10 秒的独立接口采集。Pyroscope 与 Loki 一致以 root 用户运行，使其能够初始化宿主机 bind mount 下的持久化子目录；不使用放宽全目录权限的方式绕过问题。该任务不向 performance 包提供采集、导出或报告职责。
 - **任务列表**：
   - 验证 Alloy、Loki、Prometheus、Pyroscope 与 Grafana 的部署、持久化、数据源和导航入口。
   - 验证 CPU、heap 持续采集以及 goroutine、block、mutex、runtime trace 的限时开放和自动恢复。
   - 验证 Promtail 已移除，Alloy 可从持久化位置续读日志，Loki 存储目录权限正确。
+  - 修正 Pyroscope 容器用户，验证空数据目录首次启动时可创建持久化子目录并接收 profile。
   - 运行诊断处理器测试、Compose 配置检查、全仓测试、竞态测试和构建。
 - **验收**：
   - Grafana 可连接 Prometheus、Loki 和 Pyroscope，服务重启后历史日志和 profile 数据仍保留。
   - Alloy 持续采集 CPU、heap，Pyroscope 可按服务和时间范围查询，采集不依赖 performance 命令。
   - goroutine、block、mutex 未开启时不可读取，合法租约到期、取消或服务停止后恢复关闭；runtime trace 最长 10 秒且并发冲突被明确拒绝。
   - Promtail 已移除，Alloy 重启后续读日志，Grafana 可通过 Loki 查询带原有时间戳与应用标签的新日志。
+  - Pyroscope 不再出现创建 `/var/lib/pyroscope/segments` 权限不足，Alloy 推送 profile 不再因此返回 500。
   - 自动测试、竞态测试、Compose 配置检查和构建通过，真实部署验收后无本轮启动的诊断进程遗留。
-- **实施与验证**：诊断服务、Compose、Alloy 日志与 profiling、Grafana 数据源和导航入口已完成代码侧实现与自动验证；Loki bind mount 权限问题已修正。当前只等待宿主机真实观测链路验收。
-- **（用户）验收操作**：在宿主机启动 `loki pyroscope alloy grafana rocky9`，在 Grafana Explore 中确认 Loki 有新日志、Prometheus 有服务指标、Pyroscope 有同一时间窗的 CPU/heap。
-- **预期结果**：全部观测服务稳定运行，日志、指标和 profile 可独立于 performance 命令查询。
-- **最小回传**：成功时回复“28 已通过”；失败时回传失败容器的 `docker compose logs --tail=100 <服务名>`。
-- **AI 自动验证**：诊断定向竞态测试、全仓测试、静态检查、构建、Compose 与 Alloy 配置检查均已通过；未启动宿主机部署服务。
+- **实施与验证**：诊断服务、Compose、Alloy 日志与 profiling、Grafana 数据源和导航入口已完成代码侧实现与自动验证；Loki bind mount 权限问题已修正。2026-10-02 宿主机验收暴露 Pyroscope bind mount 权限遗漏，Compose 已将 Pyroscope 调整为与 Loki 相同的 root 用户，并增加部署配置回归断言。定向测试、`make test`（含 `go vet ./...`）和 `make build` 通过；当前环境缺少 Docker CLI，未执行 Compose 解析和真实容器验证。
+- **（用户）验收操作**：在宿主机的 `deploy/docker` 目录执行 `docker compose up -d --force-recreate pyroscope alloy`，等待 Alloy 完成下一轮采集后，在 Grafana Explore 中查询同一时间窗的 CPU 或 heap profile。
+- **预期结果**：Pyroscope 日志不再出现创建 `/var/lib/pyroscope/segments` 权限不足，Grafana 可查询到新的 CPU 或 heap profile。
+- **最小回传**：成功时回复“28 已通过”；失败时回传 `docker compose logs --tail=100 pyroscope alloy`。
+- **AI 自动验证**：部署配置定向测试、全仓测试、静态检查和构建均已通过；未启动宿主机部署服务。
 - **关单方式**：用户回复确认后，同一轮将任务 28 更新为 `Done` 并注明确认日期，不追加核验。

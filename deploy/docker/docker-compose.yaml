@@ -244,6 +244,7 @@ services:
         container_name: pgo-pyroscope
         image: grafana/pyroscope:2.2.0
         restart: unless-stopped
+        user: "0:0" # bind mount 的数据目录由 Pyroscope 创建子目录
         command:
             - -storage.backend=filesystem
             - -storage.filesystem.dir=/var/lib/pyroscope
