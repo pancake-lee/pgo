@@ -144,6 +144,7 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 			MaxDataPoints int
 			Targets       []struct {
 				Interval string
+				Expr     string
 			}
 		}
 	}
@@ -151,21 +152,33 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse application dashboard: %v", err)
 	}
-	found := false
+	expectedQueryMap := map[string]string{
+		"Request rate": "sum(irate(pgo_http_requests_total[1m]))",
+		"Error rate": "sum(irate(pgo_http_requests_total" +
+			"{result=\"error\"}[1m])) / " +
+			"clamp_min(sum(irate(pgo_http_requests_total[1m])), 1)",
+		"p95 latency": "histogram_quantile(0.95, " +
+			"sum(irate(pgo_http_request_duration_seconds_bucket[1m])) " +
+			"by (le))",
+	}
 	for _, panel := range dashboardConfig.Panels {
-		if panel.Title != "Request rate" {
+		expectedQuery, ok := expectedQueryMap[panel.Title]
+		if !ok {
 			continue
 		}
-		found = true
+		delete(expectedQueryMap, panel.Title)
 		if panel.MaxDataPoints != 2000 || len(panel.Targets) != 1 {
-			t.Fatal("request rate panel must have 2000 points and one query")
+			t.Fatalf("%s must have 2000 points and one query", panel.Title)
 		}
 		if panel.Targets[0].Interval != "15s" {
-			t.Error("request rate query Min step must be 15s")
+			t.Errorf("%s query Min step must be 15s", panel.Title)
+		}
+		if panel.Targets[0].Expr != expectedQuery {
+			t.Errorf("%s query = %q", panel.Title, panel.Targets[0].Expr)
 		}
 	}
-	if !found {
-		t.Error("request rate panel missing")
+	for title := range expectedQueryMap {
+		t.Errorf("%s panel missing", title)
 	}
 }
 

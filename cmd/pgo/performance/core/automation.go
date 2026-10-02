@@ -16,11 +16,10 @@ const (
 	autoSummaryFileName = "41-auto-summary.md"
 )
 
-// AutomaticOptions 保存场景提供的自动升压档位和汇总文案。
+// AutomaticOptions 保存本次自动升压档位和汇总标题。
 type AutomaticOptions struct {
-	RPSList             []int
-	SummaryTitle        string
-	SummaryIntroduction string
+	RPSList      []int
+	SummaryTitle string
 }
 
 type stageResult struct {
@@ -237,10 +236,15 @@ func writeAutoResults(
 
 	var builder strings.Builder
 	fmt.Fprintf(&builder, "# %s\n\n", options.SummaryTitle)
-	if options.SummaryIntroduction != "" {
-		builder.WriteString(options.SummaryIntroduction)
-		builder.WriteString("\n\n")
+	rpsTextList := make([]string, len(record.RPSList))
+	for index, rps := range record.RPSList {
+		rpsTextList[index] = strconv.Itoa(rps)
 	}
+	fmt.Fprintf(
+		&builder,
+		"Built-in RPS ladder: `%s`.\n\n",
+		strings.Join(rpsTextList, ", "),
+	)
 	builder.WriteString(
 		"| RPS | Requests | Throughput | Success | " +
 			"P50 | P95 | P99 | Status |\n",

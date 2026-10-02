@@ -138,6 +138,14 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 			t.Errorf("automatic artifact %s: %v", name, err)
 		}
 	}
+	summaryPath := filepath.Join(config.OutputDir, autoSummaryFileName)
+	summary, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(summary), "`10, 25, 50`") {
+		t.Fatalf("summary does not describe the actual ladder: %s", summary)
+	}
 }
 
 func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {

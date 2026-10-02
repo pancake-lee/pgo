@@ -28,14 +28,14 @@ const (
 	discoveryTimeout     = 5 * time.Second
 )
 
+var autoRPSList = []int{200, 500, 1000, 1500, 2000, 3000}
+
 // Scenario defines the behavior supplied by one performance scenario.
 type Scenario struct {
-	Name                     string
-	Short                    string
-	AutomaticRPSList         []int
-	AutomaticSummaryTitle    string
-	AutomaticSummaryOverview string
-	NewPreparer              func(Config, klog.Logger) Preparer
+	Name                  string
+	Short                 string
+	AutomaticSummaryTitle string
+	NewPreparer           func(Config, klog.Logger) Preparer
 }
 
 // Entrypoint exposes one scenario through Cobra and the interactive menu.
@@ -137,10 +137,7 @@ func (entrypoint *Entrypoint) run(
 	if err != nil {
 		return err
 	}
-	rpsList, automatic, err := resolveRPSList(
-		rpsInput,
-		entrypoint.scenario.AutomaticRPSList,
-	)
+	rpsList, automatic, err := resolveRPSList(rpsInput)
 	if err != nil {
 		return err
 	}
@@ -166,9 +163,8 @@ func (entrypoint *Entrypoint) run(
 	}
 
 	options := AutomaticOptions{
-		RPSList:             rpsList,
-		SummaryTitle:        entrypoint.scenario.AutomaticSummaryTitle,
-		SummaryIntroduction: entrypoint.scenario.AutomaticSummaryOverview,
+		RPSList:      rpsList,
+		SummaryTitle: entrypoint.scenario.AutomaticSummaryTitle,
 	}
 	return RunAutomatic(ctx, runner, config, options, runStage)
 }
@@ -206,14 +202,13 @@ func buildLoadConfig(
 	}, nil
 }
 
-func resolveRPSList(input string, automaticList []int,
-) ([]int, bool, error) {
+func resolveRPSList(input string) ([]int, bool, error) {
 	input = strings.TrimSpace(strings.ToLower(input))
 	if input == "auto" {
-		if len(automaticList) == 0 {
+		if len(autoRPSList) == 0 {
 			return nil, false, errors.New("automatic RPS list is empty")
 		}
-		return append([]int(nil), automaticList...), true, nil
+		return append([]int(nil), autoRPSList...), true, nil
 	}
 	rps, err := strconv.Atoi(input)
 	if err != nil || rps <= 0 {

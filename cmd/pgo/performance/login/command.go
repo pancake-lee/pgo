@@ -16,15 +16,11 @@ const (
 	targetsFileName = "02-login-targets.jsonl"
 )
 
-var autoRPSList = []int{10, 25, 50, 100, 200, 500}
-
 // Entrypoint exposes login load testing without knowing its menu placement.
 var Entrypoint = performance.NewEntrypoint(performance.Scenario{
-	Name:                     "login",
-	Short:                    "Run the user login load-test workflow",
-	AutomaticRPSList:         autoRPSList,
-	AutomaticSummaryTitle:    "Login automatic load result",
-	AutomaticSummaryOverview: "Built-in RPS ladder: `10, 25, 50, 100, 200, 500`.",
+	Name:                  "login",
+	Short:                 "Run the user login load-test workflow",
+	AutomaticSummaryTitle: "Login automatic load result",
 	NewPreparer: func(config performance.Config, logger klog.Logger,
 	) performance.Preparer {
 		return newPreparer(config, logger)

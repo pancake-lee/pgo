@@ -88,23 +88,27 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 }
 
 func TestResolveRPSList(t *testing.T) {
-	automaticList := []int{10, 25, 50}
-	rpsList, automatic, err := resolveRPSList("auto", automaticList)
+	automaticList := []int{10, 25, 50, 100, 200, 500}
+	rpsList, automatic, err := resolveRPSList("auto")
 	if err != nil || !automatic ||
 		fmt.Sprint(rpsList) != fmt.Sprint(automaticList) {
 		t.Fatalf("auto RPS = %v, %v, %v", rpsList, automatic, err)
 	}
-	rpsList, automatic, err = resolveRPSList("75", automaticList)
+	rpsList, automatic, err = resolveRPSList("75")
 	if err != nil || automatic || len(rpsList) != 1 || rpsList[0] != 75 {
 		t.Fatalf("single RPS = %v, %v, %v", rpsList, automatic, err)
 	}
-	_, _, err = resolveRPSList("invalid", automaticList)
+	_, _, err = resolveRPSList("invalid")
 	if err == nil {
 		t.Fatal("expected invalid RPS error")
 	}
-	_, _, err = resolveRPSList("auto", nil)
-	if err == nil {
-		t.Fatal("expected empty automatic RPS error")
+	rpsList, _, err = resolveRPSList("auto")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rpsList[0] = 999
+	if autoRPSList[0] != automaticList[0] {
+		t.Fatal("resolved RPS list changed the shared ladder")
 	}
 }
 
@@ -125,7 +129,6 @@ func TestSharedCommandParameters(t *testing.T) {
 	entrypoint := NewEntrypoint(Scenario{
 		Name:                  "sample",
 		Short:                 "Run sample load",
-		AutomaticRPSList:      []int{10},
 		AutomaticSummaryTitle: "Sample result",
 		NewPreparer: func(Config, klog.Logger) Preparer {
 			return &fakePreparer{}
