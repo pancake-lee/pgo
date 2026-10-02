@@ -26,7 +26,12 @@ type User struct {
 }
 
 // Prepare 并发创建内置数量的测试用户并保存批次清单。
-func Prepare(ctx context.Context, client *common.Client, userCount int, path string) (*Manifest, error) {
+func Prepare(
+	ctx context.Context,
+	client *common.Client,
+	userCount int,
+	path string,
+) (*Manifest, error) {
 	batchID, err := newBatchID()
 	if err != nil {
 		return nil, err
@@ -43,69 +48,132 @@ func Prepare(ctx context.Context, client *common.Client, userCount int, path str
 	for index := range jobList {
 		jobList[index].UserName = fmt.Sprintf("load_%s_%06d", batchID, index+1)
 		if len(jobList[index].UserName) > 32 {
-			return manifest, fmt.Errorf("generated user name exceeds 32 characters: %s", jobList[index].UserName)
+			return manifest, fmt.Errorf(
+				"generated user name exceeds 32 characters: %s",
+				jobList[index].UserName,
+			)
 		}
 	}
-	resultList, runErr := papp.RunConcurrent(ctx, jobList, func(ctx context.Context, user User) (User, error) {
-		userInfo, token, err := client.Login(ctx, user.UserName)
-		return User{ID: userInfo.ID, UserName: userInfo.UserName, Token: token}, err
-	})
+	resultList, runErr := papp.RunConcurrent(
+		ctx,
+		jobList,
+		func(ctx context.Context, user User) (User, error) {
+			userInfo, token, loginErr := client.Login(ctx, user.UserName)
+			createdUser := User{
+				ID:       userInfo.ID,
+				UserName: userInfo.UserName,
+				Token:    token,
+			}
+			return createdUser, loginErr
+		},
+	)
 
 	for _, result := range resultList {
 		if result.Err == nil {
 			manifest.Users = append(manifest.Users, result.Value)
 		}
 	}
-	sort.Slice(manifest.Users, func(i, j int) bool { return manifest.Users[i].UserName < manifest.Users[j].UserName })
-	if err := manifest.write(); err != nil {
+	sort.Slice(manifest.Users, func(i, j int) bool {
+		return manifest.Users[i].UserName <
+			manifest.Users[j].UserName
+	})
+	err = manifest.write()
+	if err != nil {
 		return manifest, err
 	}
+
 	return manifest, errors.Join(runErr, joinResultErrors(resultList))
 }
 
 // Verify 重新登录批次用户并验证身份与受保护接口鉴权。
-func Verify(ctx context.Context, client *common.Client, manifest *Manifest) error {
-	if err := manifest.validate(); err != nil {
+func Verify(ctx context.Context, client *common.Client, manifest *Manifest,
+) error {
+	err := manifest.validate()
+	if err != nil {
 		return err
 	}
+
 	for _, token := range []string{"", "invalid-token"} {
 		_, response, err := client.GetUserList(ctx, 1, token)
-		if err == nil || response == nil || response.StatusCode < http.StatusBadRequest {
-			return fmt.Errorf("protected endpoint accepted rejected token case %q", token)
+		acceptedRequest := err == nil || response == nil ||
+			response.StatusCode < http.StatusBadRequest
+		if acceptedRequest {
+			return fmt.Errorf(
+				"protected endpoint accepted rejected token case %q",
+				token,
+			)
 		}
 	}
-	resultList, runErr := papp.RunConcurrent(ctx, manifest.Users, func(ctx context.Context, expected User) (User, error) {
-		userInfo, token, err := client.Login(ctx, expected.UserName)
-		if err != nil {
-			return User{}, err
-		}
-		actual := User{ID: userInfo.ID, UserName: userInfo.UserName, Token: token}
-		if actual.ID != expected.ID || actual.UserName != expected.UserName {
-			return User{}, fmt.Errorf("identity mismatch for %s", expected.UserName)
-		}
-		userList, _, err := client.GetUserList(ctx, actual.ID, actual.Token)
-		if err != nil {
-			return User{}, fmt.Errorf("get user list for %s: %w", actual.UserName, err)
-		}
-		if len(userList) != 1 || userList[0].ID != actual.ID || userList[0].UserName != actual.UserName {
-			return User{}, fmt.Errorf("user list mismatch for %s", actual.UserName)
-		}
-		return actual, nil
-	})
+
+	resultList, runErr := papp.RunConcurrent(
+		ctx,
+		manifest.Users,
+		func(ctx context.Context, expected User) (User, error) {
+			userInfo, token, loginErr := client.Login(ctx, expected.UserName)
+			if loginErr != nil {
+				return User{}, loginErr
+			}
+
+			actual := User{
+				ID:       userInfo.ID,
+				UserName: userInfo.UserName,
+				Token:    token,
+			}
+			identityMismatch := actual.ID != expected.ID ||
+				actual.UserName != expected.UserName
+			if identityMismatch {
+				return User{}, fmt.Errorf(
+					"identity mismatch for %s",
+					expected.UserName,
+				)
+			}
+
+			userList, _, getErr := client.GetUserList(ctx, actual.ID, actual.Token)
+			if getErr != nil {
+				return User{}, fmt.Errorf(
+					"get user list for %s: %w",
+					actual.UserName,
+					getErr,
+				)
+			}
+
+			userMismatch := len(userList) != 1 ||
+				userList[0].ID != actual.ID ||
+				userList[0].UserName != actual.UserName
+			if userMismatch {
+				return User{}, fmt.Errorf(
+					"user list mismatch for %s",
+					actual.UserName,
+				)
+			}
+
+			return actual, nil
+		},
+	)
 	return errors.Join(runErr, joinResultErrors(resultList))
 }
 
 // Cleanup 并发删除清单中的测试用户。
-func Cleanup(ctx context.Context, client *common.Client, manifest *Manifest) error {
-	if err := manifest.validate(); err != nil {
+func Cleanup(ctx context.Context, client *common.Client, manifest *Manifest,
+) error {
+	err := manifest.validate()
+	if err != nil {
 		return err
 	}
-	resultList, runErr := papp.RunConcurrent(ctx, manifest.Users, func(ctx context.Context, user User) (User, error) {
-		return user, client.DelUserByIDList(ctx, user.ID, user.Token)
-	})
-	if err := errors.Join(runErr, joinResultErrors(resultList)); err != nil {
+
+	resultList, runErr := papp.RunConcurrent(
+		ctx,
+		manifest.Users,
+		func(ctx context.Context, user User) (User, error) {
+			deleteErr := client.DelUserByIDList(ctx, user.ID, user.Token)
+			return user, deleteErr
+		},
+	)
+	err = errors.Join(runErr, joinResultErrors(resultList))
+	if err != nil {
 		return err
 	}
+
 	now := time.Now().UTC()
 	manifest.CleanedAt = &now
 	return manifest.write()
@@ -142,12 +210,16 @@ func (manifest *Manifest) read(path string) error {
 	if err != nil {
 		return err
 	}
-	if err = json.Unmarshal(content, manifest); err != nil {
+	err = json.Unmarshal(content, manifest)
+	if err != nil {
 		return err
 	}
-	if err = manifest.validate(); err != nil {
+
+	err = manifest.validate()
+	if err != nil {
 		return err
 	}
+
 	manifest.path = path
 	return nil
 }
@@ -161,9 +233,13 @@ func (manifest *Manifest) write() error {
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(filepath.Dir(manifest.path), 0o700); err != nil && filepath.Dir(manifest.path) != "." {
+
+	directory := filepath.Dir(manifest.path)
+	err = os.MkdirAll(directory, 0o700)
+	if err != nil && directory != "." {
 		return err
 	}
+
 	return os.WriteFile(manifest.path, append(content, '\n'), 0o600)
 }
 
@@ -177,19 +253,26 @@ type vegetaTarget struct {
 
 // WriteTargets 将测试用户转换为 Vegeta JSON 请求目标。
 func (manifest *Manifest) WriteTargets(path string) error {
-	if err := manifest.validate(); err != nil {
+	err := manifest.validate()
+	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil && filepath.Dir(path) != "." {
+
+	directory := filepath.Dir(path)
+	err = os.MkdirAll(directory, 0o700)
+	if err != nil && directory != "." {
 		return err
 	}
+
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}
 	encoder := json.NewEncoder(file)
 	for _, user := range manifest.Users {
-		body, marshalErr := json.Marshal(map[string]string{"userName": user.UserName})
+		body, marshalErr := json.Marshal(map[string]string{
+			"userName": user.UserName,
+		})
 		if marshalErr != nil {
 			_ = file.Close()
 			return marshalErr
@@ -200,7 +283,8 @@ func (manifest *Manifest) WriteTargets(path string) error {
 			Body:   body,
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		}
-		if err = encoder.Encode(target); err != nil {
+		err = encoder.Encode(target)
+		if err != nil {
 			_ = file.Close()
 			return err
 		}
@@ -223,8 +307,11 @@ func joinResultErrors(resultList []papp.RunResult[User]) error {
 // newBatchID 生成适合用户名使用的随机批次标识。
 func newBatchID() (string, error) {
 	randomBytes := make([]byte, 2)
-	if _, err := rand.Read(randomBytes); err != nil {
+	_, err := rand.Read(randomBytes)
+	if err != nil {
 		return "", err
 	}
-	return time.Now().UTC().Format("060102150405") + hex.EncodeToString(randomBytes), nil
+
+	timestamp := time.Now().UTC().Format("060102150405")
+	return timestamp + hex.EncodeToString(randomBytes), nil
 }

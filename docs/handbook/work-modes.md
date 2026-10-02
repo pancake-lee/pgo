@@ -1,6 +1,6 @@
 # 工作模式手册
 
-<!-- harness:begin src=pancake/30-Tools/harness/docs/handbook/work-modes.md -->
+<!-- harness:begin -->
 > AI 根据用户输入的关键词自动切换工作模式。
 > 本文件定义每种模式的完整流程，是 CLAUDE.md/AGENTS.md 触发词表的下游详情文档。
 > 维护原则：CLAUDE.md 与 AGENTS.md 是同一套项目规则在 Claude/Codex 工作流中的双入口，项目专有内容修改时同时维护两份文件。
@@ -327,7 +327,7 @@ flowchart TD
   - 设计文档（`docs/design/`）始终描述当前生效的方案，不包含"曾考虑 X 但未采用"或"不需要 Y"等否定性叙述
 
 - **已完成的功能从 TODO 删掉**，功能适当写到其他文档合适的地方。不要在 TODO 中描述已实现的功能
-<!-- harness:end src=pancake/30-Tools/harness/docs/handbook/work-modes.md -->
+<!-- harness:end -->
 
 ---
 

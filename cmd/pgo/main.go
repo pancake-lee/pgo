@@ -6,6 +6,7 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
 	"github.com/pancake-lee/pgo/cmd/pgo/performance"
+	_ "github.com/pancake-lee/pgo/cmd/pgo/performance/login"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/diagnostics"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
 	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"

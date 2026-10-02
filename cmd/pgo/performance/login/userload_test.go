@@ -24,10 +24,12 @@ func TestNewBatchID(t *testing.T) {
 	if len(batchID) != 16 {
 		t.Fatalf("batch ID length = %d, want 16", len(batchID))
 	}
-	if _, err = strconv.ParseUint(batchID[:12], 10, 64); err != nil {
+	_, err = strconv.ParseUint(batchID[:12], 10, 64)
+	if err != nil {
 		t.Fatalf("batch ID timestamp is not numeric: %q", batchID)
 	}
-	if _, err = hex.DecodeString(batchID[12:]); err != nil {
+	_, err = hex.DecodeString(batchID[12:])
+	if err != nil {
 		t.Fatalf("batch ID suffix is not hexadecimal: %q", batchID)
 	}
 }
@@ -59,33 +61,41 @@ func TestUserBatchLifecycle(t *testing.T) {
 		t.Fatalf("prepared %d users, want %d", len(manifest.Users), userCount)
 	}
 	recovered := &Manifest{}
-	if err = recovered.read(manifestPath); err != nil {
+	err = recovered.read(manifestPath)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err = Verify(t.Context(), client, recovered); err != nil {
+	err = Verify(t.Context(), client, recovered)
+	if err != nil {
 		t.Fatal(err)
 	}
 
 	targetPath := filepath.Join(t.TempDir(), "targets.json")
-	if err = recovered.WriteTargets(targetPath); err != nil {
+	err = recovered.WriteTargets(targetPath)
+	if err != nil {
 		t.Fatal(err)
 	}
 	content, err := os.ReadFile(targetPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if lineCount := len(strings.Split(strings.TrimSpace(string(content)), "\n")); lineCount != userCount {
+	lineList := strings.Split(strings.TrimSpace(string(content)), "\n")
+	lineCount := len(lineList)
+	if lineCount != userCount {
 		t.Fatalf("target line count = %d, want %d", lineCount, userCount)
 	}
 
-	if err = Cleanup(t.Context(), client, recovered); err != nil {
+	err = Cleanup(t.Context(), client, recovered)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err = Cleanup(t.Context(), client, recovered); err != nil {
+	err = Cleanup(t.Context(), client, recovered)
+	if err != nil {
 		t.Fatalf("cleanup must be idempotent: %v", err)
 	}
 	cleaned := &Manifest{}
-	if err = cleaned.read(manifestPath); err != nil {
+	err = cleaned.read(manifestPath)
+	if err != nil {
 		t.Fatal(err)
 	}
 	if cleaned.CleanedAt == nil {
@@ -118,7 +128,8 @@ func TestPreparePersistsSuccessesWhenSomeRequestsFail(t *testing.T) {
 		t.Fatalf("persisted users = %d, want %d", len(manifest.Users), userCount-1)
 	}
 	recovered := &Manifest{}
-	if err = recovered.read(manifestPath); err != nil {
+	err = recovered.read(manifestPath)
+	if err != nil {
 		t.Fatal(err)
 	}
 	if len(recovered.Users) != userCount-1 {
@@ -134,7 +145,10 @@ func newFakeUserServer() *fakeUserServer {
 	}
 }
 
-func (server *fakeUserServer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (server *fakeUserServer) ServeHTTP(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
 	if request.URL.Path == "/user/token" && request.Method == http.MethodPost {
 		server.login(writer, request)
 		return
@@ -157,23 +171,33 @@ func (server *fakeUserServer) ServeHTTP(writer http.ResponseWriter, request *htt
 	http.NotFound(writer, request)
 }
 
-func (server *fakeUserServer) login(writer http.ResponseWriter, request *http.Request) {
+func (server *fakeUserServer) login(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
 	writer.Header().Set("Content-Type", "application/json")
 	var input struct {
 		UserName string `json:"userName"`
 	}
-	if err := json.NewDecoder(request.Body).Decode(&input); err != nil || input.UserName == "" {
+	err := json.NewDecoder(request.Body).Decode(&input)
+	if err != nil || input.UserName == "" {
 		http.Error(writer, "bad request", http.StatusBadRequest)
 		return
 	}
-	if server.failSuffix != "" && strings.HasSuffix(input.UserName, server.failSuffix) {
+	shouldFail := server.failSuffix != "" &&
+		strings.HasSuffix(input.UserName, server.failSuffix)
+	if shouldFail {
 		http.Error(writer, "planned failure", http.StatusServiceUnavailable)
 		return
 	}
 	server.mu.Lock()
 	user, ok := server.nameToUser[input.UserName]
 	if !ok {
-		user = User{ID: server.nextID, UserName: input.UserName, Token: fmt.Sprintf("token-%d", server.nextID)}
+		user = User{
+			ID:       server.nextID,
+			UserName: input.UserName,
+			Token:    fmt.Sprintf("token-%d", server.nextID),
+		}
 		server.nextID++
 		server.nameToUser[input.UserName] = user
 	}
@@ -192,7 +216,10 @@ func (server *fakeUserServer) authorized(request *http.Request) bool {
 	return server.validToken[token]
 }
 
-func (server *fakeUserServer) getUser(writer http.ResponseWriter, request *http.Request) {
+func (server *fakeUserServer) getUser(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
 	writer.Header().Set("Content-Type", "application/json")
 	id, _ := strconv.ParseInt(request.URL.Query().Get("IDList"), 10, 32)
 	server.mu.Lock()
@@ -208,7 +235,10 @@ func (server *fakeUserServer) getUser(writer http.ResponseWriter, request *http.
 	_ = json.NewEncoder(writer).Encode(map[string]any{"userList": []any{}})
 }
 
-func (server *fakeUserServer) delUser(writer http.ResponseWriter, request *http.Request) {
+func (server *fakeUserServer) delUser(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
 	id, _ := strconv.ParseInt(request.URL.Query().Get("IDList"), 10, 32)
 	server.mu.Lock()
 	defer server.mu.Unlock()

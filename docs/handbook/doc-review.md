@@ -1,6 +1,6 @@
 # 文档审阅规范
 
-<!-- harness:begin src=pancake/30-Tools/harness/docs/handbook/doc-review.md -->
+<!-- harness:begin -->
 > 定期执行文档治理，确保各文档各司其职、不冗余、不越界、与代码实现一致。
 > 用户按需触发，每次自行判断采用第一版或第二版。
 
@@ -79,4 +79,4 @@
 
 - `.claude/skills/*`：Claude Code 技能文件，独立维护
 - 其余项目自定的非项目文档，在下方「本项目补充」节中列出
-<!-- harness:end src=pancake/30-Tools/harness/docs/handbook/doc-review.md -->
+<!-- harness:end -->

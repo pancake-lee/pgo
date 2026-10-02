@@ -2,11 +2,11 @@
 
 > pgo 是个人 Go 代码库与脚手架项目（`pkg/` 日常封装 + 客户端/服务端框架能力），详见 `README.md`。
 
+<!-- harness:begin -->
 ## 全局行为约束
 
 以下规则适用于所有工作模式：
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/rules-a.md -->
 - **减少 Markdown 表格**：优先用列表（`-`）组织内容。仅当表格每行内容可控制在 80 字符以内时才用表格（如 `docs/backlog.md` 的任务总览表）。宽表格在编辑器中阅读体验差
 - **Mermaid 流程图方向**：默认 `flowchart TD`（向下）。当图中某一级存在超过 6 个平级节点时改用 `flowchart LR`（向右），让同级节点纵向排列获得更宽展示空间
 - **方案选择**：存在多个可行方案时，先列出方案（含核心利弊）让用户选择，不要自行决定
@@ -14,9 +14,7 @@
 - **规划任务落点**：方案、子任务和实施步骤必须写入 `docs/backlog.md` 对应条目，作为 Plan → Generate 的唯一交接载体；不创建独立任务计划文档或 exec plan
 - **轻量方案载体**：少于 100 行的设计直接写入 `docs/backlog.md` 对应条目的「方案」字段，不创建独立设计文档；仅需长期保留且超过该规模的设计才写入 `docs/design/`
 - **避免上下文爆炸**：一次只聚焦一个具体问题，先读取最小必要代码，分析并解决后再继续
-<!-- harness:end src=pancake/30-Tools/harness/common/rules-a.md -->
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/rules-b.md -->
 - **不要滥用 try catch** 处理代码问题，要真正解决代码错误的根源
 - **根因优先**：本项目体量较小，遇到问题优先找根因并直接修复，而不是叠加容错/降级逻辑。典型反例：配置缺失时应直接指引用户补配置，而非加"配置不可用时的容错分支"
 - **配置文件读取**：调试配置相关问题时，可以读取 `.local/` 下的用户本地配置文件。但绝不能将隐私数据（API Key、密码等）写入会被提交到仓库的文件（config 模板中的占位符除外）
@@ -28,13 +26,11 @@
 - **主动沟通**：发现阻塞性问题时，积极向用户说明情况并给出选择（如"方案 A：我加容错自动降级；方案 B：你补充配置，我给你具体指引"）。不要把问题默默记入 backlog 等用户自己发现
 - **协作规则双文件一致**：`CLAUDE.md` 与 `AGENTS.md` 是 Codex 和 Claude 工作流共同使用的项目规则，项目专有内容应保持一致；新增规则、索引和流程说明也应同时维护两份文件
 - **专题中枢文档**：当一个需求及其衍生需求跨越了多个提交、多次修改、多个文档记录时，应编写一份中枢文档（`docs/design/YYYY-MM-DD-<序号>-<topic>-hub.md`）集中串联所有关联产物。中枢文档包含：关联文档索引（设计/评估/backlog/提交）、完整时间线、各项完成度、下一轮建议。所有被关联的文档应在顶部反向链接到中枢文档，形成有顺序的链条。每次经过一轮评估/规划/生成后更新中枢文档
-<!-- harness:end src=pancake/30-Tools/harness/common/rules-b.md -->
 
 ---
 
 ## 工作模式
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/work-modes.md -->
 AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-modes.md` 中对应模式的完整流程执行。
 
 - **评估模式** — 触发：`评估`、`评估一下`、`打分`、`检查质量`
@@ -57,7 +53,6 @@ AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-mo
 **模式间交接**：通过 backlog 条目结构化字段（状态 / 背景 / 方案 / 分析 / 验收）传递信息。用户使用 `/clear` 清空上下文后切换角色，AI 读取 backlog + 相关文档即可继续工作。`WIP` 只表示 AI 正在开发或自动验证，不得用于等待用户；仅剩真实环境判断时改为 `待用户验收`，写明 `（用户）` 操作、预期、最小回传和 AI 自动验证结果。验证流单向：交付人工验收前，AI 必须先穷尽自身可执行的自动验证（回归测试、脚本、Trace/日志自查），`（用户）` 操作仅限 AI 无法自动执行的最后一环；用户确认验收成功后，AI 在同一轮直接改为 `Done`，不反向核验用户的结论。无用户操作的任务由 AI 自动验证后直接关单。
 
 **详细流程 + 路由规则 + 设计原则**：见 `docs/handbook/work-modes.md`。
-<!-- harness:end src=pancake/30-Tools/harness/common/work-modes.md -->
 
 ---
 
@@ -65,7 +60,6 @@ AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-mo
 
 冲突时，优先以高层文档为准。修改时间更新者优先。
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/doc-levels.md -->
 - **L1** `CLAUDE.md` / `AGENTS.md` — 全局协作规则、文档索引、工作模式触发，两份文件内容保持一致。禁区：产品需求、技术细节、任务进度
 - **L1.5** `docs/handbook/work-modes.md` — 工作模式的完整流程、路由规则、handoff 协议
 - **L1.5** `docs/handbook/eval-guide.md` — 评估模式操作指南（评分维度、检查流程、工具使用）
@@ -83,8 +77,8 @@ AI 根据触发词自动切换模式。触发后，读取 `docs/handbook/work-mo
 
 > 项目专属文档层级（如 `docs/note.md`、`docs/reference.md`、`docs/ui-rules.md` 等）在下方「本项目附加层级」小节中补充，编号沿用对应 L 层。
 >
-> 文件名、各文档的最小结构、backlog 状态与归档规则以 `pancake/30-Tools/harness/common/document-governance.md` 为准。`docs/changelog.md` 不是标准文档：版本完成后写入 `docs/archive/vX.Y.Z.md`，不要新建或保留独立 changelog。
-<!-- harness:end src=pancake/30-Tools/harness/common/doc-levels.md -->
+> 文件名、各文档的最小结构、backlog 状态与归档规则以文档治理规范为准。`docs/changelog.md` 不是标准文档：版本完成后写入 `docs/archive/vX.Y.Z.md`，不要新建或保留独立 changelog。
+<!-- harness:end -->
 
 ### 本项目附加层级
 

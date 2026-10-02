@@ -17,6 +17,7 @@
 | Done | CLI 交互 | 27 | CI/CD 参数确认与批量跳过 | |
 | 待用户验收 | 可观测性 | 28 | Alloy、Pyroscope 与受控运行时诊断 | |
 | Done | 性能基线 | 29 | 登录场景逐级加压与负载结果记录 | |
+| Done | 性能基线 | 30 | 性能框架与登录场景解耦 | |
 
 ---
 
@@ -151,6 +152,29 @@
   - performance 包不再维护 services 清单模型、解析或 URL 拼装，只读取公共结果中的 API URL，负载行为和产物不回归。
   - 定向竞态测试、部署清单一致性测试、`make test`、`go vet ./...`、`make build` 与 CLI help 检查通过，测试结束后无进程遗留。
 - **实施与验证**：导航页清单解析已迁入 `cmd/pgo/common`，公共固定字段覆盖九个组件 URL，并与页面统一采用 `webPath` 优先规则。performance 本地 services 实现与解析测试已删除，只读取公共结果的 API URL；单一 `Prepare` 能力统一以 `preparer` 命名，本仓库 Harness 已记录窄接口按能力命名规则。压测配置已删除无意义的登录包装层，API URL 归入通用负载配置，固定时长、超时和 Vegeta 路径直接使用内部常量，登录专属产物名归入准备器；外部命令执行复用 `pkg/putil` 的 context 与流式输出入口。压测执行器在构造时注入 Kratos Logger，后续调用只传业务参数；Vegeta 标准错误由进程适配器捕获并包装为错误。公共包、performance、登录场景与部署清单定向竞态测试、`make test`（含 `go vet ./...`）、`make build` 和 CLI help 检查通过，无本轮测试进程遗留。
+
+### 30. 性能框架与登录场景解耦
+
+- **专题中枢**：[登录性能测试闭环](design/2026-09-30-01-login-performance-hub.md)
+- **状态**：Done
+- **背景**：`cmd/pgo/performance` 同时承担 Vegeta 单档负载、自动升压、登录场景准备、Cobra 命令和交互入口。登录专属代码散落在通用包中，使单档负载与自动升压难以被其他场景复用。
+- **分析**：Go 包不允许 `performance` 与其 `login` 子包相互导入。采用全局场景注册时，依赖方向固定为 login 依赖 performance；CLI 组合根只负责引入场景包以触发注册，performance 不反向依赖 login。注册表只在程序初始化期写入，运行期仅读，避免将它扩大为通用的动态插件系统。
+- **方案**：将 performance 收口为通用性能测试框架，仅保留场景注册、单档 Vegeta 负载、通用自动升压与负载结果记录。场景通过紧凑的准备契约向单档执行器提供 targets 和清理动作，自动升压通过单档执行回调复用同一条执行链。login 包负责登录命令、交互入口、用户准备与清理、默认阶梯选择及登录汇总文案，并在初始化期将场景注册到 performance。
+- **任务列表**：
+  - 定义初始化期使用的场景注册契约，由 performance 统一生成 Cobra 根命令和交互菜单，并对重复或无效注册立即失败。
+  - 将登录命令、交互入口与负载准备迁入 `cmd/pgo/performance/login/command.go`，登录包内继续复用现有用户批次能力。
+  - 将 `automation.go` 改为与场景无关的固定阶梯执行和结果记录，每个档位回调 performance 的单档压测，不在通用包中保留登录命名或登录文案。
+  - 将默认 RPS 阶梯、单档/自动模式选择和登录汇总内容收回 login 包，通过框架契约调用通用自动升压。
+  - 调整 CLI 组合根对 login 场景的初始化引入，同步迁移测试到各自责任包，覆盖注册、单档复用、阶梯停止、失败清理和既有 CLI 行为。
+  - 运行 performance/login 定向竞态测试、全仓测试、静态检查和构建，并检查无测试或 Vegeta 进程遗留。
+- **验收**：
+  - `cmd/pgo/performance` 不再包含登录命令、登录交互、用户准备或登录专属的自动化文案，`cmd/pgo/performance/login` 是登录场景的唯一实现位置。
+  - 单档压测只负责一次场景准备、Vegeta 预热、正式负载、报告生成与清理；自动升压仅组织档位并通过该单档入口执行。
+  - performance 与 login 之间无循环依赖，注册表只在初始化阶段变更，重复场景标识不会静默覆盖。
+  - `pgo performance login <portal-url> [--rps]` 与现有交互菜单行为保持不变，单档及自动阶梯的产物、失败停止和清理行为不回归。
+  - 定向竞态测试、`make test`、`go vet ./...`、`make build` 和 CLI help 检查通过，验证结束后无相关进程遗留。
+- **实施与验证**：performance 已收口为初始化期场景注册、单档 Vegeta 执行和通用自动升压；注册表拒绝缺失字段和重复标识。login 通过初始化注册提供 Cobra 命令与交互入口，并在 `command.go` 内统一管理导航服务发现、RPS 模式、默认阶梯、用户准备清理和登录汇总文案。自动升压通过单档回调复用同一执行链，通用包不再包含登录符号或文案；CLI 组合根仅匿名引入 login 以触发注册。场景注册、单档产物与清理、阶梯回调、执行失败和非 100% 成功率停止、登录准备清理与 CLI 契约均有回归测试。`go test -race ./cmd/pgo/performance/... ./cmd/pgo`、`make test`（含 `go vet ./...`）、`make build` 及 performance/login help 检查通过，结束后无 Go 测试、pgo performance 或 Vegeta 进程遗留。
+- **可读性整理**：2026-10-02 将 performance/login 生产代码与测试统一限制为 80 字符行宽，拆分 `if` 初始化语句，并按校验、准备、执行、结果与清理阶段留白。函数声明在仅返回部分导致超长时保留同行参数；函数调用可容纳时完整单行，否则从左括号后换行，每个实参独占一行。定向竞态测试、`make test`（含 `go vet ./...`）与 `make build` 通过。
 
 ### 28. Alloy、Pyroscope 与受控运行时诊断
 

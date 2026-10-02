@@ -16,7 +16,7 @@ flowchart TD
 ```
 
 - 工作模式由 `CLAUDE.md` / `AGENTS.md` 的触发词路由，完整流程见 `handbook/work-modes.md`。
-- `docs/backlog.md` 是 Plan → Generate 和 Eval → Plan 的唯一交接载体；状态和表头遵循中央文档治理规范。
+- `docs/backlog.md` 是 Plan → Generate 和 Eval → Plan 的唯一交接载体；状态和表头遵循现行文档治理约定。
 - 单一专题历经多轮循环且关联物分散时，在 `docs/design/` 建立 `*-hub.md` 串联。
 
 ## 2. 验证与可观测性
