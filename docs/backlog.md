@@ -8,7 +8,7 @@
 
 | 状态 | 分组 | 编号 | 任务 | 评估 |
 | ---- | ---- | ---- | ---- | ---- |
-| Done | 性能基线 | 23 | 多用户注册与登录的 HTTP 压测及观测闭环 | |
+| Done | 性能基线 | 23 | 多用户注册与登录的 HTTP 负载闭环 | |
 | 暂缓 | 代码生成 | 16 | genCURD 支持多主键表 | |
 | 待规划 | 测试基础设施 | 22 | 外部客户端缺少可注入依赖与离线契约测试 | |
 | Done | 部署体验 | 24 | Docker Compose 网页组件统一入口 | |
@@ -16,50 +16,24 @@
 | Done | 代码生成 | 26 | genCURD 嵌套执行 make api 遗漏新生成 Proto | |
 | Done | CLI 交互 | 27 | CI/CD 参数确认与批量跳过 | |
 | 待用户验收 | 可观测性 | 28 | Alloy、Pyroscope 与受控运行时诊断 | |
-| 待用户验收 | 性能基线 | 29 | 登录场景逐级加压与监控验证自动化 | |
+| Done | 性能基线 | 29 | 登录场景逐级加压与负载结果记录 | |
 
 ---
 
 ## 详细说明
 
-### 23. 多用户注册与登录的 HTTP 压测及观测闭环
+### 23. 多用户注册与登录的 HTTP 负载闭环
 
 - **专题中枢**：[登录性能测试闭环](design/2026-09-30-01-login-performance-hub.md)
 - **状态**：Done
-- **背景**：`POST /user/token` 当前同时承担首次用户名注册和已有用户登录。现有 `TestUserService` 直接调用 Service，只覆盖单用户业务正确性，没有经过 HTTP、鉴权、请求中间件和真实并发，也缺少可重复的数据批次、数据库观测与实验记录。当前先模拟大量用户注册和登录，建立从业务行为、负载、指标到问题定位的第一条闭环；用户继续使用其他业务功能的场景待本任务完成后再按顺序规划。
-- **分析**：HTTP 中间件已经提供请求量、错误率和延迟指标，诊断端口已经提供 Go 运行时、进程指标与 pprof；MySQL 用户名已有唯一索引。当前缺口是有状态场景驱动、独立清理、数据库查询耗时和连接池指标。首轮只记录实际现象，不预设瓶颈位于 Go、MySQL、连接池或网络。
-- **方案**：增加面向本地实验的专用 Go 场景工具，通过 Swagger SDK 调用真实 `/user/token` 接口，创建带批次标识的用户并保存用户 ID、用户名和 token 清单；清理时使用批次清单和 SDK 提供的受鉴权用户删除接口，不直接写 SQL。场景工具负责注册、响应取值和清理等有状态流程，固定登录负载使用仓库外安装的 `vegeta v12.13.0`，不加入 `go.mod`。在现有 Prometheus 诊断端口补充通用的数据库查询耗时与连接池状态指标，实验期间同时采集 HTTP RED 指标、Go 运行时、进程资源和 pprof。基线记录保存到 `docs/eval/performance/`，只提交参数、摘要、结论和必要图表，不提交 token、真实配置、大体积原始结果或 profile。
-- **第二阶段方案**：在 `pgo` 一级菜单增加可扩展的 `performance` 入口，首个场景为 `performance login`。现有 `user-load` 不再作为独立 tools 子项或公开命令，用户准备、正确性验证、目标生成和批次清理代码迁入登录性能场景，成为一次自动化运行的内部阶段。`performance login` 接收 API 地址、diagnostics/pprof 地址、用户数量、注册并发、RPS、预热与持续时间、请求超时和输出目录，一次执行完整闭环。负载继续调用固定版本的外部 Vegeta CLI，不把 Vegeta 加入 `go.mod`；代码调用处增加明确注释，记录未来可评估改用 Vegeta Go 包内嵌执行。正式负载运行期间由 Go 统一协调 metrics、CPU、heap 和 goroutine 采集，任一阶段失败时停止本次负载、保留已有诊断产物，并按批次清单尝试清理。输出目录同时保存原始数据和面向阅读的摘要，命令结束时逐项打印文件路径、内容与用途。
-- **固定实验条件**：
-  - 用户数据分为 100、1,000、10,000 三档；用户名使用随机批次 ID 前缀，清单写入被 Git 忽略的本地结果目录，重复运行不得碰触非本批次数据。
-  - 注册阶段由场景工具控制并发，记录成功数、失败数和端到端耗时；登录阶段只使用已注册用户，分别以 10、50、100 RPS 持续 60 秒，正式采样前预热 10 秒。
-  - 每轮固定代码提交、配置摘要、Go/MySQL/vegeta 版本、批次 ID、用户数、并发、RPS、持续时间、超时及开始结束时间；敏感配置仅记录是否就绪，不记录值。
-  - 每轮结束后校验成功响应中的用户身份和 token 可用性，再清理该批次；失败或中断后可凭清单幂等重试清理。
-- **任务列表**：
-  - 建立场景工具的 `prepare`、`verify`、`cleanup` 入口；`prepare` 通过 `/user/token` 注册用户并生成本地批次清单，`verify` 重放登录并检查用户身份与 token，`cleanup` 通过现有 HTTP 删除接口精确删除批次用户。
-  - 为场景工具增加离线 HTTP 假服务测试，覆盖批次命名、响应解析、并发错误汇总、清单恢复和幂等清理；保留现有 MySQL 集成测试作为业务层回归。
-  - 增加数据库查询耗时直方图与连接池打开、使用中、空闲、等待次数和等待时长指标；标签保持低基数，不记录 SQL、用户名、用户 ID 或批次 ID。
-  - 提供 `vegeta v12.13.0` 的安装与版本校验说明、登录目标生成入口，以及预热和 10/50/100 RPS 分档命令；目标和结果写入本地结果目录。
-  - 以小档数据先验证 HTTP、鉴权、指标和清理闭环，再依次执行三档数据与阶梯负载；采集 CPU、heap、goroutine profile，并按同一模板记录吞吐、错误率、延迟分位数、资源和数据库指标。
-  - 只在证据能够定位问题后新增修复子任务；修复前后使用相同数据批次规格与负载参数复测，并重新验证注册、登录及清理结果。
-  - 移除根命令中的 `user-load` 注册，将 `cmd/pgo/tools/userload/` 的批次模型、HTTP 操作和测试迁入 `performance login` 模块；不保留 `prepare`、`verify`、`targets`、`cleanup` 四个公开子命令，相关能力只作为登录压测内部阶段使用。
-  - 复用 diagnostics 的底层下载能力，但不从 `performance login` 嵌套调用 Cobra 命令；一级 `performance` 只注册场景，登录子命令负责本场景的参数与编排。
-  - 增加 Vegeta 可执行文件和版本预检，通过受控子进程执行预热、正式负载和原始报告；调用处注释说明未来可替换为 Vegeta Go 包，但本阶段不增加该依赖。
-  - 在正式负载窗口内协调指标采样和 CPU、heap、goroutine profile：CPU 持续采样，heap 与 goroutine 在负载期间取快照；确保命令退出前等待或终止所有子进程和 goroutine。
-  - 设计单一输出目录结构，保存运行参数、批次清单、Vegeta 原始结果与报告、metrics 原始快照、三个 profile 和综合摘要；摘要解释吞吐、成功率、延迟分位数、HTTP、Go 运行时、进程、数据库和连接池指标的含义，并标记缺失或采集失败项。
-  - 增加离线编排测试，使用假 HTTP 服务和可注入的 Vegeta 命令执行器覆盖成功流程、负载失败、采集失败、取消、清理和无遗留进程；同步 README 与基线文档，删除独立 `user-load` 命令说明，统一展示 `performance login` 自动化入口及其内部阶段。
+- **背景**：`POST /user/token` 同时承担首次注册和已有用户登录，原有测试只直接调用 Service，未覆盖真实 HTTP、鉴权与并发负载。
+- **方案**：通过真实 HTTP 创建带批次标识的测试用户，验证身份和 token 后生成 Vegeta targets；使用固定版本 Vegeta 预热并制造登录负载，保存批次清单、原始结果和文本报告，最后通过受鉴权接口精确清理本批次用户。服务指标与 profiling 由 Grafana、Pyroscope 独立承担。
 - **验收**：
-  - 用户数量、准备并发和 RPS 可通过参数调整；代表性真实运行可通过 HTTP 创建、验证和精确清理批次用户，失败批次可凭清单恢复清理，且不影响非本批次数据。
-  - 无 token 和无效 token 的受保护请求被拒绝；注册返回的 token 能调用受保护接口；登录响应中的用户身份与请求目标一致。
-  - 10、50、100 RPS 登录实验可由固定命令复现，结果包含实际吞吐、成功率、P50/P95/P99、CPU、内存、goroutine、数据库查询耗时与连接池状态。
-  - CPU、heap、goroutine profile 均能在负载采样窗口获取；服务和负载命令以前台或限时方式执行，结束后无遗留进程。
-  - 单次 `pgo performance login` 可根据参数完成完整闭环；结束输出列出全部产物及其意义，综合摘要无需手工拼接即可阅读本轮条件、结果和关键指标含义。
-  - `performance` 可继续注册其他独立压测场景，登录场景的用户准备与结果解析不会成为其他场景的公共前提。
-  - `GOTOOLCHAIN=local make test`、场景工具离线测试和现有 userService 集成测试通过；基线记录说明环境、步骤、观察、证据和阶段性结论，不包含敏感信息。
-- **后续边界**：本任务只建立注册与登录闭环。完成后再从部门与职位、项目成员、角色权限等真实业务中选择一个场景，沿用同一套批次、负载和观测方法；当前不并行建立这些后续任务。
-- **实施与验证**：第一阶段建立了用户批次、diagnostics 和数据库指标能力。第二阶段将批次逻辑迁入 `cmd/pgo/tools/performance/login/`，移除公开 `user-load` 命令，新增非交互式 `pgo performance login`，并在 `pgo` 顶层交互菜单增加“性能测试 → 用户登录压测”；两种入口调用同一 runner，交互参数使用现有缓存机制。程序统一编排固定版本 Vegeta CLI、metrics、CPU/heap/goroutine profile、摘要生成和失败清理；外部 Vegeta 调用处保留未来改用 Go 包的注释。控制流量关闭 HTTP keep-alive，避免旧服务未声明关闭连接时产生交替 EOF；Vegeta 被测流量保持默认连接行为。输出目录保存 11 类程序产物，文件名按阶段使用 `00–40` 编号并与 `docs/eval/performance/user-login/` 样例一致，shell `>` 可另存 CLI 自身输出；终端先单独打印输出目录，随后只打印文件名与用途，避免重复父目录。离线假服务覆盖完整编排与清理，定向竞态测试、全仓测试、`go vet`、构建和 CLI help 检查通过。
-- **真实验证**：2026-09-30 使用 API `192.168.3.18:20000`、pprof `192.168.3.18:20002`、100 用户、准备并发 10、10 RPS、预热 10 秒和正式负载 60 秒完成闭环。600 个请求全部返回 200，吞吐 10.01 RPS，P50/P95/P99 为 13.846/21.343/32.698 ms；服务端登录平均 1.038 ms，数据库查询平均 731 µs，连接等待 0，goroutine 为 28→28。CPU、heap、goroutine profile、负载前后 metrics、Vegeta 原始结果与精简摘要均生成，批次用户清理完成，无 Vegeta 或 performance 进程遗留。
-- **后续实验**：1,000/10,000 用户和 50/100 RPS 属于使用本工具扩展性能基线的后续实验档位，不阻塞自动化能力关单；每档使用独立输出目录并保留相同参数记录。
+  - 登录场景能够创建、验证和精确清理测试用户，失败或中断时仍尝试清理已创建数据。
+  - Vegeta 负载经过真实 HTTP 和鉴权链路，保存请求数、吞吐、成功率与 P50/P95/P99。
+  - 测试用户数据和 token 只写入被 Git 忽略的本地结果目录，不影响非本批次数据。
+  - 场景离线测试、全仓测试、静态检查和构建通过，结束后无 Vegeta 或 performance 进程遗留。
+- **实施与验证**：登录批次准备、身份验证、targets 生成、Vegeta 调用、结果保存与失败清理已集成到 `pgo performance login`。真实环境已完成 100 用户、10 RPS、60 秒验证，600 个请求全部成功，批次用户清理完成。后续固定阶梯与纯负载侧汇总由任务 29 维护。
 
 ### 16. genCURD 支持多主键表
 
@@ -75,7 +49,7 @@
 
 ### 22. 外部客户端缺少可注入依赖与离线契约测试
 
-- **状态**：待规划
+- **状态**：WIP
 - **背景**：任务 18 采用测试标签先恢复默认离线门禁。`papitable`、`predis`、`pweixin` 等客户端仍主要通过全局配置和真实连接初始化，无法充分覆盖请求构造、错误转换与响应解析等离线行为。
 - **严重程度**：中。
 - **关联**：任务 18 的后续演进；暂不纳入当前隔离改造范围。
@@ -156,70 +130,48 @@
   - Cobra 非交互调用、参数名、缓存键和 CI/CD 后续执行行为保持不变；定向测试、`GOTOOLCHAIN=local make test` 和 `GOTOOLCHAIN=local make build` 通过。
 - **实施与验证**：`pkg/pclient` 先合并默认值与缓存值，统一输出参数摘要并提供默认为是的批量确认；选择修改时仍按原顺序逐项输入，只缓存相对当前有效值的变化。Make 变量、Init Project 与 CD SSH 参数共用该流程，SSH 密码摘要仅显示“set/not set”。离线测试覆盖回车与 `y` 跳过、`n` 后编辑、缓存优先级、变更缓存和密码脱敏；`go test ./pkg/pclient ./cmd/pgo/devops`、`make test` 和 `make build` 均通过。
 
-### 29. 登录场景逐级加压与监控验证自动化
+### 29. 登录场景逐级加压与负载结果记录
 
 - **专题中枢**：[登录性能测试闭环](design/2026-09-30-01-login-performance-hub.md)
-- **状态**：待用户验收
-- **背景**：全新部署环境需要从低负载开始逐步提高登录请求压力，并在每档负载后核对 HTTP、数据库、Go runtime、CPU、heap、goroutine、block、mutex 等观测数据。现有 `pgo performance login` 已能自动完成单档测试、诊断采集、报告生成和测试用户清理，但尚未提供多档连续执行、档间停机判断和跨档结果汇总。仓库中的组件导航页已经包含 Pyroscope `:24040` 入口及对应部署映射和静态回归检查；若部署页面未显示，需要先确认宿主机 portal 文件是否更新及浏览器缓存，而不是重复添加入口。
-- **分析**：当前 `performance.go` 同时承担 CLI 参数、登录场景、外部进程、观测采集、报告和整个生命周期，继续直接叠加自动档位会让单档逻辑与多档循环相互嵌套。用户确认采用内置档位，避免暴露大量不常用的阶梯配置。单档与自动模式应共享同一个执行单元，自动模式只决定档位顺序、停止条件和结果汇总，不复制登录业务或诊断采集代码。
-- **方案**：将性能测试整理为三个明确层级。通用执行层承载场景无关的负载参数、Vegeta 执行、metrics/profile 采集、单档产物和结果模型；登录场景层只负责测试用户准备、身份验证、登录 targets 与精确清理；自动编排层在通用单档执行单元之上按 `10、25、50、100、200、500 RPS` 依次运行，并生成跨档摘要。CLI 保持 `performance login` 一个入口，`--rps <正整数>` 运行单档，`--rps auto` 进入内置阶梯模式，不增加起始值、步长或上限参数。自动模式每档使用独立子目录，任一档发生执行错误或出现非成功响应时停止后续升压，保留全部已完成档位及失败档位的现有产物，并始终执行登录测试用户清理。单档模式的参数语义和产物保持兼容；公共抽象只覆盖当前已经由登录场景验证的负载与观测生命周期，不提前抽象未知业务模型。导航页继续使用现有 Pyroscope `:24040` 卡片，补强部署文件与页面一致性检查及使用说明，不重复增加入口。
+- **状态**：Done
+- **背景**：`pgo performance login` 已完成纯负载职责收口，但导航页 `services.json` 的下载、校验和 URL 组合仍位于 performance 包，并且解析结果只暴露 API URL。这段能力描述的是整个 Compose 导航入口，不属于单一性能场景。
+- **分析**：导航页清单是 CLI 公共基础信息。公共解析结果应与当前清单中的固定组件保持一致，集中生成 API、diagnostics、RabbitMQ、Swagger、Prometheus、Grafana、Pyroscope、Alloy 和 cAdvisor 的访问 URL；performance 只是其中一个调用方，只读取 API URL。组件 URL 采用导航页相同规则，以导航页协议和主机名组合端口，并优先使用 `webPath`，否则使用 `path`。
+- **方案**：将服务清单模型、导航页 URL 校验、HTTP 获取、严格 JSON 解析、字段校验和组件 URL 组合整体迁移到 `cmd/pgo/common`。公共结果使用已选择的固定字段结构，对外提供当前九个组件的 URL。解析时要求九个稳定 ID 全部存在，拒绝重复 ID、非法端口、非法路径、未知字段和尾随 JSON；清单仍可包含展示名称与说明，但公共调用方只依赖生成后的 URL。performance 删除本地 services 实现与测试，通过公共入口取得结果并只消费 API URL，其负载、结果与观测职责边界不变。
 - **任务列表**：
-  - 拆分现有性能测试代码，将公共配置、外部负载执行、观测采集、产物输出和报告模型从登录场景中分离；保持依赖可注入，便于离线编排测试。
-  - 将用户准备、身份验证、targets 生成和批次清理收敛到登录场景层，并通过场景接口接入通用单档执行生命周期。
-  - 增加独立的自动编排层，内置 `10、25、50、100、200、500 RPS` 档位；为每档创建稳定命名的子目录，串行执行并在失败时停止，同时生成机器可读与可阅读的跨档汇总。
-  - 调整 `--rps` 参数解析，使正整数保持单档模式，`auto` 启用阶梯模式；交互入口提供单档或自动模式选择，但不向用户暴露阶梯细节参数。
-  - 从 Vegeta 原始结果或报告中取得请求总数、成功率和延迟分位数，供单档结果及跨档汇总稳定读取；只按执行错误和非成功响应停止，不在建立新基线前预设 P95/P99 阈值。
-  - 保持每档 metrics、CPU、heap、goroutine、block、mutex 和可选 trace 的采集语义；Pyroscope 查询严格使用各档负载窗口，避免跨档 profile 混合。
-  - 增加单档兼容、完整自动阶梯、中途失败停止、取消、清理、目录隔离、汇总内容及无遗留子进程的离线测试；运行竞态测试、全仓测试、静态检查和构建。
-  - 更新登录性能基线、CLI 帮助与专题中枢，说明两种模式、固定档位、停止条件、产物结构及逐档监控查看方式；核对导航页 Pyroscope 入口、部署映射和回归检查保持一致。
+  - 在 `cmd/pgo/common` 建立导航服务清单解析工具和固定字段结果，覆盖当前 `services.json` 的九个组件。
+  - 使用与导航页一致的 `webPath` 优先规则生成组件 URL，并覆盖带路径的导航页地址、IPv4、IPv6、HTTP 与 HTTPS。
+  - 将清单下载状态码、响应体限制、严格 JSON 解析、重复 ID、完整组件、端口和路径校验迁入公共包。
+  - 删除 `cmd/pgo/performance/services.go` 及其包内测试，调整 performance 只调用公共解析入口并读取 API URL。
+  - 更新 README 与专题中枢中的公共服务发现说明，避免把 `services.json` 描述成 performance 专属协议。
+  - 运行公共包和 performance 定向竞态测试、部署清单一致性测试、全仓测试、静态检查和构建。
 - **验收**：
-  - `pgo performance login --rps 50` 只运行一个 50 RPS 档位，原有公共参数、自动诊断、失败清理和单档产物语义不回归。
-  - `pgo performance login --rps auto` 无需额外阶梯参数，按 `10、25、50、100、200、500 RPS` 串行执行；每档都有隔离的运行参数、负载结果、metrics、profiles 和摘要。
-  - 自动模式生成跨档汇总，可直接比较各档请求数、实际吞吐、成功率、P50/P95/P99、服务和数据库耗时、连接等待、CPU、内存及 goroutine 边界。
-  - 某档发生工具、负载、观测或请求失败时不再进入更高档位，错误明确指出失败档位；已经生成的产物不被覆盖，测试用户仍被精确清理。
-  - 通用执行层不依赖登录用户模型；登录层不负责阶梯循环；自动编排层通过同一单档入口执行，不复制负载、诊断或清理实现。
-  - 导航页保留且只保留一个 Pyroscope `:24040` 入口，部署映射与静态测试能够防止入口遗漏；真实环境强制刷新后可从导航页打开 Pyroscope。
-  - 定向测试、竞态测试、`make test`、`go vet ./...`、`make build` 和 CLI help 检查通过；测试和构建结束后无性能工具或外部压测进程遗留。
-- **实施与验证**：性能配置已拆分为通用负载参数和登录专用参数；通用 runner 通过场景接口接收 targets 与清理回调，登录场景独立负责用户批次、鉴权验证、targets 和清理，自动编排独立负责固定档位、目录隔离、失败停止与跨档汇总。`--rps` 接受正整数或 `auto`，自动模式依次运行 `10、25、50、100、200、500 RPS`，每档复用同一单档生命周期并保存完整诊断产物；根目录增加机器可读结果和两组跨档对比。离线测试覆盖单档兼容、完整六档、中途执行失败、非成功响应停止、产物隔离与用户清理。`go test -race ./cmd/pgo/performance ./cmd/pgo/performance/login`、`go test -race ./...`、`make test`（含 `go vet ./...`）、`make build`、CLI help 和非法 RPS 预检均通过；部署回归测试继续锁定唯一 Pyroscope 导航入口和 `:24040` 端口。
-- **（用户）验收操作**：确认部署机的 `vegeta v12.13.0` 与 `profilecli v2.2.0` 可执行后，在仓库根目录运行 `./bin/pgo performance login --rps auto --output .local/performance/login-auto`。
-- **预期结果**：命令从 10 RPS 开始逐档运行，成功时完成到 500 RPS；根目录生成 `40-auto-results.json` 和 `41-auto-summary.md`，各 `rps-*` 子目录包含单档负载、metrics 与 profiles，所有测试用户均被清理。若某档失败，命令明确报告该档并停止更高档位，同时保留已有产物并完成清理。
-- **最小回传**：成功时回复“29 已通过”；失败时回传终端首个错误和失败档位的 `40-summary.md`。
-- **AI 自动验证**：定向与全仓竞态测试、全仓测试、静态检查、构建和 CLI 参数检查均通过；没有启动真实部署环境负载，无测试进程遗留。
-- **关单方式**：用户回复确认后，同一轮将任务 29 更新为 `Done` 并注明确认日期，不追加核验。
+  - 公共解析结果对外提供 API、diagnostics、RabbitMQ、Swagger、Prometheus、Grafana、Pyroscope、Alloy 和 cAdvisor URL，结果与导航页实际链接一致。
+  - diagnostics URL 使用 `webPath` 指向 heap 页面，其余组件在没有 `webPath` 时使用 `path`。
+  - 缺少任一固定组件、ID 重复、端口或路径非法、未知字段、尾随 JSON 及非成功 HTTP 响应均返回可定位错误。
+  - performance 包不再维护 services 清单模型、解析或 URL 拼装，只读取公共结果中的 API URL，负载行为和产物不回归。
+  - 定向竞态测试、部署清单一致性测试、`make test`、`go vet ./...`、`make build` 与 CLI help 检查通过，测试结束后无进程遗留。
+- **实施与验证**：导航页清单解析已迁入 `cmd/pgo/common`，公共固定字段覆盖九个组件 URL，并与页面统一采用 `webPath` 优先规则。performance 本地 services 实现与解析测试已删除，只读取公共结果的 API URL；单一 `Prepare` 能力统一以 `preparer` 命名，本仓库 Harness 已记录窄接口按能力命名规则。压测执行器在构造时注入 Kratos Logger，后续调用只传业务参数；Vegeta 标准错误由进程适配器捕获并包装为错误。公共包、performance、登录场景与部署清单定向竞态测试、`make test`（含 `go vet ./...`）、`make build` 和 CLI help 检查通过，无测试进程遗留。
 
 ### 28. Alloy、Pyroscope 与受控运行时诊断
 
 - **状态**：待用户验收
-- **背景**：当前诊断服务通过一个总开关暴露标准 pprof 全部端点，goroutine、block、mutex 和 runtime trace 没有开启时限；部署侧仍由已经停止维护的 Promtail 采集日志，尚未部署 Pyroscope，CPU 与 heap profile 只能由性能工具临时下载到本地，无法形成长期观测。
-- **分析**：CPU 和 heap 适合由 Alloy 从应用诊断端口持续拉取并写入 Pyroscope；goroutine、block、mutex 和 runtime trace 开销与敏感度更高，只应按需限时开放。Alloy 只负责抓取和转发，性能工具需要从 Pyroscope 查询负载时间窗才能获得可保存、可分析的 profile。Go 进程同一时间只能运行一个 CPU profile，因此默认模式应复用 Alloy 已采集的数据；仍保留直连 pprof 模式，用于没有部署观测栈或需要独立原始采样的开发环境。现有 Loki 数据源仍在，但 Promtail 的读取位置未持久化，且 Loki 配置中的实际存储路径与挂载目录不一致，日志链路需要随迁移一并验证和修正。
-- **方案**：保留 Prometheus 现有指标链路，在 Docker Compose 中增加单体 Pyroscope 和 Alloy。Alloy 替代 Promtail，复用现有日志文件挂载、解析规则与 Loki 写入目标，并持久化文件读取位置；同时只从应用诊断端口持续拉取 CPU 和 heap，写入 Pyroscope。Grafana 预置 Pyroscope 数据源，导航入口同步增加 Pyroscope 和 Alloy。应用侧不引入 Pyroscope SDK，诊断服务只长期提供 Alloy 所需的 CPU、heap 端点；CPU 使用 `net/http/pprof` 固定的默认 100 Hz，heap 未配置时沿用 Go runtime 默认采样值，配置文件提供正数时覆盖 heap、block、mutex 的 runtime 参数，非法值在启动阶段明确报错。goroutine、block、mutex 共用一个限时开启接口，请求必须指定不超过 60 秒的持续时间和需要开启的类型，到期后自动关闭 block、mutex runtime 采样并撤销对应 profile 访问；runtime trace 使用另一个直接返回采集结果的限时接口，请求持续时间不得超过 10 秒。并发开启同一种全局 profile 或 trace 时明确拒绝，服务退出时确保恢复关闭状态。性能测试工具保留完整自动化采集，默认通过固定版本的官方 `profilecli v2.2.0` 按负载起止时间和服务标签从 Pyroscope 导出 CPU、heap pprof，通过参数可切换为直接请求应用 pprof HTTP；两种模式都在负载窗口内自动调用受控接口采集 goroutine、block、mutex，并继续采集 metrics、保存负载结果和生成综合摘要。runtime trace 仅在显式参数开启时采集，避免默认影响性能基线。采集结果保持机器可读，为后续按阈值和 profile 特征增加自动问题判断保留稳定输入。直连 CPU 与 Alloy 抓取由诊断服务串行处理，性能工具限时等待或重试；超过等待上限时明确报告采集冲突，保留其他产物并完成业务清理。
+- **背景**：部署侧需要以持续、独立于压测命令的方式保存服务日志、Prometheus 指标和 CPU/heap profile，同时限制 goroutine、block、mutex 与 runtime trace 的开放时间。
+- **分析**：Grafana、Prometheus、Loki、Alloy 和 Pyroscope 是服务侧观测链路。它们应持续工作并按时间范围关联分析，不依赖 performance 命令触发或导出数据。
+- **方案**：保留 Prometheus 指标链路；在 Docker Compose 中由 Alloy 替代 Promtail，将文件日志写入 Loki，并持续拉取应用 CPU、heap profile 写入 Pyroscope；Grafana 预置对应数据源。应用诊断服务长期提供健康检查、metrics、CPU 和 heap，goroutine、block、mutex 通过最长 60 秒的受控接口按需开放，runtime trace 通过最长 10 秒的独立接口采集。该任务不向 performance 包提供采集、导出或报告职责。
 - **任务列表**：
-  - 收紧诊断服务的长期端点，只保留 metrics、健康检查、CPU 和 heap；CPU 沿用标准 handler 的 100 Hz，增加 heap、block、mutex 可选采样参数的启动校验与 runtime 设置。
-  - 增加 goroutine、block、mutex 的统一限时开启接口，固定最大 60 秒；覆盖类型校验、必填时长、到期关闭、重复开启、并发安全和服务停止清理。
-  - 增加独立 runtime trace 采集接口，固定最大 10 秒；以流式结果响应，并覆盖超时、客户端取消、并发冲突和自动停止。
-  - 在 Compose 中部署 Pyroscope 与 Alloy，用 Alloy 明确启用 CPU、heap 并关闭 goroutine、block、mutex 的周期抓取；为 Pyroscope 数据和 Alloy 状态配置持久化目录及健康依赖。
-  - 将 Promtail 日志发现、JSON 解析、时间戳和标签规则迁移为 Alloy 原生组件，删除 Promtail 服务与配置，修正 Loki 存储挂载，并验证已有日志可以从 Grafana Loki 数据源查询。
-  - 为 Grafana 预置 Pyroscope 数据源，同步导航页、部署文件映射、README 与可观测性说明，使 Grafana、Pyroscope、Alloy 和 Loki 的入口及职责可追溯。
-  - 为 `pgo performance login` 增加 profile 来源参数，默认校验并调用官方 `profilecli v2.2.0`，按本轮负载时间窗与服务标签导出 Pyroscope 中的 CPU、heap；直连模式沿用应用 pprof HTTP 获取 CPU、heap，且两种模式生成一致的产物结构和摘要输入。
-  - 让性能工具在负载窗口内自动开启 goroutine、block、mutex 并保存对应 profile；为 runtime trace 增加默认关闭的显式参数，启用时在 10 秒限制内采集，同时打印 Grafana、Pyroscope 和受控诊断接口指引。
-  - 保留 metrics、负载原始结果、业务校验、批次清理和综合摘要，明确记录 profile 来源、查询标签和采集时间窗；先稳定机器可读数据，不在本任务内预设未经基线验证的问题判断规则。
-  - 增加诊断处理器单元测试、两种 profile 来源的性能工具离线编排回归、`profilecli` 缺失或版本不符检查，以及部署配置静态检查；运行全仓测试、竞态测试、构建，并在真实 Compose 环境完成两种采集模式、Loki 日志与限时诊断验收。
+  - 验证 Alloy、Loki、Prometheus、Pyroscope 与 Grafana 的部署、持久化、数据源和导航入口。
+  - 验证 CPU、heap 持续采集以及 goroutine、block、mutex、runtime trace 的限时开放和自动恢复。
+  - 验证 Promtail 已移除，Alloy 可从持久化位置续读日志，Loki 存储目录权限正确。
+  - 运行诊断处理器测试、Compose 配置检查、全仓测试、竞态测试和构建。
 - **验收**：
-  - CPU 保持 `net/http/pprof` 默认 100 Hz；heap 未配置时沿用 runtime 默认值，heap、block、mutex 提供合法正数时覆盖生效，负数配置不能静默启动。
-  - Alloy 能持续采集且只采集 CPU、heap，Pyroscope 中可按服务和时间范围查询，两类 profile 不依赖性能工具运行。
-  - goroutine、block、mutex 未开启时不能读取；合法请求可在最多 60 秒内临时开放，到期、取消或服务停止后 block、mutex 均恢复关闭；同类型并发请求不会互相覆盖状态。
-  - runtime trace 必须携带合法时长且最长 10 秒，响应可由 `go tool trace` 读取；到期、取消或服务停止后不遗留采集状态，并发 trace 被明确拒绝。
-  - Promtail 已从 Compose 与部署文件中移除；Alloy 重启后从持久化位置续读日志，Grafana 中可通过 Loki 查询新日志，时间戳、应用标签和最终消息保持现有语义。
-  - Grafana 可连接 Prometheus、Loki 和 Pyroscope；导航页可进入 Grafana、Pyroscope 与 Alloy，相关服务重启后历史日志和 profile 数据仍保留。
-  - `pgo performance login` 默认通过 `profilecli v2.2.0` 导出负载时间窗内的 CPU、heap，通过参数可切换为直接请求 pprof HTTP；两种模式均自动保存 goroutine、block、mutex 和 metrics，并生成一致的综合摘要。
-  - 直连 CPU 与 Alloy 同时采集时不会产生无界等待或并发破坏；性能工具可在限定时间内取得采集权，或输出明确冲突原因并保留其他产物、完成清理。
-  - 默认执行不采集 runtime trace；显式开启后只采集一次不超过 10 秒的 trace，失败时保留其他已完成产物并继续执行清理。
-  - 结果参数和摘要明确记录 profile 来源、服务标签、采集起止时间及观测平台地址，产物可供后续规则化问题判断读取；负载、业务验证和批次清理不回归。
-  - 自动测试、竞态测试、Compose 配置检查和构建通过；真实部署验收后无本轮启动的采集或测试进程遗留。
-- **实施与验证**：诊断服务仅长期开放 CPU、heap，goroutine、block、mutex 通过最长 60 秒的租约开启，runtime trace 单次最长 10 秒；CPU handler 串行化，block、mutex 到期或服务停止时恢复关闭。Compose 新增 Pyroscope 2.2.0 与 Alloy 1.20.1，Promtail 已移除；Alloy 同时续读文件日志到 Loki，并只持续抓取 CPU、heap 到 Pyroscope，Grafana 数据源和导航入口已同步。`performance login` 默认使用 `profilecli v2.2.0` 导出负载时间窗的 CPU、heap，可切换 HTTP 直采；两种来源均自动保存 metrics、goroutine、block、mutex，可选采集 runtime trace，并记录观测地址与 profile 来源。定向竞态测试、全仓测试、`go vet`、全量构建、CLI help、Alloy 官方校验器、YAML 解析、profilecli 参数和 Pyroscope 启动参数检查均通过。当前执行环境没有宿主机 Docker 控制权，未启动任何部署服务。
-- **（用户）验收操作**：在宿主机进入更新后的 `deploy/docker/`，执行 `docker compose up -d loki pyroscope alloy grafana rocky9`；待容器稳定后运行一次默认来源的 `pgo performance login`，并在 Grafana Explore 中分别确认 Loki 有本轮应用日志、Pyroscope 有同一时间窗的 CPU/heap，输出目录含 CPU、heap、goroutine、block、mutex 文件。
-- **预期结果**：Alloy、Pyroscope、Loki、Grafana 与应用保持运行；Alloy 页面无配置错误，日志可查询，CPU/heap 可按 `service_name=pgo-app` 查询；性能命令完成负载、报告与用户清理，五类 profile 文件均非空。
-- **最小回传**：成功时回复“28 已通过”；失败时只需回传失败容器的 `docker compose logs --tail=100 <服务名>` 或性能命令的首个错误。
-- **AI 自动验证**：`go test -race ./pkg/papp ./cmd/pgo/performance ./cmd/pgo/tools/diagnostics`、`make test`、`go vet ./...`、`make build`、CLI help、Alloy 1.20.1 `fmt/validate`、YAML 解析、profilecli 2.2.0 参数和 Pyroscope 2.2.0 启动参数检查均通过；临时验证二进制已删除，无本轮进程遗留。
+  - Grafana 可连接 Prometheus、Loki 和 Pyroscope，服务重启后历史日志和 profile 数据仍保留。
+  - Alloy 持续采集 CPU、heap，Pyroscope 可按服务和时间范围查询，采集不依赖 performance 命令。
+  - goroutine、block、mutex 未开启时不可读取，合法租约到期、取消或服务停止后恢复关闭；runtime trace 最长 10 秒且并发冲突被明确拒绝。
+  - Promtail 已移除，Alloy 重启后续读日志，Grafana 可通过 Loki 查询带原有时间戳与应用标签的新日志。
+  - 自动测试、竞态测试、Compose 配置检查和构建通过，真实部署验收后无本轮启动的诊断进程遗留。
+- **实施与验证**：诊断服务、Compose、Alloy 日志与 profiling、Grafana 数据源和导航入口已完成代码侧实现与自动验证；Loki bind mount 权限问题已修正。当前只等待宿主机真实观测链路验收。
+- **（用户）验收操作**：在宿主机启动 `loki pyroscope alloy grafana rocky9`，在 Grafana Explore 中确认 Loki 有新日志、Prometheus 有服务指标、Pyroscope 有同一时间窗的 CPU/heap。
+- **预期结果**：全部观测服务稳定运行，日志、指标和 profile 可独立于 performance 命令查询。
+- **最小回传**：成功时回复“28 已通过”；失败时回传失败容器的 `docker compose logs --tail=100 <服务名>`。
+- **AI 自动验证**：诊断定向竞态测试、全仓测试、静态检查、构建、Compose 与 Alloy 配置检查均已通过；未启动宿主机部署服务。
 - **关单方式**：用户回复确认后，同一轮将任务 28 更新为 `Done` 并注明确认日期，不追加核验。
-- **验收修复**：2026-10-01 首次宿主机启动时，Loki 3.5.9 的非 root 用户无法在 bind mount 的 `/data/loki` 下创建 `rules`，导致 `ruler-storage` 初始化失败。Compose 已按当前 Prometheus、Grafana 的部署策略让 Loki 使用 `0:0`，数据仍写入原宿主机目录；回归检查锁定该运行用户，避免权限问题复发。

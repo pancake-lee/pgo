@@ -14,14 +14,29 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 		filepath.Join(projectRoot, "deploy", "docker", "docker-compose.yaml"))
 	portal := readDeploymentTestFile(t,
 		filepath.Join(projectRoot, "deploy", "docker", "portal", "index.html"))
+	serviceManifest := readDeploymentTestFile(t,
+		filepath.Join(projectRoot, "deploy", "docker", "portal", "services.json"))
+	var manifest struct {
+		Services []struct {
+			ID   string `json:"id"`
+			Port int    `json:"port"`
+		} `json:"services"`
+	}
+	if err := json.Unmarshal([]byte(serviceManifest), &manifest); err != nil {
+		t.Fatalf("parse portal services: %v", err)
+	}
+	if len(manifest.Services) != 9 {
+		t.Fatalf("portal services = %d, want 9", len(manifest.Services))
+	}
 
 	for _, expected := range []string{
 		"portal:",
 		"- \"20080:80\"",
 		"./portal:/usr/share/nginx/html:ro",
 		"window.location.hostname",
+		`fetch("./services.json"`,
 	} {
-		if !strings.Contains(compose+portal, expected) {
+		if !strings.Contains(compose+portal+serviceManifest, expected) {
 			t.Errorf("deployment portal configuration missing %q", expected)
 		}
 	}
@@ -38,10 +53,10 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 		"cAdvisor":   "28081",
 	}
 	for name, port := range componentMap {
-		if !strings.Contains(portal, `name: "`+name+`"`) {
+		if !strings.Contains(serviceManifest, `"name": "`+name+`"`) {
 			t.Errorf("portal missing component %q", name)
 		}
-		if !strings.Contains(portal, "port: "+port) {
+		if !strings.Contains(serviceManifest, `"port": `+port) {
 			t.Errorf("portal missing port %s for %s", port, name)
 		}
 		if port != "20000" && port != "20002" && !strings.Contains(compose, port+":") {
@@ -51,7 +66,7 @@ func TestDeploymentPortalConfiguration(t *testing.T) {
 	if !strings.Contains(compose, "20000-20010:20000-20010") {
 		t.Error("compose missing published backend port range")
 	}
-	if !strings.Contains(portal, `path: "/debug/pprof/heap"`) {
+	if !strings.Contains(serviceManifest, `"webPath": "/debug/pprof/heap"`) {
 		t.Error("portal missing pprof path")
 	}
 

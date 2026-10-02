@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,37 +18,31 @@ const (
 
 var autoRPSList = []int{10, 25, 50, 100, 200, 500}
 
+// stageResult 保存单个压力档位的负载结果。
 type stageResult struct {
-	RPS                 int     `json:"rps"`
-	OutputDir           string  `json:"outputDir"`
-	Requests            int     `json:"requests"`
-	Throughput          float64 `json:"throughput"`
-	Success             float64 `json:"success"`
-	P50                 string  `json:"p50"`
-	P95                 string  `json:"p95"`
-	P99                 string  `json:"p99"`
-	ServerLoginDuration string  `json:"serverLoginDuration"`
-	DBQueryDuration     string  `json:"dbQueryDuration"`
-	DBConnectionWaits   float64 `json:"dbConnectionWaits"`
-	CPUTime             string  `json:"cpuTime"`
-	ResidentMemoryMiB   float64 `json:"residentMemoryMiB"`
-	GoroutinesBefore    float64 `json:"goroutinesBefore"`
-	GoroutinesAfter     float64 `json:"goroutinesAfter"`
-	Error               string  `json:"error,omitempty"`
+	RPS        int     `json:"rps"`
+	OutputDir  string  `json:"outputDir"`
+	Requests   int     `json:"requests"`
+	Throughput float64 `json:"throughput"`
+	Success    float64 `json:"success"`
+	P50        string  `json:"p50"`
+	P95        string  `json:"p95"`
+	P99        string  `json:"p99"`
+	Error      string  `json:"error,omitempty"`
 }
 
+// autoRunRecord 保存自动阶梯计划及各档执行结果。
 type autoRunRecord struct {
 	Mode      string        `json:"mode"`
 	RPSList   []int         `json:"rpsList"`
 	StageList []stageResult `json:"stageList"`
 }
 
+// runLoginPlan 根据 RPS 模式执行单档或自动阶梯压测。
 func runLoginPlan(
 	ctx context.Context,
 	runner *loadRunner,
-	config loginConfig,
-	stdout io.Writer,
-	stderr io.Writer,
+	config loadConfig,
 ) error {
 	rpsList, automatic, err := resolveRPSList(config.RPSInput, config.RPS)
 	if err != nil {
@@ -57,11 +50,12 @@ func runLoginPlan(
 	}
 	if !automatic {
 		config.RPS = rpsList[0]
-		return runner.runLoginStage(ctx, config, stdout, stderr)
+		return runner.runLoginStage(ctx, config)
 	}
-	return runAutomaticLogin(ctx, runner, config, rpsList, stdout, stderr)
+	return runAutomaticLogin(ctx, runner, config, rpsList)
 }
 
+// resolveRPSList 将用户输入解析为单档或内置压力阶梯。
 func resolveRPSList(input string, fallback int) ([]int, bool, error) {
 	input = strings.TrimSpace(strings.ToLower(input))
 	if input == "" {
@@ -80,13 +74,12 @@ func resolveRPSList(input string, fallback int) ([]int, bool, error) {
 	return []int{rps}, false, nil
 }
 
+// runAutomaticLogin 按固定档位串行执行登录压测并在失败时停止。
 func runAutomaticLogin(
 	ctx context.Context,
 	runner *loadRunner,
-	config loginConfig,
+	config loadConfig,
 	rpsList []int,
-	stdout io.Writer,
-	stderr io.Writer,
 ) error {
 	rootOutputDir := config.OutputDir
 	if err := os.MkdirAll(rootOutputDir, 0o700); err != nil {
@@ -107,10 +100,18 @@ func runAutomaticLogin(
 		stageConfig.RPS = rps
 		stageConfig.RPSInput = strconv.Itoa(rps)
 		stageConfig.OutputDir = filepath.Join(rootOutputDir, fmt.Sprintf("rps-%03d", rps))
-		fmt.Fprintf(stdout, "\n[auto %d/%d] starting %d RPS stage\n", index+1, len(rpsList), rps)
-		stageErr := runner.runLoginStage(ctx, stageConfig, stdout, stderr)
-		result, resultErr := readStageResult(stageConfig)
-		stageErr = errors.Join(stageErr, resultErr)
+		runner.info("starting automatic load stage", "stage", index+1, "stages", len(rpsList), "rps", rps)
+		stageErr := runner.runLoginStage(ctx, stageConfig)
+		if stageErr != nil {
+			result := stageResult{RPS: rps, OutputDir: stageConfig.OutputDir, Error: stageErr.Error()}
+			record.StageList = append(record.StageList, result)
+			if err := writeAutoResults(rootOutputDir, record); err != nil {
+				return errors.Join(stageErr, err)
+			}
+			runErr = fmt.Errorf("automatic login load stopped at %d RPS: %w", rps, stageErr)
+			break
+		}
+		result, stageErr := readStageResult(stageConfig)
 		if stageErr != nil {
 			result.Error = stageErr.Error()
 		}
@@ -134,11 +135,12 @@ func runAutomaticLogin(
 	if err := writeAutoResults(rootOutputDir, record); err != nil {
 		return errors.Join(runErr, err)
 	}
-	fmt.Fprintf(stdout, "\nAutomatic load summary: %s\n", filepath.Join(rootOutputDir, autoSummaryFileName))
+	runner.info("automatic load summary", "file", filepath.Join(rootOutputDir, autoSummaryFileName))
 	return runErr
 }
 
-func readStageResult(config loginConfig) (stageResult, error) {
+// readStageResult 从单档产物中提取跨档比较所需的指标。
+func readStageResult(config loadConfig) (stageResult, error) {
 	result := stageResult{RPS: config.RPS, OutputDir: config.OutputDir}
 	content, err := os.ReadFile(filepath.Join(config.OutputDir, vegetaReportFileName))
 	if err != nil {
@@ -172,28 +174,10 @@ func readStageResult(config loginConfig) (stageResult, error) {
 	if result.Requests == 0 {
 		return result, errors.New("Vegeta report contains no requests")
 	}
-	before, err := readMetricSnapshot(filepath.Join(config.OutputDir, metricsBeforeFileName))
-	if err != nil {
-		return result, err
-	}
-	after, err := readMetricSnapshot(filepath.Join(config.OutputDir, metricsAfterFileName))
-	if err != nil {
-		return result, err
-	}
-	result.ServerLoginDuration = formatAverageDuration(before, after,
-		`pgo_http_request_duration_seconds_sum{operation="/api.User/Login",result="ok"}`,
-		`pgo_http_request_duration_seconds_count{operation="/api.User/Login",result="ok"}`)
-	result.DBQueryDuration = formatAverageDuration(before, after,
-		`pgo_db_query_duration_seconds_sum{operation="query",result="ok"}`,
-		`pgo_db_query_duration_seconds_count{operation="query",result="ok"}`)
-	result.DBConnectionWaits = metricDelta(before, after, "pgo_db_connection_wait_total")
-	result.CPUTime = formatSeconds(metricDelta(before, after, "process_cpu_seconds_total"))
-	result.ResidentMemoryMiB = after["process_resident_memory_bytes"] / (1024 * 1024)
-	result.GoroutinesBefore = before["go_goroutines"]
-	result.GoroutinesAfter = after["go_goroutines"]
 	return result, nil
 }
 
+// writeAutoResults 写入机器可读结果和跨档汇总报告。
 func writeAutoResults(outputDir string, record autoRunRecord) error {
 	if err := writeJSON(filepath.Join(outputDir, autoResultFileName), record); err != nil {
 		return err
@@ -212,14 +196,6 @@ func writeAutoResults(outputDir string, record autoRunRecord) error {
 			result.RPS, result.Requests, result.Throughput, result.Success*100,
 			result.P50, result.P95, result.P99, status)
 	}
-	builder.WriteString("\n## Service and runtime trend\n\n")
-	builder.WriteString("| RPS | Server login | DB query | DB waits | CPU time | RSS MiB | Goroutines |\n")
-	builder.WriteString("| ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
-	for _, result := range record.StageList {
-		fmt.Fprintf(&builder, "| %d | %s | %s | %.0f | %s | %.2f | %.0f → %.0f |\n",
-			result.RPS, result.ServerLoginDuration, result.DBQueryDuration, result.DBConnectionWaits,
-			result.CPUTime, result.ResidentMemoryMiB, result.GoroutinesBefore, result.GoroutinesAfter)
-	}
-	builder.WriteString("\nEach stage directory contains its metrics, profiles, raw load result, and detailed summary.\n")
+	builder.WriteString("\nEach stage directory contains its load parameters, scenario data, raw Vegeta result, and text report.\n")
 	return os.WriteFile(filepath.Join(outputDir, autoSummaryFileName), []byte(builder.String()), 0o600)
 }

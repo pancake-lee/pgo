@@ -2,9 +2,58 @@ package papp
 
 import (
 	"context"
+	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 )
+
+// RunResult 保存单个并发任务的返回值和错误。
+type RunResult[T any] struct {
+	Value T
+	Err   error
+}
+
+// RunConcurrent 使用当前 CPU 核心数并发处理输入列表。
+func RunConcurrent[Input, Output any](ctx context.Context, inputList []Input, run func(context.Context, Input) (Output, error)) ([]RunResult[Output], error) {
+	if len(inputList) == 0 {
+		return nil, ctx.Err()
+	}
+	inputChannel := make(chan Input)
+	resultChannel := make(chan RunResult[Output])
+	workerCount := min(runtime.NumCPU(), len(inputList))
+	var waitGroup sync.WaitGroup
+	for range workerCount {
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+			for input := range inputChannel {
+				value, err := run(ctx, input)
+				resultChannel <- RunResult[Output]{Value: value, Err: err}
+			}
+		}()
+	}
+	go func() {
+		defer close(inputChannel)
+		for _, input := range inputList {
+			select {
+			case inputChannel <- input:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	go func() {
+		waitGroup.Wait()
+		close(resultChannel)
+	}()
+
+	resultList := make([]RunResult[Output], 0, len(inputList))
+	for result := range resultChannel {
+		resultList = append(resultList, result)
+	}
+	return resultList, ctx.Err()
+}
 
 // runner 实现了多种常见的运行模式
 type runner struct {

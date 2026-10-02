@@ -12,7 +12,7 @@
 - **prettyCode**：统一代码中的分割线注释格式
 - **psql**：连接 PostgreSQL 并执行 SQL，可嵌入自动化流程
 - **sheet2mysql**：读取 APITable 表结构，生成 MySQL 建表 SQL
-- **performance**：自动执行可复现的性能测试场景，当前包含 userService 登录单档压测、`--rps auto` 固定阶梯升压与服务端观测闭环
+- **performance**：从组件导航页自动发现服务，执行 userService 登录单档压测或默认固定阶梯升压，并保存服务端观测证据
 - **CI Make**：交互式选择并执行 Makefile 目标
 - **CI Init Project**：从当前仓库抽取项目基础骨架
 - **CD Deploy**：首次部署容器及后续更新程序
@@ -83,7 +83,7 @@ service Task {
 
 ### Docker Compose 组件导航
 
-启动 `deploy/docker/docker-compose.yaml` 后，访问 `http://<部署主机>:20080`。导航页集中提供后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana、Pyroscope、Alloy 和 cAdvisor 入口，并显示浏览器侧可达状态。组件地址使用导航页当前主机名生成，本机与远程部署无需分别修改 IP。Alloy 将应用日志写入 Loki，并持续将 CPU、heap profile 写入 Pyroscope；goroutine、block、mutex 与 runtime trace 只能通过限时诊断接口采集。诊断端口不应暴露到公网。
+启动 `deploy/docker/docker-compose.yaml` 后，访问 `http://<部署主机>:20080`。导航页集中提供后端 API、pprof、RabbitMQ、Swagger UI、Prometheus、Grafana、Pyroscope、Alloy 和 cAdvisor 入口，并显示浏览器侧可达状态。`cmd/pgo/common` 解析同源的 `portal/services.json`，向 CLI 提供上述全部组件 URL；运行 `./bin/pgo performance login http://<部署主机>:20080` 后，性能工具只使用其中的 API URL、制造固定阶梯登录负载并保存 Vegeta 结果。服务指标和 profiling 直接在 Grafana、Pyroscope 中按压测时间范围查看。Alloy 将应用日志写入 Loki，并持续将 CPU、heap profile 写入 Pyroscope；goroutine、block、mutex 与 runtime trace 只能通过限时诊断接口采集。诊断端口不应暴露到公网。
 
 ## 文档索引
 

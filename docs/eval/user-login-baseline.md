@@ -2,12 +2,11 @@
 
 > 专题中枢：[登录性能测试闭环](../design/2026-09-30-01-login-performance-hub.md)
 >
-> 本文记录可重复的实验条件和结果。批次清单、token、Vegeta 二进制结果与 profile 只保存在 `docs/eval/performance/`，不提交仓库。
+> 本文记录可重复的负载条件和客户端结果。批次清单、token 与 Vegeta 结果只保存在 `.local/performance/login/`，不提交仓库。
 
 ## 1. 前置条件
 
-- 使用带 MySQL 的 userService 配置，HTTP 和 diagnostics 端口仅暴露在受控环境。
-- 将 `Diagnostics.Enabled` 和 `Diagnostics.Pprof` 设为 `true`；配置 block、mutex 采样参数。CPU、heap 默认由 Alloy 持续写入 Pyroscope。
+- 使用带 MySQL 的 userService 配置，并确保导航页和 API 可访问。
 - 使用 `make build` 构建仓库。
 - 安装固定版本 Vegeta：
 
@@ -15,119 +14,54 @@
 go install github.com/tsenart/vegeta/v12@v12.13.0
 ```
 
-`pgo performance login` 会检查 Vegeta 二进制中的模块版本，不符合 `v12.13.0` 时会在创建测试用户前停止。
-
-默认 profile 来源还需要安装官方 `profilecli v2.2.0`。Linux AMD64 可直接使用对应发布包：
-
-```shell
-curl -fLO https://github.com/grafana/pyroscope/releases/download/v2.2.0/profilecli_2.2.0_linux_amd64.tar.gz
-tar -xzf profilecli_2.2.0_linux_amd64.tar.gz
-install -m 0755 profilecli "$(go env GOPATH)/bin/profilecli"
-profilecli --version
-```
-
-其他系统或架构从 [Pyroscope v2.2.0 Releases](https://github.com/grafana/pyroscope/releases/tag/v2.2.0) 选择对应文件。程序会在创建测试用户前检查版本。没有安装 `profilecli` 或没有运行 Alloy/Pyroscope 时，可通过 `--profile-source pprof` 改为直接从应用诊断端口采集。
-
-服务由维护者使用本地配置在前台启动，结束时按 Ctrl+C，不使用 `nohup` 或无人管理的后台进程。
+`pgo performance login` 会检查 Vegeta 版本，不符合 `v12.13.0` 时在创建测试用户前停止。Grafana 与 Pyroscope 独立承担服务指标、日志和 profiling，不是压测命令的运行依赖。
 
 ## 2. 单档模式
 
-`pgo` 默认无参数启动时进入交互菜单，但 Cobra 子命令支持一次传入全部参数，不需要回答交互问题：
+数字形式的 `--rps` 只运行一个压力等级：
 
 ```shell
-./bin/pgo performance login \
-  --api http://127.0.0.1:20000 \
-  --pprof http://127.0.0.1:20002/debug/pprof/ \
-  --pyroscope http://127.0.0.1:24040 \
-  --grafana http://127.0.0.1:23000 \
-  --profile-source pyroscope \
-  --profile-service pgo-app \
-  --users 100 \
-  --concurrency 10 \
-  --rps 10 \
-  --warmup 10s \
-  --duration 60s \
-  --timeout 5s \
-  --output docs/eval/performance/login-100u-10rps \
-  > docs/eval/performance/login-100u-10rps-cli-output.txt
+./bin/pgo performance login http://127.0.0.1:20080 --rps 50
 ```
 
-最后一行的 `>` 是 shell 重定向，只把本次 CLI 的阶段进度和产物说明保存到文件，不属于 `pgo` 的功能参数。错误仍输出到终端，便于立即发现失败。
-
-命令内部按以下顺序执行：
-
-1. **准备用户**：通过真实 `POST /user/token` 创建本轮专用用户，并在每次成功后原子更新批次清单。
-2. **验证正确性**：逐个重新登录，核对身份与 token，验证受保护接口拒绝无效鉴权。该步骤防止把数据错误误判为性能问题。
-3. **生成目标**：把批次用户转换成 Vegeta JSON targets。这一步只准备请求定义，不产生正式负载。
-4. **预热**：按目标 RPS 运行 Vegeta，预热结果不计入正式报告。
-5. **正式负载与观测**：Vegeta 产生登录负载；程序保存负载前后 metrics，自动开启限时诊断并采集 goroutine、block、mutex。默认使用 `profilecli` 导出同一时间窗的 CPU、heap；`--profile-source pprof` 改为 HTTP 直采。只有显式传入 `--runtime-trace` 才会额外采集最长 10 秒的 runtime trace。
-6. **生成报告**：输出 Vegeta 原始结果、文本报告和带指标含义的综合摘要。
-7. **清理用户**：只删除批次清单中的用户。前面任一步骤失败时也会尝试清理，并保留已经生成的诊断文件。
-
-数字形式的 `--rps` 只运行一个压力等级，适合复现某一档结果或针对单个压力点调试。
+命令依次完成测试用户准备与验证、Vegeta targets 生成、预热、正式负载、负载报告和用户清理。前面任一步骤失败时仍尝试精确清理已创建用户。
 
 ## 3. 自动升压模式
 
-将 `--rps` 改为 `auto` 即可依次运行内置的 `10、25、50、100、200、500 RPS`，不需要设置起始值、步长或上限：
+省略 `--rps` 后依次运行内置的 `10、25、50、100、200、500 RPS`：
 
 ```shell
-./bin/pgo performance login \
-  --api http://127.0.0.1:20000 \
-  --pprof http://127.0.0.1:20002/debug/pprof/ \
-  --pyroscope http://127.0.0.1:24040 \
-  --grafana http://127.0.0.1:23000 \
-  --profile-source pyroscope \
-  --profile-service pgo-app \
-  --users 100 \
-  --concurrency 10 \
-  --rps auto \
-  --warmup 10s \
-  --duration 60s \
-  --timeout 5s \
-  --output .local/performance/login-auto
+./bin/pgo performance login http://127.0.0.1:20080
 ```
 
-各档串行执行完整的准备、验证、负载、观测、报告和清理流程，产物分别写入 `rps-010/` 至 `rps-500/`。某档执行失败或出现非成功响应时停止后续升压，已完成档位和失败档位的现有产物会保留，失败批次仍会执行用户清理。
+每次运行在 `.local/performance/login/` 下创建独立目录，各档写入 `rps-010/` 至 `rps-500/`。某档执行失败或出现非成功响应时停止后续升压，保留已有负载产物并完成用户清理。
 
-自动模式根目录额外包含：
+自动模式根目录包含：
 
 - `00-auto-run.json`：固定阶梯和运行模式。
-- `40-auto-results.json`：机器可读的逐档结果。
-- `41-auto-summary.md`：吞吐、成功率、P50/P95/P99、服务端耗时、数据库耗时、连接等待、CPU、内存和 goroutine 的跨档对比。
+- `40-auto-results.json`：逐档请求数、吞吐、成功率、P50、P95、P99 与错误。
+- `41-auto-summary.md`：同一组负载指标的可读跨档汇总。
 
 ## 4. 单档输出文件
 
-命令结束时会先打印一行输出目录，再逐项打印文件名及用途，不在每个文件名前重复父目录。每个输出目录包含：
-
-- `00-run.json`：本轮输入参数，用于复现。
-- `01-users.json`：批次用户清单，用于验证与精确清理，包含 token，不得提交。
-- `02-login-targets.jsonl`：Vegeta 登录请求定义，每行一条 JSON 请求。
+- `00-run.json`：本轮负载参数。
+- `01-users.json`：测试用户清单，包含 token，不得提交。
+- `02-login-targets.jsonl`：Vegeta 登录请求定义。
 - `10-vegeta-results.bin`：Vegeta 原始请求结果。
-- `11-vegeta-report.txt`：吞吐、成功率和延迟分位数报告。
-- `20-metrics-after.prom`：正式负载结束后的 Prometheus 指标。
-- `21-metrics-before.prom`：正式负载开始前的 Prometheus 指标。
-- `30-cpu.pprof`：正式负载期间持续采集的 CPU profile。
-- `31-goroutine.pprof`：正式负载期间的 goroutine 快照。
-- `32-heap.pprof`：正式负载期间的堆快照。
-- `33-block.pprof`：正式负载期间的阻塞 profile。
-- `34-mutex.pprof`：正式负载期间的锁竞争 profile。
-- `35-runtime.trace`：仅在 `--runtime-trace` 开启时生成的运行时 trace。
-- `40-summary.md`：格式化的 Vegeta 结果、重点服务指标及其意义。
+- `11-vegeta-report.txt`：请求数、吞吐、成功率和延迟分位数。
 
-如果使用示例中的 shell 重定向，输出目录旁还会有 `login-100u-10rps-cli-output.txt`。它记录自动化程序自身的阶段进度与产物说明，由执行命令的 shell 创建。
+服务端 HTTP、数据库、Go runtime、CPU、内存、日志和 profile 直接在 Grafana 与 Pyroscope 中按压测时间范围查看，不下载到本地结果目录。
 
 ## 5. 指标阅读边界
 
-`40-summary.md` 聚焦本轮登录压测直接需要的证据：
+performance 只记录负载发起方直接测得的结果：
 
-- Vegeta throughput、success、P50、P95、P99 说明客户端看到的吞吐、成功率和延迟尾部。
-- `pgo_http_*` 说明服务端 HTTP 请求量、错误和耗时。
-- `pgo_db_query_*` 说明数据库查询量和耗时。
-- `pgo_db_connections_*` 说明连接池的打开、使用中、空闲和等待状态。
-- `go_*` 说明 Go 运行时内存、GC 和 goroutine 状态。
-- `process_*` 说明服务进程的 CPU 与常驻内存。
+- requests 表示本轮实际完成的请求数量。
+- throughput 表示实际完成速率。
+- success 表示成功响应比例。
+- P50、P95、P99 表示客户端观察到的延迟分布。
 
-负载前后 metrics 是同一轮正式负载的边界快照。计数器增长反映区间内累计工作量，gauge 反映采样时刻状态；CPU、heap、goroutine、block 和 mutex profile 为后续规则化判断保留输入，本阶段仍以实际基线为准，不预设问题阈值。
+这些结果描述负载本身，不代替服务端指标或 profile。需要定位服务内部瓶颈时，使用 Grafana 和 Pyroscope 查看同一时间范围。
 
 ## 6. 实验记录
 
@@ -138,29 +72,23 @@ profilecli --version
 - Go 版本：待填写
 - MySQL 版本：待填写
 - Vegeta 版本：v12.13.0
-- profilecli 版本：v2.2.0
-- 配置摘要：待填写，仅记录超时、连接池和 diagnostics 开关
+- 配置摘要：待填写，仅记录会影响负载结果的服务配置
 
 ### 条件
 
 - 用户数：待填写
-- 注册并发：待填写
 - 登录 RPS：待填写
-- 预热、持续时间和超时：待填写
+- 预热、持续时间和请求超时：待填写
 - 输出目录：待填写
+- Grafana/Pyroscope 时间范围：待填写
 
 ### 结果
 
 - 注册与验证结果：待填写
-- 登录吞吐、成功率、P50/P95/P99：待填写
-- CPU、内存和 goroutine：待填写
-- 查询耗时与连接池：待填写
-- profile 摘要：待填写
+- 请求数、吞吐、成功率、P50/P95/P99：待填写
+- Grafana/Pyroscope 观察：按需记录结论，不复制平台原始数据
 
 ### 阶段性结论
 
 - 现象：待填写
-- 假设：待填写
-- 证据：待填写
-- 定位：待填写
-- 后续动作：有明确证据后登记新的修复任务；没有证据时不修改业务实现。
+- 结论：待填写

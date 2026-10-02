@@ -1,7 +1,10 @@
 package putil
 
 import (
+	"bytes"
+	"context"
 	"errors"
+	"io"
 	"os/exec"
 	"strings"
 )
@@ -97,4 +100,19 @@ func Exec(name string, args ...string) (string, error) {
 	// }
 
 	return outStr, err
+}
+
+// ExecContext 执行外部命令，将标准输出写入指定目标并返回标准错误。
+func ExecContext(ctx context.Context, stdout io.Writer, name string, args ...string) (string, error) {
+	if strings.HasSuffix(name, ".sh") {
+		args = append([]string{name}, args...)
+		name = getBash()
+	}
+	cmd := exec.CommandContext(ctx, name, args...)
+	execDefaultSetting(cmd)
+	cmd.Stdout = stdout
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return strings.TrimSpace(stderr.String()), err
 }

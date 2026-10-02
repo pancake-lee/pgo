@@ -1,0 +1,68 @@
+{
+  "services": [
+    {
+      "id": "api",
+      "name": "后端 API",
+      "port": 20000,
+      "path": "/",
+      "description": "后端 HTTP API 服务入口"
+    },
+    {
+      "id": "diagnostics",
+      "name": "后端 pprof",
+      "port": 20002,
+      "path": "/debug/pprof/",
+      "webPath": "/debug/pprof/heap",
+      "description": "Go 运行时性能分析入口"
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "port": 25674,
+      "path": "/",
+      "description": "队列、交换机与消息状态管理"
+    },
+    {
+      "id": "swagger",
+      "name": "Swagger UI",
+      "port": 28080,
+      "path": "/",
+      "description": "HTTP API 文档与在线调试"
+    },
+    {
+      "id": "prometheus",
+      "name": "Prometheus",
+      "port": 29090,
+      "path": "/",
+      "description": "指标查询、目标状态与告警规则"
+    },
+    {
+      "id": "grafana",
+      "name": "Grafana",
+      "port": 23000,
+      "path": "/",
+      "description": "服务、主机与容器观测面板"
+    },
+    {
+      "id": "pyroscope",
+      "name": "Pyroscope",
+      "port": 24040,
+      "path": "/",
+      "description": "CPU 与堆持续剖析数据"
+    },
+    {
+      "id": "alloy",
+      "name": "Alloy",
+      "port": 21235,
+      "path": "/",
+      "description": "日志与 profile 采集管道状态"
+    },
+    {
+      "id": "cadvisor",
+      "name": "cAdvisor",
+      "port": 28081,
+      "path": "/",
+      "description": "容器资源用量与运行指标"
+    }
+  ]
+}

@@ -8,26 +8,111 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/antihax/optional"
-	"github.com/pancake-lee/pgo/cmd/pgo/swagger"
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
-const manifestVersion = 1
-
+// User 保存压测用户的身份与鉴权信息。
 type User struct {
 	ID       int32  `json:"id"`
 	UserName string `json:"userName"`
 	Token    string `json:"token"`
 }
 
+// Prepare 并发创建内置数量的测试用户并保存批次清单。
+func Prepare(ctx context.Context, client *common.Client, userCount int, path string) (*Manifest, error) {
+	batchID, err := newBatchID()
+	if err != nil {
+		return nil, err
+	}
+	manifest := &Manifest{
+		BatchID:   batchID,
+		BaseURL:   client.BaseURL(),
+		CreatedAt: time.Now().UTC(),
+		Users:     make([]User, 0, userCount),
+		path:      path,
+	}
+
+	jobList := make([]User, userCount)
+	for index := range jobList {
+		jobList[index].UserName = fmt.Sprintf("load_%s_%06d", batchID, index+1)
+		if len(jobList[index].UserName) > 32 {
+			return manifest, fmt.Errorf("generated user name exceeds 32 characters: %s", jobList[index].UserName)
+		}
+	}
+	resultList, runErr := papp.RunConcurrent(ctx, jobList, func(ctx context.Context, user User) (User, error) {
+		userInfo, token, err := client.Login(ctx, user.UserName)
+		return User{ID: userInfo.ID, UserName: userInfo.UserName, Token: token}, err
+	})
+
+	for _, result := range resultList {
+		if result.Err == nil {
+			manifest.Users = append(manifest.Users, result.Value)
+		}
+	}
+	sort.Slice(manifest.Users, func(i, j int) bool { return manifest.Users[i].UserName < manifest.Users[j].UserName })
+	if err := manifest.write(); err != nil {
+		return manifest, err
+	}
+	return manifest, errors.Join(runErr, joinResultErrors(resultList))
+}
+
+// Verify 重新登录批次用户并验证身份与受保护接口鉴权。
+func Verify(ctx context.Context, client *common.Client, manifest *Manifest) error {
+	if err := manifest.validate(); err != nil {
+		return err
+	}
+	for _, token := range []string{"", "invalid-token"} {
+		_, response, err := client.GetUserList(ctx, 1, token)
+		if err == nil || response == nil || response.StatusCode < http.StatusBadRequest {
+			return fmt.Errorf("protected endpoint accepted rejected token case %q", token)
+		}
+	}
+	resultList, runErr := papp.RunConcurrent(ctx, manifest.Users, func(ctx context.Context, expected User) (User, error) {
+		userInfo, token, err := client.Login(ctx, expected.UserName)
+		if err != nil {
+			return User{}, err
+		}
+		actual := User{ID: userInfo.ID, UserName: userInfo.UserName, Token: token}
+		if actual.ID != expected.ID || actual.UserName != expected.UserName {
+			return User{}, fmt.Errorf("identity mismatch for %s", expected.UserName)
+		}
+		userList, _, err := client.GetUserList(ctx, actual.ID, actual.Token)
+		if err != nil {
+			return User{}, fmt.Errorf("get user list for %s: %w", actual.UserName, err)
+		}
+		if len(userList) != 1 || userList[0].ID != actual.ID || userList[0].UserName != actual.UserName {
+			return User{}, fmt.Errorf("user list mismatch for %s", actual.UserName)
+		}
+		return actual, nil
+	})
+	return errors.Join(runErr, joinResultErrors(resultList))
+}
+
+// Cleanup 并发删除清单中的测试用户。
+func Cleanup(ctx context.Context, client *common.Client, manifest *Manifest) error {
+	if err := manifest.validate(); err != nil {
+		return err
+	}
+	resultList, runErr := papp.RunConcurrent(ctx, manifest.Users, func(ctx context.Context, user User) (User, error) {
+		return user, client.DelUserByIDList(ctx, user.ID, user.Token)
+	})
+	if err := errors.Join(runErr, joinResultErrors(resultList)); err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	manifest.CleanedAt = &now
+	return manifest.write()
+}
+
+// --------------------------------------------------
+// Manifest 记录一个可验证和可清理的测试用户批次。
 type Manifest struct {
 	Version   int        `json:"version"`
 	BatchID   string     `json:"batchID"`
@@ -35,18 +120,54 @@ type Manifest struct {
 	CreatedAt time.Time  `json:"createdAt"`
 	CleanedAt *time.Time `json:"cleanedAt,omitempty"`
 	Users     []User     `json:"users"`
+	path      string
 }
 
-type Client struct {
-	baseURL   string
-	apiClient *swagger.APIClient
+// validate 校验批次元数据及用户身份信息的完整性。
+func (manifest *Manifest) validate() error {
+	if manifest == nil || manifest.BatchID == "" || manifest.BaseURL == "" {
+		return errors.New("invalid manifest metadata")
+	}
+	for _, user := range manifest.Users {
+		if user.ID == 0 || user.UserName == "" || user.Token == "" {
+			return fmt.Errorf("invalid user in batch %s", manifest.BatchID)
+		}
+	}
+	return nil
 }
 
-type runResult struct {
-	user User
-	err  error
+// read 从文件读取并校验测试用户批次清单。
+func (manifest *Manifest) read(path string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(content, manifest); err != nil {
+		return err
+	}
+	if err = manifest.validate(); err != nil {
+		return err
+	}
+	manifest.path = path
+	return nil
 }
 
+// write 覆盖保存测试用户批次清单。
+func (manifest *Manifest) write() error {
+	if manifest.path == "" {
+		return errors.New("manifest path is required")
+	}
+	content, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err = os.MkdirAll(filepath.Dir(manifest.path), 0o700); err != nil && filepath.Dir(manifest.path) != "." {
+		return err
+	}
+	return os.WriteFile(manifest.path, append(content, '\n'), 0o600)
+}
+
+// vegetaTarget 描述一条 Vegeta JSON 格式的请求目标。
 type vegetaTarget struct {
 	Method string              `json:"method"`
 	URL    string              `json:"url"`
@@ -54,161 +175,9 @@ type vegetaTarget struct {
 	Header map[string][]string `json:"header"`
 }
 
-func NewClient(baseURL string, timeout time.Duration) (*Client, error) {
-	baseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
-	parsedURL, err := url.Parse(baseURL)
-	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return nil, fmt.Errorf("invalid base URL %q", baseURL)
-	}
-	if timeout <= 0 {
-		return nil, errors.New("timeout must be positive")
-	}
-	configuration := swagger.NewConfiguration()
-	configuration.BasePath = baseURL
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	// Batch preparation and cleanup are control traffic, not measured load. Avoid reusing
-	// a connection that an older HTTP server may close without advertising Connection: close.
-	transport.DisableKeepAlives = true
-	configuration.HTTPClient = &http.Client{Timeout: timeout, Transport: transport}
-	return &Client{baseURL: baseURL, apiClient: swagger.NewAPIClient(configuration)}, nil
-}
-
-func Prepare(ctx context.Context, client *Client, path, batchID string, count, concurrency int) (*Manifest, error) {
-	if count <= 0 {
-		return nil, errors.New("count must be positive")
-	}
-	if concurrency <= 0 {
-		return nil, errors.New("concurrency must be positive")
-	}
-	if batchID == "" {
-		var err error
-		batchID, err = newBatchID()
-		if err != nil {
-			return nil, err
-		}
-	}
-	if !isValidBatchID(batchID) {
-		return nil, errors.New("batch must contain only letters, digits, underscore, or hyphen")
-	}
-	manifest := &Manifest{
-		Version:   manifestVersion,
-		BatchID:   batchID,
-		BaseURL:   client.baseURL,
-		CreatedAt: time.Now().UTC(),
-		Users:     make([]User, 0, count),
-	}
-	if err := WriteManifest(path, manifest); err != nil {
-		return nil, err
-	}
-
-	jobList := make([]User, count)
-	for index := range jobList {
-		jobList[index].UserName = fmt.Sprintf("load_%s_%06d", batchID, index+1)
-		if len(jobList[index].UserName) > 32 {
-			return manifest, fmt.Errorf("generated user name exceeds 32 characters: %s", jobList[index].UserName)
-		}
-	}
-	var persistenceErr error
-	resultList := runConcurrent(ctx, jobList, concurrency, func(ctx context.Context, user User) (User, error) {
-		return client.login(ctx, user.UserName)
-	}, func(result runResult) {
-		if result.err != nil || persistenceErr != nil {
-			return
-		}
-		manifest.Users = append(manifest.Users, result.user)
-		persistenceErr = WriteManifest(path, manifest)
-	})
-
-	var errorList []error
-	for _, result := range resultList {
-		if result.err != nil {
-			errorList = append(errorList, result.err)
-		}
-	}
-	if persistenceErr != nil {
-		return manifest, persistenceErr
-	}
-	sort.Slice(manifest.Users, func(i, j int) bool { return manifest.Users[i].UserName < manifest.Users[j].UserName })
-	if err := WriteManifest(path, manifest); err != nil {
-		return manifest, err
-	}
-	return manifest, errors.Join(errorList...)
-}
-
-func Verify(ctx context.Context, client *Client, manifest *Manifest, concurrency int) error {
-	if err := validateManifest(manifest); err != nil {
-		return err
-	}
-	if concurrency <= 0 {
-		return errors.New("concurrency must be positive")
-	}
-	if err := client.verifyAuthRejection(ctx); err != nil {
-		return err
-	}
-	resultList := runConcurrent(ctx, manifest.Users, concurrency, func(ctx context.Context, expected User) (User, error) {
-		actual, err := client.login(ctx, expected.UserName)
-		if err != nil {
-			return User{}, err
-		}
-		if actual.ID != expected.ID || actual.UserName != expected.UserName {
-			return User{}, fmt.Errorf("identity mismatch for %s", expected.UserName)
-		}
-		if err = client.verifyProtectedUser(ctx, actual); err != nil {
-			return User{}, err
-		}
-		return actual, nil
-	}, nil)
-	return joinResultErrors(resultList)
-}
-
-func Cleanup(ctx context.Context, client *Client, manifest *Manifest, concurrency int) error {
-	if err := validateManifest(manifest); err != nil {
-		return err
-	}
-	if concurrency <= 0 {
-		return errors.New("concurrency must be positive")
-	}
-	resultList := runConcurrent(ctx, manifest.Users, concurrency, func(ctx context.Context, user User) (User, error) {
-		return user, client.delUser(ctx, user)
-	}, nil)
-	return joinResultErrors(resultList)
-}
-
-func ReadManifest(path string) (*Manifest, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	var manifest Manifest
-	if err = json.Unmarshal(content, &manifest); err != nil {
-		return nil, err
-	}
-	if err = validateManifest(&manifest); err != nil {
-		return nil, err
-	}
-	return &manifest, nil
-}
-
-func WriteManifest(path string, manifest *Manifest) error {
-	if path == "" {
-		return errors.New("manifest path is required")
-	}
-	content, err := json.MarshalIndent(manifest, "", "  ")
-	if err != nil {
-		return err
-	}
-	if err = os.MkdirAll(filepath.Dir(path), 0o700); err != nil && filepath.Dir(path) != "." {
-		return err
-	}
-	temporaryPath := path + ".tmp"
-	if err = os.WriteFile(temporaryPath, content, 0o600); err != nil {
-		return err
-	}
-	return os.Rename(temporaryPath, path)
-}
-
-func WriteTargets(path string, manifest *Manifest) error {
-	if err := validateManifest(manifest); err != nil {
+// WriteTargets 将测试用户转换为 Vegeta JSON 请求目标。
+func (manifest *Manifest) WriteTargets(path string) error {
+	if err := manifest.validate(); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil && filepath.Dir(path) != "." {
@@ -239,142 +208,23 @@ func WriteTargets(path string, manifest *Manifest) error {
 	return file.Close()
 }
 
-func (client *Client) login(ctx context.Context, userName string) (User, error) {
-	request := swagger.ApiLoginRequest{UserName: userName}
-	response, _, err := client.apiClient.UserApi.UserLogin(ctx, request)
-	if err != nil {
-		return User{}, fmt.Errorf("login %s: %w", userName, err)
-	}
-	if response.User == nil || response.User.ID == 0 || response.User.UserName != userName || response.Token == "" {
-		return User{}, fmt.Errorf("login %s returned incomplete identity or token", userName)
-	}
-	return User{ID: response.User.ID, UserName: response.User.UserName, Token: response.Token}, nil
-}
-
-func (client *Client) verifyProtectedUser(ctx context.Context, user User) error {
-	authContext := context.WithValue(ctx, swagger.ContextAccessToken, user.Token)
-	options := &swagger.UserCURDApiUserCURDGetUserListOpts{IDList: optional.NewInterface([]int32{user.ID})}
-	response, _, err := client.apiClient.UserCURDApi.UserCURDGetUserList(authContext, options)
-	if err != nil {
-		return fmt.Errorf("verify protected access for %s: %w", user.UserName, err)
-	}
-	if len(response.UserList) != 1 || response.UserList[0].ID != user.ID || response.UserList[0].UserName != user.UserName {
-		return fmt.Errorf("protected lookup mismatch for %s", user.UserName)
-	}
-	return nil
-}
-
-func (client *Client) verifyAuthRejection(ctx context.Context) error {
-	for _, token := range []string{"", "invalid-token"} {
-		requestContext := ctx
-		if token != "" {
-			requestContext = context.WithValue(ctx, swagger.ContextAccessToken, token)
-		}
-		options := &swagger.UserCURDApiUserCURDGetUserListOpts{IDList: optional.NewInterface([]int32{1})}
-		_, response, err := client.apiClient.UserCURDApi.UserCURDGetUserList(requestContext, options)
-		if err == nil || response == nil || response.StatusCode < http.StatusBadRequest {
-			return fmt.Errorf("protected endpoint accepted rejected token case %q", token)
-		}
-	}
-	return nil
-}
-
-func (client *Client) delUser(ctx context.Context, user User) error {
-	authContext := context.WithValue(ctx, swagger.ContextAccessToken, user.Token)
-	options := &swagger.UserCURDApiUserCURDDelUserByIDListOpts{IDList: optional.NewInterface([]int32{user.ID})}
-	_, _, err := client.apiClient.UserCURDApi.UserCURDDelUserByIDList(authContext, options)
-	return err
-}
-
-func runConcurrent(
-	ctx context.Context,
-	userList []User,
-	concurrency int,
-	run func(context.Context, User) (User, error),
-	onResult func(runResult),
-) []runResult {
-	jobChannel := make(chan User)
-	resultChannel := make(chan runResult)
-	workerCount := min(concurrency, len(userList))
-	var waitGroup sync.WaitGroup
-	for range workerCount {
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
-			for user := range jobChannel {
-				resultUser, err := run(ctx, user)
-				resultChannel <- runResult{user: resultUser, err: err}
-			}
-		}()
-	}
-	go func() {
-		defer close(jobChannel)
-		for _, user := range userList {
-			select {
-			case jobChannel <- user:
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-	go func() {
-		waitGroup.Wait()
-		close(resultChannel)
-	}()
-
-	resultList := make([]runResult, 0, len(userList))
-	for result := range resultChannel {
-		resultList = append(resultList, result)
-		if onResult != nil {
-			onResult(result)
-		}
-	}
-	if err := ctx.Err(); err != nil {
-		resultList = append(resultList, runResult{err: err})
-	}
-	return resultList
-}
-
-func joinResultErrors(resultList []runResult) error {
+// --------------------------------------------------
+// joinResultErrors 合并并发用户任务产生的全部错误。
+func joinResultErrors(resultList []papp.RunResult[User]) error {
 	errorList := make([]error, 0)
 	for _, result := range resultList {
-		if result.err != nil {
-			errorList = append(errorList, result.err)
+		if result.Err != nil {
+			errorList = append(errorList, result.Err)
 		}
 	}
 	return errors.Join(errorList...)
 }
 
-func validateManifest(manifest *Manifest) error {
-	if manifest == nil || manifest.Version != manifestVersion || manifest.BatchID == "" || manifest.BaseURL == "" {
-		return errors.New("invalid manifest metadata")
-	}
-	for _, user := range manifest.Users {
-		if user.ID == 0 || user.UserName == "" || user.Token == "" {
-			return fmt.Errorf("invalid user in batch %s", manifest.BatchID)
-		}
-	}
-	return nil
-}
-
+// newBatchID 生成适合用户名使用的随机批次标识。
 func newBatchID() (string, error) {
 	randomBytes := make([]byte, 2)
 	if _, err := rand.Read(randomBytes); err != nil {
 		return "", err
 	}
 	return time.Now().UTC().Format("060102150405") + hex.EncodeToString(randomBytes), nil
-}
-
-func isValidBatchID(batchID string) bool {
-	if batchID == "" || len(batchID) > 18 {
-		return false
-	}
-	for _, character := range batchID {
-		if character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z' ||
-			character >= '0' && character <= '9' || character == '_' || character == '-' {
-			continue
-		}
-		return false
-	}
-	return true
 }

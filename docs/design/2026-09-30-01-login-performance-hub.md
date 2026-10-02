@@ -1,34 +1,33 @@
 # 登录性能测试闭环专题中枢
 
-> 本文档是登录性能测试闭环的唯一中枢。初始闭环见 [backlog 任务 23](../backlog.md#23-多用户注册与登录的-http-压测及观测闭环)，持续 profiling 与双来源采集演进见 [任务 28](../backlog.md#28-alloypyroscope-与受控运行时诊断)，逐级加压与代码分层见 [任务 29](../backlog.md#29-登录场景逐级加压与监控验证自动化)。
+> 本文档是登录性能测试闭环的唯一中枢。登录负载能力见 [任务 29](../backlog.md#29-登录场景逐级加压与负载结果记录)，独立观测平台见 [任务 28](../backlog.md#28-alloypyroscope-与受控运行时诊断)。
 
 ## 关联产物
 
-- [任务 23](../backlog.md#23-多用户注册与登录的-http-压测及观测闭环)：需求、方案、任务列表与验收。
-- [任务 28](../backlog.md#28-alloypyroscope-与受控运行时诊断)：Alloy、Pyroscope、受控运行时诊断及性能工具双来源采集。
-- [任务 29](../backlog.md#29-登录场景逐级加压与监控验证自动化)：性能测试分层、单档兼容与内置阶梯自动升压。
-- [多用户注册与登录基线](../eval/user-login-baseline.md)：当前可执行的手工实验步骤与记录模板。
-- `cmd/pgo/performance/login/`：登录场景的用户批次准备、验证、Vegeta targets 生成与清理。
-- `pkg/papp/observability.go`：长期 CPU/heap 与限时 goroutine、block、mutex、trace 诊断端点。
+- [任务 23](../backlog.md#23-多用户注册与登录的-http-负载闭环)：登录负载场景的初始实现。
+- [任务 28](../backlog.md#28-alloypyroscope-与受控运行时诊断)：Grafana、Prometheus、Loki、Alloy、Pyroscope 与受控诊断。
+- [任务 29](../backlog.md#29-登录场景逐级加压与负载结果记录)：登录单档负载、固定阶梯与负载结果。
+- [多用户注册与登录基线](../eval/user-login-baseline.md)：当前实验方法与结果记录模板。
+- `cmd/pgo/performance/login/`：测试用户准备、验证、targets 生成与清理。
+- `cmd/pgo/common/`：导航页服务清单解析与固定组件 URL。
+- `cmd/pgo/performance/`：Vegeta 负载执行与负载侧结果记录。
 
-## 时间线
+## 职责边界
 
-- 第一阶段：建立 `user-load prepare/verify/targets/cleanup`、diagnostics、数据库指标和手工 Vegeta 基线，离线测试与构建已通过，等待真实 MySQL 环境验收。
-- 2026-09-29：基线文档补充七步闭环说明，明确每条命令的输入、输出和作用。
-- 2026-09-30：规划第二阶段自动化，新增 `pgo performance login`，由 Go 统一编排外部 Vegeta CLI、metrics、pprof、报告和清理；取消独立 `user-load` tools 子项，其能力改为登录场景内部阶段。
-- 2026-10-01：任务 28 将 CPU、heap 改为 Alloy 持续写入 Pyroscope；性能工具默认使用 `profilecli` 导出负载时间窗，也保留 HTTP 直采模式，并自动采集限时 goroutine、block、mutex。
-- 2026-10-01：任务 29 规划整理性能测试分层；保留数字 `--rps` 单档模式，并以 `--rps auto` 运行内置 `10、25、50、100、200、500 RPS` 阶梯和跨档汇总。
+- performance 负责准备场景、制造负载、保存 Vegeta 结果和清理测试数据。
+- 单档与跨档结果只包含请求数、实际吞吐、成功率、P50、P95、P99 和执行错误。
+- Grafana 与 Pyroscope 负责服务指标、日志和 profiling；performance 不抓取、导出或复制平台数据。
+- 两侧通过压测时间范围关联，不建立本地观测产物的第二套生命周期。
 
 ## 当前完成度
 
-- 用户批次生命周期：已实现并完成自动验证。
-- 服务端 metrics 与 pprof 下载：已实现并完成自动验证。
-- 手工闭环文档：已完成。
-- `performance login` 全自动编排：已完成并通过自动验证。
-- 真实 MySQL 环境闭环：已完成 100 用户、10 RPS、60 秒代表性验证。
-- 持续 profiling 与两种 profile 来源：代码和自动验证已完成，等待宿主机 Compose 真实链路验收。
-- 单档与自动阶梯双模式：代码和自动验证已完成，等待全新部署环境运行确认。
+- 用户批次准备、验证、targets 与精确清理：已实现并完成自动验证。
+- 单档与固定六档自动升压：已实现并完成自动验证。
+- Vegeta 负载结果与跨档汇总：已收口为纯负载侧字段。
+- 导航服务发现：已迁移到 CLI 公共包并补齐全部固定组件 URL。
+- Grafana、Prometheus、Loki、Alloy 与 Pyroscope：代码和部署配置已完成自动验证，等待宿主机真实链路验收。
+- 登录场景 API：批次、用户数、超时和并发策略已收回包内。
 
 ## 下一轮建议
 
-在全新部署环境运行任务 29 的自动阶梯并形成首份跨档基线。新的压测对象仍作为 `performance` 下的独立子命令逐项规划，只复用已经由登录场景验证的通用执行层。
+在真实环境运行固定阶梯负载；客户端结果读取 Vegeta 产物，服务状态、指标和 profile 直接在 Grafana 与 Pyroscope 中按压测时间范围查看。

@@ -15,6 +15,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	klog "github.com/go-kratos/kratos/v2/log"
+	"github.com/spf13/pflag"
 )
 
 type fakeCommandRunner struct {
@@ -24,7 +27,7 @@ type fakeCommandRunner struct {
 	unsuccessfulRate string
 }
 
-func (runner *fakeCommandRunner) Run(_ context.Context, name string, args []string, stdout, _ io.Writer) error {
+func (runner *fakeCommandRunner) Run(_ context.Context, name string, args []string, resultWriter io.Writer) error {
 	runner.mu.Lock()
 	runner.commands = append(runner.commands, name+" "+strings.Join(args, " "))
 	runner.mu.Unlock()
@@ -32,21 +35,14 @@ func (runner *fakeCommandRunner) Run(_ context.Context, name string, args []stri
 		if runner.failRate != "" && strings.Contains(strings.Join(args, " "), "-rate="+runner.failRate+"/s") {
 			return errors.New("injected attack failure")
 		}
-		_, _ = io.WriteString(stdout, "raw-result")
+		_, _ = io.WriteString(resultWriter, "raw-result")
 		return nil
-	}
-	if name == "profilecli" {
-		for _, argument := range args {
-			if strings.HasPrefix(argument, "--output=pprof=") {
-				return os.WriteFile(strings.TrimPrefix(argument, "--output=pprof="), []byte("profile-data"), 0o600)
-			}
-		}
 	}
 	if runner.unsuccessfulRate != "" && strings.Contains(strings.Join(args, " "), "rps-"+runner.unsuccessfulRate) {
-		_, _ = io.WriteString(stdout, "Requests      [total, rate, throughput]  1, 1.00, 1.00\nSuccess       [ratio]                     90.00%\n")
+		_, _ = io.WriteString(resultWriter, "Requests      [total, rate, throughput]  1, 1.00, 1.00\nSuccess       [ratio]                     90.00%\n")
 		return nil
 	}
-	_, _ = io.WriteString(stdout, "Requests      [total, rate, throughput]  1, 1.00, 1.00\nSuccess       [ratio]                     100.00%\n")
+	_, _ = io.WriteString(resultWriter, "Requests      [total, rate, throughput]  1, 1.00, 1.00\nSuccess       [ratio]                     100.00%\n")
 	return nil
 }
 
@@ -67,49 +63,46 @@ func TestLoginRunnerCompletesWorkflow(t *testing.T) {
 	server := httptest.NewServer(fakeServer)
 	defer server.Close()
 	commandRunner := &fakeCommandRunner{}
+	var output strings.Builder
 	runner := &loadRunner{
-		commandRunner:   commandRunner,
-		httpClient:      server.Client(),
-		checkVegeta:     func(string) error { return nil },
-		checkProfileCLI: func(string) error { return nil },
-		now:             func() time.Time { return time.Date(2026, 9, 30, 1, 2, 3, 0, time.UTC) },
+		commandRunner: commandRunner,
+		httpClient:    server.Client(),
+		checkVegeta:   func(string) error { return nil },
+		now:           func() time.Time { return time.Date(2026, 9, 30, 1, 2, 3, 0, time.UTC) },
+		logger:        klog.NewStdLogger(&output),
 	}
 	outputDir := t.TempDir()
-	config := defaultLoginConfig()
+	config := loadConfig{RPS: 10, RPSInput: "auto"}
 	config.APIURL = server.URL
-	config.PprofURL = server.URL + "/debug/pprof/"
-	config.GrafanaURL = server.URL
-	config.ProfileSource = profileSourcePprof
-	config.Users = 3
-	config.Concurrency = 2
 	config.RPS = 5
 	config.RPSInput = "5"
-	config.Warmup = 0
-	config.Duration = 20 * time.Millisecond
-	config.Timeout = time.Second
 	config.OutputDir = outputDir
-	config.VegetaPath = "vegeta"
-	var stdout strings.Builder
-	if err := runner.runLoginStage(t.Context(), config, &stdout, io.Discard); err != nil {
+	if err := runner.runLoginStage(t.Context(), config); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{
 		runFileName, usersFileName, loginTargetsFileName, vegetaResultsFileName, vegetaReportFileName,
-		metricsAfterFileName, metricsBeforeFileName, cpuProfileFileName, goroutineProfileFileName, heapProfileFileName, summaryFileName,
-		blockProfileFileName, mutexProfileFileName,
 	} {
 		if _, err := os.Stat(filepath.Join(outputDir, name)); err != nil {
 			t.Errorf("artifact %s: %v", name, err)
 		}
 	}
-	if !strings.Contains(stdout.String(), summaryFileName) {
-		t.Fatalf("stdout does not explain artifacts: %s", stdout.String())
+	for _, name := range []string{
+		"20-metrics-after.prom", "21-metrics-before.prom", "30-cpu.pprof", "31-goroutine.pprof",
+		"32-heap.pprof", "33-block.pprof", "34-mutex.pprof", "35-runtime.trace", "40-summary.md",
+	} {
+		if _, err := os.Stat(filepath.Join(outputDir, name)); !os.IsNotExist(err) {
+			t.Errorf("obsolete observability artifact %s exists: %v", name, err)
+		}
 	}
-	if !strings.Contains(stdout.String(), "Output directory: "+outputDir) {
-		t.Fatalf("stdout does not print output directory: %s", stdout.String())
+	if !strings.Contains(output.String(), vegetaReportFileName) {
+		t.Fatalf("log does not explain artifacts: %s", output.String())
 	}
-	if strings.Contains(stdout.String(), filepath.Join(outputDir, summaryFileName)) {
-		t.Fatalf("artifact line repeats parent directory: %s", stdout.String())
+	if !strings.Contains(output.String(), "outputDir="+outputDir) {
+		t.Fatalf("log does not print output directory: %s", output.String())
+	}
+	if strings.Contains(output.String(), filepath.Join(outputDir, vegetaReportFileName)) {
+		t.Fatalf("artifact log repeats parent directory: %s", output.String())
 	}
 	runConfig, err := os.ReadFile(filepath.Join(outputDir, runFileName))
 	if err != nil {
@@ -118,12 +111,18 @@ func TestLoginRunnerCompletesWorkflow(t *testing.T) {
 	if !strings.Contains(string(runConfig), `"rps": 5`) || !strings.Contains(string(runConfig), `"apiURL"`) {
 		t.Fatalf("run config does not contain common and login fields: %s", runConfig)
 	}
-	summary, err := os.ReadFile(filepath.Join(outputDir, summaryFileName))
-	if err != nil {
-		t.Fatal(err)
+	if strings.Contains(string(runConfig), `"users"`) || strings.Contains(string(runConfig), `"concurrency"`) {
+		t.Fatalf("run config exposes internal user preparation policy: %s", runConfig)
 	}
-	if !strings.Contains(string(summary), "Successful HTTP login requests") || strings.Contains(string(summary), "_bucket{") {
-		t.Fatalf("summary is not condensed: %s", summary)
+	for _, internalDefault := range []string{`"warmup"`, `"duration"`, `"timeout"`, `"vegetaPath"`} {
+		if strings.Contains(string(runConfig), internalDefault) {
+			t.Fatalf("run config exposes fixed internal default %q: %s", internalDefault, runConfig)
+		}
+	}
+	for _, obsolete := range []string{"pprofURL", "pyroscopeURL", "grafanaURL", "profileCLIPath", "profileService", "runtimeTrace"} {
+		if strings.Contains(string(runConfig), obsolete) {
+			t.Fatalf("run config contains obsolete observability field %q: %s", obsolete, runConfig)
+		}
 	}
 	fakeServer.mu.Lock()
 	defer fakeServer.mu.Unlock()
@@ -138,33 +137,24 @@ func TestRunAutomaticLoginCompletesBuiltInLadder(t *testing.T) {
 	defer server.Close()
 	commandRunner := &fakeCommandRunner{}
 	runner := &loadRunner{
-		commandRunner:   commandRunner,
-		httpClient:      server.Client(),
-		checkVegeta:     func(string) error { return nil },
-		checkProfileCLI: func(string) error { return nil },
-		now:             func() time.Time { return time.Date(2026, 10, 1, 1, 2, 3, 0, time.UTC) },
+		commandRunner: commandRunner,
+		httpClient:    server.Client(),
+		checkVegeta:   func(string) error { return nil },
+		now:           func() time.Time { return time.Date(2026, 10, 1, 1, 2, 3, 0, time.UTC) },
+		logger:        klog.NewStdLogger(io.Discard),
 	}
 	outputDir := t.TempDir()
-	config := defaultLoginConfig()
+	config := loadConfig{RPS: 10, RPSInput: "auto"}
 	config.APIURL = server.URL
-	config.PprofURL = server.URL + "/debug/pprof/"
-	config.GrafanaURL = server.URL
-	config.ProfileSource = profileSourcePprof
-	config.Users = 2
-	config.Concurrency = 1
 	config.RPSInput = "auto"
-	config.Warmup = 0
-	config.Duration = 10 * time.Millisecond
-	config.Timeout = time.Second
 	config.OutputDir = outputDir
-	config.VegetaPath = "vegeta"
-	if err := runLoginPlan(t.Context(), runner, config, io.Discard, io.Discard); err != nil {
+	if err := runLoginPlan(t.Context(), runner, config); err != nil {
 		t.Fatal(err)
 	}
 	for _, rps := range autoRPSList {
 		stageDir := filepath.Join(outputDir, fmt.Sprintf("rps-%03d", rps))
-		if _, err := os.Stat(filepath.Join(stageDir, summaryFileName)); err != nil {
-			t.Errorf("stage %d summary: %v", rps, err)
+		if _, err := os.Stat(filepath.Join(stageDir, vegetaReportFileName)); err != nil {
+			t.Errorf("stage %d report: %v", rps, err)
 		}
 	}
 	for _, name := range []string{autoPlanFileName, autoResultFileName, autoSummaryFileName} {
@@ -176,7 +166,7 @@ func TestRunAutomaticLoginCompletesBuiltInLadder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(summary), "| 500 |") || !strings.Contains(string(summary), "Service and runtime trend") {
+	if !strings.Contains(string(summary), "| 500 |") || strings.Contains(string(summary), "Service and runtime trend") {
 		t.Fatalf("automatic summary = %s", summary)
 	}
 	fakeServer.mu.Lock()
@@ -205,31 +195,25 @@ func TestRunAutomaticLoginStopsAfterFailedStage(t *testing.T) {
 	server := httptest.NewServer(fakeServer)
 	defer server.Close()
 	runner := &loadRunner{
-		commandRunner:   &fakeCommandRunner{failRate: "25"},
-		httpClient:      server.Client(),
-		checkVegeta:     func(string) error { return nil },
-		checkProfileCLI: func(string) error { return nil },
-		now:             time.Now,
+		commandRunner: &fakeCommandRunner{failRate: "25"},
+		httpClient:    server.Client(),
+		checkVegeta:   func(string) error { return nil },
+		now:           time.Now,
+		logger:        klog.NewStdLogger(io.Discard),
 	}
 	outputDir := t.TempDir()
-	config := defaultLoginConfig()
+	config := loadConfig{RPS: 10, RPSInput: "auto"}
 	config.APIURL = server.URL
-	config.PprofURL = server.URL + "/debug/pprof/"
-	config.GrafanaURL = server.URL
-	config.ProfileSource = profileSourcePprof
-	config.Users = 1
-	config.Concurrency = 1
 	config.RPSInput = "auto"
-	config.Warmup = 0
-	config.Duration = 10 * time.Millisecond
-	config.Timeout = time.Second
 	config.OutputDir = outputDir
-	config.VegetaPath = "vegeta"
-	err := runLoginPlan(t.Context(), runner, config, io.Discard, io.Discard)
+	err := runLoginPlan(t.Context(), runner, config)
 	if err == nil || !strings.Contains(err.Error(), "25 RPS") {
 		t.Fatalf("automatic error = %v", err)
 	}
-	if _, err = os.Stat(filepath.Join(outputDir, "rps-010", summaryFileName)); err != nil {
+	if strings.Contains(err.Error(), vegetaReportFileName) {
+		t.Fatalf("automatic error contains secondary missing-report failure: %v", err)
+	}
+	if _, err = os.Stat(filepath.Join(outputDir, "rps-010", vegetaReportFileName)); err != nil {
 		t.Fatalf("completed stage missing: %v", err)
 	}
 	if _, err = os.Stat(filepath.Join(outputDir, "rps-100")); !os.IsNotExist(err) {
@@ -247,26 +231,17 @@ func TestRunAutomaticLoginStopsAfterUnsuccessfulResponses(t *testing.T) {
 	server := httptest.NewServer(fakeServer)
 	defer server.Close()
 	runner := &loadRunner{
-		commandRunner:   &fakeCommandRunner{unsuccessfulRate: "025"},
-		httpClient:      server.Client(),
-		checkVegeta:     func(string) error { return nil },
-		checkProfileCLI: func(string) error { return nil },
-		now:             time.Now,
+		commandRunner: &fakeCommandRunner{unsuccessfulRate: "025"},
+		httpClient:    server.Client(),
+		checkVegeta:   func(string) error { return nil },
+		now:           time.Now,
+		logger:        klog.NewStdLogger(io.Discard),
 	}
-	config := defaultLoginConfig()
+	config := loadConfig{RPS: 10, RPSInput: "auto"}
 	config.APIURL = server.URL
-	config.PprofURL = server.URL + "/debug/pprof/"
-	config.GrafanaURL = server.URL
-	config.ProfileSource = profileSourcePprof
-	config.Users = 1
-	config.Concurrency = 1
 	config.RPSInput = "auto"
-	config.Warmup = 0
-	config.Duration = 10 * time.Millisecond
-	config.Timeout = time.Second
 	config.OutputDir = t.TempDir()
-	config.VegetaPath = "vegeta"
-	err := runLoginPlan(t.Context(), runner, config, io.Discard, io.Discard)
+	err := runLoginPlan(t.Context(), runner, config)
 	if err == nil || !strings.Contains(err.Error(), "success ratio 90.00%") {
 		t.Fatalf("automatic response error = %v", err)
 	}
@@ -275,71 +250,50 @@ func TestRunAutomaticLoginStopsAfterUnsuccessfulResponses(t *testing.T) {
 	}
 }
 
-func TestCollectPyroscopeProfiles(t *testing.T) {
-	commandRunner := &fakeCommandRunner{}
-	runner := &loadRunner{commandRunner: commandRunner}
-	config := defaultLoginConfig()
-	config.PyroscopeURL = "http://pyroscope:4040"
-	config.ProfileCLIPath = "profilecli"
-	config.ProfileService = "user-service"
-	config.OutputDir = t.TempDir()
-	start := time.Unix(100, 0)
-	end := time.Unix(200, 0)
-	if err := runner.collectPyroscopeProfiles(t.Context(), config.loadConfig, start, end, io.Discard); err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range []string{cpuProfileFileName, heapProfileFileName} {
-		if _, err := os.Stat(filepath.Join(config.OutputDir, name)); err != nil {
-			t.Fatalf("profile %s: %v", name, err)
-		}
-	}
-	commandRunner.mu.Lock()
-	commandList := append([]string(nil), commandRunner.commands...)
-	commandRunner.mu.Unlock()
-	joined := strings.Join(commandList, "\n")
-	if !strings.Contains(joined, "--from=100") || !strings.Contains(joined, "--to=200") || !strings.Contains(joined, `--query={service_name="user-service"}`) {
-		t.Fatalf("profilecli commands = %s", joined)
-	}
-}
-
-func TestValidateLoginConfigRejectsProfileSource(t *testing.T) {
-	config := defaultLoginConfig()
-	config.ProfileSource = "unknown"
-	if err := validateLoginConfig(config); err == nil {
-		t.Fatal("expected profile source error")
-	}
-}
-
 func TestPerformanceCommandContainsLoginOnly(t *testing.T) {
 	command := NewCommand()
 	if len(command.Commands()) != 1 || command.Commands()[0].Name() != "login" {
 		t.Fatalf("performance commands = %v", command.Commands())
 	}
+	loginCommand := command.Commands()[0]
+	if loginCommand.Use != "login <portal-url>" {
+		t.Fatalf("login use = %q", loginCommand.Use)
+	}
+	if loginCommand.Flags().Lookup("rps") == nil {
+		t.Fatalf("login flags = %v", loginCommand.Flags())
+	}
+	loginCommand.Flags().VisitAll(func(flag *pflag.Flag) {
+		if flag.Name != "rps" {
+			t.Errorf("unexpected login flag %q", flag.Name)
+		}
+	})
 }
 
-func TestPerformanceURLs(t *testing.T) {
-	pprofURL := "http://127.0.0.1:19090/debug/pprof/"
-	if actual := joinPprofURL(pprofURL, "heap"); actual != "http://127.0.0.1:19090/debug/pprof/heap" {
-		t.Fatalf("pprof URL = %s", actual)
+func TestFixedDependencyErrorsIncludeInstallGuidance(t *testing.T) {
+	missingPath := filepath.Join(t.TempDir(), "missing-tool")
+	if err := checkVegetaVersion(missingPath); err == nil || !strings.Contains(err.Error(), "go install github.com/tsenart/vegeta/v12@v12.13.0") {
+		t.Fatalf("Vegeta error = %v", err)
 	}
-	if actual := metricsURL(pprofURL); actual != "http://127.0.0.1:19090/metrics" {
-		t.Fatalf("metrics URL = %s", actual)
+}
+
+func TestExecRunnerCapturesStderr(t *testing.T) {
+	t.Setenv("PGO_EXEC_RUNNER_HELPER", "1")
+	runner := execRunner{logger: klog.NewStdLogger(io.Discard)}
+	err := runner.Run(t.Context(), os.Args[0], []string{"-test.run=TestExecRunnerHelper"}, io.Discard)
+	if err == nil || !strings.Contains(err.Error(), "vegeta failed") {
+		t.Fatalf("command error = %v", err)
 	}
+}
+
+func TestExecRunnerHelper(t *testing.T) {
+	if os.Getenv("PGO_EXEC_RUNNER_HELPER") != "1" {
+		return
+	}
+	_, _ = fmt.Fprint(os.Stderr, "vegeta failed")
+	os.Exit(2)
 }
 
 func (server *fakePerformanceServer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	if request.URL.Path == "/metrics" {
-		_, _ = io.WriteString(writer, "pgo_http_requests_total 3\ngo_goroutines 5\n")
-		return
-	}
-	if strings.HasPrefix(request.URL.Path, "/debug/pprof/") {
-		if request.URL.Path == "/debug/pprof/runtime" && request.Method != http.MethodPost {
-			http.Error(writer, "method", http.StatusMethodNotAllowed)
-			return
-		}
-		_, _ = io.WriteString(writer, "profile-data")
-		return
-	}
 	if request.URL.Path == "/user/token" && request.Method == http.MethodPost {
 		server.login(writer, request)
 		return

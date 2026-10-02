@@ -9,6 +9,48 @@ import (
 	"time"
 )
 
+func TestRunConcurrent(t *testing.T) {
+	resultList, err := RunConcurrent(t.Context(), []int{1, 2, 3}, func(_ context.Context, value int) (int, error) {
+		if value == 2 {
+			return 0, errors.New("planned failure")
+		}
+		return value * 2, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resultList) != 3 {
+		t.Fatalf("result count = %d, want 3", len(resultList))
+	}
+	var successCount, errorCount int
+	for _, result := range resultList {
+		if result.Err != nil {
+			errorCount++
+		} else {
+			successCount++
+		}
+	}
+	if successCount != 2 || errorCount != 1 {
+		t.Fatalf("success = %d, errors = %d", successCount, errorCount)
+	}
+}
+
+func TestRunConcurrentSeparatesContextError(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	resultList, err := RunConcurrent(ctx, []int{1, 2, 3}, func(_ context.Context, value int) (int, error) {
+		return value, nil
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("parent error = %v, want context canceled", err)
+	}
+	for _, result := range resultList {
+		if errors.Is(result.Err, context.Canceled) {
+			t.Fatal("context error was appended as a child result")
+		}
+	}
+}
+
 func TestRunner_RunMax(t *testing.T) {
 	r := NewRunner("test")
 

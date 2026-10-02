@@ -1,6 +1,7 @@
 package login
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,59 +12,84 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
+
+	"github.com/pancake-lee/pgo/cmd/pgo/common"
 )
+
+func TestNewBatchID(t *testing.T) {
+	batchID, err := newBatchID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batchID) != 16 {
+		t.Fatalf("batch ID length = %d, want 16", len(batchID))
+	}
+	if _, err = strconv.ParseUint(batchID[:12], 10, 64); err != nil {
+		t.Fatalf("batch ID timestamp is not numeric: %q", batchID)
+	}
+	if _, err = hex.DecodeString(batchID[12:]); err != nil {
+		t.Fatalf("batch ID suffix is not hexadecimal: %q", batchID)
+	}
+}
 
 type fakeUserServer struct {
 	mu         sync.Mutex
 	nextID     int32
 	nameToUser map[string]User
 	validToken map[string]bool
-	failName   string
+	failSuffix string
 }
 
 func TestUserBatchLifecycle(t *testing.T) {
 	fakeServer := newFakeUserServer()
 	server := httptest.NewServer(fakeServer)
 	defer server.Close()
-	client, err := NewClient(server.URL, time.Second)
+	client, err := common.NewClient(server.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	manifestPath := filepath.Join(t.TempDir(), "batch", "users.json")
-	manifest, err := Prepare(t.Context(), client, manifestPath, "batch1", 12, 4)
+	var userCount int = 100
+	manifest, err := Prepare(t.Context(), client, userCount, manifestPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(manifest.Users) != 12 {
-		t.Fatalf("prepared %d users, want 12", len(manifest.Users))
+	if len(manifest.Users) != userCount {
+		t.Fatalf("prepared %d users, want %d", len(manifest.Users), userCount)
 	}
-	recovered, err := ReadManifest(manifestPath)
-	if err != nil {
+	recovered := &Manifest{}
+	if err = recovered.read(manifestPath); err != nil {
 		t.Fatal(err)
 	}
-	if err = Verify(t.Context(), client, recovered, 3); err != nil {
+	if err = Verify(t.Context(), client, recovered); err != nil {
 		t.Fatal(err)
 	}
 
 	targetPath := filepath.Join(t.TempDir(), "targets.json")
-	if err = WriteTargets(targetPath, recovered); err != nil {
+	if err = recovered.WriteTargets(targetPath); err != nil {
 		t.Fatal(err)
 	}
 	content, err := os.ReadFile(targetPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if lineCount := len(strings.Split(strings.TrimSpace(string(content)), "\n")); lineCount != 12 {
-		t.Fatalf("target line count = %d, want 12", lineCount)
+	if lineCount := len(strings.Split(strings.TrimSpace(string(content)), "\n")); lineCount != userCount {
+		t.Fatalf("target line count = %d, want %d", lineCount, userCount)
 	}
 
-	if err = Cleanup(t.Context(), client, recovered, 4); err != nil {
+	if err = Cleanup(t.Context(), client, recovered); err != nil {
 		t.Fatal(err)
 	}
-	if err = Cleanup(t.Context(), client, recovered, 4); err != nil {
+	if err = Cleanup(t.Context(), client, recovered); err != nil {
 		t.Fatalf("cleanup must be idempotent: %v", err)
+	}
+	cleaned := &Manifest{}
+	if err = cleaned.read(manifestPath); err != nil {
+		t.Fatal(err)
+	}
+	if cleaned.CleanedAt == nil {
+		t.Fatal("cleaned manifest does not record cleanup time")
 	}
 	fakeServer.mu.Lock()
 	defer fakeServer.mu.Unlock()
@@ -74,28 +100,29 @@ func TestUserBatchLifecycle(t *testing.T) {
 
 func TestPreparePersistsSuccessesWhenSomeRequestsFail(t *testing.T) {
 	fakeServer := newFakeUserServer()
-	fakeServer.failName = "load_partial_000003"
+	fakeServer.failSuffix = "_000003"
 	server := httptest.NewServer(fakeServer)
 	defer server.Close()
-	client, err := NewClient(server.URL, time.Second)
+	client, err := common.NewClient(server.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	manifestPath := filepath.Join(t.TempDir(), "users.json")
-	manifest, err := Prepare(t.Context(), client, manifestPath, "partial", 5, 3)
+	var userCount int = 100
+	manifest, err := Prepare(t.Context(), client, userCount, manifestPath)
 	if err == nil {
 		t.Fatal("expected aggregated prepare error")
 	}
-	if len(manifest.Users) != 4 {
-		t.Fatalf("persisted users = %d, want 4", len(manifest.Users))
+	if len(manifest.Users) != userCount-1 {
+		t.Fatalf("persisted users = %d, want %d", len(manifest.Users), userCount-1)
 	}
-	recovered, readErr := ReadManifest(manifestPath)
-	if readErr != nil {
-		t.Fatal(readErr)
+	recovered := &Manifest{}
+	if err = recovered.read(manifestPath); err != nil {
+		t.Fatal(err)
 	}
-	if len(recovered.Users) != 4 {
-		t.Fatalf("recovered users = %d, want 4", len(recovered.Users))
+	if len(recovered.Users) != userCount-1 {
+		t.Fatalf("recovered users = %d, want %d", len(recovered.Users), userCount-1)
 	}
 }
 
@@ -139,7 +166,7 @@ func (server *fakeUserServer) login(writer http.ResponseWriter, request *http.Re
 		http.Error(writer, "bad request", http.StatusBadRequest)
 		return
 	}
-	if input.UserName == server.failName {
+	if server.failSuffix != "" && strings.HasSuffix(input.UserName, server.failSuffix) {
 		http.Error(writer, "planned failure", http.StatusServiceUnavailable)
 		return
 	}
