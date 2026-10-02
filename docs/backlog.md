@@ -176,6 +176,18 @@
 - **实施与验证**：performance 已收口为初始化期场景注册、单档 Vegeta 执行和通用自动升压；注册表拒绝缺失字段和重复标识。login 通过初始化注册提供 Cobra 命令与交互入口，并在 `command.go` 内统一管理导航服务发现、RPS 模式、默认阶梯、用户准备清理和登录汇总文案。自动升压通过单档回调复用同一执行链，通用包不再包含登录符号或文案；CLI 组合根仅匿名引入 login 以触发注册。场景注册、单档产物与清理、阶梯回调、执行失败和非 100% 成功率停止、登录准备清理与 CLI 契约均有回归测试。`go test -race ./cmd/pgo/performance/... ./cmd/pgo`、`make test`（含 `go vet ./...`）、`make build` 及 performance/login help 检查通过，结束后无 Go 测试、pgo performance 或 Vegeta 进程遗留。
 - **可读性整理**：2026-10-02 将 performance/login 生产代码与测试统一限制为 80 字符行宽，拆分 `if` 初始化语句，并按校验、准备、执行、结果与清理阶段留白。函数声明在仅返回部分导致超长时保留同行参数；函数调用可容纳时完整单行，否则从左括号后换行，每个实参独占一行。定向竞态测试、`make test`（含 `go vet ./...`）与 `make build` 通过。
 
+### 31. pclient 两层命令菜单
+
+- **状态**：Done
+- **背景**：performance 自建场景注册、Cobra 父命令和交互菜单，与 `pkg/pclient` 已有工具入口形成平行机制；现有一级交互菜单还混有可直接执行的功能。目标结构固定为一级分组、二级具体工具，Cobra 与交互模式共用同一份结构。
+- **方案**：在 `pkg/pclient` 增加只负责双运行模式组合的 `CommandGroup` 与 `CommandEntry`。`cmd/pgo/main.go` 定义并注册 DevOps、Performance、Application 和 Tools 一级分组；各业务分组根目录登记自身拥有的二级工具；具体工具只暴露 Cobra 与交互入口并处理自身参数，不感知所在分组。diagnostics 原三级命令拆为 Tools 下的 health、metrics-url 和 profile 二级工具。为避免 performance 根包注册 login 时产生循环依赖，通用压测执行框架下沉到 `performance/core`，分组入口保留在 `performance/menu.go`。
+- **验收**：
+  - `pgo` 层只定义四个一级分组的名称和展示文案，不直接挂载可执行工具。
+  - devops、performance、application 和 tools 各自登记二级工具，具体工具不依赖菜单层级。
+  - performance 删除 `Scenario`、`RegisterScenario`、`NewCommand` 和 `RunInteractive`。
+  - 所有 Cobra 与交互入口均为固定两层结构，并复用相同的二级工具列表。
+- **实施与验证**：已完成 pclient 分组与工具入口抽象以及全部 pgo 入口迁移。Performance 分组入口位于根目录，通用压测框架位于 `performance/core`；Course Swap 迁入 `application/courseSwap`，由 Application 根包登记；开发、诊断和交互测试工具归入 Tools；无调用的 `cmd/pgo/common` 旧入口与参数副本已删除。两层 Cobra 树测试覆盖全部工具路径；`go test -race ./cmd/pgo/... ./pkg/pclient`、`make test`（含 `go vet ./...`）、`make build` 以及四个分组的 CLI help 检查全部通过。
+
 ### 28. Alloy、Pyroscope 与受控运行时诊断
 
 - **状态**：待用户验收

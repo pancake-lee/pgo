@@ -3,16 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
+	"github.com/pancake-lee/pgo/cmd/pgo/application"
 	"github.com/pancake-lee/pgo/cmd/pgo/devops"
 	"github.com/pancake-lee/pgo/cmd/pgo/performance"
-	_ "github.com/pancake-lee/pgo/cmd/pgo/performance/login"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/diagnostics"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/genCURD"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/genGORM"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/prettyCode"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/psql"
-	"github.com/pancake-lee/pgo/cmd/pgo/tools/sheet2mysql"
+	"github.com/pancake-lee/pgo/cmd/pgo/tools"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pthird"
@@ -57,84 +51,73 @@ func newRootCommand() *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().BoolVarP(&logToConsole, "log-to-console", "l", false, "log to console")
-	// TODO 不全
-	rootCmd.AddCommand(prettyCode.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(psql.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(genCURD.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(genGORM.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(diagnostics.NewCommand())
-	rootCmd.AddCommand(performance.NewCommand())
-	rootCmd.AddCommand(sheet2mysql.Entrypoint.NewCobraCommand())
-	rootCmd.AddCommand(devops.InitProjEntrypoint.NewCobraCommand())
+	rootCmd.PersistentFlags().BoolVarP(
+		&logToConsole,
+		"log-to-console",
+		"l",
+		false,
+		"log to console",
+	)
+	for _, registration := range newCommandGroups() {
+		rootCmd.AddCommand(registration.group.NewCobraCommand())
+	}
 
 	return rootCmd
 }
 
 // 第一层交互菜单
 func runInteractiveMenu() {
-	// --------------------------------------------------
-	sel := pthird.Interact.NewSelector("请选择功能 (Select Function)")
-	sel.Reg("Devops CI", devops.CICli)
-	sel.Reg("Devops CD", devops.DeployCli)
-	sel.Reg("性能测试 (Performance)", performance.RunInteractive)
-	sel.Reg("开发工具 (Dev Tools)", toolsMenuCli)
-
-	sel.Reg("调课 (Course Swap)", courseSwap.CourseSwapCli)
-
-	sel.Reg("测试交互 (Test Interact)", testInteraction)
-
-	sel.Loop()
+	selector := pthird.Interact.NewSelector("请选择功能 (Select Function)")
+	for _, registration := range newCommandGroups() {
+		current := registration
+		selector.Reg(current.label, func() {
+			current.group.RunInteractive(current.title)
+		})
+	}
+	selector.Loop()
 }
 
-// 第二层交互菜单：工具
-func toolsMenuCli() {
-	sel := pthird.Interact.NewSelector("开发工具 (Dev Tools)")
-
-	sel.Reg("美化代码 (Pretty Code)", prettyCode.Entrypoint.RunInteractive)
-	sel.Reg("执行PostgreSQL (cmd/pgo psql)", psql.Entrypoint.RunInteractive)
-	sel.Reg("生成CURD代码 (cmd/pgo curd)", genCURD.Entrypoint.RunInteractive)
-	sel.Reg("生成GORM代码 (cmd/pgo gorm)", genGORM.Entrypoint.RunInteractive)
-	sel.Reg("多维表格转MySQL建表SQL (cmd/pgo sheet2mysql)", sheet2mysql.Entrypoint.RunInteractive)
-	sel.Loop()
+type commandGroupRegistration struct {
+	label string
+	title string
+	group *pclient.CommandGroup
 }
 
-// --------------------------------------------------
-// 交互测试
-func testInteraction() {
-	pthird.Interact.PrintLine()
-	pthird.Interact.Infof("开始交互组件测试 (Interactive Component Test)")
+func newCommandGroups() []commandGroupRegistration {
+	devopsGroup := pclient.NewCommandGroup("devops", "Run DevOps tools")
+	devops.RegisterTools(devopsGroup)
 
-	// 1. Log Style
-	pthird.Interact.Infof("测试日志样式 (Log Style):")
-	pthird.Interact.Infof("  -> 这是 Info 消息 (Info Message)")
-	pthird.Interact.Debugf("  -> 这是 Debug 消息 (Debug Message)")
-	pthird.Interact.Warnf("  -> 这是 Warn 消息 (Warn Message)")
-	pthird.Interact.Errorf("  -> 这是 Error 消息 (Error Message)")
-	pthird.Interact.PrintLine()
+	performanceGroup := pclient.NewCommandGroup(
+		"performance",
+		"Run repeatable performance tests",
+	)
+	performance.RegisterTools(performanceGroup)
 
-	// 2. Input
-	val := pthird.Interact.Input("测试普通输入 (Input - Optional): ")
-	pthird.Interact.Infof("你输入了 (You input): %s", val)
+	applicationGroup := pclient.NewCommandGroup(
+		"application",
+		"Run application tools",
+	)
+	application.RegisterTools(applicationGroup)
 
-	// 3. MustInput
-	val = pthird.Interact.MustInput("测试必填输入 (MustInput - Required): ")
-	pthird.Interact.Infof("你输入了 (You input): %s", val)
+	toolsGroup := pclient.NewCommandGroup("tools", "Run development tools")
+	tools.RegisterTools(toolsGroup)
 
-	// 4. MustConfirm
-	pthird.Interact.PrintLine()
-	pthird.Interact.Infof("即将测试确认框 (Confirm Test)")
-	// 注意，如果用户选 No，MustConfirm 会 os.Exit(1)，所以这里仅仅是测试 Confirm 流程
-	pthird.Interact.MustConfirm("确认继续吗? (Confirm to continue?)")
-	pthird.Interact.Infof("已确认 (Confirmed)")
-
-	// 5. Selector (Nested)
-	pthird.Interact.PrintLine()
-	pthird.Interact.Infof("即将测试多级选择器 (Nested Selector Test)")
-	s := pthird.Interact.NewSelector("请选择一种颜色 (Pick a color)")
-	s.Reg("红色 (Red)", func() { pthird.Interact.Infof("你选择了红色") })
-	s.Reg("蓝色 (Blue)", func() { pthird.Interact.Infof("你选择了蓝色") })
-	s.Loop()
-
-	pthird.Interact.Infof("交互测试完成 (Test Completed)")
+	return []commandGroupRegistration{
+		{label: "DevOps", title: "DevOps", group: devopsGroup},
+		{
+			label: "性能测试 (Performance)",
+			title: "性能测试 (Performance)",
+			group: performanceGroup,
+		},
+		{
+			label: "应用 (Application)",
+			title: "应用 (Application)",
+			group: applicationGroup,
+		},
+		{
+			label: "开发工具 (Tools)",
+			title: "开发工具 (Tools)",
+			group: toolsGroup,
+		},
+	}
 }

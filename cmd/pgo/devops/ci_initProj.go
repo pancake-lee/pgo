@@ -58,17 +58,6 @@ type initCopyTask struct {
 	DstRel  string
 }
 
-func CICli() {
-	sel := pthird.Interact.NewSelector("Devops CI")
-	sel.Reg("Make", MakeCli)
-	sel.Reg("Init Project", InitProjCli)
-	sel.Loop()
-}
-
-func InitProjCli() {
-	InitProjEntrypoint.RunInteractive()
-}
-
 func RunInitProj(values pclient.ParamMap) error {
 	opt := convParamToRunOpt(values)
 	return runInitProject(opt)

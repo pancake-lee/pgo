@@ -1,6 +1,6 @@
 # New Project Skeleton
 
-该目录由 pgo initProj 初始化生成
+该目录由 pgo devops initProj 初始化生成
 
 ## 快速开始
 

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
-	"github.com/pancake-lee/pgo/cmd/pgo/performance"
+	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
 	"github.com/spf13/pflag"
 )
 
@@ -110,12 +110,9 @@ func TestLoginCommandContract(t *testing.T) {
 			t.Errorf("unexpected login flag %q", flag.Name)
 		}
 	})
-	rootCommand := performance.NewCommand()
-	commandList := rootCommand.Commands()
-	invalidCommandList := len(commandList) != 1 ||
-		commandList[0].Name() != "login"
-	if invalidCommandList {
-		t.Fatalf("registered performance commands = %v", rootCommand.Commands())
+	entrypointCommand := Entrypoint.NewCobraCommand()
+	if entrypointCommand.Name() != "login" {
+		t.Fatalf("entrypoint command = %q", entrypointCommand.Name())
 	}
 }
 

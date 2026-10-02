@@ -12,7 +12,7 @@ import (
 
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
-	"github.com/pancake-lee/pgo/cmd/pgo/performance"
+	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/plogger"
@@ -31,13 +31,17 @@ const (
 
 var autoRPSList = []int{10, 25, 50, 100, 200, 500}
 
-func init() {
-	performance.RegisterScenario(performance.Scenario{
-		Name:             "login",
-		InteractiveLabel: "用户登录压测 (User Login)",
-		NewCommand:       newLoginCommand,
-		RunInteractive:   runLoginInteractive,
-	})
+type entrypoint struct{}
+
+// Entrypoint exposes login load testing without knowing its menu placement.
+var Entrypoint entrypoint
+
+func (entrypoint) NewCobraCommand() *cobra.Command {
+	return newLoginCommand()
+}
+
+func (entrypoint) RunInteractive() {
+	runLoginInteractive()
 }
 
 // newLoginCommand 创建只接收导航页地址和可选 RPS 的登录压测命令。

@@ -1,4 +1,4 @@
-package performance
+package core
 
 import (
 	"context"
@@ -15,9 +15,7 @@ import (
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
-	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/pancake-lee/pgo/pkg/putil"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -319,54 +317,4 @@ func writeJSON(path string, value any) error {
 		return err
 	}
 	return os.WriteFile(path, append(content, '\n'), 0o600)
-}
-
-// Scenario 描述初始化期注册的一个性能测试场景。
-type Scenario struct {
-	Name             string
-	InteractiveLabel string
-	NewCommand       func() *cobra.Command
-	RunInteractive   func()
-}
-
-var scenarioList []Scenario
-
-// RegisterScenario 在程序初始化期注册性能测试场景。
-func RegisterScenario(scenario Scenario) {
-	missingName := strings.TrimSpace(scenario.Name) == ""
-	missingLabel := strings.TrimSpace(scenario.InteractiveLabel) == ""
-	missingEntrypoint := scenario.NewCommand == nil ||
-		scenario.RunInteractive == nil
-	if missingName || missingLabel || missingEntrypoint {
-		panic("performance: invalid scenario registration")
-	}
-	for _, registered := range scenarioList {
-		if registered.Name == scenario.Name {
-			panic(fmt.Sprintf("performance: duplicate scenario %q", scenario.Name))
-		}
-	}
-	scenarioList = append(scenarioList, scenario)
-}
-
-// NewCommand 创建性能测试的 Cobra 根命令。
-func NewCommand() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "performance",
-		Short: "Run repeatable performance test scenarios",
-	}
-	for _, scenario := range scenarioList {
-		command.AddCommand(scenario.NewCommand())
-	}
-	return command
-}
-
-// RunInteractive 启动已注册性能测试场景的交互入口。
-func RunInteractive() {
-	selector := pthird.Interact.NewSelector(
-		"请选择性能测试场景 (Select Performance Scenario)",
-	)
-	for _, scenario := range scenarioList {
-		selector.Reg(scenario.InteractiveLabel, scenario.RunInteractive)
-	}
-	selector.Loop()
 }

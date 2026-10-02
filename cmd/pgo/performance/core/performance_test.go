@@ -1,4 +1,4 @@
-package performance
+package core
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	klog "github.com/go-kratos/kratos/v2/log"
-	"github.com/spf13/cobra"
 )
 
 type fakePreparer struct {
@@ -172,40 +171,6 @@ func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	if fmt.Sprint(visitedList) != "[10 25]" {
 		t.Fatalf("visited stages = %v", visitedList)
 	}
-}
-
-func TestRegisterScenarioBuildsCommandAndRejectsDuplicate(t *testing.T) {
-	previousList := scenarioList
-	scenarioList = nil
-	t.Cleanup(func() { scenarioList = previousList })
-	scenario := Scenario{
-		Name:             "sample",
-		InteractiveLabel: "Sample",
-		NewCommand: func() *cobra.Command {
-			return &cobra.Command{Use: "sample"}
-		},
-		RunInteractive: func() {},
-	}
-	RegisterScenario(scenario)
-	command := NewCommand()
-	if len(command.Commands()) != 1 || command.Commands()[0].Name() != "sample" {
-		t.Fatalf("commands = %v", command.Commands())
-	}
-	defer func() {
-		if recover() == nil {
-			t.Fatal("duplicate registration did not panic")
-		}
-	}()
-	RegisterScenario(scenario)
-}
-
-func TestRegisterScenarioRejectsInvalidRegistration(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("invalid registration did not panic")
-		}
-	}()
-	RegisterScenario(Scenario{})
 }
 
 func TestFixedDependencyErrorsIncludeInstallGuidance(t *testing.T) {

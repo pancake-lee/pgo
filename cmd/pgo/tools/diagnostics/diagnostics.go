@@ -8,23 +8,34 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pancake-lee/pgo/pkg/pclient"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/spf13/cobra"
 )
 
 const defaultAddress = "http://127.0.0.1:20002"
 
-// NewCommand creates read-only operational commands for a papp diagnostics port.
-func NewCommand() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "diagnostics",
-		Short: "Query papp health, metrics, and runtime profiles",
-	}
-	command.AddCommand(newHealthCommand(), newMetricsURLCommand(), newProfileCommand())
-	return command
-}
+var (
+	// HealthEntrypoint exposes the diagnostics health check.
+	HealthEntrypoint = pclient.NewCommandEntry(
+		newHealthCommand,
+		runHealthInteractive,
+	)
+	// MetricsURLEntrypoint exposes the Prometheus endpoint helper.
+	MetricsURLEntrypoint = pclient.NewCommandEntry(
+		newMetricsURLCommand,
+		runMetricsURLInteractive,
+	)
+	// ProfileEntrypoint exposes runtime profile downloads.
+	ProfileEntrypoint = pclient.NewCommandEntry(
+		newProfileCommand,
+		runProfileInteractive,
+	)
+)
 
 func newHealthCommand() *cobra.Command {
 	var address string
@@ -84,6 +95,61 @@ func newProfileCommand() *cobra.Command {
 	command.Flags().IntVar(&seconds, "seconds", 30, "profile duration in seconds (trace maximum 10; runtime profiles maximum 60)")
 	command.Flags().BoolVar(&open, "open", false, "open the downloaded profile in go tool pprof")
 	return command
+}
+
+func runHealthInteractive() {
+	address := pthird.Interact.Input(
+		"diagnostics address (default http://127.0.0.1:20002)",
+	)
+	if address == "" {
+		address = defaultAddress
+	}
+	err := printResponse(address, "/readyz")
+	if err != nil {
+		pthird.Interact.Error(err)
+	}
+}
+
+func runMetricsURLInteractive() {
+	address := pthird.Interact.Input(
+		"diagnostics address (default http://127.0.0.1:20002)",
+	)
+	if address == "" {
+		address = defaultAddress
+	}
+	pthird.Interact.Infof("%s", endpoint(address, "/metrics"))
+}
+
+func runProfileInteractive() {
+	address := pthird.Interact.Input(
+		"diagnostics address (default http://127.0.0.1:20002)",
+	)
+	if address == "" {
+		address = defaultAddress
+	}
+	profileType := pthird.Interact.MustInput(
+		"profile type (cpu/heap/goroutine/block/mutex/trace)",
+	)
+	secondsInput := pthird.Interact.Input("duration seconds (default 30)")
+	seconds := 30
+	if secondsInput != "" {
+		parsedSeconds, err := strconv.Atoi(secondsInput)
+		if err != nil {
+			pthird.Interact.Errorf("invalid duration: %v", err)
+			return
+		}
+		seconds = parsedSeconds
+	}
+	output := pthird.Interact.Input("output path (default <type>.pprof)")
+	if output == "" {
+		output = profileType + ".pprof"
+	}
+	err := downloadProfile(address, profileType, seconds, output)
+	if err != nil {
+		pthird.Interact.Error(err)
+		return
+	}
+	pthird.Interact.Infof("profile saved to %s", output)
 }
 
 func printResponse(address, path string) error {

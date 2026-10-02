@@ -11,11 +11,11 @@
 - [多用户注册与登录基线](../eval/user-login-baseline.md)：当前实验方法与结果记录模板。
 - `cmd/pgo/performance/login/`：登录命令、交互入口、测试用户准备、验证、targets 生成、清理与登录自动化策略。
 - `cmd/pgo/common/`：导航页服务清单解析与固定组件 URL。
-- `cmd/pgo/performance/`：场景注册、Vegeta 单档负载、通用自动升压与负载侧结果记录。
+- `cmd/pgo/performance/`：Performance 分组入口、Vegeta 单档负载、通用自动升压与负载侧结果记录。
 
 ## 职责边界
 
-- performance 负责组织已注册场景、制造单档负载并记录 Vegeta 结果；场景包负责准备和清理测试数据。
+- performance 根包负责登记分组工具，core 负责制造单档负载并记录 Vegeta 结果；场景包负责准备和清理测试数据。
 - 自动升压只组织压力档位，每个档位复用 performance 的单档执行链。
 - 单档与跨档结果只包含请求数、实际吞吐、成功率、P50、P95、P99 和执行错误。
 - Grafana 与 Pyroscope 负责服务指标、日志和 profiling；performance 不抓取、导出或复制平台数据。
@@ -29,8 +29,9 @@
 - 导航服务发现：已迁移到 CLI 公共包并补齐全部固定组件 URL。
 - Grafana、Prometheus、Loki、Alloy 与 Pyroscope：代码和部署配置已完成自动验证，等待宿主机真实链路验收。
 - 登录场景 API：批次、用户数、超时和并发策略已收回包内。
-- 性能框架与登录场景解耦：已完成初始化期全局注册、通用单档执行和自动升压回调，并完成自动验证。
+- 性能框架与登录场景解耦：已完成 pclient 两层菜单登记、通用单档执行和自动升压回调，并完成自动验证。
 - 性能代码可读性：已统一行宽、函数声明分级换行、函数调用整行或逐实参换行、赋值与判断分行及执行阶段留白，对应规则已沉淀到 Harness。
+- 两层菜单：performance 已删除专属场景注册和双运行模式菜单，由 `pkg/pclient` 的通用两层分组承载；pgo 定义 Performance 一级分组，`performance/menu.go` 登记 login 二级工具，通用负载框架位于 `performance/core`，login 只处理自身命令参数与执行。
 
 ## 下一轮建议
 

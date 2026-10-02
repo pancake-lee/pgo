@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/pancake-lee/pgo/cmd/pgo/courseSwap"
+	"github.com/pancake-lee/pgo/cmd/pgo/application/courseSwap"
 	"github.com/pancake-lee/pgo/pkg/pclient"
 )
 

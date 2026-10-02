@@ -60,7 +60,7 @@ var Entrypoint = pclient.NewTool(pclient.ToolOption{
 	ParamList:      paramSettingList,
 	Run:            Run,
 	InteractiveHook: func(values pclient.ParamMap) pclient.ParamMap {
-		// 为了密码不存储缓存文件，而是通过[VAR=XXX pgo psql ...]方式传递
+		// 密码不写入缓存，通过 [VAR=XXX pgo tools psql ...] 传递。
 		password := pthird.Interact.Input("Password (可空，空则沿用环境变量 PGPASSWORD): ")
 		values[paramNamePassword] = password
 		return values
