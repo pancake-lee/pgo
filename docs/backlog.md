@@ -150,7 +150,7 @@
   - 缺少任一固定组件、ID 重复、端口或路径非法、未知字段、尾随 JSON 及非成功 HTTP 响应均返回可定位错误。
   - performance 包不再维护 services 清单模型、解析或 URL 拼装，只读取公共结果中的 API URL，负载行为和产物不回归。
   - 定向竞态测试、部署清单一致性测试、`make test`、`go vet ./...`、`make build` 与 CLI help 检查通过，测试结束后无进程遗留。
-- **实施与验证**：导航页清单解析已迁入 `cmd/pgo/common`，公共固定字段覆盖九个组件 URL，并与页面统一采用 `webPath` 优先规则。performance 本地 services 实现与解析测试已删除，只读取公共结果的 API URL；单一 `Prepare` 能力统一以 `preparer` 命名，本仓库 Harness 已记录窄接口按能力命名规则。压测执行器在构造时注入 Kratos Logger，后续调用只传业务参数；Vegeta 标准错误由进程适配器捕获并包装为错误。公共包、performance、登录场景与部署清单定向竞态测试、`make test`（含 `go vet ./...`）、`make build` 和 CLI help 检查通过，无测试进程遗留。
+- **实施与验证**：导航页清单解析已迁入 `cmd/pgo/common`，公共固定字段覆盖九个组件 URL，并与页面统一采用 `webPath` 优先规则。performance 本地 services 实现与解析测试已删除，只读取公共结果的 API URL；单一 `Prepare` 能力统一以 `preparer` 命名，本仓库 Harness 已记录窄接口按能力命名规则。压测配置已删除无意义的登录包装层，API URL 归入通用负载配置，固定时长、超时和 Vegeta 路径直接使用内部常量，登录专属产物名归入准备器；外部命令执行复用 `pkg/putil` 的 context 与流式输出入口。压测执行器在构造时注入 Kratos Logger，后续调用只传业务参数；Vegeta 标准错误由进程适配器捕获并包装为错误。公共包、performance、登录场景与部署清单定向竞态测试、`make test`（含 `go vet ./...`）、`make build` 和 CLI help 检查通过，无本轮测试进程遗留。
 
 ### 28. Alloy、Pyroscope 与受控运行时诊断
 

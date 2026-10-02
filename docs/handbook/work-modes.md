@@ -1,10 +1,9 @@
 # 工作模式手册
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/handbook-work-modes.md 公共骨架：由 pancake 统一同步，勿在此修改；改动请编辑 pancake 后运行 sync.sh push -->
+<!-- harness:begin src=pancake/30-Tools/harness/docs/handbook/work-modes.md -->
 > AI 根据用户输入的关键词自动切换工作模式。
 > 本文件定义每种模式的完整流程，是 CLAUDE.md/AGENTS.md 触发词表的下游详情文档。
-> 维护原则：CLAUDE.md 与 AGENTS.md 是同一套全局规则在 Claude/Codex 工作流中的双入口，任一文件修改时必须在同一轮同步修改另一文件。
-> 公共骨架块由 pancake/30-Tools/harness 统一同步（以 harness marker 标记），勿在 marker 内直接修改。
+> 维护原则：CLAUDE.md 与 AGENTS.md 是同一套项目规则在 Claude/Codex 工作流中的双入口，项目专有内容修改时同时维护两份文件。
 
 ---
 
@@ -328,7 +327,7 @@ flowchart TD
   - 设计文档（`docs/design/`）始终描述当前生效的方案，不包含"曾考虑 X 但未采用"或"不需要 Y"等否定性叙述
 
 - **已完成的功能从 TODO 删掉**，功能适当写到其他文档合适的地方。不要在 TODO 中描述已实现的功能
-<!-- harness:end src=pancake/30-Tools/harness/common/handbook-work-modes.md -->
+<!-- harness:end src=pancake/30-Tools/harness/docs/handbook/work-modes.md -->
 
 ---
 

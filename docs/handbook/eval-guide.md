@@ -1,9 +1,8 @@
 # AI 评估模式操作指南
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/handbook-eval-guide.md 公共块：由 pancake 统一同步，勿在此修改；改动请编辑 pancake 后运行 sync.sh push -->
+<!-- harness:begin src=pancake/30-Tools/harness/docs/handbook/eval-guide.md -->
 > 本文档是 `work-modes.md` 评估模式的补充，定义 AI 在评估时如何按维度评分、收集证据、输出报告。
 > 评估器是"判卷老师"：只判断好坏，不提出解决方案。
-> 公共骨架块由 pancake/30-Tools/harness 统一同步（以 harness marker 标记），勿在 marker 内直接修改。
 
 ---
 
@@ -208,7 +207,7 @@ git show <commit>
 - 评估不提出"应该怎么改"，只指出"哪里不够好"。改进方案由规划模式产出
 - 数据库查询是只读操作，不要执行 INSERT/UPDATE/DELETE
 - 报告只记录实际执行过的命令和结果，不把未执行的检查写成通过
-<!-- harness:end src=pancake/30-Tools/harness/common/handbook-eval-guide.md -->
+<!-- harness:end src=pancake/30-Tools/harness/docs/handbook/eval-guide.md -->
 
 ## 本项目专项（pgo）
 

@@ -1,8 +1,7 @@
 # 编码规范
 
-<!-- harness:begin src=pancake/30-Tools/harness/common/handbook-coding-conventions.md 公共骨架：由 pancake 统一同步，勿在此修改；改动请编辑 pancake 后运行 sync.sh push -->
+<!-- harness:begin src=pancake/30-Tools/harness/docs/handbook/coding-conventions.md -->
 > 按语言/模块分节。AI 在对应目录下工作时读取相关节。
-> 公共骨架块由 pancake/30-Tools/harness 统一同步（以 harness marker 标记），勿在 marker 内直接修改。
 
 ---
 
@@ -76,7 +75,7 @@
 
 - 沿用当前的 `GOTOOLCHAIN` 配置，不在每条 `go` 命令前重复设置，也不改为指定版本或启用自动下载
 - 当 `go.mod` 的 `go` directive 高于系统 Go 版本时，不要依赖 auto-download，修复 go.mod directive 或更新系统 Go
-<!-- harness:end src=pancake/30-Tools/harness/common/handbook-coding-conventions.md -->
+<!-- harness:end src=pancake/30-Tools/harness/docs/handbook/coding-conventions.md -->
 
 ---
 

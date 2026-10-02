@@ -1,6 +1,6 @@
 # PGO Harness Engineering — 架构概览
 
-> Harness 是 PGO 的 AI 辅助开发协作体系。它把工作模式、文档交接、自动验证和中央规则同步组织为可重复的工程流程。
+> Harness 是 PGO 的 AI 辅助开发协作体系。它把工作模式、文档交接和自动验证组织为可重复的工程流程。
 
 ## 1. 工作流
 
@@ -25,13 +25,7 @@ flowchart TD
 - `pkg/plogger`、`pkg/papp/observability.go`、Prometheus、Loki、Alloy 与 Pyroscope 提供结构化日志、请求指标、持续 profiling 和限时诊断入口。具体实现以代码与部署配置为准。
 - 当生成器或基础库需要稳定量化指标时，再在 `docs/eval/` 建立基线与报告格式；在此之前不制造空的评估数据。
 
-## 3. 中央同步
-
-`CLAUDE.md`、`AGENTS.md` 和 `docs/handbook/` 的公共块由 pancake 的 `30-Tools/harness/common/` 通过 marker 同步。公共规则只能在 pancake 修改；项目特有的 Go 构建约束、文档索引和工具说明写在 marker 外。
-
-标准文档集、命名、职责、backlog 格式与版本归档规则见 `pancake/30-Tools/harness/common/document-governance.md`。PGO 不使用 `docs/changelog.md`；版本历史写入 `docs/archive/vX.Y.Z.md`。
-
-## 4. 项目级编码约束
+## 3. 项目级编码约束
 
 - **最小化对外接口**：对外参数和可配置项必须对当前调用方有明确选择价值。只有一种合理取值或属于实现策略的内容收在模块内部，不为未被验证的未来需求扩大 API。
 - **策略只有一个所有者**：默认值、生成规则、并发方式和超时边界等策略由实际执行它的模块管理，不在多层配置中重复定义或逐层透传。
@@ -46,7 +40,7 @@ flowchart TD
 - **注释说明责任和边界**：结构体和方法使用简短中文注释说明其职责、使用边界或非显然约束，不逐句复述代码实现。
 - **窄接口按能力命名**：只有一个核心行为的 Go 接口使用该行为的 `-er` 形式命名，实现类型也描述其承担的能力；仅当类型实际拥有完整领域生命周期时才使用宽泛的领域对象名。
 
-## 5. 文档索引
+## 4. 文档索引
 
 - [产品需求](prd.md)：PGO 做什么、服务谁、范围与质量目标。
 - [技术方案](tech.md)：当前架构、生成链路、技术边界与构建契约。
