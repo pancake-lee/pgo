@@ -13,6 +13,7 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pmq"
 )
 
+// main 初始化用户服务配置与业务、诊断接口。
 func main() {
 	l := flag.Bool("l", false, "log to console, default is false")
 	c := flag.String("c", "",
@@ -49,7 +50,9 @@ func main() {
 
 	// --------------------------------------------------
 	var userCURDServer service.UserCURDServer
-	var userServer service.UserServer
+	userServer := service.UserServer{
+		PermissionExercise: conf.UserSvcConf.PermissionExercise,
+	}
 	papp.AddWhiteList("/", "/user/token")
 	papp.SetHTTPAuthKey(conf.UserSvcConf.TokenSK)
 	papp.RunKratosApp(&userServer, &userCURDServer)

@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -30,12 +33,14 @@ const (
 
 var autoRPSList = []int{200, 400, 600, 800, 1000}
 
-// Scenario defines the behavior supplied by one performance scenario.
+// Scenario 保存性能场景的准备流程与默认负载参数。
 type Scenario struct {
 	Name                  string
 	Short                 string
 	AutomaticSummaryTitle string
 	NewPreparer           func(Config, klog.Logger) Preparer
+	Warmup                time.Duration
+	DefaultRPS            string
 }
 
 // Entrypoint exposes one scenario through Cobra and the interactive menu.
@@ -57,9 +62,12 @@ func NewEntrypoint(scenario Scenario) *Entrypoint {
 	return &Entrypoint{scenario: scenario}
 }
 
-// NewCobraCommand creates a scenario command with shared load parameters.
+// NewCobraCommand 使用公共参数与场景默认值创建性能命令。
 func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	rpsInput := defaultRPSInput
+	if entrypoint.scenario.DefaultRPS != "" {
+		rpsInput = entrypoint.scenario.DefaultRPS
+	}
 	durationInput := defaultDurationInput
 	command := &cobra.Command{
 		Use:   entrypoint.scenario.Name + " <portal-url>",
@@ -93,14 +101,18 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	return command
 }
 
-// RunInteractive reads shared parameters and runs the scenario.
+// RunInteractive 读取公共参数与场景默认值并执行性能测试。
 func (entrypoint *Entrypoint) RunInteractive() {
 	now := time.Now()
 	outputDir := getDefaultOutputDir(entrypoint.scenario.Name, now)
+	paramList := getParamList(outputDir)
+	if entrypoint.scenario.DefaultRPS != "" {
+		paramList[1].Default = entrypoint.scenario.DefaultRPS
+	}
 	paramMap := pclient.GetCachedParamMap(
 		pconfig.GetDefaultCachePath(),
 		"client.performance."+entrypoint.scenario.Name+".",
-		getParamList(outputDir),
+		paramList,
 	)
 	logger := plogger.GetDefaultLoggerNoCaller()
 	err := entrypoint.run(
@@ -134,6 +146,7 @@ func getParamList(outputDir string) []pclient.ParamItem {
 	}
 }
 
+// run 协调服务发现、单档或自动负载并响应中断。
 func (entrypoint *Entrypoint) run(
 	ctx context.Context,
 	logger klog.Logger,
@@ -143,6 +156,9 @@ func (entrypoint *Entrypoint) run(
 	outputDir string,
 	now time.Time,
 ) error {
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	duration, err := parseDuration(durationInput)
 	if err != nil {
 		return err
@@ -164,6 +180,7 @@ func (entrypoint *Entrypoint) run(
 		return err
 	}
 
+	config.Warmup = entrypoint.scenario.Warmup
 	runner := NewRunner(logger)
 	runStage := func(ctx context.Context, stageConfig Config) error {
 		preparer := entrypoint.scenario.NewPreparer(stageConfig, logger)
