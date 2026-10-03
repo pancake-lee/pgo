@@ -1,9 +1,12 @@
 package papp
 
 import (
+	"compress/gzip"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -139,45 +142,99 @@ func TestDiagnosticsMetrics(t *testing.T) {
 	}
 }
 
-func TestDiagnosticsRuntimeProfileLease(t *testing.T) {
+// TestDiagnosticsRuntimeProfile 验证单次 POST 返回二进制增量 profile 并清理采样状态。
+func TestDiagnosticsRuntimeProfile(t *testing.T) {
 	server, err := newDiagnosticsServer(diagnosticsConfig{
-		Addr:                 "127.0.0.1:0",
-		Pprof:                true,
-		BlockProfileRate:     1,
-		MutexProfileFraction: 1,
+		Addr: "127.0.0.1:0", Pprof: true,
+		BlockProfileRate: 1, MutexProfileFraction: 1,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.profiles.stop()
-
-	for _, path := range []string{"/debug/pprof/goroutine", "/debug/pprof/block", "/debug/pprof/mutex"} {
-		response := httptest.NewRecorder()
-		server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
-		if response.Code != http.StatusForbidden {
-			t.Fatalf("inactive %s status = %d", path, response.Code)
-		}
-	}
-
-	response := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodPost, "/debug/pprof/runtime?seconds=1&profiles=goroutine,block,mutex", nil)
-	server.handler.ServeHTTP(response, request)
-	if response.Code != http.StatusOK {
-		t.Fatalf("activate status = %d, body = %s", response.Code, response.Body.String())
-	}
-	response = httptest.NewRecorder()
-	server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/goroutine", nil))
-	if response.Code != http.StatusOK {
-		t.Fatalf("active goroutine status = %d", response.Code)
-	}
-	server.profiles.stop()
-	response = httptest.NewRecorder()
-	server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/goroutine", nil))
-	if response.Code != http.StatusForbidden {
-		t.Fatalf("stopped goroutine status = %d", response.Code)
+	for _, profileType := range []string{"goroutine", "block", "mutex"} {
+		t.Run(profileType, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodPost,
+				"/debug/pprof/runtime?seconds=1&profile="+profileType, nil)
+			started := time.Now()
+			server.handler.ServeHTTP(response, request)
+			if response.Code != http.StatusOK || time.Since(started) < time.Second {
+				t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+			}
+			reader, err := gzip.NewReader(response.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer reader.Close()
+			data, err := io.ReadAll(reader)
+			if err != nil || len(data) == 0 {
+				t.Fatalf("profile data length = %d, error = %v", len(data), err)
+			}
+			if server.profiles.activeProfile != "" || server.profiles.cancelProfile != nil {
+				t.Fatal("runtime profile state was not cleared")
+			}
+			response = httptest.NewRecorder()
+			server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/"+profileType, nil))
+			if response.Code != http.StatusNotFound {
+				t.Fatalf("removed route status = %d", response.Code)
+			}
+		})
 	}
 }
 
+// TestDiagnosticsRuntimeProfileCancellation 验证并发请求被拒绝且取消或停止时关闭采样。
+func TestDiagnosticsRuntimeProfileCancellation(t *testing.T) {
+	for _, action := range []string{"cancel", "stop"} {
+		t.Run(action, func(t *testing.T) {
+			controller, err := newRuntimeProfileController(diagnosticsConfig{MutexProfileFraction: 1})
+			if err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			request := httptest.NewRequest(http.MethodPost, "/debug/pprof/runtime?seconds=60&profile=mutex", nil).WithContext(ctx)
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				controller.runtimeProfileHandler(httptest.NewRecorder(), request)
+			}()
+			deadline := time.Now().Add(time.Second)
+			for {
+				controller.mu.Lock()
+				active := controller.activeProfile != ""
+				controller.mu.Unlock()
+				if active {
+					break
+				}
+				if time.Now().After(deadline) {
+					t.Fatal("profile did not start")
+				}
+				time.Sleep(time.Millisecond)
+			}
+			response := httptest.NewRecorder()
+			controller.runtimeProfileHandler(response, httptest.NewRequest(http.MethodPost, "/debug/pprof/runtime?seconds=1&profile=mutex", nil))
+			if response.Code != http.StatusConflict {
+				t.Errorf("overlapping status = %d", response.Code)
+			}
+			if action == "stop" {
+				controller.stop()
+			} else {
+				cancel()
+			}
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+				t.Fatal("profile did not stop")
+			}
+			if controller.activeProfile != "" || controller.cancelProfile != nil || runtime.SetMutexProfileFraction(-1) != 0 {
+				t.Fatal("sampling state was not reset")
+			}
+		})
+	}
+}
+
+// TestDiagnosticsRuntimeLimits 验证采集参数、请求方法及未配置的采样参数限制。
 func TestDiagnosticsRuntimeLimits(t *testing.T) {
 	server, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0", Pprof: true})
 	if err != nil {
@@ -188,9 +245,14 @@ func TestDiagnosticsRuntimeLimits(t *testing.T) {
 		path   string
 		status int
 	}{
-		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=61&profiles=goroutine", status: http.StatusBadRequest},
-		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profiles=unknown", status: http.StatusBadRequest},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=61&profile=goroutine", status: http.StatusBadRequest},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profile=unknown", status: http.StatusBadRequest},
 		{method: http.MethodGet, path: "/debug/pprof/runtime-trace?seconds=11", status: http.StatusBadRequest},
+		{method: http.MethodGet, path: "/debug/pprof/runtime?seconds=1&profile=goroutine", status: http.StatusMethodNotAllowed},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profiles=goroutine", status: http.StatusBadRequest},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profile=block", status: http.StatusServiceUnavailable},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=1&profile=mutex", status: http.StatusServiceUnavailable},
+		{method: http.MethodPost, path: "/debug/pprof/runtime?seconds=9223372036854775807&profile=goroutine", status: http.StatusBadRequest},
 	} {
 		response := httptest.NewRecorder()
 		server.handler.ServeHTTP(response, httptest.NewRequest(testCase.method, testCase.path, nil))

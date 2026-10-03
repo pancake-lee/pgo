@@ -7,14 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// 三、依赖瓶颈：按数据库操作、连接池、连接等待顺序编排，见观测数据文档。
+
+// queryStartKey 标识 GORM 回调保存的操作开始时间。
 const queryStartKey = "pgo_query_observation_start"
 
+// queryDuration 按数据库操作和结果记录 GORM 操作耗时分布。
 var queryDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 	Name:    "pgo_db_query_duration_seconds",
 	Help:    "Database operation latency observed by GORM callbacks.",
 	Buckets: prometheus.DefBuckets,
 }, []string{"operation", "result"})
 
+// init 按数据库操作、连接池与等待顺序注册依赖瓶颈指标。
 func init() {
 	prometheus.MustRegister(
 		queryDuration,
@@ -41,6 +46,7 @@ func init() {
 	)
 }
 
+// registerQueryObservability 为数据库的各类 GORM 操作接入耗时采样回调。
 func registerQueryObservability(db *gorm.DB) error {
 	if err := db.Callback().Create().Before("*").Register("pgo:observe_create_before", observeQueryStart); err != nil {
 		return err
@@ -78,10 +84,12 @@ func registerQueryObservability(db *gorm.DB) error {
 	return db.Callback().Update().After("*").Register("pgo:observe_update_after", observeQueryEnd("update"))
 }
 
+// observeQueryStart 保存本次数据库操作的起始时间。
 func observeQueryStart(db *gorm.DB) {
 	db.InstanceSet(queryStartKey, time.Now())
 }
 
+// observeQueryEnd 创建按操作类型记录耗时和结果的数据库回调。
 func observeQueryEnd(operation string) func(*gorm.DB) {
 	return func(db *gorm.DB) {
 		startedAt, ok := db.InstanceGet(queryStartKey)
@@ -100,6 +108,7 @@ func observeQueryEnd(operation string) func(*gorm.DB) {
 	}
 }
 
+// getDBStats 读取连接池状态并在数据库未初始化时返回零值。
 func getDBStats() (stats databaseStats) {
 	db, err := GetDB()
 	if err != nil {
@@ -115,6 +124,7 @@ func getDBStats() (stats databaseStats) {
 	}
 }
 
+// databaseStats 汇集连接池连接数量和累计等待统计。
 type databaseStats struct {
 	OpenConnections int
 	InUse           int

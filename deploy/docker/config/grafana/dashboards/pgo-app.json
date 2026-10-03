@@ -24,7 +24,7 @@
     {
       "id": 4,
       "type": "row",
-      "title": "Health / 健康状态",
+      "title": "Health / 服务健康",
       "collapsed": false,
       "panels": [],
       "gridPos": {
@@ -78,7 +78,7 @@
       "gridPos": {
         "x": 0,
         "y": 1,
-        "w": 8,
+        "w": 12,
         "h": 5
       },
       "id": 5,
@@ -165,9 +165,9 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 8,
+        "x": 12,
         "y": 1,
-        "w": 8,
+        "w": 12,
         "h": 5
       },
       "id": 6,
@@ -213,98 +213,9 @@
       }
     },
     {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "Unavailable",
-                  "color": "red",
-                  "index": 0
-                },
-                "1": {
-                  "text": "Available",
-                  "color": "green",
-                  "index": 1
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none",
-          "noValue": "No data"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 1,
-        "w": 8,
-        "h": 5
-      },
-      "id": 7,
-      "maxDataPoints": 2000,
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "pluginVersion": "12.3.11",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "pgo_business_status{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
-          "interval": "15s",
-          "legendFormat": "{{instance}} / {{name}}",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ],
-      "title": "Business status",
-      "type": "stat",
-      "description": "仅显示所选实例当前指标，缺失序列显示 No data，不视为健康。 业务需调用 SetBusinessStatus；当前没有业务调用，可能无数据。",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      }
-    },
-    {
       "id": 8,
       "type": "row",
-      "title": "Requests / 请求",
+      "title": "Requests / 请求 RED",
       "collapsed": false,
       "panels": [],
       "gridPos": {
@@ -418,109 +329,6 @@
       }
     },
     {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s",
-          "noValue": "No data"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "x": 8,
-        "y": 7,
-        "w": 8,
-        "h": 8
-      },
-      "id": 3,
-      "maxDataPoints": 2000,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.11",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(irate(pgo_http_request_duration_seconds_bucket{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${operation:regex}\"}[1m])) by (le))",
-          "interval": "15s",
-          "legendFormat": "p95",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ],
-      "title": "p95 latency",
-      "type": "timeseries",
-      "description": "所选请求的桶估算 P95，单位秒，HTTP/gRPC 处理耗时，不是客户端端到端耗时。",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      }
-    },
-    {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -580,7 +388,7 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 16,
+        "x": 8,
         "y": 7,
         "w": 8,
         "h": 8
@@ -622,6 +430,109 @@
       "title": "Error rate",
       "type": "timeseries",
       "description": "按处理返回 err 分类；保留分母至少 1 的原口径，低于 1 RPS 时不是严格占比；未产生 error 序列时可能无数据。"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s",
+          "noValue": "No data"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 8
+      },
+      "id": 3,
+      "maxDataPoints": 2000,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.11",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum(irate(pgo_http_request_duration_seconds_bucket{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${operation:regex}\"}[1m])) by (le))",
+          "interval": "15s",
+          "legendFormat": "p95",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "title": "p95 latency",
+      "type": "timeseries",
+      "description": "所选请求的桶估算 P95，单位秒，HTTP/gRPC 处理耗时，不是客户端端到端耗时。",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      }
     },
     {
       "fieldConfig": {
@@ -832,7 +743,7 @@
     {
       "id": 11,
       "type": "row",
-      "title": "Database / 数据库与连接池",
+      "title": "Database / 依赖瓶颈",
       "collapsed": false,
       "panels": [],
       "gridPos": {
@@ -995,7 +906,7 @@
               }
             ]
           },
-          "unit": "s",
+          "unit": "percentunit",
           "noValue": "No data"
         },
         "overrides": []
@@ -1006,7 +917,7 @@
         "w": 12,
         "h": 8
       },
-      "id": 13,
+      "id": 14,
       "maxDataPoints": 2000,
       "options": {
         "legend": {
@@ -1032,7 +943,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, instance, operation) (irate(pgo_db_query_duration_seconds_bucket{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])))",
+          "expr": "(sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\",result=\"error\"}[1m])) or on (instance, operation) (sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])) * 0)) / (sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])) > 0)",
           "interval": "15s",
           "legendFormat": "{{instance}} / {{operation}}",
           "refId": "A",
@@ -1040,9 +951,9 @@
           "instant": false
         }
       ],
-      "title": "Database p95 latency",
+      "title": "Database error rate",
       "type": "timeseries",
-      "description": "GORM 操作回调耗时 P95，包括客户端处理，不是数据库纯 SQL 执行耗时。",
+      "description": "按 db.Error 分类。有正常操作但无错误序列时为 0；没有操作流量或指标时无有效比例。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1098,7 +1009,7 @@
               }
             ]
           },
-          "unit": "percentunit",
+          "unit": "s",
           "noValue": "No data"
         },
         "overrides": []
@@ -1109,7 +1020,7 @@
         "w": 12,
         "h": 8
       },
-      "id": 14,
+      "id": 13,
       "maxDataPoints": 2000,
       "options": {
         "legend": {
@@ -1135,7 +1046,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\",result=\"error\"}[1m])) or on (instance, operation) (sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])) * 0)) / (sum by (instance, operation) (irate(pgo_db_query_duration_seconds_count{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])) > 0)",
+          "expr": "histogram_quantile(0.95, sum by (le, instance, operation) (irate(pgo_db_query_duration_seconds_bucket{job=\"pgo-app\",instance=~\"${instance:regex}\",operation=~\"${db_operation:regex}\"}[1m])))",
           "interval": "15s",
           "legendFormat": "{{instance}} / {{operation}}",
           "refId": "A",
@@ -1143,9 +1054,9 @@
           "instant": false
         }
       ],
-      "title": "Database error rate",
+      "title": "Database p95 latency",
       "type": "timeseries",
-      "description": "按 db.Error 分类。有正常操作但无错误序列时为 0；没有操作流量或指标时无有效比例。",
+      "description": "GORM 操作回调耗时 P95，包括客户端处理，不是数据库纯 SQL 执行耗时。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1695,24 +1606,11 @@
           "refId": "A",
           "range": true,
           "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "process_virtual_memory_bytes{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
-          "interval": "15s",
-          "legendFormat": "{{instance}} / virtual",
-          "refId": "B",
-          "range": true,
-          "instant": false
         }
       ],
       "title": "Process memory",
       "type": "timeseries",
-      "description": "RSS 与虚拟内存分开展示；RSS 不是 Go 堆对象字节数。",
+      "description": "进程 RSS；virtual memory 由基础采集器自动暴露，默认隐藏。RSS 与 Go heap 的统计口径不同。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2050,19 +1948,6 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "go_memstats_heap_inuse_bytes{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
-          "interval": "15s",
-          "legendFormat": "{{instance}} / inuse",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
           "expr": "go_memstats_heap_sys_bytes{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
           "interval": "15s",
           "legendFormat": "{{instance}} / sys",
@@ -2073,7 +1958,7 @@
       ],
       "title": "Go heap memory",
       "type": "timeseries",
-      "description": "alloc 为堆对象分配量，inuse 为使用中的堆 span，sys 为从系统取得的堆空间；三者口径重叠，不堆叠。",
+      "description": "Go 已分配 heap 与向系统申请的 heap；heap_inuse 由基础采集器自动暴露，默认隐藏。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2378,24 +2263,11 @@
           "refId": "A",
           "range": true,
           "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "go_threads{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
-          "interval": "15s",
-          "legendFormat": "{{instance}} / OS threads",
-          "refId": "B",
-          "range": true,
-          "instant": false
         }
       ],
-      "title": "Goroutines and threads",
+      "title": "Goroutines",
       "type": "timeseries",
-      "description": "当前 goroutine 数和 runtime 创建的 OS 线程数；线程数不等于正在执行的 goroutine 数。",
+      "description": "当前 goroutine 数；threads 由基础采集器自动暴露，默认隐藏。持续增长时结合画像确认泄漏或阻塞堆积。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2822,7 +2694,7 @@
   "timezone": "",
   "title": "PGO Application",
   "uid": "pgo-app",
-  "version": 2,
+  "version": 5,
   "refresh": "15s",
   "description": "PGO 应用指标：按实例和操作筛选请求、数据库、连接池、进程及 Go runtime。健康指标有独立更新时机，profile 在 Pyroscope 查看。"
 }

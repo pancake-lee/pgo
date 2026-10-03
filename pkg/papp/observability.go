@@ -22,38 +22,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// requestIDHeader 指定请求标识的 HTTP 头名称。
-const requestIDHeader = "X-Request-ID"
-
-// requestTotal 按接口操作和处理结果累计 HTTP/gRPC 请求数。
-var requestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-	Name: "pgo_http_requests_total",
-	Help: "Total number of HTTP requests handled by pgo.",
-}, []string{"operation", "result"})
-
-// requestDuration 按接口操作和处理结果记录请求处理耗时分布。
-var requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	Name:    "pgo_http_request_duration_seconds",
-	Help:    "HTTP request latency handled by pgo.",
-	Buckets: prometheus.DefBuckets,
-}, []string{"operation", "result"})
+// 一、服务健康：依赖状态与健康检查，对应文档的服务健康分组。
 
 // dependencyUp 记录已初始化依赖最近一次健康检查的可达状态。
 var dependencyUp = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "pgo_dependency_up",
 	Help: "Whether an initialized dependency is reachable (1) or unavailable (0).",
 }, []string{"dependency"})
-
-// businessStatus 保存业务调用方主动设置的可用状态。
-var businessStatus = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Name: "pgo_business_status",
-	Help: "Application-provided business status, where 1 means available.",
-}, []string{"name"})
-
-// init 将应用请求与状态指标注册到默认 Prometheus 注册表。
-func init() {
-	prometheus.MustRegister(requestTotal, requestDuration, dependencyUp, businessStatus)
-}
 
 // healthCheck 组合依赖检查的启用条件与检测函数。
 type healthCheck struct {
@@ -87,18 +62,6 @@ func RegisterHealthCheck(name string, check func(context.Context) error) error {
 	return nil
 }
 
-// SetBusinessStatus 发布指定业务的可用状态供仪表盘和告警读取。
-func SetBusinessStatus(name string, available bool) {
-	if strings.TrimSpace(name) == "" {
-		return
-	}
-	value := 0.0
-	if available {
-		value = 1
-	}
-	businessStatus.WithLabelValues(name).Set(value)
-}
-
 // checkDatabase 在指定上下文内检查默认数据库连接是否可用。
 func checkDatabase(ctx context.Context) error {
 	return pdb.Ping(ctx)
@@ -113,6 +76,64 @@ func checkRedis(ctx context.Context) error {
 func checkRabbitMQ(context.Context) error {
 	return pmq.Ping()
 }
+
+// healthHandler 检查已启用依赖并更新健康指标及 HTTP 响应状态。
+func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+	ctx, cancel := context.WithTimeout(request.Context(), 2*time.Second)
+	defer cancel()
+
+	healthCheckRegistry.RLock()
+	checkMap := make(map[string]healthCheck, len(healthCheckRegistry.checkMap))
+	for name, check := range healthCheckRegistry.checkMap {
+		checkMap[name] = check
+	}
+	healthCheckRegistry.RUnlock()
+
+	resultMap := make(map[string]string, len(checkMap))
+	healthy := true
+	for name, healthCheck := range checkMap {
+		if !healthCheck.enabled() {
+			continue
+		}
+		err := healthCheck.check(ctx)
+		if err != nil {
+			resultMap[name] = err.Error()
+			dependencyUp.WithLabelValues(name).Set(0)
+			healthy = false
+			continue
+		}
+		resultMap[name] = "ok"
+		dependencyUp.WithLabelValues(name).Set(1)
+	}
+
+	status := stdhttp.StatusOK
+	state := "ok"
+	if !healthy {
+		status = stdhttp.StatusServiceUnavailable
+		state = "unhealthy"
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(status)
+	_ = json.NewEncoder(writer).Encode(map[string]any{"status": state, "dependencies": resultMap})
+}
+
+// 二、请求 RED：请求量、错误率及耗时，对应文档的请求 RED 分组。
+
+// requestIDHeader 指定请求标识的 HTTP 头名称。
+const requestIDHeader = "X-Request-ID"
+
+// requestTotal 按接口操作和处理结果累计 HTTP/gRPC 请求数。
+var requestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+	Name: "pgo_http_requests_total",
+	Help: "Total number of HTTP requests handled by pgo.",
+}, []string{"operation", "result"})
+
+// requestDuration 按接口操作和处理结果记录请求处理耗时分布。
+var requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Name:    "pgo_http_request_duration_seconds",
+	Help:    "HTTP request latency handled by pgo.",
+	Buckets: prometheus.DefBuckets,
+}, []string{"operation", "result"})
 
 // requestObservabilityMiddleware 传递请求标识并记录正常返回调用的次数与处理耗时。
 func requestObservabilityMiddleware() middleware.Middleware {
@@ -171,6 +192,28 @@ func isValidRequestID(value string) bool {
 	return true
 }
 
+// tracingAndObservabilityMiddleware 组合链路追踪与请求指标中间件。
+func tracingAndObservabilityMiddleware() middleware.Middleware {
+	return middleware.Chain(tracing.Server(), requestObservabilityMiddleware())
+}
+
+// 三、依赖瓶颈：数据库操作、连接池与等待指标由 pkg/pdb/observability.go 提供。
+// 此处导入 pdb 接入该包注册的指标，实际业务由 GORM 回调记录。
+
+// 四、进程资源：process_* 由 client_golang 的默认 ProcessCollector 提供。
+// 按 dashboard 顺序关注 CPU、RSS、文件描述符数量和使用比例。
+
+// 五、Go runtime：go_* 由 client_golang 的默认 GoCollector 提供。
+// 按 dashboard 顺序关注 heap、分配速率、对象数、goroutine、GC 暂停、频率与时间。
+// 两类默认采集器随 prometheus 包初始化注册，由下面 /metrics 路由统一暴露。
+
+// 共用接线：注册应用指标并管理诊断 HTTP 服务，画像路由见 pprof.go。
+
+// init 按服务健康与请求 RED 顺序注册应用指标到默认 Prometheus 注册表。
+func init() {
+	prometheus.MustRegister(dependencyUp, requestTotal, requestDuration)
+}
+
 // diagnosticsServer 管理独立诊断 HTTP 服务及运行时采样控制器的生命周期。
 type diagnosticsServer struct {
 	address  string
@@ -218,7 +261,7 @@ func (s *diagnosticsServer) Start(context.Context) error {
 	return nil
 }
 
-// Stop 关闭运行时采样窗口并在指定上下文内停止诊断服务。
+// Stop 取消运行时采集并在指定上下文内停止诊断服务。
 func (s *diagnosticsServer) Stop(ctx context.Context) error {
 	s.profiles.stop()
 	s.mu.Lock()
@@ -228,49 +271,4 @@ func (s *diagnosticsServer) Stop(ctx context.Context) error {
 		return nil
 	}
 	return server.Shutdown(ctx)
-}
-
-// healthHandler 检查已启用依赖并更新健康指标及 HTTP 响应状态。
-func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-	ctx, cancel := context.WithTimeout(request.Context(), 2*time.Second)
-	defer cancel()
-
-	healthCheckRegistry.RLock()
-	checkMap := make(map[string]healthCheck, len(healthCheckRegistry.checkMap))
-	for name, check := range healthCheckRegistry.checkMap {
-		checkMap[name] = check
-	}
-	healthCheckRegistry.RUnlock()
-
-	resultMap := make(map[string]string, len(checkMap))
-	healthy := true
-	for name, healthCheck := range checkMap {
-		if !healthCheck.enabled() {
-			continue
-		}
-		err := healthCheck.check(ctx)
-		if err != nil {
-			resultMap[name] = err.Error()
-			dependencyUp.WithLabelValues(name).Set(0)
-			healthy = false
-			continue
-		}
-		resultMap[name] = "ok"
-		dependencyUp.WithLabelValues(name).Set(1)
-	}
-
-	status := stdhttp.StatusOK
-	state := "ok"
-	if !healthy {
-		status = stdhttp.StatusServiceUnavailable
-		state = "unhealthy"
-	}
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(status)
-	_ = json.NewEncoder(writer).Encode(map[string]any{"status": state, "dependencies": resultMap})
-}
-
-// tracingAndObservabilityMiddleware 组合链路追踪与请求指标中间件。
-func tracingAndObservabilityMiddleware() middleware.Middleware {
-	return middleware.Chain(tracing.Server(), requestObservabilityMiddleware())
 }

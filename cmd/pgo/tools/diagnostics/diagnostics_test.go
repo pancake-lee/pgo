@@ -33,7 +33,8 @@ func TestDownloadProfile(t *testing.T) {
 	}
 }
 
-func TestDownloadRuntimeProfileActivatesLease(t *testing.T) {
+// TestDownloadRuntimeProfileUsesSingleRequest 验证运行时 profile 仅通过一次 POST 下载。
+func TestDownloadRuntimeProfileUsesSingleRequest(t *testing.T) {
 	var requestedPathList []string
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		requestedPathList = append(requestedPathList, request.Method+" "+request.URL.String())
@@ -44,7 +45,7 @@ func TestDownloadRuntimeProfileActivatesLease(t *testing.T) {
 	if err := downloadProfile(server.URL, "mutex", 5, filepath.Join(t.TempDir(), "mutex.pprof")); err != nil {
 		t.Fatal(err)
 	}
-	if len(requestedPathList) != 2 || !strings.Contains(requestedPathList[0], "POST /debug/pprof/runtime?") || !strings.Contains(requestedPathList[0], "profiles=mutex") || !strings.Contains(requestedPathList[0], "seconds=5") || requestedPathList[1] != "GET /debug/pprof/mutex" {
+	if len(requestedPathList) != 1 || !strings.Contains(requestedPathList[0], "POST /debug/pprof/runtime?") || !strings.Contains(requestedPathList[0], "profile=mutex") || !strings.Contains(requestedPathList[0], "seconds=5") {
 		t.Fatalf("paths = %q", requestedPathList)
 	}
 }

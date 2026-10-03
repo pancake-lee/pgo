@@ -169,8 +169,10 @@ func printResponse(address, path string) error {
 	return nil
 }
 
+// downloadProfile 以单次诊断请求下载指定类型的 profile 到文件。
 func downloadProfile(address, profileType string, seconds int, output string) error {
 	path := ""
+	method := http.MethodGet
 	switch profileType {
 	case "cpu":
 		if seconds <= 0 {
@@ -183,16 +185,12 @@ func downloadProfile(address, profileType string, seconds int, output string) er
 		if seconds <= 0 || seconds > 60 {
 			return fmt.Errorf("seconds must be between 1 and 60")
 		}
-		activatePath := fmt.Sprintf("/debug/pprof/runtime?seconds=%d&profiles=%s", seconds, profileType)
-		response, err := httpClient().Post(endpoint(address, activatePath), "application/json", nil)
-		if err != nil {
-			return err
-		}
-		response.Body.Close()
-		if response.StatusCode != http.StatusOK {
-			return fmt.Errorf("activate profile returned %s", response.Status)
-		}
-		path = "/debug/pprof/" + profileType
+		method = http.MethodPost
+		path = fmt.Sprintf(
+			"/debug/pprof/runtime?seconds=%d&profile=%s",
+			seconds,
+			profileType,
+		)
 	case "trace":
 		if seconds <= 0 || seconds > 10 {
 			return fmt.Errorf("trace seconds must be between 1 and 10")
@@ -202,7 +200,11 @@ func downloadProfile(address, profileType string, seconds int, output string) er
 		return fmt.Errorf("unsupported profile type %q", profileType)
 	}
 
-	response, err := httpClient().Get(endpoint(address, path))
+	request, err := http.NewRequest(method, endpoint(address, path), nil)
+	if err != nil {
+		return err
+	}
+	response, err := httpClient().Do(request)
 	if err != nil {
 		return err
 	}
