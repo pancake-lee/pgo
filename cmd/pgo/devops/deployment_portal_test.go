@@ -126,12 +126,6 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 	if strings.Contains(compose, "promtail:") {
 		t.Error("compose still contains Promtail")
 	}
-	if !strings.Contains(
-		dashboard,
-		"sum(irate(pgo_http_requests_total[1m]))",
-	) {
-		t.Error("request rate dashboard does not use irate with 1m window")
-	}
 	if !strings.Contains(datasources, "timeInterval: 15s") {
 		t.Error("Grafana Prometheus interval is not 15s")
 	}
@@ -152,14 +146,19 @@ func TestDeploymentObservabilityConfiguration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse application dashboard: %v", err)
 	}
+	requestSelector := `{job="pgo-app",instance=~"${instance:regex}",` +
+		`operation=~"${operation:regex}"}`
+	errorSelector := strings.TrimSuffix(requestSelector, "}") +
+		`,result="error"}`
+	requestRate := "sum(irate(pgo_http_requests_total" +
+		requestSelector + "[1m]))"
 	expectedQueryMap := map[string]string{
-		"Request rate": "sum(irate(pgo_http_requests_total[1m]))",
+		"Request rate": requestRate,
 		"Error rate": "sum(irate(pgo_http_requests_total" +
-			"{result=\"error\"}[1m])) / " +
-			"clamp_min(sum(irate(pgo_http_requests_total[1m])), 1)",
+			errorSelector + "[1m])) / clamp_min(" + requestRate + ", 1)",
 		"p95 latency": "histogram_quantile(0.95, " +
-			"sum(irate(pgo_http_request_duration_seconds_bucket[1m])) " +
-			"by (le))",
+			"sum(irate(pgo_http_request_duration_seconds_bucket" +
+			requestSelector + "[1m])) by (le))",
 	}
 	for _, panel := range dashboardConfig.Panels {
 		expectedQuery, ok := expectedQueryMap[panel.Title]

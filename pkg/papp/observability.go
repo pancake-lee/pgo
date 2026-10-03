@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"net"
 	stdhttp "net/http"
-	"net/http/pprof"
-	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -25,43 +22,46 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// requestIDHeader 指定请求标识的 HTTP 头名称。
 const requestIDHeader = "X-Request-ID"
 
-const (
-	maxRuntimeProfileDuration = 60 * time.Second
-	maxRuntimeTraceDuration   = 10 * time.Second
-)
-
+// requestTotal 按接口操作和处理结果累计 HTTP/gRPC 请求数。
 var requestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "pgo_http_requests_total",
 	Help: "Total number of HTTP requests handled by pgo.",
 }, []string{"operation", "result"})
 
+// requestDuration 按接口操作和处理结果记录请求处理耗时分布。
 var requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 	Name:    "pgo_http_request_duration_seconds",
 	Help:    "HTTP request latency handled by pgo.",
 	Buckets: prometheus.DefBuckets,
 }, []string{"operation", "result"})
 
+// dependencyUp 记录已初始化依赖最近一次健康检查的可达状态。
 var dependencyUp = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "pgo_dependency_up",
 	Help: "Whether an initialized dependency is reachable (1) or unavailable (0).",
 }, []string{"dependency"})
 
+// businessStatus 保存业务调用方主动设置的可用状态。
 var businessStatus = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "pgo_business_status",
 	Help: "Application-provided business status, where 1 means available.",
 }, []string{"name"})
 
+// init 将应用请求与状态指标注册到默认 Prometheus 注册表。
 func init() {
 	prometheus.MustRegister(requestTotal, requestDuration, dependencyUp, businessStatus)
 }
 
+// healthCheck 组合依赖检查的启用条件与检测函数。
 type healthCheck struct {
 	enabled func() bool
 	check   func(context.Context) error
 }
 
+// healthCheckRegistry 并发保护内置及业务注册的依赖健康检查。
 var healthCheckRegistry = struct {
 	sync.RWMutex
 	checkMap map[string]healthCheck
@@ -71,8 +71,7 @@ var healthCheckRegistry = struct {
 	"rabbitmq": {enabled: pmq.IsInitialized, check: checkRabbitMQ},
 }}
 
-// RegisterHealthCheck adds an application-specific dependency check. The name is
-// also exposed as the dependency label in pgo_dependency_up.
+// RegisterHealthCheck 注册自定义依赖检查并将名称用于健康指标标签。
 func RegisterHealthCheck(name string, check func(context.Context) error) error {
 	name = strings.TrimSpace(name)
 	if name == "" || check == nil {
@@ -88,8 +87,7 @@ func RegisterHealthCheck(name string, check func(context.Context) error) error {
 	return nil
 }
 
-// SetBusinessStatus publishes a coarse business readiness signal for dashboards
-// and alerts without coupling papp to a specific service domain.
+// SetBusinessStatus 发布指定业务的可用状态供仪表盘和告警读取。
 func SetBusinessStatus(name string, available bool) {
 	if strings.TrimSpace(name) == "" {
 		return
@@ -101,20 +99,22 @@ func SetBusinessStatus(name string, available bool) {
 	businessStatus.WithLabelValues(name).Set(value)
 }
 
+// checkDatabase 在指定上下文内检查默认数据库连接是否可用。
 func checkDatabase(ctx context.Context) error {
 	return pdb.Ping(ctx)
 }
 
+// checkRedis 在指定上下文内检查默认 Redis 连接是否可用。
 func checkRedis(ctx context.Context) error {
 	return predis.Ping(ctx)
 }
 
+// checkRabbitMQ 检查默认 RabbitMQ 连接是否可用。
 func checkRabbitMQ(context.Context) error {
 	return pmq.Ping()
 }
 
-// requestObservabilityMiddleware makes a sanitized request ID available to all
-// downstream code, returns it to HTTP callers, and records RED metrics.
+// requestObservabilityMiddleware 传递请求标识并记录正常返回调用的次数与处理耗时。
 func requestObservabilityMiddleware() middleware.Middleware {
 	return func(next middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (reply any, err error) {
@@ -144,6 +144,7 @@ func requestObservabilityMiddleware() middleware.Middleware {
 	}
 }
 
+// requestTraceID 依次选用链路标识、合法请求头或新生成的请求标识。
 func requestTraceID(ctx context.Context) string {
 	if traceID := tracing.TraceID()(ctx); traceID != "" {
 		return traceID.(string)
@@ -157,6 +158,7 @@ func requestTraceID(ctx context.Context) string {
 	return putil.UUID()
 }
 
+// isValidRequestID 检查请求标识是否满足长度与可见 ASCII 字符限制。
 func isValidRequestID(value string) bool {
 	if len(value) == 0 || len(value) > 128 {
 		return false
@@ -169,6 +171,7 @@ func isValidRequestID(value string) bool {
 	return true
 }
 
+// diagnosticsServer 管理独立诊断 HTTP 服务及运行时采样控制器的生命周期。
 type diagnosticsServer struct {
 	address  string
 	handler  stdhttp.Handler
@@ -178,217 +181,23 @@ type diagnosticsServer struct {
 	profiles *runtimeProfileController
 }
 
-type runtimeProfileController struct {
-	mu                   sync.Mutex
-	activeProfileMap     map[string]bool
-	expiresAt            time.Time
-	generation           uint64
-	blockProfileRate     int
-	mutexProfileFraction int
-	cpuMu                sync.Mutex
-	traceActive          bool
-}
-
+// newDiagnosticsServer 创建指标与健康路由并按配置接入 pprof 诊断路由。
 func newDiagnosticsServer(config diagnosticsConfig) (*diagnosticsServer, error) {
-	if config.MemProfileRate < 0 || config.BlockProfileRate < 0 || config.MutexProfileFraction < 0 {
-		return nil, errors.New("diagnostics profile rates must not be negative")
-	}
-	if config.MemProfileRate > 0 {
-		runtime.MemProfileRate = config.MemProfileRate
-	}
-	controller := &runtimeProfileController{
-		activeProfileMap:     make(map[string]bool),
-		blockProfileRate:     config.BlockProfileRate,
-		mutexProfileFraction: config.MutexProfileFraction,
+	controller, err := newRuntimeProfileController(config)
+	if err != nil {
+		return nil, err
 	}
 	mux := stdhttp.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/readyz", healthHandler)
 	if config.Pprof {
-		mux.HandleFunc("/debug/pprof/profile", controller.cpuProfileHandler)
-		mux.Handle("/debug/pprof/heap", pprof.Handler("heap"))
-		mux.HandleFunc("/debug/pprof/runtime", controller.runtimeProfileHandler)
-		mux.HandleFunc("/debug/pprof/runtime-trace", controller.runtimeTraceHandler)
-		for _, profileType := range []string{"goroutine", "block", "mutex"} {
-			mux.Handle("/debug/pprof/"+profileType, controller.gatedProfileHandler(profileType))
-		}
+		controller.registerRoutes(mux)
 	}
 	return &diagnosticsServer{address: config.Addr, handler: mux, profiles: controller}, nil
 }
 
-func (controller *runtimeProfileController) cpuProfileHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-	controller.cpuMu.Lock()
-	defer controller.cpuMu.Unlock()
-	pprof.Profile(writer, request)
-}
-
-func (controller *runtimeProfileController) runtimeProfileHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-	if request.Method != stdhttp.MethodPost {
-		writer.Header().Set("Allow", stdhttp.MethodPost)
-		stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
-		return
-	}
-	duration, err := parseLimitedDuration(request, maxRuntimeProfileDuration)
-	if err != nil {
-		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
-		return
-	}
-	profileList, err := parseRuntimeProfileList(request.URL.Query().Get("profiles"))
-	if err != nil {
-		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
-		return
-	}
-
-	controller.mu.Lock()
-	defer controller.mu.Unlock()
-	controller.expireLocked(time.Now())
-	if len(controller.activeProfileMap) > 0 {
-		stdhttp.Error(writer, "runtime profiles already active", stdhttp.StatusConflict)
-		return
-	}
-	if containsString(profileList, "block") && controller.blockProfileRate == 0 {
-		stdhttp.Error(writer, "Diagnostics.BlockProfileRate must be configured", stdhttp.StatusServiceUnavailable)
-		return
-	}
-	if containsString(profileList, "mutex") && controller.mutexProfileFraction == 0 {
-		stdhttp.Error(writer, "Diagnostics.MutexProfileFraction must be configured", stdhttp.StatusServiceUnavailable)
-		return
-	}
-	for _, profileType := range profileList {
-		controller.activeProfileMap[profileType] = true
-	}
-	if controller.activeProfileMap["block"] {
-		runtime.SetBlockProfileRate(controller.blockProfileRate)
-	}
-	if controller.activeProfileMap["mutex"] {
-		runtime.SetMutexProfileFraction(controller.mutexProfileFraction)
-	}
-	controller.expiresAt = time.Now().Add(duration)
-	controller.generation++
-	generation := controller.generation
-	time.AfterFunc(duration, func() { controller.expire(generation) })
-	writer.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(writer).Encode(map[string]any{
-		"profiles":  profileList,
-		"expiresAt": controller.expiresAt.UTC(),
-	})
-}
-
-func (controller *runtimeProfileController) gatedProfileHandler(profileType string) stdhttp.Handler {
-	return stdhttp.HandlerFunc(func(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-		controller.mu.Lock()
-		controller.expireLocked(time.Now())
-		active := controller.activeProfileMap[profileType]
-		controller.mu.Unlock()
-		if !active {
-			stdhttp.Error(writer, "runtime profile is not active", stdhttp.StatusForbidden)
-			return
-		}
-		pprof.Handler(profileType).ServeHTTP(writer, request)
-	})
-}
-
-func (controller *runtimeProfileController) runtimeTraceHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-	if request.Method != stdhttp.MethodGet {
-		writer.Header().Set("Allow", stdhttp.MethodGet)
-		stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
-		return
-	}
-	if _, err := parseLimitedDuration(request, maxRuntimeTraceDuration); err != nil {
-		stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
-		return
-	}
-	controller.mu.Lock()
-	if controller.traceActive {
-		controller.mu.Unlock()
-		stdhttp.Error(writer, "runtime trace already active", stdhttp.StatusConflict)
-		return
-	}
-	controller.traceActive = true
-	controller.mu.Unlock()
-	defer func() {
-		controller.mu.Lock()
-		controller.traceActive = false
-		controller.mu.Unlock()
-	}()
-	pprof.Trace(writer, request)
-}
-
-func parseLimitedDuration(request *stdhttp.Request, maximum time.Duration) (time.Duration, error) {
-	seconds, err := strconv.Atoi(request.URL.Query().Get("seconds"))
-	if err != nil || seconds <= 0 {
-		return 0, errors.New("seconds must be a positive integer")
-	}
-	duration := time.Duration(seconds) * time.Second
-	if duration > maximum {
-		return 0, fmt.Errorf("seconds must not exceed %d", int(maximum/time.Second))
-	}
-	return duration, nil
-}
-
-func parseRuntimeProfileList(value string) ([]string, error) {
-	if strings.TrimSpace(value) == "" {
-		return nil, errors.New("profiles is required")
-	}
-	seenMap := make(map[string]bool)
-	var profileList []string
-	for _, profileType := range strings.Split(value, ",") {
-		profileType = strings.TrimSpace(profileType)
-		switch profileType {
-		case "goroutine", "block", "mutex":
-		default:
-			return nil, fmt.Errorf("unsupported runtime profile %q", profileType)
-		}
-		if !seenMap[profileType] {
-			seenMap[profileType] = true
-			profileList = append(profileList, profileType)
-		}
-	}
-	return profileList, nil
-}
-
-func containsString(valueList []string, target string) bool {
-	for _, value := range valueList {
-		if value == target {
-			return true
-		}
-	}
-	return false
-}
-
-func (controller *runtimeProfileController) expire(generation uint64) {
-	controller.mu.Lock()
-	defer controller.mu.Unlock()
-	if controller.generation == generation {
-		controller.disableLocked()
-	}
-}
-
-func (controller *runtimeProfileController) expireLocked(now time.Time) {
-	if !controller.expiresAt.IsZero() && !now.Before(controller.expiresAt) {
-		controller.disableLocked()
-	}
-}
-
-func (controller *runtimeProfileController) disableLocked() {
-	if controller.activeProfileMap["block"] {
-		runtime.SetBlockProfileRate(0)
-	}
-	if controller.activeProfileMap["mutex"] {
-		runtime.SetMutexProfileFraction(0)
-	}
-	clear(controller.activeProfileMap)
-	controller.expiresAt = time.Time{}
-	controller.generation++
-}
-
-func (controller *runtimeProfileController) stop() {
-	controller.mu.Lock()
-	defer controller.mu.Unlock()
-	controller.disableLocked()
-}
-
+// Start 监听诊断地址并启动 HTTP 请求处理。
 func (s *diagnosticsServer) Start(context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -409,6 +218,7 @@ func (s *diagnosticsServer) Start(context.Context) error {
 	return nil
 }
 
+// Stop 关闭运行时采样窗口并在指定上下文内停止诊断服务。
 func (s *diagnosticsServer) Stop(ctx context.Context) error {
 	s.profiles.stop()
 	s.mu.Lock()
@@ -420,6 +230,7 @@ func (s *diagnosticsServer) Stop(ctx context.Context) error {
 	return server.Shutdown(ctx)
 }
 
+// healthHandler 检查已启用依赖并更新健康指标及 HTTP 响应状态。
 func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
 	ctx, cancel := context.WithTimeout(request.Context(), 2*time.Second)
 	defer cancel()
@@ -459,6 +270,7 @@ func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
 	_ = json.NewEncoder(writer).Encode(map[string]any{"status": state, "dependencies": resultMap})
 }
 
+// tracingAndObservabilityMiddleware 组合链路追踪与请求指标中间件。
 func tracingAndObservabilityMiddleware() middleware.Middleware {
 	return middleware.Chain(tracing.Server(), requestObservabilityMiddleware())
 }
