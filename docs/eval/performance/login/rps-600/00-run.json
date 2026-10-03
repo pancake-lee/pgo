@@ -1,0 +1,6 @@
+{
+  "apiURL": "http://192.168.3.18:20000/",
+  "rps": 600,
+  "duration": 60000000000,
+  "outputDir": "docs/eval/performance/login/rps-600"
+}

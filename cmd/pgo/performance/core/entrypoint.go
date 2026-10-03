@@ -73,6 +73,7 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 				args[0],
 				rpsInput,
 				durationInput,
+				"",
 				time.Now(),
 			)
 		},
@@ -94,10 +95,12 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 
 // RunInteractive reads shared parameters and runs the scenario.
 func (entrypoint *Entrypoint) RunInteractive() {
+	now := time.Now()
+	outputDir := getDefaultOutputDir(entrypoint.scenario.Name, now)
 	paramMap := pclient.GetCachedParamMap(
 		pconfig.GetDefaultCachePath(),
 		"client.performance."+entrypoint.scenario.Name+".",
-		getParamList(),
+		getParamList(outputDir),
 	)
 	logger := plogger.GetDefaultLoggerNoCaller()
 	err := entrypoint.run(
@@ -106,14 +109,15 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		paramMap["portal-url"],
 		paramMap["rps"],
 		paramMap["duration"],
-		time.Now(),
+		paramMap["output-dir"],
+		now,
 	)
 	if err != nil {
 		pthird.Interact.Errorf("Performance test failed: %v", err)
 	}
 }
 
-func getParamList() []pclient.ParamItem {
+func getParamList(outputDir string) []pclient.ParamItem {
 	return []pclient.ParamItem{
 		{Name: "portal-url", Usage: "portal URL", Default: defaultPortalURL},
 		{Name: "rps", Usage: "RPS or auto", Default: defaultRPSInput},
@@ -121,6 +125,11 @@ func getParamList() []pclient.ParamItem {
 			Name:    "duration",
 			Usage:   "duration for each RPS level",
 			Default: defaultDurationInput,
+		},
+		{
+			Name:    "output-dir",
+			Usage:   "output directory",
+			Default: outputDir,
 		},
 	}
 }
@@ -131,6 +140,7 @@ func (entrypoint *Entrypoint) run(
 	portalURL string,
 	rpsInput string,
 	durationInput string,
+	outputDir string,
 	now time.Time,
 ) error {
 	duration, err := parseDuration(durationInput)
@@ -147,6 +157,7 @@ func (entrypoint *Entrypoint) run(
 		entrypoint.scenario.Name,
 		rpsList[0],
 		duration,
+		outputDir,
 		now,
 	)
 	if err != nil {
@@ -175,6 +186,7 @@ func buildLoadConfig(
 	scenarioName string,
 	rps int,
 	duration time.Duration,
+	outputDir string,
 	now time.Time,
 ) (Config, error) {
 	discoveryContext, cancelDiscovery := context.WithTimeout(
@@ -193,13 +205,21 @@ func buildLoadConfig(
 		return Config{}, err
 	}
 
-	timestamp := now.UTC().Format("20060102-150405.000000000Z")
+	outputDir = strings.TrimSpace(outputDir)
+	if outputDir == "" {
+		outputDir = getDefaultOutputDir(scenarioName, now)
+	}
 	return Config{
 		APIURL:    serviceList.APIURL,
 		RPS:       rps,
 		Duration:  duration,
-		OutputDir: filepath.Join(defaultOutputRoot, scenarioName, timestamp),
+		OutputDir: outputDir,
 	}, nil
+}
+
+func getDefaultOutputDir(scenarioName string, now time.Time) string {
+	timestamp := now.UTC().Format("20060102-150405.000000000Z")
+	return filepath.Join(defaultOutputRoot, scenarioName, timestamp)
 }
 
 func resolveRPSList(input string) ([]int, bool, error) {

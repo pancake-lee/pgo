@@ -1,0 +1,10 @@
+Requests      [total, rate, throughput]         59999, 999.72, 733.09
+Duration      [total, attack, wait]             1m5s, 1m0s, 5s
+Latencies     [min, mean, 50, 90, 95, 99, max]  1.056ms, 1.122s, 18.778ms, 5.001s, 5.004s, 5.074s, 5.759s
+Bytes In      [total, mean]                     18153550, 302.56
+Bytes Out     [total, mean]                     2071955, 34.53
+Success       [ratio]                           79.44%
+Status Codes  [code:count]                      0:11814  200:47663  500:522  
+Error Set:
+500 Internal Server Error
+Post "http://192.168.3.18:20000/user/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)

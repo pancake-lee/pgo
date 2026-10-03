@@ -1,0 +1,63 @@
+{
+  "mode": "auto",
+  "rpsList": [
+    200,
+    400,
+    600,
+    800,
+    1000
+  ],
+  "stageList": [
+    {
+      "rps": 200,
+      "outputDir": "docs/eval/performance/login/rps-200",
+      "requests": 12000,
+      "throughput": 200.01,
+      "success": 1,
+      "p50": "",
+      "p95": "",
+      "p99": ""
+    },
+    {
+      "rps": 400,
+      "outputDir": "docs/eval/performance/login/rps-400",
+      "requests": 24000,
+      "throughput": 400,
+      "success": 1,
+      "p50": "",
+      "p95": "",
+      "p99": ""
+    },
+    {
+      "rps": 600,
+      "outputDir": "docs/eval/performance/login/rps-600",
+      "requests": 35999,
+      "throughput": 599.77,
+      "success": 1,
+      "p50": "",
+      "p95": "",
+      "p99": ""
+    },
+    {
+      "rps": 800,
+      "outputDir": "docs/eval/performance/login/rps-800",
+      "requests": 48000,
+      "throughput": 799.99,
+      "success": 1,
+      "p50": "",
+      "p95": "",
+      "p99": ""
+    },
+    {
+      "rps": 1000,
+      "outputDir": "docs/eval/performance/login/rps-1000",
+      "requests": 59999,
+      "throughput": 733.09,
+      "success": 0.7944,
+      "p50": "",
+      "p95": "",
+      "p99": "",
+      "error": "automatic load stopped at 1000 RPS: success ratio 79.44%"
+    }
+  ]
+}

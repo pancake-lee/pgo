@@ -71,6 +71,7 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 		"sample",
 		75,
 		45*time.Second,
+		"",
 		now,
 	)
 	if err != nil {
@@ -149,9 +150,60 @@ func TestSharedCommandParameters(t *testing.T) {
 			command.Flags().Lookup("duration").DefValue,
 		)
 	}
-	paramList := getParamList()
-	if len(paramList) != 3 || paramList[0].Name != "portal-url" ||
-		paramList[1].Name != "rps" || paramList[2].Name != "duration" {
+	now := time.Date(2026, 10, 1, 2, 3, 4, 5, time.UTC)
+	outputDir := getDefaultOutputDir("sample", now)
+	paramList := getParamList(outputDir)
+	if len(paramList) != 4 || paramList[0].Name != "portal-url" ||
+		paramList[1].Name != "rps" || paramList[2].Name != "duration" ||
+		paramList[3].Name != "output-dir" ||
+		paramList[3].Usage != "output directory" ||
+		paramList[3].Default != outputDir {
 		t.Fatalf("interactive parameters = %+v", paramList)
+	}
+}
+
+func TestBuildLoadConfigUsesExactOutputDirectory(t *testing.T) {
+	handler := http.HandlerFunc(func(
+		writer http.ResponseWriter,
+		_ *http.Request,
+	) {
+		_, _ = io.WriteString(writer, validServiceManifest)
+	})
+	server := httptest.NewServer(handler)
+	defer server.Close()
+	now := time.Date(2026, 10, 1, 2, 3, 4, 5, time.UTC)
+	defaultDir := filepath.Join(
+		defaultOutputRoot, "sample", "20261001-020304.000000005Z",
+	)
+	absoluteDir := t.TempDir()
+	testList := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"relative", "reports/login", "reports/login"},
+		{"absolute", absoluteDir, absoluteDir},
+		{"trimmed", "  reports/login  ", "reports/login"},
+		{"empty", "", defaultDir},
+		{"whitespace", "   ", defaultDir},
+	}
+	for _, test := range testList {
+		t.Run(test.name, func(t *testing.T) {
+			config, err := buildLoadConfig(
+				t.Context(),
+				server.URL,
+				"sample",
+				75,
+				45*time.Second,
+				test.input,
+				now,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if config.OutputDir != test.want {
+				t.Fatalf("output = %q, want %q", config.OutputDir, test.want)
+			}
+		})
 	}
 }
