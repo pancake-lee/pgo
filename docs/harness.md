@@ -21,6 +21,7 @@ flowchart TD
 
 ## 2. 验证与可观测性
 
+- **分阶段验证**：开发过程中只做基础静态校验和相关范围的编译检查；任务基本开发完成、标记 `Done` 前集中运行一次相关回归；数据竞争、全量测试等耗时检查按改动需要安排在任务收尾或版本归档前，归档前做一次更完整的验证。已通过的检查不随每次生成重复运行，具体节奏见 [工作模式手册](handbook/work-modes.md#验证节奏所有模式)。
 - 当前没有 photo-agent 那样独立的评估报告系统；评估以代码审阅、定向/全量 Go 测试、生成结果编译和 Makefile 验证为主，记录在 backlog 条目或版本归档。
 - `pkg/plogger`、`pkg/papp/observability.go`、`pkg/papp/pprof.go`、Prometheus、Loki、Alloy 与 Pyroscope 提供结构化日志、请求指标、持续 profiling 和限时诊断入口。具体实现以代码与部署配置为准。
 - 当生成器或基础库需要稳定量化指标时，再在 `docs/eval/` 建立基线与报告格式；在此之前不制造空的评估数据。
