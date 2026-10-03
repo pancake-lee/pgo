@@ -29,22 +29,13 @@ const (
 	runFileName           = "00-run.json"
 	vegetaResultsFileName = "10-vegeta-results.bin"
 	vegetaReportFileName  = "11-vegeta-report.txt"
-	// loadWindowFileName 保存正式负载的 UTC 时间窗。
-	loadWindowFileName = "12-load-window.json"
 )
-
-// loadWindow 记录正式负载区间以关联指标和持续画像。
-type loadWindow struct {
-	StartUTC time.Time `json:"startUTC"`
-	EndUTC   time.Time `json:"endUTC"`
-}
 
 // Config 保存所有性能场景共用的单档负载配置。
 type Config struct {
 	APIURL    string        `json:"apiURL"`
 	RPS       int           `json:"rps"`
 	Duration  time.Duration `json:"duration"`
-	Warmup    time.Duration `json:"warmup,omitempty"`
 	OutputDir string        `json:"outputDir"`
 }
 
@@ -107,22 +98,17 @@ func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
 	return runner.runLoad(ctx, config, targetPath)
 }
 
-// runLoad 执行预热与正式负载并记录 UTC 测量窗口。
 func (runner *Runner) runLoad(
 	ctx context.Context,
 	config Config,
 	targetPath string,
 ) error {
-	warmup := config.Warmup
-	if warmup == 0 {
-		warmup = defaultWarmup
-	}
 	runner.info(
 		"warming up",
 		"step",
 		"4/7",
 		"duration",
-		warmup,
+		defaultWarmup,
 		"rps",
 		config.RPS,
 	)
@@ -130,7 +116,7 @@ func (runner *Runner) runLoad(
 		ctx,
 		config,
 		targetPath,
-		warmup,
+		defaultWarmup,
 		io.Discard,
 	)
 	if warmupErr != nil {
@@ -156,8 +142,6 @@ func (runner *Runner) runLoad(
 		return err
 	}
 
-	window := loadWindow{StartUTC: time.Now().UTC()}
-	runner.info("measurement window started", "startUTC", window.StartUTC)
 	attackErr := runner.runAttack(
 		ctx,
 		config,
@@ -166,12 +150,7 @@ func (runner *Runner) runLoad(
 		resultFile,
 	)
 	closeErr := resultFile.Close()
-	window.EndUTC = time.Now().UTC()
-	windowErr := writeJSON(
-		filepath.Join(config.OutputDir, loadWindowFileName), window,
-	)
-	runner.info("measurement window ended", "endUTC", window.EndUTC)
-	err = errors.Join(attackErr, closeErr, windowErr)
+	err = errors.Join(attackErr, closeErr)
 	if err != nil {
 		return fmt.Errorf("measured load: %w", err)
 	}
@@ -217,7 +196,6 @@ func (runner *Runner) runLoad(
 	return nil
 }
 
-// logArtifacts 输出负载产物及其使用说明。
 func (runner *Runner) logArtifacts(outputDir string) {
 	runner.info("load artifacts", "outputDir", outputDir)
 	artifactList := []struct {
@@ -227,7 +205,6 @@ func (runner *Runner) logArtifacts(outputDir string) {
 		{runFileName, "input parameters for reproducing this run"},
 		{vegetaResultsFileName, "raw Vegeta request results"},
 		{vegetaReportFileName, "human-readable load report"},
-		{loadWindowFileName, "UTC measurement window for Grafana and Pyroscope"},
 	}
 	for _, item := range artifactList {
 		runner.info(
@@ -282,7 +259,6 @@ func (runner *Runner) info(message string, keyvals ...any) {
 	_ = runner.logger.Log(klog.LevelInfo, values...)
 }
 
-// validate 校验单档负载的地址、持续时间及输出参数。
 func (config Config) validate() error {
 	_, err := url.ParseRequestURI(normalizeHTTPURL(config.APIURL))
 	if err != nil {
@@ -293,9 +269,6 @@ func (config Config) validate() error {
 	}
 	if config.Duration <= 0 {
 		return errors.New("duration must be positive")
-	}
-	if config.Warmup < 0 {
-		return errors.New("warmup must not be negative")
 	}
 	if strings.TrimSpace(config.OutputDir) == "" {
 		return errors.New("output directory is required")

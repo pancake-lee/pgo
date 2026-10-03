@@ -12,10 +12,8 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
-// UserServer 提供用户业务接口及可选的权限聚合练习。
 type UserServer struct {
 	api.UnimplementedUserServer
-	PermissionExercise bool
 }
 
 func (s *UserServer) Reg(grpcSrv *grpc.Server, httpSrv *http.Server) {

@@ -1,9 +1,6 @@
 T3: 33
 T4: "44"
 
-# 权限性能练习：开启后允许请求头选择 list 低效聚合，普通请求仍使用 map。
-PermissionExercise: false
-
 Http:
   Addr: "0.0.0.0:20000"
   Timeout: 1000

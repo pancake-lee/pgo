@@ -88,9 +88,8 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 	}
 }
 
-// TestResolveRPSList 验证公共自动阶梯、单档解析与切片隔离。
 func TestResolveRPSList(t *testing.T) {
-	automaticList := []int{200, 400, 600, 800, 1000}
+	automaticList := []int{10, 25, 50, 100, 200, 500}
 	rpsList, automatic, err := resolveRPSList("auto")
 	if err != nil || !automatic ||
 		fmt.Sprint(rpsList) != fmt.Sprint(automaticList) {

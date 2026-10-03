@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TestCommandGroupsBuildTwoLevelCommands 验证分组工具及批次恢复入口。
 func TestCommandGroupsBuildTwoLevelCommands(t *testing.T) {
 	root := newRootCommand()
 	pathList := [][]string{
@@ -14,8 +13,6 @@ func TestCommandGroupsBuildTwoLevelCommands(t *testing.T) {
 		{"devops", "initProj"},
 		{"devops", "cd"},
 		{"performance", "login"},
-		{"performance", "permissions"},
-		{"performance", "permissions", "cleanup"},
 		{"application", "course-swap"},
 		{"tools", "pretty"},
 		{"tools", "psql"},

@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -51,7 +50,6 @@ func fakeExecContext(
 	return "", nil
 }
 
-// TestRunnerExecutesOnePreparedStage 验证准备、负载产物与清理生命周期。
 func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 	var output strings.Builder
 	runner := NewRunner(klog.NewStdLogger(&output))
@@ -79,7 +77,6 @@ func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 		runFileName,
 		vegetaResultsFileName,
 		vegetaReportFileName,
-		loadWindowFileName,
 	}
 	for _, name := range artifactList {
 		_, err = os.Stat(filepath.Join(config.OutputDir, name))
@@ -89,47 +86,6 @@ func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "outputDir="+config.OutputDir) {
 		t.Fatalf("artifact log = %s", output.String())
-	}
-}
-
-// TestRunnerWarmupAndWindow 验证场景预热及正式负载时间窗不包含准备清理。
-func TestRunnerWarmupAndWindow(t *testing.T) {
-	runner := NewRunner(klog.NewStdLogger(io.Discard))
-	runner.checkVegeta = func(string) error { return nil }
-	var durationList []string
-	runner.execContext = func(
-		ctx context.Context, output io.Writer, name string, args ...string,
-	) (string, error) {
-		if args[0] == "attack" {
-			for _, arg := range args {
-				if strings.HasPrefix(arg, "-duration=") {
-					durationList = append(durationList, arg)
-				}
-			}
-		}
-		return fakeExecContext(ctx, output, name, args...)
-	}
-	config := Config{
-		APIURL: "http://test", RPS: 10, Duration: 120 * time.Second,
-		Warmup: 30 * time.Second, OutputDir: t.TempDir(),
-	}
-	before := time.Now().UTC()
-	err := runner.Run(t.Context(), config, &fakePreparer{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if fmt.Sprint(durationList) != "[-duration=30s -duration=2m0s]" {
-		t.Fatalf("attack durations = %v", durationList)
-	}
-	content, err := os.ReadFile(filepath.Join(config.OutputDir, loadWindowFileName))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var window loadWindow
-	err = json.Unmarshal(content, &window)
-	if err != nil || window.StartUTC.Before(before) ||
-		window.EndUTC.Before(window.StartUTC) {
-		t.Fatalf("window = %s, err = %v", content, err)
 	}
 }
 
