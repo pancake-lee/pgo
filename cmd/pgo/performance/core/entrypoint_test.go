@@ -89,7 +89,7 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 }
 
 func TestResolveRPSList(t *testing.T) {
-	automaticList := []int{10, 25, 50, 100, 200, 500}
+	automaticList := []int{200, 400, 600, 800, 1000}
 	rpsList, automatic, err := resolveRPSList("auto")
 	if err != nil || !automatic ||
 		fmt.Sprint(rpsList) != fmt.Sprint(automaticList) {

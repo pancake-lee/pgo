@@ -8,9 +8,26 @@ import (
 	"github.com/pancake-lee/pgo/pkg/papp"
 )
 
+// usePermissionJoin 选择权限查询实现，true 使用 JOIN，false 使用批量查询。
+const usePermissionJoin = true
+
+// GetUserPermissions 读取项目权限，支持 JOIN 与批量查询的同负载对照。
 func (s *UserServer) GetUserPermissions(_ctx context.Context, req *api.GetUserPermissionsRequest) (*api.GetUserPermissionsResponse, error) {
 	ctx := papp.NewAppCtx(_ctx)
-
+	if usePermissionJoin {
+		permissionList, err := data.UserRolePermissionAssocDAO.
+			GetByUserAndProject(ctx, req.UserID, req.ProjectID)
+		if err != nil {
+			return nil, ctx.Log.LogErr(err)
+		}
+		permissionMap := make(map[string]string)
+		for _, permission := range permissionList {
+			permissionMap[permission.Action] = permission.PathPattern
+		}
+		return &api.GetUserPermissionsResponse{
+			ActionToPathPattern: permissionMap,
+		}, nil
+	}
 	// 1. Get all RoleIDs for the user
 	userRoleAssocList, err := data.UserRoleAssocDAO.GetByUserID(ctx, req.UserID)
 	if err != nil {

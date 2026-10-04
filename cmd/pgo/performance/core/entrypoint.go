@@ -36,6 +36,9 @@ type Scenario struct {
 	Short                 string
 	AutomaticSummaryTitle string
 	NewPreparer           func(Config, klog.Logger) Preparer
+	DefaultRPS            string
+	DefaultDuration       string
+	SingleRateOnly        bool
 }
 
 // Entrypoint exposes one scenario through Cobra and the interactive menu.
@@ -61,6 +64,12 @@ func NewEntrypoint(scenario Scenario) *Entrypoint {
 func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	rpsInput := defaultRPSInput
 	durationInput := defaultDurationInput
+	if entrypoint.scenario.DefaultRPS != "" {
+		rpsInput = entrypoint.scenario.DefaultRPS
+	}
+	if entrypoint.scenario.DefaultDuration != "" {
+		durationInput = entrypoint.scenario.DefaultDuration
+	}
 	command := &cobra.Command{
 		Use:   entrypoint.scenario.Name + " <portal-url>",
 		Short: entrypoint.scenario.Short,
@@ -97,10 +106,19 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 func (entrypoint *Entrypoint) RunInteractive() {
 	now := time.Now()
 	outputDir := getDefaultOutputDir(entrypoint.scenario.Name, now)
+	paramList := getParamList(outputDir)
+	for index := range paramList {
+		if paramList[index].Name == "rps" && entrypoint.scenario.DefaultRPS != "" {
+			paramList[index].Default = entrypoint.scenario.DefaultRPS
+		}
+		if paramList[index].Name == "duration" && entrypoint.scenario.DefaultDuration != "" {
+			paramList[index].Default = entrypoint.scenario.DefaultDuration
+		}
+	}
 	paramMap := pclient.GetCachedParamMap(
 		pconfig.GetDefaultCachePath(),
 		"client.performance."+entrypoint.scenario.Name+".",
-		getParamList(outputDir),
+		paramList,
 	)
 	logger := plogger.GetDefaultLoggerNoCaller()
 	err := entrypoint.run(
@@ -150,6 +168,9 @@ func (entrypoint *Entrypoint) run(
 	rpsList, automatic, err := resolveRPSList(rpsInput)
 	if err != nil {
 		return err
+	}
+	if automatic && entrypoint.scenario.SingleRateOnly {
+		return fmt.Errorf("%s uses separate load windows; choose a numeric --rps", entrypoint.scenario.Name)
 	}
 	config, err := buildLoadConfig(
 		ctx,

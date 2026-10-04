@@ -19,6 +19,45 @@ type fakePreparer struct {
 	cleaned  bool
 }
 
+// fakePreparedLoader 验证场景编排复用准备与结果生命周期。
+type fakePreparedLoader struct {
+	fakePreparer
+	loaded bool
+}
+
+// RunLoad 使用通用执行器运行已准备的目标，省略默认预热。
+func (loader *fakePreparedLoader) RunLoad(ctx context.Context, runner *Runner,
+	config Config, targetPath string,
+) error {
+	loader.loaded = true
+	return runner.RunMeasured(ctx, config, targetPath)
+}
+
+// TestRunnerUsesPreparedLoader 验证多流场景不额外执行默认单流负载。
+func TestRunnerUsesPreparedLoader(t *testing.T) {
+	runner := NewRunner(klog.NewStdLogger(io.Discard))
+	attacks := 0
+	runner.execContext = func(ctx context.Context, writer io.Writer,
+		path string, args ...string,
+	) (string, error) {
+		if args[0] == "attack" {
+			attacks++
+		}
+		return fakeExecContext(ctx, writer, path, args...)
+	}
+	runner.checkVegeta = func(string) error { return nil }
+	loader := &fakePreparedLoader{}
+	config := Config{APIURL: "http://localhost:8080", RPS: 10,
+		Duration: time.Second, OutputDir: t.TempDir()}
+	err := runner.Run(t.Context(), config, loader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !loader.loaded || !loader.prepared || !loader.cleaned || attacks != 1 {
+		t.Fatalf("custom lifecycle failed; attacks=%d", attacks)
+	}
+}
+
 func (preparer *fakePreparer) Prepare(_ context.Context, outputDir string,
 ) (string, func() error, error) {
 	preparer.prepared = true

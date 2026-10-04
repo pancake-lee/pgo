@@ -45,6 +45,11 @@ type Preparer interface {
 	) (targetPath string, cleanup func() error, err error)
 }
 
+// PreparedLoader 允许场景使用已准备的数据编排多个独立负载流。
+type PreparedLoader interface {
+	RunLoad(context.Context, *Runner, Config, string) error
+}
+
 // Runner 协调场景准备与 Vegeta 单档负载。
 type Runner struct {
 	execContext func(context.Context, io.Writer, string, ...string) (string, error)
@@ -95,7 +100,49 @@ func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
 		return err
 	}
 
+	loader, custom := preparer.(PreparedLoader)
+	if custom {
+		return loader.RunLoad(ctx, runner, config, targetPath)
+	}
 	return runner.runLoad(ctx, config, targetPath)
+}
+
+// RunWarmup 对已准备的目标执行预热，不保存预热结果。
+func (runner *Runner) RunWarmup(ctx context.Context, config Config,
+	targetPath string, duration time.Duration,
+) error {
+	return runner.runAttack(ctx, config, targetPath, duration, io.Discard)
+}
+
+// RunMeasured 保存一个已准备负载流的结果，保持通用报告格式。
+func (runner *Runner) RunMeasured(ctx context.Context, config Config,
+	targetPath string,
+) error {
+	err := config.validate()
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(config.OutputDir, 0o700)
+	if err != nil {
+		return err
+	}
+	err = writeJSON(filepath.Join(config.OutputDir, runFileName), config)
+	if err != nil {
+		return err
+	}
+	err = runner.runMeasured(ctx, config, targetPath)
+	if err != nil {
+		return err
+	}
+	result, err := readStageResult(config)
+	if err != nil {
+		return err
+	}
+	if result.Success < 1 {
+		return fmt.Errorf("load stopped: success ratio %.2f%%; see %s",
+			result.Success*100, config.OutputDir)
+	}
+	return nil
 }
 
 func (runner *Runner) runLoad(
@@ -122,6 +169,13 @@ func (runner *Runner) runLoad(
 	if warmupErr != nil {
 		return fmt.Errorf("Vegeta warmup: %w", warmupErr)
 	}
+	return runner.runMeasured(ctx, config, targetPath)
+}
+
+// runMeasured 执行正式负载并保存报告。
+func (runner *Runner) runMeasured(ctx context.Context, config Config,
+	targetPath string,
+) error {
 
 	runner.info(
 		"running measured load",
