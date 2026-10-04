@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -486,6 +488,162 @@ func TestPermissionCleanupRecoversAdministrator(t *testing.T) {
 	for kind, recordMap := range fixture.recordMap {
 		if len(recordMap) != 0 {
 			t.Fatalf("recovered cleanup left %s records", kind)
+		}
+	}
+}
+
+// TestPrepareClearsStaleReports 验证新测试准备失败时也不会残留旧窗口报告。
+func TestPrepareClearsStaleReports(t *testing.T) {
+	for _, prepareOnly := range []bool{false, true} {
+		t.Run(fmt.Sprintf("prepare-only=%t", prepareOnly), func(t *testing.T) {
+			directory := t.TempDir()
+			oldReportList := []string{
+				"hot/11-vegeta-report.txt",
+				"control/11-vegeta-report.txt",
+				"writer-report.txt",
+				"pure/hot/11-vegeta-report.txt",
+				"mixed/writer-report.txt",
+				"recovery/control/11-vegeta-report.txt",
+				"round-01/recovery/hot/11-vegeta-report.txt",
+				"round-02/pure/control/11-vegeta-report.txt",
+				"rps-200/mixed/writer-report.txt",
+				"rps-400/recovery/hot/11-vegeta-report.txt",
+				"00-auto-run.json",
+			}
+			preservedList := []string{
+				"01-permissions.json", "00-run.json", "hot-targets.jsonl",
+				"control-targets.jsonl", "grafana-rps20-1.png",
+				"notes/readme.md", "rps-notes/readme.md",
+			}
+			for _, name := range append(oldReportList, preservedList...) {
+				path := filepath.Join(directory, name)
+				err := os.MkdirAll(filepath.Dir(path), 0o700)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = os.WriteFile(path, []byte("original"), 0o600)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			opt := defaultOptions()
+			opt.PrepareOnly = prepareOnly
+			loader := &preparer{
+				config: performance.Config{RPS: 20}, opt: opt,
+				logger: klog.NewStdLogger(io.Discard),
+			}
+			_, cleanup, err := loader.Prepare(context.Background(), directory)
+			if err == nil {
+				t.Fatal("invalid manifest should fail preparation")
+			}
+			if cleanup != nil {
+				t.Cleanup(func() {
+					if err := cleanup(); err != nil {
+						t.Error(err)
+					}
+				})
+			}
+			for _, name := range oldReportList {
+				_, err = os.Stat(filepath.Join(directory, name))
+				if prepareOnly && err != nil {
+					t.Fatalf("preparation removed %s: %v", name, err)
+				}
+				if !prepareOnly && !os.IsNotExist(err) {
+					t.Fatalf("stale report remains: %s (%v)", name, err)
+				}
+			}
+			for _, name := range preservedList {
+				content, err := os.ReadFile(filepath.Join(directory, name))
+				if err != nil || string(content) != "original" {
+					t.Fatalf("preserved file changed: %s (%v)", name, err)
+				}
+			}
+		})
+	}
+}
+
+// TestRunLoadReadWrite 验证读写并行且报告直接保存在输出目录。
+func TestRunLoadReadWrite(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake Vegeta uses a POSIX shell")
+	}
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	manifestPath := filepath.Join(directory, "01-permissions.json")
+	manifest, err := prepareFixture(t.Context(), server.URL, manifestPath,
+		fixtureScale{2, 4, 3, 2, 2}, klog.NewStdLogger(io.Discard))
+	if err != nil {
+		t.Fatal(err)
+	}
+	toolDirectory := t.TempDir()
+	toolPath := filepath.Join(toolDirectory, "vegeta")
+	script := `#!/bin/sh
+case "$1" in
+attack)
+  printf 'attack\n' >> "$PERMISSION_ATTACK_LOG"
+  sleep 0.02
+  printf 'sample'
+  ;;
+report)
+  printf 'Requests [total, rate, throughput] 10, 10, 10\nSuccess [ratio] 100.00%%\n'
+  ;;
+*) exit 1 ;;
+esac
+`
+	err = os.WriteFile(toolPath, []byte(script), 0o700)
+	if err != nil {
+		t.Fatal(err)
+	}
+	attackLog := filepath.Join(directory, "attacks.txt")
+	t.Setenv("PERMISSION_ATTACK_LOG", attackLog)
+	t.Setenv("PATH", toolDirectory+string(os.PathListSeparator)+os.Getenv("PATH"))
+	logger := klog.NewStdLogger(io.Discard)
+	opt := defaultOptions()
+	opt.WriteRPS = 1000
+	client := newAPIClient(server.URL, manifest.Admin.Token)
+	t.Cleanup(client.httpClient.CloseIdleConnections)
+	loader := &preparer{
+		manifest: manifest, manifestPath: manifestPath,
+		client: client, logger: logger, opt: opt,
+	}
+	config := performance.Config{
+		APIURL: server.URL, RPS: 20, Duration: 50 * time.Millisecond,
+		OutputDir: directory,
+	}
+	err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
+		filepath.Join(directory, "hot-targets.jsonl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	content, err := os.ReadFile(attackLog)
+	if err != nil || strings.Count(string(content), "attack") != 4 {
+		t.Fatalf("expected two read groups warming up and measuring once: %q, %v", content, err)
+	}
+	for _, group := range []string{"hot", "control"} {
+		_, err = os.Stat(filepath.Join(directory, group, "11-vegeta-report.txt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	content, err = os.ReadFile(filepath.Join(directory, "writer-report.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var requests int
+	_, err = fmt.Sscanf(string(content), "Requests %d", &requests)
+	if err != nil || requests == 0 {
+		t.Fatalf("administrator did not write during measurement: %s, %v", content, err)
+	}
+	fixture.mu.Lock()
+	updates := fixture.updates
+	fixture.mu.Unlock()
+	if updates == 0 {
+		t.Fatal("read/write load did not modify permissions")
+	}
+	for _, name := range []string{"pure", "mixed", "recovery", "round-01"} {
+		_, err = os.Stat(filepath.Join(directory, name))
+		if !os.IsNotExist(err) {
+			t.Fatalf("unexpected report directory %s: %v", name, err)
 		}
 	}
 }

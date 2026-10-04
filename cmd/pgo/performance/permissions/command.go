@@ -5,12 +5,16 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
 	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
+	"github.com/pancake-lee/pgo/pkg/pclient"
+	"github.com/pancake-lee/pgo/pkg/pconfig"
+	"github.com/pancake-lee/pgo/pkg/pthird"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +24,6 @@ type options struct {
 	PrepareOnly  bool
 	KeepData     bool
 	WriteRPS     int
-	Repeat       int
 }
 
 // entrypoint 将权限场景接入通用 CLI 和交互菜单。
@@ -31,7 +34,7 @@ var Entrypoint = &entrypoint{}
 
 // defaultOptions 创建首次读写混合实验参数。
 func defaultOptions() options {
-	return options{KeepData: true, WriteRPS: 1, Repeat: 1}
+	return options{KeepData: true, WriteRPS: 1}
 }
 
 // newTool 为本次调用绑定专属选项和通用负载框架。
@@ -52,15 +55,25 @@ func (*entrypoint) NewCobraCommand() *cobra.Command {
 	command.Flags().StringVar(&opt.ManifestPath, "manifest", "", "reuse an existing HTTP data manifest")
 	command.Flags().BoolVar(&opt.PrepareOnly, "prepare-only", false, "only create and verify HTTP test data")
 	command.Flags().BoolVar(&opt.KeepData, "keep-data", true, "keep the batch for later comparisons; clean up explicitly")
-	command.Flags().IntVar(&opt.WriteRPS, "write-rps", 1, "administrator updates per second in the mixed window")
-	command.Flags().IntVar(&opt.Repeat, "repeat", 1, "number of pure/mixed/recovery cycles using the same batch")
+	command.Flags().IntVar(&opt.WriteRPS, "write-rps", 1, "administrator updates per second")
 
 	return command
 }
 
-// RunInteractive 使用通用菜单读取负载参数，专属参数取首次默认值。
+// RunInteractive 说明读写并行并读取管理员写速率与公共负载参数。
 func (*entrypoint) RunInteractive() {
+	pthird.Interact.Infof("读请求与管理员修改同时运行；read RPS 为两个读组的合计。")
+	paramMap := pclient.GetCachedParamMap(pconfig.GetDefaultCachePath(),
+		"client.performance.permissions.", []pclient.ParamItem{
+			{Name: "write-rps", Usage: "administrator write RPS", Default: "1"},
+		})
+	writeRPS, err := strconv.Atoi(strings.TrimSpace(paramMap["write-rps"]))
+	if err != nil || writeRPS < 1 {
+		pthird.Interact.Errorf("write-rps must be a positive integer")
+		return
+	}
 	opt := defaultOptions()
+	opt.WriteRPS = writeRPS
 	newTool(&opt).RunInteractive()
 }
 
@@ -70,7 +83,7 @@ func (*entrypoint) CleanupEntrypoint() *performance.CleanupEntrypoint {
 	return newTool(&opt).CleanupEntrypoint()
 }
 
-// preparer 保存批次准备和三个窗口共享的场景状态。
+// preparer 保存批次准备和混合负载共享的场景状态。
 type preparer struct {
 	config       performance.Config
 	logger       klog.Logger
@@ -226,8 +239,8 @@ func (preparer *preparer) refreshTokens(ctx context.Context) error {
 // Prepare 由 core 复用或重建批次，并生成本次两个读组的目标文件。
 func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 ) (string, func() error, error) {
-	if preparer.opt.WriteRPS < 1 || preparer.opt.Repeat < 1 || preparer.config.RPS < 2 {
-		return "", nil, errors.New("write-rps and repeat must be positive; total read rps must be at least 2")
+	if preparer.opt.WriteRPS < 1 || preparer.config.RPS < 2 {
+		return "", nil, errors.New("write-rps must be positive; total read rps must be at least 2")
 	}
 	cleanup := func() error {
 		if preparer.client != nil {
@@ -239,6 +252,12 @@ func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 		cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
 		defer cancel()
 		return preparer.CleanupData(cleanupContext, outputDir)
+	}
+	if !preparer.opt.PrepareOnly {
+		err := clearLoadReports(outputDir)
+		if err != nil {
+			return "", cleanup, err
+		}
 	}
 	err := performance.EnsureData(ctx, outputDir, preparer, preparer.logger)
 	if err != nil {

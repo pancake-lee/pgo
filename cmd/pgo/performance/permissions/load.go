@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	klog "github.com/go-kratos/kratos/v2/log"
 	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
 )
 
@@ -247,80 +247,93 @@ func writeWriterReport(path string, resultList []writeResult,
 	return os.WriteFile(path, []byte(report), 0o600)
 }
 
-// RunLoad 在同一批次上编排纯读、混合与恢复窗口。
+// RunLoad 在同一批次上同时执行两个读组与管理员修改。
 func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runner,
 	config performance.Config, targetPath string,
 ) error {
 	if preparer.opt.PrepareOnly {
 		return nil
 	}
-	for repeat := 1; repeat <= preparer.opt.Repeat; repeat++ {
-		for _, phase := range []string{"pure", "mixed", "recovery"} {
-			phaseDir := filepath.Join(config.OutputDir, fmt.Sprintf("round-%02d", repeat), phase)
-			err := os.MkdirAll(phaseDir, 0o700)
+	err := os.MkdirAll(config.OutputDir, 0o700)
+	if err != nil {
+		return err
+	}
+	groupConfig := func(group string) performance.Config {
+		stream := config
+		stream.RPS = config.RPS / 2
+		if group == "hot" {
+			stream.RPS += config.RPS % 2
+		}
+		stream.OutputDir = filepath.Join(config.OutputDir, group)
+		return stream
+	}
+	stopWriter := make(chan struct{})
+	writerDone := make(chan struct{})
+	var resultList []writeResult
+	var writerErr error
+	go func() {
+		defer close(writerDone)
+		resultList, writerErr = runWriter(ctx, stopWriter, preparer.client,
+			preparer.manifest, preparer.opt.WriteRPS)
+	}()
+	preparer.info("warming up permission reads and writes",
+		"duration", 30*time.Second,
+		"readRPS", config.RPS, "writeRPS", preparer.opt.WriteRPS)
+	err = runPair(ctx, func(pairContext context.Context, group string) error {
+		return runner.RunWarmup(pairContext, groupConfig(group),
+			filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"), 30*time.Second)
+	})
+	begin := time.Now()
+	if err == nil {
+		preparer.info("permission measured window",
+			"startUTC", begin.UTC().Format(time.RFC3339),
+			"readRPS", config.RPS, "writeRPS", preparer.opt.WriteRPS)
+		err = runPair(ctx, func(pairContext context.Context, group string) error {
+			return runner.RunMeasured(pairContext, groupConfig(group),
+				filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"))
+		})
+	}
+	end := time.Now()
+	close(stopWriter)
+	<-writerDone
+	if writerErr != nil {
+		preparer.manifest.Ready = false
+	}
+	err = errors.Join(err, writerErr,
+		writeWriterReport(filepath.Join(config.OutputDir, "writer-report.txt"), resultList, begin, end),
+		saveManifest(preparer.manifestPath, preparer.manifest))
+	preparer.info("permission window completed",
+		"endUTC", end.UTC().Format(time.RFC3339), "outputDir", config.OutputDir)
+	if err != nil {
+		return err
+	}
+	return verifyFixture(ctx, preparer.client, preparer.manifest)
+}
+
+// clearLoadReports 清除上次负载报告，保留准备数据、目标文件和用户截图。
+func clearLoadReports(outputDir string) error {
+	entryList, err := os.ReadDir(outputDir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entryList {
+		name := entry.Name()
+		remove := name == "00-auto-run.json" || name == "writer-report.txt"
+		if entry.IsDir() {
+			// 同时清除当前读组报告与旧版目录。
+			remove = name == "hot" || name == "control" ||
+				name == "pure" || name == "mixed" || name == "recovery"
+			for _, prefix := range []string{"round-", "rps-"} {
+				if strings.HasPrefix(name, prefix) {
+					value, parseErr := strconv.Atoi(strings.TrimPrefix(name, prefix))
+					remove = parseErr == nil && value > 0
+				}
+			}
+		}
+		if remove {
+			err = os.RemoveAll(filepath.Join(outputDir, name))
 			if err != nil {
 				return err
-			}
-			groupConfig := func(group string) performance.Config {
-				stream := config
-				stream.RPS = config.RPS / 2
-				if group == "hot" {
-					stream.RPS += config.RPS % 2
-				}
-				stream.OutputDir = filepath.Join(phaseDir, group)
-				return stream
-			}
-			stopWriter := make(chan struct{})
-			writerDone := make(chan struct{})
-			var resultList []writeResult
-			var writerErr error
-			if phase == "mixed" {
-				go func() {
-					defer close(writerDone)
-					resultList, writerErr = runWriter(ctx, stopWriter, preparer.client,
-						preparer.manifest, preparer.opt.WriteRPS)
-				}()
-			} else {
-				close(writerDone)
-			}
-			preparer.info("warming up permission reads",
-				"phase", phase, "round", repeat,
-				"duration", 30*time.Second, "readRPS", config.RPS)
-			err = runPair(ctx, func(pairContext context.Context, group string) error {
-				return runner.RunWarmup(pairContext, groupConfig(group),
-					filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"), 30*time.Second)
-			})
-			begin := time.Now()
-			_ = preparer.logger.Log(klog.LevelInfo, "msg", "permission measured window",
-				"phase", phase, "round", repeat, "startUTC", begin.UTC().Format(time.RFC3339),
-				"readRPS", config.RPS, "writeRPS", map[bool]int{true: preparer.opt.WriteRPS}[phase == "mixed"])
-			if err == nil {
-				err = runPair(ctx, func(pairContext context.Context, group string) error {
-					return runner.RunMeasured(pairContext, groupConfig(group),
-						filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"))
-				})
-			}
-			end := time.Now()
-			close(stopWriter)
-			<-writerDone
-			if phase == "mixed" {
-				if writerErr != nil {
-					preparer.manifest.Ready = false
-				}
-				err = errors.Join(err, writerErr,
-					writeWriterReport(filepath.Join(phaseDir, "writer-report.txt"), resultList, begin, end),
-					saveManifest(preparer.manifestPath, preparer.manifest))
-			}
-			_ = preparer.logger.Log(klog.LevelInfo, "msg", "permission window completed",
-				"phase", phase, "endUTC", end.UTC().Format(time.RFC3339), "outputDir", phaseDir)
-			if err != nil {
-				return err
-			}
-			if phase == "mixed" || phase == "recovery" {
-				err = verifyFixture(ctx, preparer.client, preparer.manifest)
-				if err != nil {
-					return err
-				}
 			}
 		}
 	}
