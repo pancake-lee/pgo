@@ -267,40 +267,72 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 		stream.OutputDir = filepath.Join(config.OutputDir, group)
 		return stream
 	}
-	stopWriter := make(chan struct{})
-	writerDone := make(chan struct{})
-	var resultList []writeResult
+	warmupStarted := time.Now()
+	warmupDuration, plannedStart := performance.WarmupWindow(warmupStarted,
+		30*time.Second)
+	stopWarmupWriter := make(chan struct{})
+	warmupWriterDone := make(chan struct{})
+	var stopOnce sync.Once
+	stopWarmup := func() { stopOnce.Do(func() { close(stopWarmupWriter) }) }
+	warmupTimer := time.AfterFunc(warmupDuration, stopWarmup)
 	var writerErr error
 	go func() {
-		defer close(writerDone)
-		resultList, writerErr = runWriter(ctx, stopWriter, preparer.client,
+		defer close(warmupWriterDone)
+		_, writerErr = runWriter(ctx, stopWarmupWriter, preparer.client,
 			preparer.manifest, preparer.opt.WriteRPS)
 	}()
 	preparer.info("warming up permission reads and writes",
-		"duration", 30*time.Second,
+		"duration", warmupDuration,
+		"plannedStartUTC", plannedStart.UTC().Format(time.RFC3339),
 		"readRPS", config.RPS, "writeRPS", preparer.opt.WriteRPS)
 	err = runPair(ctx, func(pairContext context.Context, group string) error {
 		return runner.RunWarmup(pairContext, groupConfig(group),
-			filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"), 30*time.Second)
+			filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"),
+			warmupDuration-time.Since(warmupStarted))
 	})
+	// 预热失败时立即停止写入；正常时等到预定停止点，完成当前角色轮次。
+	if err != nil {
+		warmupTimer.Stop()
+		stopWarmup()
+	}
+	<-warmupWriterDone
+	warmupTimer.Stop()
+	err = errors.Join(err, writerErr)
+	var resultList []writeResult
+	if err == nil {
+		err = runner.WaitForMeasured(ctx, plannedStart)
+	}
 	begin := time.Now()
+	end := begin
 	if err == nil {
 		preparer.info("permission measured window",
 			"startUTC", begin.UTC().Format(time.RFC3339),
 			"readRPS", config.RPS, "writeRPS", preparer.opt.WriteRPS)
+		stopWriter := make(chan struct{})
+		writerDone := make(chan struct{})
+		go func() {
+			defer close(writerDone)
+			resultList, writerErr = runWriter(ctx, stopWriter, preparer.client,
+				preparer.manifest, preparer.opt.WriteRPS)
+		}()
 		err = runPair(ctx, func(pairContext context.Context, group string) error {
 			return runner.RunMeasured(pairContext, groupConfig(group),
 				filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"))
 		})
+		end = time.Now()
+		close(stopWriter)
+		<-writerDone
 	}
-	end := time.Now()
-	close(stopWriter)
-	<-writerDone
 	if writerErr != nil {
 		preparer.manifest.Ready = false
 	}
-	err = errors.Join(err, writerErr,
-		writeWriterReport(filepath.Join(config.OutputDir, "writer-report.txt"), resultList, begin, end),
+	var reportErr error
+	if end.After(begin) {
+		reportErr = writeWriterReport(
+			filepath.Join(config.OutputDir, "writer-report.txt"),
+			resultList, begin, end)
+	}
+	err = errors.Join(err, writerErr, reportErr,
 		saveManifest(preparer.manifestPath, preparer.manifest))
 	preparer.info("permission window completed",
 		"endUTC", end.UTC().Format(time.RFC3339), "outputDir", config.OutputDir)

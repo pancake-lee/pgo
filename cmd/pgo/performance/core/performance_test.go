@@ -93,9 +93,16 @@ func fakeExecContext(
 	return "", nil
 }
 
+// TestRunnerExecutesOnePreparedStage 验证单档负载完成准备、分钟对齐与报告生成。
 func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 	var output strings.Builder
 	runner := NewRunner(klog.NewStdLogger(&output))
+	runner.waitUntil = func(_ context.Context, start time.Time) error {
+		if start.Second() != 0 || start.Nanosecond() != 0 {
+			t.Fatalf("measured boundary = %s", start)
+		}
+		return nil
+	}
 	runner.execContext = fakeExecContext
 	runner.checkVegeta = func(string) error { return nil }
 	preparer := &fakePreparer{}
@@ -257,5 +264,53 @@ func TestFixedDependencyErrorsIncludeInstallGuidance(t *testing.T) {
 	)
 	if !containsGuidance {
 		t.Fatalf("Vegeta error = %v", err)
+	}
+}
+
+// TestWarmupWindow 验证预热超过最低时长并在整分钟前五秒停止发请求。
+func TestWarmupWindow(t *testing.T) {
+	for _, sample := range []struct {
+		name    string
+		now     string
+		minimum time.Duration
+		start   string
+	}{
+		{"normal", "2026-10-04T12:00:10Z", 30 * time.Second, "2026-10-04T12:01:00Z"},
+		{"insufficient drain", "2026-10-04T12:00:28Z", 30 * time.Second, "2026-10-04T12:02:00Z"},
+		{"exact minimum", "2026-10-04T12:00:25Z", 30 * time.Second, "2026-10-04T12:02:00Z"},
+		{"hour rollover", "2026-10-04T12:59:49.5Z", 10 * time.Second, "2026-10-04T13:01:00Z"},
+	} {
+		t.Run(sample.name, func(t *testing.T) {
+			now, err := time.Parse(time.RFC3339Nano, sample.now)
+			if err != nil {
+				t.Fatal(err)
+			}
+			duration, start := WarmupWindow(now, sample.minimum)
+			if start.Format(time.RFC3339) != sample.start || start.Nanosecond() != 0 {
+				t.Fatalf("start = %s, want %s", start, sample.start)
+			}
+			if duration <= sample.minimum || start.Sub(now.Add(duration)) != 5*time.Second {
+				t.Fatalf("warmup = %s, drain = %s", duration, start.Sub(now.Add(duration)))
+			}
+		})
+	}
+}
+
+// TestWaitUntilCancellation 验证空等可立即取消，过期时刻不阻塞。
+func TestWaitUntilCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	done := make(chan error, 1)
+	go func() { done <- waitUntil(ctx, time.Now().Add(time.Minute)) }()
+	cancel()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("wait error = %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("cancelled wait did not stop")
+	}
+	if err := waitUntil(t.Context(), time.Now().Add(-time.Second)); err != nil {
+		t.Fatal(err)
 	}
 }

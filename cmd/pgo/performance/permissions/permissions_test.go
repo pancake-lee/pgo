@@ -580,7 +580,7 @@ func TestRunLoadReadWrite(t *testing.T) {
 	script := `#!/bin/sh
 case "$1" in
 attack)
-  printf 'attack\n' >> "$PERMISSION_ATTACK_LOG"
+  printf 'attack %s\n' "$(date +%S)" >> "$PERMISSION_ATTACK_LOG"
   sleep 0.02
   printf 'sample'
   ;;
@@ -599,7 +599,7 @@ esac
 	t.Setenv("PATH", toolDirectory+string(os.PathListSeparator)+os.Getenv("PATH"))
 	logger := klog.NewStdLogger(io.Discard)
 	opt := defaultOptions()
-	opt.WriteRPS = 1000
+	opt.WriteRPS = 100
 	client := newAPIClient(server.URL, manifest.Admin.Token)
 	t.Cleanup(client.httpClient.CloseIdleConnections)
 	loader := &preparer{
@@ -618,6 +618,12 @@ esac
 	content, err := os.ReadFile(attackLog)
 	if err != nil || strings.Count(string(content), "attack") != 4 {
 		t.Fatalf("expected two read groups warming up and measuring once: %q, %v", content, err)
+	}
+	attacks := strings.Split(strings.TrimSpace(string(content)), "\n")
+	for _, attack := range attacks[2:] {
+		if attack != "attack 00" {
+			t.Fatalf("measured read missed minute boundary: %s", attack)
+		}
 	}
 	for _, group := range []string{"hot", "control"} {
 		_, err = os.Stat(filepath.Join(directory, group, "11-vegeta-report.txt"))

@@ -18,6 +18,9 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
+// warmupDrain 留出整分钟前五秒供预热请求收尾。
+const warmupDrain = 5 * time.Second
+
 const (
 	expectedVegetaVersion = "v12.13.0"
 	defaultVegetaPath     = "vegeta"
@@ -54,6 +57,7 @@ type PreparedLoader interface {
 type Runner struct {
 	execContext func(context.Context, io.Writer, string, ...string) (string, error)
 	checkVegeta func(string) error
+	waitUntil   func(context.Context, time.Time) error
 	logger      klog.Logger
 }
 
@@ -62,6 +66,7 @@ func NewRunner(logger klog.Logger) *Runner {
 	return &Runner{
 		execContext: putil.ExecContext,
 		checkVegeta: checkVegetaVersion,
+		waitUntil:   waitUntil,
 		logger:      logger,
 	}
 }
@@ -180,17 +185,51 @@ func (runner *Runner) RunMeasured(ctx context.Context, config Config,
 	return nil
 }
 
+// WarmupWindow 将最低预热时长延长至整分钟前五秒，返回发请求时长与正式开始时刻。
+func WarmupWindow(now time.Time, minimum time.Duration) (time.Duration, time.Time) {
+	earliest := now.Add(minimum + warmupDrain)
+	start := earliest.Truncate(time.Minute).Add(time.Minute)
+	return start.Add(-warmupDrain).Sub(now), start
+}
+
+// waitUntil 等待目标时刻，允许调用方取消等待。
+func waitUntil(ctx context.Context, start time.Time) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	timer := time.NewTimer(time.Until(start))
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return ctx.Err()
+	}
+}
+
+// WaitForMeasured 等待预定正式窗口，并在收尾超过预定时刻时记录实际延迟。
+func (runner *Runner) WaitForMeasured(ctx context.Context, start time.Time) error {
+	runner.info("waiting for measured window",
+		"plannedStartUTC", start.UTC().Format(time.RFC3339))
+	if time.Now().After(start) {
+		runner.info("warmup drained after planned start", "delay", time.Since(start))
+	}
+	return runner.waitUntil(ctx, start)
+}
+
+// runLoad 延长预热并预留五秒收尾，然后在整分钟启动正式负载。
 func (runner *Runner) runLoad(
 	ctx context.Context,
 	config Config,
 	targetPath string,
 ) error {
+	warmupDuration, start := WarmupWindow(time.Now(), defaultWarmup)
 	runner.info(
 		"warming up",
 		"step",
 		"4/7",
 		"duration",
-		defaultWarmup,
+		warmupDuration,
 		"rps",
 		config.RPS,
 	)
@@ -198,11 +237,14 @@ func (runner *Runner) runLoad(
 		ctx,
 		config,
 		targetPath,
-		defaultWarmup,
+		warmupDuration,
 		io.Discard,
 	)
 	if warmupErr != nil {
 		return fmt.Errorf("Vegeta warmup: %w", warmupErr)
+	}
+	if err := runner.WaitForMeasured(ctx, start); err != nil {
+		return err
 	}
 	return runner.RunMeasured(ctx, config, targetPath)
 }
@@ -211,9 +253,10 @@ func (runner *Runner) runLoad(
 func (runner *Runner) runMeasured(ctx context.Context, config Config,
 	targetPath string,
 ) error {
-
 	runner.info(
 		"running measured load",
+		"startUTC",
+		time.Now().UTC().Format(time.RFC3339),
 		"step",
 		"5/7",
 		"duration",
@@ -238,6 +281,8 @@ func (runner *Runner) runMeasured(ctx context.Context, config Config,
 		config.Duration,
 		resultFile,
 	)
+	runner.info("measured load completed",
+		"endUTC", time.Now().UTC().Format(time.RFC3339))
 	closeErr := resultFile.Close()
 	err = errors.Join(attackErr, closeErr)
 	if err != nil {
