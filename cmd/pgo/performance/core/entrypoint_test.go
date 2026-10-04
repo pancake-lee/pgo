@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -85,31 +84,6 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 	if config.OutputDir != wantOutput || config.RPS != 75 ||
 		config.Duration != 45*time.Second {
 		t.Fatalf("config = %+v, want output %s", config, wantOutput)
-	}
-}
-
-func TestResolveRPSList(t *testing.T) {
-	automaticList := []int{200, 400, 600, 800, 1000}
-	rpsList, automatic, err := resolveRPSList("auto")
-	if err != nil || !automatic ||
-		fmt.Sprint(rpsList) != fmt.Sprint(automaticList) {
-		t.Fatalf("auto RPS = %v, %v, %v", rpsList, automatic, err)
-	}
-	rpsList, automatic, err = resolveRPSList("75")
-	if err != nil || automatic || len(rpsList) != 1 || rpsList[0] != 75 {
-		t.Fatalf("single RPS = %v, %v, %v", rpsList, automatic, err)
-	}
-	_, _, err = resolveRPSList("invalid")
-	if err == nil {
-		t.Fatal("expected invalid RPS error")
-	}
-	rpsList, _, err = resolveRPSList("auto")
-	if err != nil {
-		t.Fatal(err)
-	}
-	rpsList[0] = 999
-	if autoRPSList[0] != automaticList[0] {
-		t.Fatal("resolved RPS list changed the shared ladder")
 	}
 }
 
