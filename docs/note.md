@@ -40,6 +40,18 @@ go build
 - 安装后设置环境变量，如 `C:\Program Files (x86)\GnuWin32\bin` 到 PATH
 - 重启 vscode 以应用新环境变量（所有 vscode 窗口）
 
+### Windows 客户端运行模式
+
+`make cli-win` 生成 GUI 子系统程序，无参数启动界面，`pgo.exe cli` 启动交互菜单，其他参数执行对应命令。CLI 分支附着父控制台，父进程无控制台时创建新控制台，以读写权限打开控制台设备，并恢复输入输出。随后启动继承有效标准句柄的 CLI 子进程并等待退出，让键盘库初始化时取得正确输入；有效文件重定向会保留。
+
+如果终端在 GUI 程序启动后立即返回提示符，可显式等待，避免终端和交互菜单同时读取输入。PowerShell 使用：
+
+```powershell
+Start-Process -FilePath .\pgo.exe -ArgumentList cli -NoNewWindow -Wait
+```
+
+CMD 使用 `start "" /wait pgo.exe cli`。等待参数见 [Start-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process) 和 [start](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/start)。
+
 ### make api
 
 - 命令运行没问题（加了 `--proto_path=./third_party`）
