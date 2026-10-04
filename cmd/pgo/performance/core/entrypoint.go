@@ -58,8 +58,9 @@ func NewEntrypoint(scenario Scenario) *Entrypoint {
 	return &Entrypoint{scenario: scenario}
 }
 
-// NewCobraCommand creates a scenario command with shared load parameters.
+// NewCobraCommand 创建带公共负载参数、数据目录和清理子命令的场景入口。
 func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
+	outputDir := ""
 	rpsInput := defaultRPSInput
 	durationInput := defaultDurationInput
 	if entrypoint.scenario.DefaultRPS != "" {
@@ -80,7 +81,7 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 				args[0],
 				rpsInput,
 				durationInput,
-				"",
+				outputDir,
 				time.Now(),
 			)
 		},
@@ -97,10 +98,13 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 		durationInput,
 		"measured load duration for each RPS level",
 	)
+	command.Flags().StringVar(&outputDir, "output-dir", "",
+		"report directory and reusable test data directory")
+	command.AddCommand(entrypoint.CleanupEntrypoint().newCommand("cleanup"))
 	return command
 }
 
-// RunInteractive reads shared parameters and runs the scenario.
+// RunInteractive 读取公共参数并记住数据目录，供测试和清理共同使用。
 func (entrypoint *Entrypoint) RunInteractive() {
 	now := time.Now()
 	outputDir := getDefaultOutputDir(entrypoint.scenario.Name, now)
@@ -118,8 +122,16 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		"client.performance."+entrypoint.scenario.Name+".",
 		paramList,
 	)
+	// 首次直接接受默认目录时也保存，清理入口才能定位同一批次。
+	err := pconfig.SetCacheValue(pconfig.GetDefaultCachePath(),
+		"client.performance."+entrypoint.scenario.Name+".output-dir",
+		paramMap["output-dir"])
+	if err != nil {
+		pthird.Interact.Errorf("Cannot remember test data directory: %v", err)
+		return
+	}
 	logger := plogger.GetDefaultLoggerNoCaller()
-	err := entrypoint.run(
+	err = entrypoint.run(
 		context.Background(),
 		logger,
 		paramMap["portal-url"],

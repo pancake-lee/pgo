@@ -12,22 +12,25 @@
 
 ## 首次运行
 
-先通过 HTTP 接口准备固定数据：
+菜单中的 Performance 分组提供“登录性能测试”“登录数据清理”“权限性能测试”“权限数据清理”四项。同一场景的测试和清理共享 `output directory` 缓存；使用同一目录即可复用数据。
+
+先选定目录，通过 HTTP 接口准备固定数据：
 
 ```sh
-./bin/pgo performance permissions http://127.0.0.1:20080 --prepare-only
+PERMISSION_OUTPUT=.local/performance/permissions/comparison
+./bin/pgo performance permissions http://127.0.0.1:20080 \
+  --output-dir "$PERMISSION_OUTPUT" --prepare-only
 ```
 
 将地址替换为实际 portal 地址。固定数据为 20 个项目、每项目 20 个角色、每角色配置相同的 100 个权限点，以及 1000 名普通用户和 1 名管理员。每项目两个读组各 25 人、各共享 5 个角色。每次查询读取 500 条关联记录，合并为 100 项权限。
 
 权限创建采用 8 个并发 HTTP 请求；其他创建按关系依次执行。控制台输出准备开始、每项目完成进度、令牌刷新、权限校验、目标生成与预热提示。准备统计只保留创建数量、总耗时、平均墙钟耗时及验证成功汇总。平均墙钟耗时是总耗时除以成功记录数，接口延迟仍以监控为准。
 
-程序打印清单路径，后续使用同一清单，避免每次重复创建 40000 条权限关联记录：
+后续指定同一输出目录，程序自动识别清单，避免每次重复创建 40000 条权限关联记录：
 
 ```sh
-PERMISSION_MANIFEST=.local/performance/permissions/<本次目录>/01-permissions.json
 ./bin/pgo performance permissions http://127.0.0.1:20080 \
-  --manifest "$PERMISSION_MANIFEST" --rps 20 --duration 120s --write-rps 1
+  --output-dir "$PERMISSION_OUTPUT" --rps 20 --duration 120s --write-rps 1
 ```
 
 每次运行依次执行纯读、混合、恢复三个窗口，每窗口预热 30 秒，再测量指定时长。`--rps` 是两个读组的总速率，20 表示每组 10 RPS；`--write-rps` 是混合窗口的单条管理员修改请求速率。管理员只修改热点角色，停止写入时完成当前动作的角色轮次，再验证最终值。
@@ -36,10 +39,12 @@ PERMISSION_MANIFEST=.local/performance/permissions/<本次目录>/01-permissions
 
 ```sh
 ./bin/pgo performance permissions http://127.0.0.1:20080 \
-  --manifest "$PERMISSION_MANIFEST" --rps auto --duration 120s
+  --output-dir "$PERMISSION_OUTPUT" --rps auto --duration 120s
 ```
 
-如果省略 `--prepare-only` 和 `--manifest`，会准备新批次并直接运行。默认保留测试数据用于后续对照；也可使用 `--keep-data=false` 在结束后清理。
+同目录数据满足当前规模时会检查实际记录、刷新令牌并直接复用；规模变化、准备未完成、清理未完成或数据缺失时，先通过 HTTP 删除旧批次，再重建。清理失败保留原清单并停止，下一次运行可继续；请求或鉴权错误直接报错，不当作数据不足。默认保留测试数据，也可使用 `--keep-data=false` 在结束后清理。
+
+CLI 省略 `--output-dir` 时仍生成新目录；要自动复用需明确指定同一目录，菜单会记住目录。保留 `--manifest` 供已有调用指定清单，该方式独立清理应使用对应清单所在目录或原清单路径。
 
 ## 看哪些结果
 
@@ -68,9 +73,11 @@ auto 下每档结果放在 `rps-200/`、`rps-400/` 等子目录中，结构如�
 ## 清理
 
 ```sh
-./bin/pgo performance permissions cleanup "$PERMISSION_MANIFEST"
+./bin/pgo performance permissions-cleanup "$PERMISSION_OUTPUT"
+# 同样可用场景子命令
+./bin/pgo performance permissions cleanup "$PERMISSION_OUTPUT"
 ```
 
-清理通过现有 HTTP 接口删除本批次记录，不修改表结构。中断后保留清单，清理时可按批次名称、项目及角色关系找回已入库但尚未记入最后一批清单的记录；这会读取现有列表接口的数据，发生在正式测量窗口之外。
+清理只需目录，从清单读取服务地址，不要求 portal 地址、RPS 或 Vegeta。没有清单或已完成清理时直接成功。清理通过现有 HTTP 接口删除本批次记录，不修改表结构。中断后保留清单，清理时可按批次名称、项目及角色关系找回已入库但尚未记入最后一批清单的记录；这会读取现有列表接口的数据，发生在正式测量窗口之外。
 
-首次用户数据准备失败时，程序已打印清单路径；如果管理员登录也没有成功完成，则需先核对该批次管理员记录，不能直接使用完整清理流程。正式读报告有非成功响应或管理员修改失败时结束本档，保留结果用于排查。
+创建请求前先保存批次身份；首次管理员登录响应丢失、准备中断或最后删除后清单尚未更新时，清理入口可以重新登录同批次管理员并恢复剩余记录。损坏且无法识别批次的清单直接报错，避免覆盖恢复线索。正式读报告有非成功响应或管理员修改失败时结束本档，保留结果用于排查。

@@ -15,6 +15,7 @@ import (
 
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
+	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
 )
 
 // fixtureScale 保存固定业务规模，测试可使用小规模验证完整流程。
@@ -66,8 +67,8 @@ func saveManifest(path string, manifest *Manifest) error {
 	return os.Rename(path+".tmp", path)
 }
 
-// loadManifest 读取清单并拒绝已清理或没有批次身份的文件。
-func loadManifest(path string) (*Manifest, error) {
+// readManifest 读取批次身份，允许已清理清单供幂等操作识别。
+func readManifest(path string) (*Manifest, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -77,10 +78,25 @@ func loadManifest(path string) (*Manifest, error) {
 	if err != nil {
 		return nil, err
 	}
-	if manifest.Batch == "" || manifest.BaseURL == "" || manifest.Cleaned {
-		return nil, errors.New("invalid or cleaned permission manifest")
+	if manifest.Batch == "" || manifest.BaseURL == "" {
+		return nil, errors.New("invalid permission manifest")
+	}
+	if manifest.RecordIDMap == nil {
+		manifest.RecordIDMap = make(map[string][]int32)
 	}
 	return &manifest, nil
+}
+
+// loadManifest 读取未清理的批次，供已有准备与清理流程使用。
+func loadManifest(path string) (*Manifest, error) {
+	manifest, err := readManifest(path)
+	if err != nil {
+		return nil, err
+	}
+	if manifest.Cleaned {
+		return nil, errors.New("permission manifest is already cleaned")
+	}
+	return manifest, nil
 }
 
 // prepareFixture 使用现有 HTTP 接口准备数据并逐阶段保存成功记录。
@@ -276,6 +292,9 @@ func cleanupFixture(ctx context.Context, client *apiClient,
 				manifest.RecordIDMap[kind] = idList
 			}
 			size := min(100, len(idList))
+			if kind == "user" && idList[len(idList)-1] == manifest.Admin.ID && len(idList) > 1 {
+				size = min(size, len(idList)-1)
+			}
 			err := client.deleteIDs(ctx, kind, idList[:size])
 			if err != nil {
 				return err
@@ -335,6 +354,29 @@ func recoverRecordIDs(ctx context.Context, client *apiClient,
 			if owned && record.ID > 0 && !knownMap[kind][record.ID] {
 				knownMap[kind][record.ID] = true
 				manifest.RecordIDMap[kind] = append(manifest.RecordIDMap[kind], record.ID)
+			}
+		}
+	}
+	return nil
+}
+
+// verifyRecordIDs 检查清单记录仍然存在，避免缺失背景行被权限抽查掩盖。
+func verifyRecordIDs(ctx context.Context, client *apiClient,
+	manifest *Manifest,
+) error {
+	for kind, idList := range manifest.RecordIDMap {
+		var response map[string][]struct{ ID int32 }
+		err := client.request(ctx, "GET", "/"+kind, nil, &response)
+		if err != nil {
+			return err
+		}
+		idMap := make(map[int32]bool)
+		for _, record := range response[envelope(kind)+"List"] {
+			idMap[record.ID] = true
+		}
+		for _, id := range idList {
+			if !idMap[id] {
+				return performance.ErrDataMismatch
 			}
 		}
 	}

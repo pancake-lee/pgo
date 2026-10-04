@@ -64,6 +64,15 @@ func (client *Client) GetUserList(ctx context.Context, userID int32, token strin
 	return response.UserList, httpResponse, err
 }
 
+// GetAllUserList 通过现有列表接口恢复测试批次中尚未持久化的用户。
+func (client *Client) GetAllUserList(ctx context.Context, token string,
+) ([]swagger.ApiUserInfo, error) {
+	authContext := context.WithValue(ctx, swagger.ContextAccessToken, token)
+	response, _, err := client.apiClient.UserCURDApi.UserCURDGetUserList(
+		authContext, nil)
+	return response.UserList, err
+}
+
 // DelUserByIDList 构造带鉴权的用户批量删除请求。
 func (client *Client) DelUserByIDList(ctx context.Context, userID int32, token string) error {
 	authContext := context.WithValue(ctx, swagger.ContextAccessToken, token)

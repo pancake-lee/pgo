@@ -16,6 +16,7 @@ import (
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
 )
 
+// TestNewBatchID 验证或模拟登录批次的 HTTP 数据生命周期。
 func TestNewBatchID(t *testing.T) {
 	batchID, err := newBatchID()
 	if err != nil {
@@ -34,15 +35,20 @@ func TestNewBatchID(t *testing.T) {
 	}
 }
 
+// fakeUserServer 验证或模拟登录批次的 HTTP 数据生命周期。
 type fakeUserServer struct {
 	mu         sync.Mutex
 	nextID     int32
 	nameToUser map[string]User
 	validToken map[string]bool
 	failSuffix string
+	failDelete bool
+	failGet    bool
+	loginCount int
 	rejected   int
 }
 
+// TestUserBatchLifecycle 验证或模拟登录批次的 HTTP 数据生命周期。
 func TestUserBatchLifecycle(t *testing.T) {
 	fakeServer := newFakeUserServer()
 	server := httptest.NewServer(fakeServer)
@@ -112,6 +118,7 @@ func TestUserBatchLifecycle(t *testing.T) {
 	}
 }
 
+// TestPreparePersistsSuccessesWhenSomeRequestsFail 验证或模拟登录批次的 HTTP 数据生命周期。
 func TestPreparePersistsSuccessesWhenSomeRequestsFail(t *testing.T) {
 	fakeServer := newFakeUserServer()
 	fakeServer.failSuffix = "_000003"
@@ -141,6 +148,7 @@ func TestPreparePersistsSuccessesWhenSomeRequestsFail(t *testing.T) {
 	}
 }
 
+// newFakeUserServer 验证或模拟登录批次的 HTTP 数据生命周期。
 func newFakeUserServer() *fakeUserServer {
 	return &fakeUserServer{
 		nextID:     10,
@@ -149,6 +157,7 @@ func newFakeUserServer() *fakeUserServer {
 	}
 }
 
+// ServeHTTP 验证或模拟登录批次的 HTTP 数据生命周期。
 func (server *fakeUserServer) ServeHTTP(
 	writer http.ResponseWriter,
 	request *http.Request,
@@ -175,6 +184,7 @@ func (server *fakeUserServer) ServeHTTP(
 	http.NotFound(writer, request)
 }
 
+// login 验证或模拟登录批次的 HTTP 数据生命周期。
 func (server *fakeUserServer) login(
 	writer http.ResponseWriter,
 	request *http.Request,
@@ -205,6 +215,7 @@ func (server *fakeUserServer) login(
 		server.nextID++
 		server.nameToUser[input.UserName] = user
 	}
+	server.loginCount++
 	server.validToken[user.Token] = true
 	server.mu.Unlock()
 	_ = json.NewEncoder(writer).Encode(map[string]any{
@@ -213,6 +224,7 @@ func (server *fakeUserServer) login(
 	})
 }
 
+// authorized 验证或模拟登录批次的 HTTP 数据生命周期。
 func (server *fakeUserServer) authorized(request *http.Request) bool {
 	token := strings.TrimPrefix(request.Header.Get("Authorization"), "Bearer ")
 	server.mu.Lock()
@@ -223,6 +235,7 @@ func (server *fakeUserServer) authorized(request *http.Request) bool {
 	return server.validToken[token]
 }
 
+// getUser 验证或模拟登录批次的 HTTP 数据生命周期。
 func (server *fakeUserServer) getUser(
 	writer http.ResponseWriter,
 	request *http.Request,
@@ -231,6 +244,18 @@ func (server *fakeUserServer) getUser(
 	id, _ := strconv.ParseInt(request.URL.Query().Get("IDList"), 10, 32)
 	server.mu.Lock()
 	defer server.mu.Unlock()
+	if server.failGet {
+		writer.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+	if id == 0 {
+		userList := make([]map[string]any, 0, len(server.nameToUser))
+		for _, user := range server.nameToUser {
+			userList = append(userList, map[string]any{"ID": user.ID, "userName": user.UserName})
+		}
+		_ = json.NewEncoder(writer).Encode(map[string]any{"userList": userList})
+		return
+	}
 	for _, user := range server.nameToUser {
 		if user.ID == int32(id) {
 			_ = json.NewEncoder(writer).Encode(map[string]any{
@@ -242,6 +267,7 @@ func (server *fakeUserServer) getUser(
 	_ = json.NewEncoder(writer).Encode(map[string]any{"userList": []any{}})
 }
 
+// delUser 验证或模拟登录批次的 HTTP 数据生命周期。
 func (server *fakeUserServer) delUser(
 	writer http.ResponseWriter,
 	request *http.Request,
@@ -249,6 +275,10 @@ func (server *fakeUserServer) delUser(
 	id, _ := strconv.ParseInt(request.URL.Query().Get("IDList"), 10, 32)
 	server.mu.Lock()
 	defer server.mu.Unlock()
+	if server.failDelete {
+		writer.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
 	for name, user := range server.nameToUser {
 		if user.ID == int32(id) {
 			delete(server.nameToUser, name)
@@ -256,4 +286,40 @@ func (server *fakeUserServer) delUser(
 		}
 	}
 	writer.WriteHeader(http.StatusOK)
+}
+
+// TestCleanupRecoversUnrecordedUsers 验证中断时漏记的用户按批次名称恢复。
+func TestCleanupRecoversUnrecordedUsers(t *testing.T) {
+	fakeServer := newFakeUserServer()
+	server := httptest.NewServer(fakeServer)
+	defer server.Close()
+	client, err := common.NewClient(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "users.json")
+	manifest, err := Prepare(t.Context(), client, 5, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Users = nil
+	manifest.Ready = false
+	err = manifest.write()
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded := &Manifest{}
+	err = loaded.read(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = Cleanup(t.Context(), client, loaded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeServer.mu.Lock()
+	defer fakeServer.mu.Unlock()
+	if len(fakeServer.nameToUser) != 0 {
+		t.Fatal("unrecorded users leaked")
+	}
 }

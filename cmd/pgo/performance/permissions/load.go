@@ -28,6 +28,26 @@ func validateFixture(manifest *Manifest) error {
 		len(manifest.UserList) != scale.Projects*2*scale.UsersPerGroup {
 		return errors.New("permission fixture is incomplete; use cleanup for partial batches")
 	}
+	expectedCountMap := map[string]int{
+		"project":                    scale.Projects,
+		"user-role":                  scale.Projects * scale.Roles,
+		"user-role-permission-assoc": scale.Projects * scale.Roles * scale.Actions,
+		"user":                       1 + scale.Projects*2*scale.UsersPerGroup,
+		"user-project-assoc":         scale.Projects * 2 * scale.UsersPerGroup,
+		"user-role-assoc":            scale.Projects * 2 * scale.UsersPerGroup * scale.RolesPerGroup,
+	}
+	for kind, count := range expectedCountMap {
+		idMap := make(map[int32]bool)
+		for _, id := range manifest.RecordIDMap[kind] {
+			if id <= 0 || idMap[id] {
+				return fmt.Errorf("invalid or duplicate %s record ID", kind)
+			}
+			idMap[id] = true
+		}
+		if len(idMap) != count {
+			return fmt.Errorf("%s manifest record count is incomplete", kind)
+		}
+	}
 	for _, project := range manifest.ProjectList {
 		if project.ID <= 0 || len(project.RoleIDList) != scale.Roles ||
 			len(project.PermissionIDList) != scale.Roles || len(project.VersionList) != scale.Actions {
@@ -69,7 +89,7 @@ func verifyFixture(ctx context.Context, client *apiClient, manifest *Manifest,
 			return err
 		}
 		if len(permissionMap) != manifest.Scale.Actions {
-			return fmt.Errorf("%s permission count: got %d, want %d", key, len(permissionMap), manifest.Scale.Actions)
+			return fmt.Errorf("%w: %s permission count: got %d, want %d", performance.ErrDataMismatch, key, len(permissionMap), manifest.Scale.Actions)
 		}
 		for action := 0; action < manifest.Scale.Actions; action++ {
 			version := 0
@@ -78,7 +98,7 @@ func verifyFixture(ctx context.Context, client *apiClient, manifest *Manifest,
 			}
 			want := permissionPath(user.Project, user.Group, action, version)
 			if permissionMap[fmt.Sprintf("action_%03d", action)] != want {
-				return fmt.Errorf("%s action %d has unexpected path", key, action)
+				return fmt.Errorf("%w: %s action %d has unexpected path", performance.ErrDataMismatch, key, action)
 			}
 		}
 		if manifest.Scale.Projects > 1 {
@@ -88,7 +108,7 @@ func verifyFixture(ctx context.Context, client *apiClient, manifest *Manifest,
 				return err
 			}
 			if len(otherMap) != 0 {
-				return errors.New("permissions leaked across projects")
+				return fmt.Errorf("%w: permissions leaked across projects", performance.ErrDataMismatch)
 			}
 		}
 	}

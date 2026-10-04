@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/pancake-lee/pgo/cmd/pgo/common"
@@ -37,6 +38,7 @@ func Prepare(
 		return nil, err
 	}
 	manifest := &Manifest{
+		Version: 1, ExpectedCount: userCount,
 		BatchID:   batchID,
 		BaseURL:   client.BaseURL(),
 		CreatedAt: time.Now().UTC(),
@@ -54,6 +56,11 @@ func Prepare(
 			)
 		}
 	}
+	err = manifest.write()
+	if err != nil {
+		return manifest, err
+	}
+	var mu sync.Mutex
 	resultList, runErr := papp.RunConcurrent(
 		ctx,
 		jobList,
@@ -64,25 +71,24 @@ func Prepare(
 				UserName: userInfo.UserName,
 				Token:    token,
 			}
-			return createdUser, loginErr
+			if loginErr != nil {
+				return createdUser, loginErr
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			manifest.Users = append(manifest.Users, createdUser)
+			return createdUser, manifest.write()
 		},
 	)
 
-	for _, result := range resultList {
-		if result.Err == nil {
-			manifest.Users = append(manifest.Users, result.Value)
-		}
-	}
 	sort.Slice(manifest.Users, func(i, j int) bool {
 		return manifest.Users[i].UserName <
 			manifest.Users[j].UserName
 	})
+	prepareErr := errors.Join(runErr, joinResultErrors(resultList))
+	manifest.Ready = prepareErr == nil && len(manifest.Users) == userCount
 	err = manifest.write()
-	if err != nil {
-		return manifest, err
-	}
-
-	return manifest, errors.Join(runErr, joinResultErrors(resultList))
+	return manifest, errors.Join(prepareErr, err)
 }
 
 // Verify 重新登录批次用户并验证身份与受保护接口鉴权。
@@ -138,30 +144,73 @@ func Verify(ctx context.Context, client *common.Client, manifest *Manifest,
 			return actual, nil
 		},
 	)
-	return errors.Join(runErr, joinResultErrors(resultList))
+	err = errors.Join(runErr, joinResultErrors(resultList))
+	if err != nil {
+		return err
+	}
+	for index, result := range resultList {
+		manifest.Users[index] = result.Value
+	}
+	return manifest.write()
 }
 
-// Cleanup 并发删除清单中的测试用户。
+// Cleanup 恢复本批次用户并逐条删除，保留进度以支持中断后重试。
 func Cleanup(ctx context.Context, client *common.Client, manifest *Manifest,
 ) error {
 	err := manifest.validate()
 	if err != nil {
 		return err
 	}
-
-	resultList, runErr := papp.RunConcurrent(
-		ctx,
-		manifest.Users,
-		func(ctx context.Context, user User) (User, error) {
-			deleteErr := client.DelUserByIDList(ctx, user.ID, user.Token)
-			return user, deleteErr
-		},
-	)
-	err = errors.Join(runErr, joinResultErrors(resultList))
+	if manifest.CleanedAt != nil {
+		return nil
+	}
+	manifest.Cleaning = true
+	err = manifest.write()
 	if err != nil {
 		return err
 	}
-
+	controllerName := fmt.Sprintf("load_%s_%06d", manifest.BatchID, 1)
+	controller, token, err := client.Login(ctx, controllerName)
+	if err != nil {
+		return err
+	}
+	userList, err := client.GetAllUserList(ctx, token)
+	if err != nil {
+		return err
+	}
+	manifest.Users = nil
+	for _, user := range userList {
+		if strings.HasPrefix(user.UserName, "load_"+manifest.BatchID+"_") {
+			manifest.Users = append(manifest.Users, User{
+				ID: user.ID, UserName: user.UserName, Token: token,
+			})
+		}
+	}
+	// 清理账号最后删除，后续请求继续使用它的有效令牌。
+	sort.Slice(manifest.Users, func(i, j int) bool {
+		if manifest.Users[i].ID == controller.ID {
+			return false
+		}
+		if manifest.Users[j].ID == controller.ID {
+			return true
+		}
+		return manifest.Users[i].ID < manifest.Users[j].ID
+	})
+	err = manifest.write()
+	if err != nil {
+		return err
+	}
+	for len(manifest.Users) > 0 {
+		err = client.DelUserByIDList(ctx, manifest.Users[0].ID, token)
+		if err != nil {
+			return err
+		}
+		manifest.Users = manifest.Users[1:]
+		err = manifest.write()
+		if err != nil {
+			return err
+		}
+	}
 	now := time.Now().UTC()
 	manifest.CleanedAt = &now
 	return manifest.write()
@@ -170,13 +219,16 @@ func Cleanup(ctx context.Context, client *common.Client, manifest *Manifest,
 // --------------------------------------------------
 // Manifest 记录一个可验证和可清理的测试用户批次。
 type Manifest struct {
-	Version   int        `json:"version"`
-	BatchID   string     `json:"batchID"`
-	BaseURL   string     `json:"baseURL"`
-	CreatedAt time.Time  `json:"createdAt"`
-	CleanedAt *time.Time `json:"cleanedAt,omitempty"`
-	Users     []User     `json:"users"`
-	path      string
+	ExpectedCount int        `json:"expectedCount,omitempty"`
+	Ready         bool       `json:"ready,omitempty"`
+	Cleaning      bool       `json:"cleaning,omitempty"`
+	Version       int        `json:"version"`
+	BatchID       string     `json:"batchID"`
+	BaseURL       string     `json:"baseURL"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	CleanedAt     *time.Time `json:"cleanedAt,omitempty"`
+	Users         []User     `json:"users"`
+	path          string
 }
 
 // validate 校验批次元数据及用户身份信息的完整性。
@@ -228,7 +280,11 @@ func (manifest *Manifest) write() error {
 		return err
 	}
 
-	return os.WriteFile(manifest.path, append(content, '\n'), 0o600)
+	err = os.WriteFile(manifest.path+".tmp", append(content, '\n'), 0o600)
+	if err != nil {
+		return err
+	}
+	return os.Rename(manifest.path+".tmp", manifest.path)
 }
 
 // vegetaTarget 描述一条 Vegeta JSON 格式的请求目标。

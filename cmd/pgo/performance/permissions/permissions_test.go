@@ -16,6 +16,7 @@ import (
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
+	performance "github.com/pancake-lee/pgo/cmd/pgo/performance/core"
 	"github.com/pancake-lee/pgo/internal/pkg/api"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -29,6 +30,9 @@ type fixtureAPI struct {
 	updates       int
 	stop          func()
 	failedCreates bool
+	failedDeletes bool
+	failedReads   bool
+	createdCount  int
 }
 
 // newFixtureAPI 创建不依赖真实服务或数据库的 HTTP 回归环境。
@@ -43,6 +47,7 @@ func newFixtureAPI(t *testing.T) (*fixtureAPI, *httptest.Server) {
 // addRecord 将一条模拟记录保存并返回主键。
 func (fixture *fixtureAPI) addRecord(kind string, record map[string]any) int32 {
 	fixture.nextID++
+	fixture.createdCount++
 	if fixture.recordMap[kind] == nil {
 		fixture.recordMap[kind] = make(map[int32]map[string]any)
 	}
@@ -158,12 +163,20 @@ func (fixture *fixtureAPI) serveHTTP(writer http.ResponseWriter, request *http.R
 		}
 		_ = json.NewEncoder(writer).Encode(map[string]any{envelope(kind): record})
 	case http.MethodDelete:
+		if fixture.failedDeletes {
+			writer.WriteHeader(503)
+			return
+		}
 		for _, text := range request.URL.Query()["IDList"] {
 			id, _ := strconv.Atoi(text)
 			delete(fixture.recordMap[kind], int32(id))
 		}
 		_, _ = io.WriteString(writer, "{}")
 	case http.MethodGet:
+		if fixture.failedReads {
+			writer.WriteHeader(503)
+			return
+		}
 		recordList := make([]map[string]any, 0)
 		for _, record := range fixture.recordMap[kind] {
 			recordList = append(recordList, record)
@@ -303,5 +316,176 @@ func TestPermissionCommandDefaults(t *testing.T) {
 	}
 	if command.Flag("keep-data").DefValue != "true" || len(command.Commands()) != 1 {
 		t.Fatal("missing persistent batch or cleanup command")
+	}
+}
+
+// useSmallScale 临时缩小固定规模，保持完整 HTTP 业务关系。
+func useSmallScale(t *testing.T) {
+	t.Helper()
+	previous := defaultScale
+	defaultScale = fixtureScale{1, 4, 2, 1, 1}
+	t.Cleanup(func() { defaultScale = previous })
+}
+
+// prepareSmallPermissionBatch 执行真实准备入口并为 HTTP 客户端安排收尾。
+func prepareSmallPermissionBatch(t *testing.T, baseURL, directory string,
+) *preparer {
+	t.Helper()
+	loader := &preparer{
+		config: performance.Config{APIURL: baseURL, RPS: 20, OutputDir: directory},
+		logger: klog.NewStdLogger(io.Discard), opt: defaultOptions(),
+	}
+	_, closeClient, err := loader.Prepare(t.Context(), directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if closeClient != nil {
+			_ = closeClient()
+		}
+	})
+	return loader
+}
+
+// TestPermissionDataReuseAndMissingRowsRebuild 验证复用同批次及缺失背景权限时重建。
+func TestPermissionDataReuseAndMissingRowsRebuild(t *testing.T) {
+	useSmallScale(t)
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	first := prepareSmallPermissionBatch(t, server.URL, directory)
+	batch := first.manifest.Batch
+	fixture.mu.Lock()
+	created := fixture.createdCount
+	fixture.mu.Unlock()
+	second := prepareSmallPermissionBatch(t, server.URL, directory)
+	fixture.mu.Lock()
+	if fixture.createdCount != created || second.manifest.Batch != batch {
+		t.Fatal("complete batch was not reused")
+	}
+	// 背景角色不在读组中，必须检查真实记录，不能只抽查返回权限。
+	id := second.manifest.ProjectList[0].PermissionIDList[3][1]
+	delete(fixture.recordMap["user-role-permission-assoc"], id)
+	unrelated := fixture.addRecord("project", map[string]any{"projName": "existing_project"})
+	fixture.mu.Unlock()
+	third := prepareSmallPermissionBatch(t, server.URL, directory)
+	if third.manifest.Batch == batch {
+		t.Fatal("missing background row did not trigger rebuilding")
+	}
+	fixture.mu.Lock()
+	if len(fixture.recordMap["project"]) != 2 || fixture.recordMap["project"][unrelated] == nil {
+		t.Fatal("old batch leaked or unrelated data deleted")
+	}
+	fixture.mu.Unlock()
+	err := third.CleanupData(t.Context(), directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.mu.Lock()
+	created = fixture.createdCount
+	fixture.mu.Unlock()
+	err = third.CleanupData(t.Context(), directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	if fixture.createdCount != created {
+		t.Fatal("repeated cleanup recreated an administrator")
+	}
+	for kind, recordMap := range fixture.recordMap {
+		if kind == "project" && len(recordMap) == 1 && recordMap[unrelated] != nil {
+			continue
+		}
+		if len(recordMap) != 0 {
+			t.Fatalf("remaining batch records: %s", kind)
+		}
+	}
+}
+
+// TestPermissionScaleUpdateRetriesFailedCleanup 验证规模更新失败不覆盖旧清单。
+func TestPermissionScaleUpdateRetriesFailedCleanup(t *testing.T) {
+	useSmallScale(t)
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	loader := prepareSmallPermissionBatch(t, server.URL, directory)
+	batch := loader.manifest.Batch
+	defaultScale.Actions++
+	fixture.mu.Lock()
+	fixture.failedDeletes = true
+	fixture.mu.Unlock()
+	_, _, err := loader.Prepare(t.Context(), directory)
+	if err == nil {
+		t.Fatal("cleanup failure must stop rebuilding")
+	}
+	retained, err := readManifest(filepath.Join(directory, "01-permissions.json"))
+	if err != nil || retained.Batch != batch || retained.Ready {
+		t.Fatalf("old cleanup state was not retained: %v", err)
+	}
+	fixture.mu.Lock()
+	fixture.failedDeletes = false
+	fixture.mu.Unlock()
+	_, _, err = loader.Prepare(t.Context(), directory)
+	if err != nil || loader.manifest.Batch == batch || loader.manifest.Scale.Actions != 3 {
+		t.Fatalf("failed to rebuild after retry: %v", err)
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	if len(fixture.recordMap["user-role-permission-assoc"]) != 12 {
+		t.Fatal("old permission records leaked")
+	}
+}
+
+// TestPermissionCheckFailureRetainsBatch 验证请求错误不能被误判为数据不足。
+func TestPermissionCheckFailureRetainsBatch(t *testing.T) {
+	useSmallScale(t)
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	loader := prepareSmallPermissionBatch(t, server.URL, directory)
+	batch := loader.manifest.Batch
+	fixture.mu.Lock()
+	created := fixture.createdCount
+	fixture.failedReads = true
+	fixture.mu.Unlock()
+	_, _, err := loader.Prepare(t.Context(), directory)
+	if err == nil {
+		t.Fatal("expected failed data check")
+	}
+	retained, err := readManifest(filepath.Join(directory, "01-permissions.json"))
+	if err != nil || retained.Batch != batch || !retained.Ready {
+		t.Fatal("read error replaced or cleaned the batch")
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	if fixture.createdCount != created || len(fixture.recordMap["user-role-permission-assoc"]) != 8 {
+		t.Fatal("read error changed fixture data")
+	}
+}
+
+// TestPermissionCleanupRecoversAdministrator 验证初始登录结果漏记仍可恢复完整清理。
+func TestPermissionCleanupRecoversAdministrator(t *testing.T) {
+	useSmallScale(t)
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	loader := prepareSmallPermissionBatch(t, server.URL, directory)
+	loader.manifest.Admin = User{}
+	loader.manifest.RecordIDMap["user"] = nil
+	loader.manifest.Ready = false
+	err := saveManifest(loader.manifestPath, loader.manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := Entrypoint.CleanupEntrypoint().NewCobraCommand()
+	command.SetOut(io.Discard)
+	command.SetArgs([]string{directory})
+	err = command.ExecuteContext(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	for kind, recordMap := range fixture.recordMap {
+		if len(recordMap) != 0 {
+			t.Fatalf("recovered cleanup left %s records", kind)
+		}
 	}
 }

@@ -3,7 +3,7 @@ package permissions
 import (
 	"context"
 	"errors"
-	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -54,25 +54,7 @@ func (*entrypoint) NewCobraCommand() *cobra.Command {
 	command.Flags().BoolVar(&opt.KeepData, "keep-data", true, "keep the batch for later comparisons; clean up explicitly")
 	command.Flags().IntVar(&opt.WriteRPS, "write-rps", 1, "administrator updates per second in the mixed window")
 	command.Flags().IntVar(&opt.Repeat, "repeat", 1, "number of pure/mixed/recovery cycles using the same batch")
-	command.AddCommand(&cobra.Command{
-		Use: "cleanup <manifest>", Short: "通过 HTTP 精确清理测试批次",
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			manifest, err := loadManifest(args[0])
-			if err != nil {
-				return err
-			}
-			client, err := refreshAdmin(cmd.Context(), manifest)
-			if err != nil {
-				return err
-			}
-			defer client.httpClient.CloseIdleConnections()
-			started := time.Now()
-			err = cleanupFixture(cmd.Context(), client, manifest, args[0])
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Cleanup completed=%t elapsed=%s\n", err == nil, time.Since(started))
-			return err
-		},
-	})
+
 	return command
 }
 
@@ -80,6 +62,12 @@ func (*entrypoint) NewCobraCommand() *cobra.Command {
 func (*entrypoint) RunInteractive() {
 	opt := defaultOptions()
 	newTool(&opt).RunInteractive()
+}
+
+// CleanupEntrypoint 提供与权限测试共享目录的独立清理入口。
+func (*entrypoint) CleanupEntrypoint() *performance.CleanupEntrypoint {
+	opt := defaultOptions()
+	return newTool(&opt).CleanupEntrypoint()
 }
 
 // preparer 保存批次准备和三个窗口共享的场景状态。
@@ -92,84 +80,167 @@ type preparer struct {
 	client       *apiClient
 }
 
-// Prepare 创建或重新登录现有批次，并生成两个读组的目标文件。
-func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
-) (string, func() error, error) {
-	if preparer.opt.WriteRPS < 1 || preparer.opt.Repeat < 1 || preparer.config.RPS < 2 {
-		return "", nil, errors.New("write-rps and repeat must be positive; total read rps must be at least 2")
+// dataPath 定位同目录清单，同时兼容显式清单和旧清理命令参数。
+func (preparer *preparer) dataPath(directory string) string {
+	if preparer.opt.ManifestPath != "" {
+		return preparer.opt.ManifestPath
+	}
+	if strings.HasSuffix(directory, ".json") {
+		return directory
+	}
+	return filepath.Join(directory, "01-permissions.json")
+}
+
+// CheckData 校验当前规模、清单完整性与服务记录，刷新令牌后复用。
+func (preparer *preparer) CheckData(ctx context.Context, directory string,
+) (performance.DataState, error) {
+	preparer.manifestPath = preparer.dataPath(directory)
+	manifest, err := readManifest(preparer.manifestPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return performance.DataMissing, nil
+	}
+	if err != nil {
+		return performance.DataMissing, err
+	}
+	preparer.manifest = manifest
+	if manifest.Cleaned {
+		return performance.DataMissing, nil
 	}
 	baseURL := preparer.config.APIURL
 	if !strings.Contains(baseURL, "://") {
 		baseURL = "http://" + baseURL
 	}
-	preparer.manifestPath = preparer.opt.ManifestPath
+	if strings.TrimRight(baseURL, "/") != strings.TrimRight(manifest.BaseURL, "/") ||
+		manifest.Scale != defaultScale || validateFixture(manifest) != nil {
+		return performance.DataNeedsRebuild, nil
+	}
+	err = preparer.refreshTokens(ctx)
+	if errors.Is(err, performance.ErrDataMismatch) {
+		return performance.DataNeedsRebuild, nil
+	}
+	if err != nil {
+		return performance.DataMissing, err
+	}
+	err = verifyRecordIDs(ctx, preparer.client, manifest)
+	if errors.Is(err, performance.ErrDataMismatch) {
+		return performance.DataNeedsRebuild, nil
+	}
+	if err != nil {
+		return performance.DataMissing, err
+	}
+	err = verifyFixture(ctx, preparer.client, manifest)
+	if errors.Is(err, performance.ErrDataMismatch) {
+		return performance.DataNeedsRebuild, nil
+	}
+	return performance.DataReusable, err
+}
+
+// CreateData 创建并验证权限批次，规模由场景自身维护。
+func (preparer *preparer) CreateData(ctx context.Context, directory string,
+) error {
+	if preparer.client != nil {
+		preparer.client.httpClient.CloseIdleConnections()
+	}
+	preparer.manifestPath = preparer.dataPath(directory)
+	baseURL := preparer.config.APIURL
+	if !strings.Contains(baseURL, "://") {
+		baseURL = "http://" + baseURL
+	}
+	preparer.info("preparing permission data", "projects", defaultScale.Projects,
+		"permissions", defaultScale.Projects*defaultScale.Roles*defaultScale.Actions,
+		"manifest", preparer.manifestPath)
 	var err error
-	if preparer.manifestPath == "" {
-		preparer.manifestPath = filepath.Join(outputDir, "01-permissions.json")
-		preparer.info("preparing permission data",
-			"projects", defaultScale.Projects,
-			"permissions", defaultScale.Projects*defaultScale.Roles*defaultScale.Actions,
-			"manifest", preparer.manifestPath)
-		preparer.manifest, err = prepareFixture(ctx, baseURL,
-			preparer.manifestPath, defaultScale, preparer.logger)
-	} else {
-		preparer.info("reusing permission data", "manifest", preparer.manifestPath)
-		preparer.manifest, err = loadManifest(preparer.manifestPath)
-		if err == nil && strings.TrimRight(baseURL, "/") != strings.TrimRight(preparer.manifest.BaseURL, "/") {
-			err = errors.New("manifest API URL differs from discovered API URL")
+	preparer.manifest, err = prepareFixture(ctx, baseURL,
+		preparer.manifestPath, defaultScale, preparer.logger)
+	if err != nil {
+		return err
+	}
+	preparer.client = newAPIClient(baseURL, preparer.manifest.Admin.Token)
+	return verifyFixture(ctx, preparer.client, preparer.manifest)
+}
+
+// CleanupData 从清单恢复批次并幂等删除，不依赖当前负载参数。
+func (preparer *preparer) CleanupData(ctx context.Context, directory string,
+) error {
+	path := preparer.dataPath(directory)
+	manifest, err := readManifest(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if manifest.Cleaned {
+		return nil
+	}
+	manifest.Ready = false
+	err = saveManifest(path, manifest)
+	if err != nil {
+		return err
+	}
+	// 清理时恢复同批次管理员，包括登录响应丢失或删除后未落盘的情况。
+	loginClient, err := common.NewClient(manifest.BaseURL)
+	if err != nil {
+		return err
+	}
+	name := "perm_" + manifest.Batch + "_admin"
+	identity, token, err := loginClient.Login(ctx, name)
+	if err != nil {
+		return err
+	}
+	manifest.Admin = User{ID: identity.ID, Name: name, Token: token}
+	client := newAPIClient(manifest.BaseURL, token)
+	defer client.httpClient.CloseIdleConnections()
+	return cleanupFixture(ctx, client, manifest, path)
+}
+
+// refreshTokens 为保留的管理员与测试用户重新登录并保存新令牌。
+func (preparer *preparer) refreshTokens(ctx context.Context) error {
+	if preparer.client != nil {
+		preparer.client.httpClient.CloseIdleConnections()
+	}
+	var err error
+	preparer.client, err = refreshAdmin(ctx, preparer.manifest)
+	if err != nil {
+		return err
+	}
+	preparer.info("refreshing test user tokens", "users", len(preparer.manifest.UserList))
+	loginClient, err := common.NewClient(preparer.manifest.BaseURL)
+	if err != nil {
+		return err
+	}
+	for index := range preparer.manifest.UserList {
+		user := &preparer.manifest.UserList[index]
+		identity, token, loginErr := loginClient.Login(ctx, user.Name)
+		if loginErr != nil {
+			return loginErr
 		}
+		if identity.ID != user.ID {
+			return performance.ErrDataMismatch
+		}
+		user.Token = token
+	}
+	return saveManifest(preparer.manifestPath, preparer.manifest)
+}
+
+// Prepare 由 core 复用或重建批次，并生成本次两个读组的目标文件。
+func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
+) (string, func() error, error) {
+	if preparer.opt.WriteRPS < 1 || preparer.opt.Repeat < 1 || preparer.config.RPS < 2 {
+		return "", nil, errors.New("write-rps and repeat must be positive; total read rps must be at least 2")
 	}
 	cleanup := func() error {
 		if preparer.client != nil {
 			defer preparer.client.httpClient.CloseIdleConnections()
 		}
-		if preparer.manifest == nil || preparer.opt.KeepData || preparer.opt.PrepareOnly {
+		if preparer.opt.KeepData || preparer.opt.PrepareOnly {
 			return nil
 		}
-		preparer.info("cleaning permission data", "manifest", preparer.manifestPath)
 		cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
 		defer cancel()
-		client, refreshErr := refreshAdmin(cleanupContext, preparer.manifest)
-		if refreshErr != nil {
-			return refreshErr
-		}
-		defer client.httpClient.CloseIdleConnections()
-		return cleanupFixture(cleanupContext, client, preparer.manifest, preparer.manifestPath)
+		return preparer.CleanupData(cleanupContext, outputDir)
 	}
-	if err != nil {
-		return "", cleanup, err
-	}
-	err = validateFixture(preparer.manifest)
-	if err != nil {
-		return "", cleanup, err
-	}
-	preparer.info("refreshing test user tokens",
-		"users", len(preparer.manifest.UserList))
-	preparer.client, err = refreshAdmin(ctx, preparer.manifest)
-	if err != nil {
-		return "", cleanup, err
-	}
-	loginClient, err := common.NewClient(baseURL)
-	if err != nil {
-		return "", cleanup, err
-	}
-	// 重新登录保证复用清单时没有过期令牌，登录不计入正式读负载。
-	for index := range preparer.manifest.UserList {
-		user := &preparer.manifest.UserList[index]
-		identity, token, loginErr := loginClient.Login(ctx, user.Name)
-		if loginErr != nil {
-			return "", cleanup, loginErr
-		}
-		if identity.ID != user.ID {
-			return "", cleanup, errors.New("manifest user identity changed")
-		}
-		user.Token = token
-	}
-	err = saveManifest(preparer.manifestPath, preparer.manifest)
-	if err == nil {
-		preparer.info("verifying permissions and project isolation")
-		err = verifyFixture(ctx, preparer.client, preparer.manifest)
-	}
+	err := performance.EnsureData(ctx, outputDir, preparer, preparer.logger)
 	if err != nil {
 		return "", cleanup, err
 	}
@@ -206,7 +277,7 @@ func refreshAdmin(ctx context.Context, manifest *Manifest) (*apiClient, error) {
 		return nil, err
 	}
 	if identity.ID != manifest.Admin.ID {
-		return nil, errors.New("administrator identity changed")
+		return nil, performance.ErrDataMismatch
 	}
 	manifest.Admin.Token = token
 	return newAPIClient(manifest.BaseURL, token), nil
