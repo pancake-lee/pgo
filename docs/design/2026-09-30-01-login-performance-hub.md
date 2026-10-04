@@ -28,7 +28,7 @@
 
 - [任务 40](../backlog.md#40-补齐应用指标仪表盘)：补齐应用数据面板，任务 45 移除未使用业务状态后现为 24 个，增加实例与操作筛选；自动校验已完成，待真实 Grafana 展示验收。
 
-- [观测数据与代码来源速查](../observability-data-map.md)：Grafana 指标、Pyroscope 持续 profile、pprof 限时诊断与代码接线，见 [任务 39](../backlog.md#39-观测数据与代码来源速查)。
+- [观测数据与代码来源速查](../observability.md)：Grafana 指标、Pyroscope 持续 profile、pprof 限时诊断与代码接线，见 [任务 39](../backlog.md#39-观测数据与代码来源速查)。
 
 - [v0.0.11 版本归档](../archive/v0.0.11.md)：本专题及同期任务的完整完成记录。
 

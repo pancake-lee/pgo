@@ -91,7 +91,7 @@ service Task {
 - [`docs/prd.md`](./docs/prd.md)：项目定位、范围与质量目标
 - [`docs/tech.md`](./docs/tech.md)：架构、生成链路与技术边界
 - [`docs/harness.md`](./docs/harness.md)：Harness 工程与文档入口
-- [`docs/observability-data-map.md`](./docs/observability-data-map.md)：Grafana、Pyroscope、pprof 数据与代码来源速查
+- [`docs/observability.md`](./docs/observability.md)：Grafana、Pyroscope、pprof 数据与代码来源速查
 - [`docs/backlog.md`](./docs/backlog.md)：活跃需求池与任务交接
 - [`docs/note.md`](./docs/note.md)：长期技术备忘与否决记录
 - [`docs/eval/user-login-baseline.md`](./docs/eval/user-login-baseline.md)：多用户注册与登录性能评估
