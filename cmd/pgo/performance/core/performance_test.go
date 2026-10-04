@@ -15,8 +15,10 @@ import (
 )
 
 type fakePreparer struct {
-	prepared bool
-	cleaned  bool
+	prepared     bool
+	cleaned      bool
+	prepareCount int
+	cleanupCount int
 }
 
 // fakePreparedLoader 验证场景编排复用准备与结果生命周期。
@@ -61,6 +63,7 @@ func TestRunnerUsesPreparedLoader(t *testing.T) {
 func (preparer *fakePreparer) Prepare(_ context.Context, outputDir string,
 ) (string, func() error, error) {
 	preparer.prepared = true
+	preparer.prepareCount++
 	targetPath := filepath.Join(outputDir, "targets.jsonl")
 	err := os.WriteFile(targetPath, []byte("target"), 0o600)
 	if err != nil {
@@ -68,6 +71,7 @@ func (preparer *fakePreparer) Prepare(_ context.Context, outputDir string,
 	}
 	return targetPath, func() error {
 		preparer.cleaned = true
+		preparer.cleanupCount++
 		return nil
 	}, nil
 }
@@ -123,7 +127,8 @@ func TestRunnerExecutesOnePreparedStage(t *testing.T) {
 			t.Errorf("artifact %s: %v", name, err)
 		}
 	}
-	if !strings.Contains(output.String(), "outputDir="+config.OutputDir) {
+	if !strings.Contains(output.String(), "file="+filepath.Join(config.OutputDir, vegetaReportFileName)) ||
+		strings.Contains(output.String(), vegetaResultsFileName) {
 		t.Fatalf("artifact log = %s", output.String())
 	}
 }
@@ -155,75 +160,91 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 		reportPath := filepath.Join(stageConfig.OutputDir, vegetaReportFileName)
 		return os.WriteFile(reportPath, []byte(report), 0o600)
 	}
-	options := AutomaticOptions{
-		RPSList:      []int{10, 25, 50},
-		SummaryTitle: "Test automatic load result",
-	}
-	err := RunAutomatic(t.Context(), runner, config, options, runStage)
+	rpsList := []int{10, 25, 50}
+	err := RunAutomatic(t.Context(), runner, config, rpsList, runStage)
 	if err == nil || !strings.Contains(err.Error(), "25 RPS") {
 		t.Fatalf("automatic error = %v", err)
 	}
 	if fmt.Sprint(visitedList) != "[10 25]" {
 		t.Fatalf("visited stages = %v", visitedList)
 	}
-	artifactList := []string{
-		autoPlanFileName,
-		autoResultFileName,
-		autoSummaryFileName,
-	}
-	for _, name := range artifactList {
-		_, err = os.Stat(filepath.Join(config.OutputDir, name))
-		if err != nil {
-			t.Errorf("automatic artifact %s: %v", name, err)
-		}
-	}
-	summaryPath := filepath.Join(config.OutputDir, autoSummaryFileName)
-	summary, err := os.ReadFile(summaryPath)
+	plan, err := os.ReadFile(filepath.Join(config.OutputDir, autoPlanFileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(summary), "`10, 25, 50`") {
-		t.Fatalf("summary does not describe the actual ladder: %s", summary)
+	if !strings.Contains(string(plan), "25") {
+		t.Fatal("missing ladder input")
+	}
+	for _, name := range []string{"40-auto-results.json", "41-auto-summary.md"} {
+		if _, err = os.Stat(filepath.Join(config.OutputDir, name)); !os.IsNotExist(err) {
+			t.Fatalf("unexpected cross-stage report %s", name)
+		}
 	}
 }
 
+// TestRunAutomaticStopsAfterUnsuccessfulResponses 验证单档错误停止后续阶梯。
 func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	runner := NewRunner(klog.NewStdLogger(io.Discard))
-	config := Config{
-		APIURL:    "http://127.0.0.1:20000",
-		RPS:       10,
-		Duration:  time.Minute,
-		OutputDir: t.TempDir(),
-	}
-	var visitedList []int
-	runStage := func(_ context.Context, stageConfig Config) error {
-		visitedList = append(visitedList, stageConfig.RPS)
-		err := os.MkdirAll(stageConfig.OutputDir, 0o700)
-		if err != nil {
-			return err
+	runner.checkVegeta = func(string) error { return nil }
+	runner.execContext = func(ctx context.Context, writer io.Writer, path string,
+		args ...string,
+	) (string, error) {
+		if args[0] == "report" && strings.Contains(args[len(args)-1], "rps-025") {
+			_, err := io.WriteString(writer, "Requests [total, rate, throughput] 1, 1.00, 1.00\nSuccess [ratio] 90.00%\n")
+			return "", err
 		}
-		success := "100.00"
-		if stageConfig.RPS == 25 {
-			success = "90.00"
-		}
-		report := fmt.Sprintf(
-			"Requests [total, rate, throughput] "+
-				"1, 1.00, 1.00\nSuccess [ratio] %s%%\n",
-			success,
-		)
-		reportPath := filepath.Join(stageConfig.OutputDir, vegetaReportFileName)
-		return os.WriteFile(reportPath, []byte(report), 0o600)
+		return fakeExecContext(ctx, writer, path, args...)
 	}
-	options := AutomaticOptions{
-		RPSList:      []int{10, 25, 50},
-		SummaryTitle: "Test automatic load result",
-	}
-	err := RunAutomatic(t.Context(), runner, config, options, runStage)
+	loader := &fakePreparedLoader{}
+	config := Config{APIURL: "http://localhost:8080", RPS: 10,
+		Duration: time.Second, OutputDir: t.TempDir()}
+	err := runner.RunAutomatic(t.Context(), config, loader, []int{10, 25, 50})
 	if err == nil || !strings.Contains(err.Error(), "success ratio 90.00%") {
 		t.Fatalf("automatic error = %v", err)
 	}
-	if fmt.Sprint(visitedList) != "[10 25]" {
-		t.Fatalf("visited stages = %v", visitedList)
+	if loader.prepareCount != 1 || loader.cleanupCount != 1 {
+		t.Fatal("automatic data lifecycle did not run once")
+	}
+	if _, err = os.Stat(filepath.Join(config.OutputDir, "rps-050")); !os.IsNotExist(err) {
+		t.Fatal("automatic load continued after unsuccessful responses")
+	}
+}
+
+// TestAutomaticPreparedLoaderReusesData 验证多窗口场景不需要根目录报告且各档复用目标。
+func TestAutomaticPreparedLoaderReusesData(t *testing.T) {
+	runner := NewRunner(klog.NewStdLogger(io.Discard))
+	runner.checkVegeta = func(string) error { return nil }
+	targetMap := make(map[string]bool)
+	runner.execContext = func(ctx context.Context, writer io.Writer, path string,
+		args ...string,
+	) (string, error) {
+		if args[0] == "attack" {
+			for _, arg := range args {
+				if strings.HasPrefix(arg, "-targets=") {
+					targetMap[arg] = true
+				}
+			}
+		}
+		return fakeExecContext(ctx, writer, path, args...)
+	}
+	loader := &fakePreparedLoader{}
+	config := Config{APIURL: "http://localhost:8080", RPS: 10,
+		Duration: time.Second, OutputDir: t.TempDir()}
+	err := runner.RunAutomatic(t.Context(), config, loader, []int{10, 25, 50})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loader.prepareCount != 1 || loader.cleanupCount != 1 || len(targetMap) != 1 {
+		t.Fatal("automatic stages did not reuse one prepared batch")
+	}
+	for _, rps := range []int{10, 25, 50} {
+		path := filepath.Join(config.OutputDir, fmt.Sprintf("rps-%03d", rps), vegetaReportFileName)
+		if _, err = os.Stat(path); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err = os.Stat(filepath.Join(config.OutputDir, vegetaReportFileName)); !os.IsNotExist(err) {
+		t.Fatal("unexpected root load report")
 	}
 }
 

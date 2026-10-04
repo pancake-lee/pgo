@@ -39,8 +39,6 @@ func newTool(opt *options) *performance.Entrypoint {
 	return performance.NewEntrypoint(performance.Scenario{
 		Name: "permissions", Short: "共享角色权限 HTTP 读写混合测试",
 		DefaultRPS: "20", DefaultDuration: "120s",
-		SingleRateOnly:        true,
-		AutomaticSummaryTitle: "Permissions automatic load result",
 		NewPreparer: func(config performance.Config, logger klog.Logger) performance.Preparer {
 			return &preparer{config: config, logger: logger, opt: *opt}
 		},

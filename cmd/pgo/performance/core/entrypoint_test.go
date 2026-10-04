@@ -128,9 +128,8 @@ func TestParseDuration(t *testing.T) {
 
 func TestSharedCommandParameters(t *testing.T) {
 	entrypoint := NewEntrypoint(Scenario{
-		Name:                  "sample",
-		Short:                 "Run sample load",
-		AutomaticSummaryTitle: "Sample result",
+		Name:  "sample",
+		Short: "Run sample load",
 		NewPreparer: func(Config, klog.Logger) Preparer {
 			return &fakePreparer{}
 		},

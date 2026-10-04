@@ -68,6 +68,27 @@ func NewRunner(logger klog.Logger) *Runner {
 
 // Run 执行一次场景准备、预热、正式负载、报告生成与清理。
 func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
+) error {
+	return runner.runPrepared(ctx, config, preparer, func(targetPath string) error {
+		return runner.loadPrepared(ctx, config, preparer, targetPath)
+	})
+}
+
+// RunAutomatic 准备一次数据，所有档位复用目标，整轮结束后统一清理。
+func (runner *Runner) RunAutomatic(ctx context.Context, config Config,
+	preparer Preparer, rpsList []int,
+) error {
+	return runner.runPrepared(ctx, config, preparer, func(targetPath string) error {
+		return RunAutomatic(ctx, runner, config, rpsList,
+			func(ctx context.Context, stageConfig Config) error {
+				return runner.loadPrepared(ctx, stageConfig, preparer, targetPath)
+			})
+	})
+}
+
+// runPrepared 管理数据准备与收尾，实际负载由调用方编排。
+func (runner *Runner) runPrepared(ctx context.Context, config Config,
+	preparer Preparer, load func(string) error,
 ) (runErr error) {
 	err := config.validate()
 	if err != nil {
@@ -99,7 +120,21 @@ func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
 	if err != nil {
 		return err
 	}
+	return load(targetPath)
+}
 
+// loadPrepared 将本档参数和报告保存在独立目录，复用场景数据。
+func (runner *Runner) loadPrepared(ctx context.Context, config Config,
+	preparer Preparer, targetPath string,
+) error {
+	err := os.MkdirAll(config.OutputDir, 0o700)
+	if err != nil {
+		return err
+	}
+	err = writeJSON(filepath.Join(config.OutputDir, runFileName), config)
+	if err != nil {
+		return err
+	}
 	loader, custom := preparer.(PreparedLoader)
 	if custom {
 		return loader.RunLoad(ctx, runner, config, targetPath)
@@ -169,7 +204,7 @@ func (runner *Runner) runLoad(
 	if warmupErr != nil {
 		return fmt.Errorf("Vegeta warmup: %w", warmupErr)
 	}
-	return runner.runMeasured(ctx, config, targetPath)
+	return runner.RunMeasured(ctx, config, targetPath)
 }
 
 // runMeasured 执行正式负载并保存报告。
@@ -209,7 +244,6 @@ func (runner *Runner) runMeasured(ctx context.Context, config Config,
 		return fmt.Errorf("measured load: %w", err)
 	}
 
-	runner.info("generating Vegeta report", "step", "6/7")
 	reportPath := filepath.Join(config.OutputDir, vegetaReportFileName)
 	reportFile, err := os.OpenFile(
 		reportPath,
@@ -251,24 +285,7 @@ func (runner *Runner) runMeasured(ctx context.Context, config Config,
 }
 
 func (runner *Runner) logArtifacts(outputDir string) {
-	runner.info("load artifacts", "outputDir", outputDir)
-	artifactList := []struct {
-		path        string
-		description string
-	}{
-		{runFileName, "input parameters for reproducing this run"},
-		{vegetaResultsFileName, "raw Vegeta request results"},
-		{vegetaReportFileName, "human-readable load report"},
-	}
-	for _, item := range artifactList {
-		runner.info(
-			"load artifact",
-			"file",
-			item.path,
-			"description",
-			item.description,
-		)
-	}
+	runner.info("load report", "file", filepath.Join(outputDir, vegetaReportFileName))
 }
 
 func (runner *Runner) runAttack(

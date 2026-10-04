@@ -32,13 +32,11 @@ var autoRPSList = []int{200, 400, 600, 800, 1000}
 
 // Scenario defines the behavior supplied by one performance scenario.
 type Scenario struct {
-	Name                  string
-	Short                 string
-	AutomaticSummaryTitle string
-	NewPreparer           func(Config, klog.Logger) Preparer
-	DefaultRPS            string
-	DefaultDuration       string
-	SingleRateOnly        bool
+	Name            string
+	Short           string
+	NewPreparer     func(Config, klog.Logger) Preparer
+	DefaultRPS      string
+	DefaultDuration string
 }
 
 // Entrypoint exposes one scenario through Cobra and the interactive menu.
@@ -169,9 +167,6 @@ func (entrypoint *Entrypoint) run(
 	if err != nil {
 		return err
 	}
-	if automatic && entrypoint.scenario.SingleRateOnly {
-		return fmt.Errorf("%s uses separate load windows; choose a numeric --rps", entrypoint.scenario.Name)
-	}
 	config, err := buildLoadConfig(
 		ctx,
 		portalURL,
@@ -186,19 +181,11 @@ func (entrypoint *Entrypoint) run(
 	}
 
 	runner := NewRunner(logger)
-	runStage := func(ctx context.Context, stageConfig Config) error {
-		preparer := entrypoint.scenario.NewPreparer(stageConfig, logger)
-		return runner.Run(ctx, stageConfig, preparer)
-	}
+	preparer := entrypoint.scenario.NewPreparer(config, logger)
 	if !automatic {
-		return runStage(ctx, config)
+		return runner.Run(ctx, config, preparer)
 	}
-
-	options := AutomaticOptions{
-		RPSList:      rpsList,
-		SummaryTitle: entrypoint.scenario.AutomaticSummaryTitle,
-	}
-	return RunAutomatic(ctx, runner, config, options, runStage)
+	return runner.RunAutomatic(ctx, config, preparer, rpsList)
 }
 
 func buildLoadConfig(

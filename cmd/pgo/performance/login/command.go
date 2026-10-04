@@ -18,9 +18,8 @@ const (
 
 // Entrypoint exposes login load testing without knowing its menu placement.
 var Entrypoint = performance.NewEntrypoint(performance.Scenario{
-	Name:                  "login",
-	Short:                 "Run the user login load-test workflow",
-	AutomaticSummaryTitle: "Login automatic load result",
+	Name:  "login",
+	Short: "Run the user login load-test workflow",
 	NewPreparer: func(config performance.Config, logger klog.Logger,
 	) performance.Preparer {
 		return newPreparer(config, logger)

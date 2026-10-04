@@ -30,19 +30,15 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 ## 3. 自动升压模式
 
-省略 `--rps` 后依次运行内置的 `10、25、50、100、200、500 RPS`，每档共用同一 `--duration`：
+省略 `--rps` 后依次运行内置的 `200、400、600、800、1000 RPS`，每档共用同一 `--duration`：
 
 ```shell
 ./bin/pgo performance login http://127.0.0.1:20080
 ```
 
-每次运行在 `.local/performance/login/` 下创建独立目录，各档写入 `rps-010/` 至 `rps-500/`。某档执行失败或出现非成功响应时停止后续升压，保留已有负载产物并完成用户清理。
+每次运行在 `.local/performance/login/` 下创建独立目录，整轮只准备一次用户和 targets，各档报告写入 `rps-200/` 至 `rps-1000/`。某档执行失败或出现非成功响应时停止后续升压，保留已有负载产物并完成用户清理。
 
-自动模式根目录包含：
-
-- `00-auto-run.json`：固定阶梯和运行模式。
-- `40-auto-results.json`：逐档请求数、吞吐、成功率、P50、P95、P99 与错误。
-- `41-auto-summary.md`：同一组负载指标的可读跨档汇总。
+自动模式根目录保存 `00-auto-run.json` 固定阶梯输入、用户清单及 targets。各档只保存自身负载报告，不生成跨档汇总，效果对比在 Grafana 与 Pyroscope 中观察。
 
 ## 4. 单档输出文件
 
