@@ -22,10 +22,10 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 ```shell
 ./bin/pgo performance login http://127.0.0.1:20080 \
-  --rps 50 --duration 60s
+  --output-dir .local/performance/login/comparison --rps 50 --duration 60s
 ```
 
-命令依次完成测试用户准备与验证、Vegeta targets 生成、预热、正式负载、负载报告和用户清理。前面任一步骤失败时仍尝试精确清理已创建用户。
+命令依次完成测试用户准备与验证、Vegeta targets 生成、预热、正式负载和负载报告，默认保留用户。指定同一 `--output-dir` 会自动复用完整的 100 人批次；规模不符、准备或清理未完成、实际用户缺失时，先精确清理旧批次再重建。HTTP 检查失败时停止，不自动删除。菜单中的登录性能测试和登录数据清理共享输出目录缓存。
 `--duration` 使用 Go 时长格式并控制每档正式负载，默认为 `60s`；预热时长由性能框架固定管理。
 
 ## 3. 自动升压模式
@@ -36,7 +36,7 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 ./bin/pgo performance login http://127.0.0.1:20080
 ```
 
-每次运行在 `.local/performance/login/` 下创建独立目录，整轮只准备一次用户和 targets，各档报告写入 `rps-200/` 至 `rps-1000/`。某档执行失败或出现非成功响应时停止后续升压，保留已有负载产物并完成用户清理。
+CLI 省略 `--output-dir` 时在 `.local/performance/login/` 下创建独立目录，整轮只准备一次用户和 targets，各档报告写入 `rps-200/` 至 `rps-1000/`。某档执行失败或出现非成功响应时停止后续升压，保留已有负载产物与测试用户。
 
 自动模式根目录保存 `00-auto-run.json` 固定阶梯输入、用户清单及 targets。各档只保存自身负载报告，不生成跨档汇总，效果对比在 Grafana 与 Pyroscope 中观察。
 
@@ -50,7 +50,17 @@ go install github.com/tsenart/vegeta/v12@v12.13.0
 
 服务端 HTTP、数据库、Go runtime、CPU、内存、日志和 profile 直接在 Grafana 与 Pyroscope 中按压测时间范围查看，不下载到本地结果目录。
 
-## 5. 指标阅读边界
+## 5. 独立清理
+
+```shell
+./bin/pgo performance login-cleanup .local/performance/login/comparison
+# 同样可用场景子命令
+./bin/pgo performance login cleanup .local/performance/login/comparison
+```
+
+清理仅需要测试输出目录，从清单获取服务地址并重新登录刷新令牌；按批次名称恢复未写入清单的用户，逐条删除并保存进度。失败后可重复执行，清理完成后再执行不创建用户。清理不要求 Vegeta 或 portal 可用，批次 HTTP 服务仍需可访问。
+
+## 6. 指标阅读边界
 
 performance 只记录负载发起方直接测得的结果：
 
@@ -61,7 +71,7 @@ performance 只记录负载发起方直接测得的结果：
 
 这些结果描述负载本身，不代替服务端指标或 profile。需要定位服务内部瓶颈时，使用 Grafana 和 Pyroscope 查看同一时间范围。
 
-## 6. 实验记录
+## 7. 实验记录
 
 ### 环境
 
