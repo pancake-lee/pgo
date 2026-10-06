@@ -397,7 +397,7 @@ func TestSamplingExpiryAndLimits(t *testing.T) {
 	t.Cleanup(controller.stop)
 	for _, path := range []string{
 		"/debug/pprof/sampling", "/debug/pprof/sampling?seconds=0",
-		"/debug/pprof/sampling?seconds=86401",
+		"/debug/pprof/sampling?seconds=-1",
 	} {
 		response := httptest.NewRecorder()
 		controller.samplingHandler(response, httptest.NewRequest(http.MethodPost, path, nil))
@@ -445,6 +445,17 @@ func TestSamplingExpiryAndLimits(t *testing.T) {
 	if runtime.SetMutexProfileFraction(-1) != 0 {
 		t.Fatal("expired sampling still active")
 	}
+	response = httptest.NewRecorder()
+	controller.samplingHandler(response, httptest.NewRequest(http.MethodPost,
+		"/debug/pprof/sampling?seconds=9223372036854775807", nil))
+	var session struct {
+		Seconds uint64 `json:"seconds"`
+	}
+	err = json.Unmarshal(response.Body.Bytes(), &session)
+	if response.Code != http.StatusOK || err != nil || session.Seconds != 86400 {
+		t.Fatalf("sampling was not capped: %d %s", response.Code, response.Body.String())
+	}
+	controller.stop()
 	response = httptest.NewRecorder()
 	controller.samplingHandler(response, httptest.NewRequest(http.MethodPost,
 		"/debug/pprof/sampling?seconds=30", nil))

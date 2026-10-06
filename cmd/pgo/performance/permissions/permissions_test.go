@@ -27,16 +27,17 @@ import (
 
 // fixtureAPI 模拟现有 HTTP 契约与关系，验证批次、权限和清理行为。
 type fixtureAPI struct {
-	mu               sync.Mutex
-	nextID           int32
-	recordMap        map[string]map[int32]map[string]any
-	updates          int
-	samplingRequests []string
-	stop             func()
-	failedCreates    bool
-	failedDeletes    bool
-	failedReads      bool
-	createdCount     int
+	mu                  sync.Mutex
+	nextID              int32
+	recordMap           map[string]map[int32]map[string]any
+	updates             int
+	samplingRequests    []string
+	samplingUpdateCount int
+	stop                func()
+	failedCreates       bool
+	failedDeletes       bool
+	failedReads         bool
+	createdCount        int
 }
 
 // newFixtureAPI 创建不依赖真实服务或数据库的 HTTP 回归环境。
@@ -74,7 +75,8 @@ func (fixture *fixtureAPI) serveHTTP(writer http.ResponseWriter, request *http.R
 	if request.URL.Path == "/debug/pprof/sampling" {
 		fixture.samplingRequests = append(fixture.samplingRequests, request.Method)
 		if request.Method == http.MethodPost {
-			_, _ = io.WriteString(writer, `{"id":1}`)
+			fixture.samplingUpdateCount = fixture.updates
+			_, _ = io.WriteString(writer, `{"id":1,"seconds":1}`)
 		} else {
 			writer.WriteHeader(http.StatusNoContent)
 		}
@@ -655,7 +657,11 @@ esac
 	fixture.mu.Lock()
 	updates := fixture.updates
 	samplingRequests := strings.Join(fixture.samplingRequests, ",")
+	samplingUpdateCount := fixture.samplingUpdateCount
 	fixture.mu.Unlock()
+	if samplingUpdateCount == 0 {
+		t.Fatal("sampling started before warmup writes")
+	}
 	if samplingRequests != "POST,DELETE" {
 		t.Fatalf("sampling lifecycle = %s", samplingRequests)
 	}
@@ -678,10 +684,10 @@ func TestSamplingClientCancellation(t *testing.T) {
 			t.Errorf("path: %s", r.URL.Path)
 		}
 		if r.Method == http.MethodPost {
-			if r.URL.Query().Get("seconds") == "" {
-				t.Error("missing expiry")
+			if r.URL.Query().Get("seconds") != "1" {
+				t.Error("sampling duration differs from measured duration")
 			}
-			_, _ = io.WriteString(w, `{"id":42}`)
+			_, _ = io.WriteString(w, `{"id":42,"seconds":1}`)
 			return
 		}
 		if r.Method != http.MethodDelete || r.URL.Query().Get("id") != "42" {
@@ -692,28 +698,31 @@ func TestSamplingClientCancellation(t *testing.T) {
 	}))
 	defer server.Close()
 	ctx, cancel := context.WithCancel(t.Context())
-	stop, err := startSampling(ctx, performance.Config{DiagnosticsURL: server.URL + "/debug/pprof/heap", Duration: time.Second})
+	stop, duration, err := startSampling(ctx, performance.Config{DiagnosticsURL: server.URL + "/debug/pprof/heap", Duration: time.Second})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if duration != time.Second {
+		t.Fatalf("actual duration = %s", duration)
 	}
 	cancel()
 	if err = stop(); err != nil || !deleted.Load() {
 		t.Fatalf("cancel cleanup: %v", err)
 	}
-	if _, err = startSampling(t.Context(), performance.Config{}); err == nil {
+	if _, _, err = startSampling(t.Context(), performance.Config{}); err == nil {
 		t.Fatal("missing diagnostics accepted")
 	}
 	failure := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer failure.Close()
-	if _, err = startSampling(t.Context(), performance.Config{DiagnosticsURL: failure.URL}); err == nil {
+	if _, _, err = startSampling(t.Context(), performance.Config{DiagnosticsURL: failure.URL, Duration: time.Second}); err == nil {
 		t.Fatal("sampling failure ignored")
 	}
 }
 
-// TestLoadFailureClosesSampling 验证负载启动失败关闭采样，纯准备不请求采样。
-func TestLoadFailureClosesSampling(t *testing.T) {
+// TestLoadPreparationDoesNotSample 验证准备阶段失败或仅准备数据时不请求采样。
+func TestLoadPreparationDoesNotSample(t *testing.T) {
 	var requestList []string
 	var requestMu sync.Mutex
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -721,7 +730,7 @@ func TestLoadFailureClosesSampling(t *testing.T) {
 		defer requestMu.Unlock()
 		requestList = append(requestList, r.Method)
 		if r.Method == http.MethodPost {
-			_, _ = io.WriteString(w, `{"id":42}`)
+			_, _ = io.WriteString(w, `{"id":42,"seconds":1}`)
 		} else {
 			w.WriteHeader(http.StatusNoContent)
 		}
@@ -737,12 +746,49 @@ func TestLoadFailureClosesSampling(t *testing.T) {
 	err = loader.RunLoad(t.Context(), nil, config, "")
 	requestMu.Lock()
 	defer requestMu.Unlock()
-	if err == nil || strings.Join(requestList, ",") != "POST,DELETE" {
+	if err == nil || len(requestList) != 0 {
 		t.Fatalf("startup failure cleanup: requests=%v, error=%v", requestList, err)
 	}
 	loader.opt.PrepareOnly = true
 	err = loader.RunLoad(t.Context(), nil, config, "")
-	if err != nil || len(requestList) != 2 {
+	if err != nil || len(requestList) != 0 {
 		t.Fatal("data preparation touched sampling")
+	}
+}
+
+// TestSamplingDuration 验证秒级取整及使用后端截断后的实际采样时间。
+func TestSamplingDuration(t *testing.T) {
+	for _, testCase := range []struct {
+		name      string
+		measured  time.Duration
+		requested string
+		actual    int
+	}{
+		{"fractional", 1500 * time.Millisecond, "2", 2},
+		{"capped", 48 * time.Hour, "172800", 86400},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodPost {
+					if r.URL.Query().Get("seconds") != testCase.requested {
+						t.Errorf("requested seconds = %s", r.URL.Query().Get("seconds"))
+					}
+					_, _ = fmt.Fprintf(w, `{"id":1,"seconds":%d}`, testCase.actual)
+				} else {
+					w.WriteHeader(http.StatusNoContent)
+				}
+			}))
+			defer server.Close()
+			stop, duration, err := startSampling(t.Context(), performance.Config{DiagnosticsURL: server.URL, Duration: testCase.measured})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if duration != time.Duration(testCase.actual)*time.Second {
+				t.Fatalf("actual duration = %s", duration)
+			}
+			if err = stop(); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

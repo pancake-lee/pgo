@@ -224,11 +224,13 @@ func (controller *runtimeProfileController) samplingHandler(
 	defer controller.mu.Unlock()
 	switch request.Method {
 	case stdhttp.MethodPost:
-		duration, err := parseLimitedDuration(request, maxSamplingDuration)
-		if err != nil {
-			stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+		seconds, err := strconv.ParseInt(request.URL.Query().Get("seconds"), 10, 64)
+		if err != nil || seconds <= 0 {
+			stdhttp.Error(writer, "seconds must be a positive integer", stdhttp.StatusBadRequest)
 			return
 		}
+		seconds = min(seconds, int64(maxSamplingDuration/time.Second))
+		duration := time.Duration(seconds) * time.Second
 		if controller.samplingID != 0 || controller.activeProfile != "" {
 			stdhttp.Error(writer, "sampling already active", stdhttp.StatusConflict)
 			return
@@ -250,7 +252,7 @@ func (controller *runtimeProfileController) samplingHandler(
 			controller.closeSamplingLocked(id)
 		})
 		writer.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(writer).Encode(map[string]uint64{"id": id})
+		_ = json.NewEncoder(writer).Encode(map[string]uint64{"id": id, "seconds": uint64(seconds)})
 	case stdhttp.MethodDelete:
 		id, err := strconv.ParseUint(request.URL.Query().Get("id"), 10, 64)
 		if err != nil || id == 0 || id > controller.samplingGeneration {
