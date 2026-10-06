@@ -36,10 +36,11 @@ const (
 
 // Config 保存所有性能场景共用的单档负载配置。
 type Config struct {
-	APIURL    string        `json:"apiURL"`
-	RPS       int           `json:"rps"`
-	Duration  time.Duration `json:"duration"`
-	OutputDir string        `json:"outputDir"`
+	APIURL         string        `json:"apiURL"`
+	DiagnosticsURL string        `json:"diagnosticsURL,omitempty"`
+	RPS            int           `json:"rps"`
+	Duration       time.Duration `json:"duration"`
+	OutputDir      string        `json:"outputDir"`
 }
 
 // Preparer 定义单档负载执行前的场景准备契约。

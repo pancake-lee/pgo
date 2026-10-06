@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -26,15 +27,16 @@ import (
 
 // fixtureAPI 模拟现有 HTTP 契约与关系，验证批次、权限和清理行为。
 type fixtureAPI struct {
-	mu            sync.Mutex
-	nextID        int32
-	recordMap     map[string]map[int32]map[string]any
-	updates       int
-	stop          func()
-	failedCreates bool
-	failedDeletes bool
-	failedReads   bool
-	createdCount  int
+	mu               sync.Mutex
+	nextID           int32
+	recordMap        map[string]map[int32]map[string]any
+	updates          int
+	samplingRequests []string
+	stop             func()
+	failedCreates    bool
+	failedDeletes    bool
+	failedReads      bool
+	createdCount     int
 }
 
 // newFixtureAPI 创建不依赖真实服务或数据库的 HTTP 回归环境。
@@ -69,6 +71,15 @@ func (fixture *fixtureAPI) serveHTTP(writer http.ResponseWriter, request *http.R
 	fixture.mu.Lock()
 	defer fixture.mu.Unlock()
 	writer.Header().Set("Content-Type", "application/json")
+	if request.URL.Path == "/debug/pprof/sampling" {
+		fixture.samplingRequests = append(fixture.samplingRequests, request.Method)
+		if request.Method == http.MethodPost {
+			_, _ = io.WriteString(writer, `{"id":1}`)
+		} else {
+			writer.WriteHeader(http.StatusNoContent)
+		}
+		return
+	}
 	kind := strings.TrimPrefix(request.URL.Path, "/")
 	if kind == "user/token" {
 		var login struct{ UserName string }
@@ -607,7 +618,8 @@ esac
 		client: client, logger: logger, opt: opt,
 	}
 	config := performance.Config{
-		APIURL: server.URL, RPS: 20, Duration: 50 * time.Millisecond,
+		APIURL: server.URL, DiagnosticsURL: server.URL,
+		RPS: 20, Duration: 50 * time.Millisecond,
 		OutputDir: directory,
 	}
 	err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
@@ -642,7 +654,11 @@ esac
 	}
 	fixture.mu.Lock()
 	updates := fixture.updates
+	samplingRequests := strings.Join(fixture.samplingRequests, ",")
 	fixture.mu.Unlock()
+	if samplingRequests != "POST,DELETE" {
+		t.Fatalf("sampling lifecycle = %s", samplingRequests)
+	}
 	if updates == 0 {
 		t.Fatal("read/write load did not modify permissions")
 	}
@@ -651,5 +667,82 @@ esac
 		if !os.IsNotExist(err) {
 			t.Fatalf("unexpected report directory %s: %v", name, err)
 		}
+	}
+}
+
+// TestSamplingClientCancellation 验证取消后仍关闭本档会话以及开启错误不被忽略。
+func TestSamplingClientCancellation(t *testing.T) {
+	var deleted atomic.Bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/debug/pprof/sampling" {
+			t.Errorf("path: %s", r.URL.Path)
+		}
+		if r.Method == http.MethodPost {
+			if r.URL.Query().Get("seconds") == "" {
+				t.Error("missing expiry")
+			}
+			_, _ = io.WriteString(w, `{"id":42}`)
+			return
+		}
+		if r.Method != http.MethodDelete || r.URL.Query().Get("id") != "42" {
+			t.Error("wrong sampling owner")
+		}
+		deleted.Store(true)
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	ctx, cancel := context.WithCancel(t.Context())
+	stop, err := startSampling(ctx, performance.Config{DiagnosticsURL: server.URL + "/debug/pprof/heap", Duration: time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cancel()
+	if err = stop(); err != nil || !deleted.Load() {
+		t.Fatalf("cancel cleanup: %v", err)
+	}
+	if _, err = startSampling(t.Context(), performance.Config{}); err == nil {
+		t.Fatal("missing diagnostics accepted")
+	}
+	failure := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer failure.Close()
+	if _, err = startSampling(t.Context(), performance.Config{DiagnosticsURL: failure.URL}); err == nil {
+		t.Fatal("sampling failure ignored")
+	}
+}
+
+// TestLoadFailureClosesSampling 验证负载启动失败关闭采样，纯准备不请求采样。
+func TestLoadFailureClosesSampling(t *testing.T) {
+	var requestList []string
+	var requestMu sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestMu.Lock()
+		defer requestMu.Unlock()
+		requestList = append(requestList, r.Method)
+		if r.Method == http.MethodPost {
+			_, _ = io.WriteString(w, `{"id":42}`)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+		}
+	}))
+	defer server.Close()
+	path := filepath.Join(t.TempDir(), "not-a-directory")
+	err := os.WriteFile(path, []byte("existing"), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loader := &preparer{opt: defaultOptions(), logger: klog.NewStdLogger(io.Discard)}
+	config := performance.Config{DiagnosticsURL: server.URL, OutputDir: path}
+	err = loader.RunLoad(t.Context(), nil, config, "")
+	requestMu.Lock()
+	defer requestMu.Unlock()
+	if err == nil || strings.Join(requestList, ",") != "POST,DELETE" {
+		t.Fatalf("startup failure cleanup: requests=%v, error=%v", requestList, err)
+	}
+	loader.opt.PrepareOnly = true
+	err = loader.RunLoad(t.Context(), nil, config, "")
+	if err != nil || len(requestList) != 2 {
+		t.Fatal("data preparation touched sampling")
 	}
 }

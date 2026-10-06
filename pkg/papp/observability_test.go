@@ -3,10 +3,16 @@ package papp
 import (
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -175,9 +181,9 @@ func TestDiagnosticsRuntimeProfile(t *testing.T) {
 				t.Fatal("runtime profile state was not cleared")
 			}
 			response = httptest.NewRecorder()
-			server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/"+profileType, nil))
-			if response.Code != http.StatusNotFound {
-				t.Fatalf("removed route status = %d", response.Code)
+			server.handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/debug/pprof/"+profileType+"?seconds=1", nil))
+			if response.Code != http.StatusOK {
+				t.Fatalf("standard route status = %d", response.Code)
 			}
 		})
 	}
@@ -275,4 +281,175 @@ func containsMetric(body, metric string) bool {
 		}
 	}
 	return false
+}
+
+// TestSamplingSession 验证开关、所有权、手动采集冲突和关闭后的抓取。
+func TestSamplingSession(t *testing.T) {
+	controller, err := newRuntimeProfileController(diagnosticsConfig{
+		BlockProfileRate: 1, MutexProfileFraction: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(controller.stop)
+	mux := http.NewServeMux()
+	controller.registerRoutes(mux)
+	call := func(method, path string) *httptest.ResponseRecorder {
+		response := httptest.NewRecorder()
+		mux.ServeHTTP(response, httptest.NewRequest(method, path, nil))
+		return response
+	}
+	for _, path := range []string{
+		"/debug/pprof/block?seconds=1", "/debug/pprof/mutex?seconds=1",
+		"/debug/pprof/goroutine",
+	} {
+		response := call(http.MethodGet, path)
+		if response.Code != http.StatusOK {
+			t.Fatalf("idle %s: %d", path, response.Code)
+		}
+		assertReadableProfile(t, response.Body.Bytes())
+	}
+	response := call(http.MethodPost, "/debug/pprof/sampling?seconds=30")
+	var session struct {
+		ID uint64 `json:"id"`
+	}
+	err = json.Unmarshal(response.Body.Bytes(), &session)
+	if response.Code != http.StatusOK || err != nil || session.ID == 0 {
+		t.Fatalf("start sampling: %d %s", response.Code, response.Body.String())
+	}
+	for _, path := range []string{
+		"/debug/pprof/sampling?seconds=30",
+		"/debug/pprof/runtime?seconds=1&profile=mutex",
+	} {
+		if response = call(http.MethodPost, path); response.Code != http.StatusConflict {
+			t.Fatalf("conflict: %d %s", response.Code, response.Body.String())
+		}
+	}
+	// 采集区间内制造一次可识别的 channel 等待。
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		time.Sleep(100 * time.Millisecond)
+		blockForProfile()
+	}()
+	response = call(http.MethodGet, "/debug/pprof/block?seconds=1")
+	<-done
+	if response.Code != http.StatusOK {
+		t.Fatal(response.Body.String())
+	}
+	output := assertReadableProfile(t, response.Body.Bytes())
+	if !strings.Contains(output, "blockForProfile") {
+		t.Fatalf("blocking sample missing: %s", output)
+	}
+	path := "/debug/pprof/sampling?id=" + strconv.FormatUint(session.ID, 10)
+	if response = call(http.MethodDelete, path); response.Code != http.StatusNoContent {
+		t.Fatalf("stop sampling: %d", response.Code)
+	}
+	if runtime.SetMutexProfileFraction(-1) != 0 {
+		t.Fatal("mutex sampling still active")
+	}
+	response = call(http.MethodGet, "/debug/pprof/block?seconds=1")
+	output = assertReadableProfile(t, response.Body.Bytes())
+	if strings.Contains(output, "blockForProfile") {
+		t.Fatal("historical blocking sample was replayed")
+	}
+	response = call(http.MethodPost, "/debug/pprof/sampling?seconds=30")
+	if response.Code != http.StatusOK {
+		t.Fatal(response.Body.String())
+	}
+	if response = call(http.MethodDelete, path); response.Code != http.StatusConflict {
+		t.Fatalf("old session closed new sampling: %d", response.Code)
+	}
+}
+
+// blockForProfile 产生一次可在 profile 中识别的等待。
+func blockForProfile() {
+	ready := make(chan struct{})
+	time.AfterFunc(30*time.Millisecond, func() { close(ready) })
+	<-ready
+}
+
+// assertReadableProfile 使用既有 Go CLI 验证 profile 格式并返回调用栈。
+func assertReadableProfile(t *testing.T, content []byte) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "profile.pprof")
+	err := os.WriteFile(path, content, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "go", "tool", "pprof", "-top", "-nodecount=100", path).CombinedOutput()
+	if err != nil {
+		t.Fatalf("pprof parse: %v %s", err, output)
+	}
+	return string(output)
+}
+
+// TestSamplingExpiryAndLimits 验证会话自动到期、停止和错误输入。
+func TestSamplingExpiryAndLimits(t *testing.T) {
+	controller, err := newRuntimeProfileController(diagnosticsConfig{
+		BlockProfileRate: 1, MutexProfileFraction: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(controller.stop)
+	for _, path := range []string{
+		"/debug/pprof/sampling", "/debug/pprof/sampling?seconds=0",
+		"/debug/pprof/sampling?seconds=86401",
+	} {
+		response := httptest.NewRecorder()
+		controller.samplingHandler(response, httptest.NewRequest(http.MethodPost, path, nil))
+		if response.Code != http.StatusBadRequest {
+			t.Fatalf("invalid duration: %d", response.Code)
+		}
+	}
+	for _, method := range []string{http.MethodGet, http.MethodPut} {
+		response := httptest.NewRecorder()
+		controller.samplingHandler(response, httptest.NewRequest(method,
+			"/debug/pprof/sampling?seconds=1", nil))
+		if response.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("method %s: %d", method, response.Code)
+		}
+	}
+	missingRates, err := newRuntimeProfileController(diagnosticsConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := httptest.NewRecorder()
+	missingRates.samplingHandler(response, httptest.NewRequest(http.MethodPost,
+		"/debug/pprof/sampling?seconds=1", nil))
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("missing rates: %d", response.Code)
+	}
+	response = httptest.NewRecorder()
+	controller.samplingHandler(response, httptest.NewRequest(http.MethodPost,
+		"/debug/pprof/sampling?seconds=1", nil))
+	if response.Code != http.StatusOK {
+		t.Fatal(response.Body.String())
+	}
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		controller.mu.Lock()
+		active := controller.samplingID != 0
+		controller.mu.Unlock()
+		if !active {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("sampling did not expire")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if runtime.SetMutexProfileFraction(-1) != 0 {
+		t.Fatal("expired sampling still active")
+	}
+	response = httptest.NewRecorder()
+	controller.samplingHandler(response, httptest.NewRequest(http.MethodPost,
+		"/debug/pprof/sampling?seconds=30", nil))
+	controller.stop()
+	if controller.samplingID != 0 || runtime.SetMutexProfileFraction(-1) != 0 {
+		t.Fatal("shutdown did not stop sampling")
+	}
 }

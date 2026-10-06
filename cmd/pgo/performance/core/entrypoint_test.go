@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -81,6 +82,9 @@ func TestBuildLoadConfigUsesSharedParameters(t *testing.T) {
 		"sample",
 		"20261001-020304.000000005Z",
 	)
+	if !strings.Contains(config.DiagnosticsURL, ":20002/debug/pprof/heap") {
+		t.Fatalf("missing discovered diagnostics URL: %s", config.DiagnosticsURL)
+	}
 	if config.OutputDir != wantOutput || config.RPS != 75 ||
 		config.Duration != 45*time.Second {
 		t.Fatalf("config = %+v, want output %s", config, wantOutput)

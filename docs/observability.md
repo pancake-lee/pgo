@@ -1,7 +1,7 @@
 # Go 服务指标分层与 Dashboard 设计
 
 > 按【层级分类 - 面板设计 - 包含指标 - 面向场景】整理。手动触发方案保留，仅记录，不纳入持续采集。
-> 本文关联 [登录性能专题中枢](design/2026-09-30-01-login-performance-hub.md)，本轮编排见 [任务 46](backlog.md#46-文档代码与仪表盘编排一致)。
+> 本文关联 [登录性能专题中枢](design/2026-09-30-01-login-performance-hub.md)，指标编排见 [任务 46](backlog.md#46-文档代码与仪表盘编排一致)，测试采样见 [任务 55](backlog.md#55-测试期间采样与平台画像)。
 
 ## 一、服务健康
 
@@ -51,9 +51,16 @@
 
 | 层级分类 | 面板设计 | 包含指标 | 面向场景 |
 | --- | --- | --- | --- |
-| 调用栈画像 | Pyroscope 火焰图 | CPU profile、heap profile（`inuse_space`、`inuse_objects`、`alloc_space`、`alloc_objects`） | 指标圈定窗口后，按同一时间范围查火焰图，定位到业务函数。Alloy 每 15s 拉取，未持续采集 goroutine、block、mutex、trace。 |
+| 调用栈画像 | Pyroscope 火焰图 | CPU、heap、goroutine、block、mutex profile | 指标圈定窗口后，按同一时间范围查火焰图，定位到业务函数。Alloy 每 15s 拉取；block/mutex 仅测试期间采样，trace 按需获取。 |
 
-代码来源：[pprof 路由](/root/code/pgo/pkg/papp/pprof.go:51) → [Alloy](../deploy/docker/config/config.alloy) → [Pyroscope 数据源](../deploy/docker/config/grafana/datasources/datasource.yml)。Alloy 每 15 秒发起采集，CPU profile 本身覆盖采样时段；heap profile 含存活与累计分配样本。直接打开 Pyroscope（`http://<部署主机>:24040`，见 [导航服务清单](../deploy/docker/portal/services.json)），按 `service_name="pgo-app"` 和与指标一致的时间范围查询 CPU、heap 火焰图。Grafana 的 pgo-app dashboard 仅展示前五组指标。
+代码来源：[pprof 路由](/root/code/pgo/pkg/papp/pprof.go:58) → [Alloy](../deploy/docker/config/config.alloy) → [Pyroscope 数据源](../deploy/docker/config/grafana/datasources/datasource.yml)。Alloy 每 15 秒发起采集，CPU profile 本身覆盖采样时段；heap profile 含存活与累计分配样本。直接打开 Pyroscope（`http://<部署主机>:24040`，见 [导航服务清单](../deploy/docker/portal/services.json)），按 `service_name="pgo-app"` 和与指标一致的时间范围查询 CPU、heap、goroutine、block、mutex 火焰图。Grafana 的 pgo-app dashboard 仅展示前五组指标。
+
+采样控制与抓取分开：权限压测在数据准备完成后开启 block/mutex 采样会话，覆盖预热、正式读写及收尾，每档结束或取消后关闭；会话最长 24 小时，客户端设置测量时长加 5 分钟的到期时间。配置 `Diagnostics.BlockProfileRate`、`MutexProfileFraction` 为正数，缺失时测试直接报错，准备数据模式不启用采样。
+
+- **控制**：`POST /debug/pprof/sampling?seconds=<有效期>` 返回会话 `id`，`DELETE /debug/pprof/sampling?id=<id>` 关闭该会话；并行会话与手动采集互斥，过期或服务停止时自动关闭。
+- **抓取**：`GET /debug/pprof/goroutine` 是完整栈快照；`GET /debug/pprof/block?seconds=14` 和 `mutex?seconds=14` 使用 Go 标准区间差值。无 seconds 时默认 14 秒，最长 60 秒。关闭采样不会禁用抓取端点，不产生新样本时返回合法空增量；关停边界可能包含尚在完成的等待事件。
+- **时间范围**：Alloy 每 15 秒抓取，增量区间约 14 秒，timeout 为 16 秒；分位数窗口与 profile 区间应对齐，间隔空隙可能漏掉事件。关闭采样不清空累计数据，区间差值避免重复上传历史。goroutine 无需采样开关，平时也会抓取。
+- **分析边界**：block/mutex 反映 Go 同步等待和锁竞争，不代表数据库行锁；数据库驱动网络读取栈支持等待数据库响应，SQL 内部根因仍需数据库侧证据。runtime trace 继续使用 `go tool trace`，不写入 Pyroscope。
 
 ## 七、分析组合应用场景
 
@@ -63,20 +70,20 @@
 - **请求 P95 ↑ + 数据库 P95 平 + 连接等待 > 0** → 优先排查连接池等待，结合 `in_use`、`open` 和配置的连接上限确认。
 - **请求 P95 ↑ + CPU ↑ + 数据库平** → 优先排查应用计算，切 Pyroscope CPU profile 确认热点。
 - **请求 P95 ↑ + CPU 平 + 连接等待 0 + GC 暂停 ↑** → 优先排查 GC 开销，看分配速率与 heap profile。
-- **`go_goroutines` 持续 ↑ + P95 ↑** → 疑似泄漏或阻塞，手动采 goroutine profile。
+- **`go_goroutines` 持续 ↑ + P95 ↑** → 疑似泄漏或阻塞，在 Pyroscope 查看 goroutine 快照，结合 block/mutex 判断同步等待；网络等待可补充 runtime trace。
 - **`process_open_fds` ↑ + 错误率 ↑** → 疑似 fd 堆积或泄漏，看使用比例并核对连接负载。
 - **错误率 ↑ + `pgo_dependency_up=0`** → 最近一次健康检查提示依赖不可达，重新检查并排查依赖。
 
 ## 八、手动触发方案（保留）
 
-以下端点按需使用，不纳入持续采集，简单记录：
+以下诊断操作按需使用；goroutine 快照也供 Alloy 定时抓取：
 
-- goroutine：`POST /debug/pprof/runtime?seconds=10&profile=goroutine`
+- goroutine 快照：`GET /debug/pprof/goroutine`；原 POST runtime 接口仍可获取栈分布差值。
 - block：`POST /debug/pprof/runtime?seconds=10&profile=block`
 - mutex：`POST /debug/pprof/runtime?seconds=10&profile=mutex`
 - runtime trace：`GET /debug/pprof/runtime-trace?seconds=5`
 
-均需 `Diagnostics.Enabled=true` 且 `Diagnostics.Pprof=true`，block/mutex 需配置正采样率。POST 等待后直接返回二进制增量，最长 60 秒；goroutine 是该区间栈分布变化，不是结束时全部堆栈快照。重叠 runtime 请求返回 409，未配置 block/mutex 采样率返回 503；请求完成、取消或服务停止时关闭对应采样。trace 最长 10 秒，使用 `go tool trace`，其余使用 `go tool pprof`。
+均需 `Diagnostics.Enabled=true` 且 `Diagnostics.Pprof=true`，block/mutex 需配置正采样率。POST 等待后直接返回二进制增量，最长 60 秒；原 POST goroutine 返回区间栈分布变化，GET goroutine 返回完整快照。测试采样会话与重叠 runtime 请求返回 409，未配置 block/mutex 采样率返回 503；请求完成、取消或服务停止时关闭对应采样。trace 最长 10 秒，使用 `go tool trace`，其余使用 `go tool pprof`。
 
 ## 九、文档、代码与 Dashboard 的一致性约定
 

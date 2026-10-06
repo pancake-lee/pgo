@@ -69,3 +69,19 @@ func TestDownloadProfileRejectsUnknownType(t *testing.T) {
 		t.Fatal("expected unsupported profile type error")
 	}
 }
+
+// TestDownloadGoroutineSnapshot 验证诊断 CLI 获取完整快照而非区间差值。
+func TestDownloadGoroutineSnapshot(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/debug/pprof/goroutine" || r.URL.RawQuery != "" {
+			t.Errorf("goroutine request: %s %s", r.Method, r.URL)
+		}
+		_, _ = w.Write([]byte("snapshot"))
+	}))
+	defer server.Close()
+	path := filepath.Join(t.TempDir(), "goroutine.pprof")
+	err := downloadProfile(server.URL, "goroutine", 10, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

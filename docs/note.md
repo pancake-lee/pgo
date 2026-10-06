@@ -101,6 +101,8 @@ git commit --amend
 
 - 2026-10-04 权限测试直接实现读写并行方案，交互、日志和当前设计使用行为描述，报告按读组和管理员输出。
 
+- 2026-10-06 采用 Alloy 定时抓取标准 pprof 并写入 Pyroscope，goroutine 为快照、block/mutex 为增量。权限压测控制测试期间采样，正常关闭不作为抓取错误；复用 Go 标准实现，不新增 SDK 或 profile 解析依赖。
+
 ### vscode debug
 
 - 没有配置的情况下直接 debug，将调试当前正在编辑的文件

@@ -2,6 +2,7 @@ package papp
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	stdhttp "net/http"
@@ -15,6 +16,8 @@ import (
 const (
 	// maxRuntimeProfileDuration 限制单次运行时 profile 的最长采集时间。
 	maxRuntimeProfileDuration = 60 * time.Second
+	// maxSamplingDuration 限制客户端丢失后采样会话的最长存活时间。
+	maxSamplingDuration = 24 * time.Hour
 	// maxRuntimeTraceDuration 限制单次 runtime trace 的最长采集时间。
 	maxRuntimeTraceDuration = 10 * time.Second
 )
@@ -27,6 +30,9 @@ type runtimeProfileController struct {
 	blockProfileRate     int
 	mutexProfileFraction int
 	traceActive          bool
+	samplingID           uint64
+	samplingGeneration   uint64
+	samplingTimer        *time.Timer
 }
 
 // newRuntimeProfileController 校验采样参数并初始化运行时 profile 控制状态。
@@ -40,19 +46,25 @@ func newRuntimeProfileController(config diagnosticsConfig,
 		runtime.MemProfileRate = config.MemProfileRate
 	}
 	return &runtimeProfileController{
+		samplingGeneration:   uint64(time.Now().UnixNano()),
 		blockProfileRate:     config.BlockProfileRate,
 		mutexProfileFraction: config.MutexProfileFraction,
 	}, nil
 }
 
-// 六、调用栈画像：CPU 与 heap 供 Alloy 持续采集，写入 Pyroscope。
+// 六、调用栈画像：标准 pprof 抓取与测试期间采样控制分开。
 
 // registerRoutes 将持续及按需采集的 pprof 接口注册到诊断路由。
 func (controller *runtimeProfileController) registerRoutes(mux *stdhttp.ServeMux) {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 
-	// 八、手动触发：goroutine、block、mutex 和 trace 仅按需采集。
+	mux.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	mux.HandleFunc("/debug/pprof/block", deltaProfileHandler("block"))
+	mux.HandleFunc("/debug/pprof/mutex", deltaProfileHandler("mutex"))
+	mux.HandleFunc("/debug/pprof/sampling", controller.samplingHandler)
+
+	// 八、手动触发：保留限时采集，与测试采样会话互斥。
 	mux.HandleFunc("/debug/pprof/runtime", controller.runtimeProfileHandler)
 	mux.HandleFunc("/debug/pprof/runtime-trace", controller.runtimeTraceHandler)
 }
@@ -85,7 +97,7 @@ func (controller *runtimeProfileController) runtimeProfileHandler(
 	}
 
 	controller.mu.Lock()
-	if controller.activeProfile != "" {
+	if controller.activeProfile != "" || controller.samplingID != 0 {
 		controller.mu.Unlock()
 		stdhttp.Error(writer, "runtime profile already active",
 			stdhttp.StatusConflict)
@@ -179,4 +191,92 @@ func (controller *runtimeProfileController) stop() {
 	if controller.cancelProfile != nil {
 		controller.cancelProfile()
 	}
+	controller.closeSamplingLocked(controller.samplingID)
+}
+
+// deltaProfileHandler 使用标准 pprof 区间差值，采样关闭时也正常返回。
+func deltaProfileHandler(profileType string) stdhttp.HandlerFunc {
+	return func(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+		if request.Method != stdhttp.MethodGet {
+			writer.Header().Set("Allow", stdhttp.MethodGet)
+			stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
+			return
+		}
+		if request.URL.Query().Get("seconds") == "" {
+			query := request.URL.Query()
+			query.Set("seconds", "14")
+			request.URL.RawQuery = query.Encode()
+		}
+		_, err := parseLimitedDuration(request, maxRuntimeProfileDuration)
+		if err != nil {
+			stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+			return
+		}
+		pprof.Handler(profileType).ServeHTTP(writer, request)
+	}
+}
+
+// samplingHandler 开启限时采样会话，或仅关闭调用者持有的会话。
+func (controller *runtimeProfileController) samplingHandler(
+	writer stdhttp.ResponseWriter, request *stdhttp.Request,
+) {
+	controller.mu.Lock()
+	defer controller.mu.Unlock()
+	switch request.Method {
+	case stdhttp.MethodPost:
+		duration, err := parseLimitedDuration(request, maxSamplingDuration)
+		if err != nil {
+			stdhttp.Error(writer, err.Error(), stdhttp.StatusBadRequest)
+			return
+		}
+		if controller.samplingID != 0 || controller.activeProfile != "" {
+			stdhttp.Error(writer, "sampling already active", stdhttp.StatusConflict)
+			return
+		}
+		if controller.blockProfileRate == 0 || controller.mutexProfileFraction == 0 {
+			stdhttp.Error(writer,
+				"configure positive Diagnostics.BlockProfileRate and MutexProfileFraction",
+				stdhttp.StatusServiceUnavailable)
+			return
+		}
+		controller.samplingGeneration++
+		id := controller.samplingGeneration
+		controller.samplingID = id
+		runtime.SetBlockProfileRate(controller.blockProfileRate)
+		runtime.SetMutexProfileFraction(controller.mutexProfileFraction)
+		controller.samplingTimer = time.AfterFunc(duration, func() {
+			controller.mu.Lock()
+			defer controller.mu.Unlock()
+			controller.closeSamplingLocked(id)
+		})
+		writer.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(writer).Encode(map[string]uint64{"id": id})
+	case stdhttp.MethodDelete:
+		id, err := strconv.ParseUint(request.URL.Query().Get("id"), 10, 64)
+		if err != nil || id == 0 || id > controller.samplingGeneration {
+			stdhttp.Error(writer, "invalid sampling id", stdhttp.StatusBadRequest)
+			return
+		}
+		if controller.samplingID != 0 && controller.samplingID != id {
+			stdhttp.Error(writer, "sampling owned by another session", stdhttp.StatusConflict)
+			return
+		}
+		controller.closeSamplingLocked(id)
+		writer.WriteHeader(stdhttp.StatusNoContent)
+	default:
+		writer.Header().Set("Allow", "POST, DELETE")
+		stdhttp.Error(writer, "method not allowed", stdhttp.StatusMethodNotAllowed)
+	}
+}
+
+// closeSamplingLocked 在持锁状态下关闭指定会话并停止到期计时器。
+func (controller *runtimeProfileController) closeSamplingLocked(id uint64) {
+	if id == 0 || controller.samplingID != id {
+		return
+	}
+	controller.samplingTimer.Stop()
+	controller.samplingTimer = nil
+	controller.samplingID = 0
+	runtime.SetBlockProfileRate(0)
+	runtime.SetMutexProfileFraction(0)
 }

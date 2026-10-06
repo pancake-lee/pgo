@@ -230,10 +230,11 @@ func buildLoadConfig(
 		outputDir = getDefaultOutputDir(scenarioName, now)
 	}
 	return Config{
-		APIURL:    serviceList.APIURL,
-		RPS:       rps,
-		Duration:  duration,
-		OutputDir: outputDir,
+		APIURL:         serviceList.APIURL,
+		DiagnosticsURL: serviceList.DiagnosticsURL,
+		RPS:            rps,
+		Duration:       duration,
+		OutputDir:      outputDir,
 	}, nil
 }
 

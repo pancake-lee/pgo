@@ -10,7 +10,7 @@ Grpc:
   Timeout: 1000
 
 # 独立诊断端口只供容器网络内的 Prometheus 与运维 CLI 使用。
-# CPU/heap 供 Alloy 持续采集，其余 profile 仅通过限时接口按需采集。
+# Alloy 定时抓取 CPU/heap/goroutine；block/mutex 在测试期间开启采样。
 # 诊断端口不得暴露到公网。
 Diagnostics:
   Enabled: true
@@ -18,7 +18,7 @@ Diagnostics:
   Pprof: true
   # CPU 使用 net/http/pprof 固定的默认 100 Hz；MemProfileRate 为 0 时沿用 runtime 默认值。
   MemProfileRate: 0
-  # block/mutex 只在单次 POST 采集期间使用以下采样参数。
+  # block/mutex 在测试会话或单次 POST 采集期间使用以下采样参数。
   BlockProfileRate: 1
   MutexProfileFraction: 1
 

@@ -181,7 +181,9 @@ func downloadProfile(address, profileType string, seconds int, output string) er
 		path = fmt.Sprintf("/debug/pprof/profile?seconds=%d", seconds)
 	case "heap":
 		path = "/debug/pprof/" + profileType
-	case "goroutine", "block", "mutex":
+	case "goroutine":
+		path = "/debug/pprof/goroutine"
+	case "block", "mutex":
 		if seconds <= 0 || seconds > 60 {
 			return fmt.Errorf("seconds must be between 1 and 60")
 		}

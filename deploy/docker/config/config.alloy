@@ -71,7 +71,7 @@ pyroscope.scrape "pgo_app" {
 	}]
 
 	scrape_interval = "15s"
-	scrape_timeout  = "14s"
+	scrape_timeout  = "16s"
 
 	profiling_config {
 		profile.process_cpu {
@@ -84,15 +84,18 @@ pyroscope.scrape "pgo_app" {
 		}
 
 		profile.goroutine {
-			enabled = false
+			enabled = true
+			delta   = false
 		}
 
 		profile.block {
-			enabled = false
+			enabled = true
+			delta   = true
 		}
 
 		profile.mutex {
-			enabled = false
+			enabled = true
+			delta   = true
 		}
 	}
 
