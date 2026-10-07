@@ -193,6 +193,16 @@ func firstTimeDeploy(sshCli *pthird.SshClient, remoteRoot string) {
 		}
 	}
 
+	startupPath := dstRootPath.Clone().Join("config/startup.sh").GetPath()
+	chmodCmd := "chmod +x '" + strings.ReplaceAll(startupPath, "'", "'\"'\"'") + "'"
+	pthird.Interact.Infof("Executing: %s", chmodCmd)
+	_, stderr, err := sshCli.RunCommand(chmodCmd)
+	if err != nil {
+		pthird.Interact.Errorf("Failed to chmod startup.sh: %v\nStderr: %s",
+			err, stderr)
+		return
+	}
+
 	if len(conflictList) == 0 {
 		pthird.Interact.Infof("All files deployed successfully.")
 	} else {
