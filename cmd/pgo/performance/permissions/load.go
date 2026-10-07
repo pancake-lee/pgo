@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -317,9 +316,9 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 		return err
 	}
 	defer func() { runErr = errors.Join(runErr, closeSampling()) }()
-	if err == nil {
+	if err == nil && config.Sampling {
 		var samplingDuration time.Duration
-		stopSampling, samplingDuration, err = startSampling(ctx, config)
+		stopSampling, samplingDuration, err = performance.StartSampling(ctx, config)
 		if err == nil {
 			preparer.info("runtime sampling enabled", "duration", samplingDuration)
 		}
@@ -393,66 +392,4 @@ func clearLoadReports(outputDir string) error {
 		}
 	}
 	return nil
-}
-
-// startSampling 控制本档测试的后端采样，取消后仍尝试关闭原会话。
-func startSampling(ctx context.Context, config performance.Config,
-) (func() error, time.Duration, error) {
-	address, err := url.Parse(config.DiagnosticsURL)
-	if err != nil || address.Host == "" ||
-		(address.Scheme != "http" && address.Scheme != "https") {
-		return nil, 0, errors.New("valid diagnostics URL is required for runtime sampling")
-	}
-	if config.Duration <= 0 {
-		return nil, 0, errors.New("measured duration must be positive")
-	}
-	address.Path = "/debug/pprof/sampling"
-	address.RawQuery = ""
-	address.Fragment = ""
-	// 请求正式负载时长，后端截断到采样上限；秒级有效期向上取整。
-	seconds := int64((config.Duration-1)/time.Second) + 1
-	query := url.Values{"seconds": {strconv.FormatInt(seconds, 10)}}
-	address.RawQuery = query.Encode()
-	client := &http.Client{Timeout: 5 * time.Second}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, address.String(), nil)
-	if err != nil {
-		return nil, 0, err
-	}
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, 0, fmt.Errorf("enable runtime sampling: %w", err)
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(response.Body, 2048))
-		return nil, 0, fmt.Errorf("enable runtime sampling: %s: %s",
-			response.Status, strings.TrimSpace(string(body)))
-	}
-	var session struct {
-		ID      uint64 `json:"id"`
-		Seconds uint64 `json:"seconds"`
-	}
-	err = json.NewDecoder(response.Body).Decode(&session)
-	if err != nil || session.ID == 0 || session.Seconds == 0 {
-		return nil, 0, fmt.Errorf("invalid runtime sampling session: id=%d, error=%v", session.ID, err)
-	}
-	return func() error {
-		cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-		address.RawQuery = url.Values{"id": {strconv.FormatUint(session.ID, 10)}}.Encode()
-		request, err := http.NewRequestWithContext(cleanupContext,
-			http.MethodDelete, address.String(), nil)
-		if err != nil {
-			return err
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			return fmt.Errorf("disable runtime sampling: %w", err)
-		}
-		defer response.Body.Close()
-		if response.StatusCode != http.StatusNoContent {
-			return fmt.Errorf("disable runtime sampling: %s", response.Status)
-		}
-		return nil
-	}, time.Duration(session.Seconds) * time.Second, nil
 }

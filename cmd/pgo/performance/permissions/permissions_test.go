@@ -577,20 +577,22 @@ func TestPrepareClearsStaleReports(t *testing.T) {
 
 // TestRunLoadReadWrite 验证读写并行且报告直接保存在输出目录。
 func TestRunLoadReadWrite(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("fake Vegeta uses a POSIX shell")
-	}
-	fixture, server := newFixtureAPI(t)
-	directory := t.TempDir()
-	manifestPath := filepath.Join(directory, "01-permissions.json")
-	manifest, err := prepareFixture(t.Context(), server.URL, manifestPath,
-		fixtureScale{2, 4, 3, 2, 2}, klog.NewStdLogger(io.Discard))
-	if err != nil {
-		t.Fatal(err)
-	}
-	toolDirectory := t.TempDir()
-	toolPath := filepath.Join(toolDirectory, "vegeta")
-	script := `#!/bin/sh
+	for _, sampling := range []bool{false, true} {
+		t.Run(fmt.Sprintf("sampling=%t", sampling), func(t *testing.T) {
+			if runtime.GOOS == "windows" {
+				t.Skip("fake Vegeta uses a POSIX shell")
+			}
+			fixture, server := newFixtureAPI(t)
+			directory := t.TempDir()
+			manifestPath := filepath.Join(directory, "01-permissions.json")
+			manifest, err := prepareFixture(t.Context(), server.URL, manifestPath,
+				fixtureScale{2, 4, 3, 2, 2}, klog.NewStdLogger(io.Discard))
+			if err != nil {
+				t.Fatal(err)
+			}
+			toolDirectory := t.TempDir()
+			toolPath := filepath.Join(toolDirectory, "vegeta")
+			script := `#!/bin/sh
 case "$1" in
 attack)
   printf 'attack %s\n' "$(date +%S)" >> "$PERMISSION_ATTACK_LOG"
@@ -603,76 +605,82 @@ report)
 *) exit 1 ;;
 esac
 `
-	err = os.WriteFile(toolPath, []byte(script), 0o700)
-	if err != nil {
-		t.Fatal(err)
-	}
-	attackLog := filepath.Join(directory, "attacks.txt")
-	t.Setenv("PERMISSION_ATTACK_LOG", attackLog)
-	t.Setenv("PATH", toolDirectory+string(os.PathListSeparator)+os.Getenv("PATH"))
-	logger := klog.NewStdLogger(io.Discard)
-	opt := defaultOptions()
-	opt.WriteRPS = 100
-	client := newAPIClient(server.URL, manifest.Admin.Token)
-	t.Cleanup(client.httpClient.CloseIdleConnections)
-	loader := &preparer{
-		manifest: manifest, manifestPath: manifestPath,
-		client: client, logger: logger, opt: opt,
-	}
-	config := performance.Config{
-		APIURL: server.URL, DiagnosticsURL: server.URL,
-		RPS: 20, Duration: 50 * time.Millisecond,
-		OutputDir: directory,
-	}
-	err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
-		filepath.Join(directory, "hot-targets.jsonl"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	content, err := os.ReadFile(attackLog)
-	if err != nil || strings.Count(string(content), "attack") != 4 {
-		t.Fatalf("expected two read groups warming up and measuring once: %q, %v", content, err)
-	}
-	attacks := strings.Split(strings.TrimSpace(string(content)), "\n")
-	for _, attack := range attacks[2:] {
-		if attack != "attack 00" {
-			t.Fatalf("measured read missed minute boundary: %s", attack)
-		}
-	}
-	for _, group := range []string{"hot", "control"} {
-		_, err = os.Stat(filepath.Join(directory, group, "11-vegeta-report.txt"))
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	content, err = os.ReadFile(filepath.Join(directory, "writer-report.txt"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var requests int
-	_, err = fmt.Sscanf(string(content), "Requests %d", &requests)
-	if err != nil || requests == 0 {
-		t.Fatalf("administrator did not write during measurement: %s, %v", content, err)
-	}
-	fixture.mu.Lock()
-	updates := fixture.updates
-	samplingRequests := strings.Join(fixture.samplingRequests, ",")
-	samplingUpdateCount := fixture.samplingUpdateCount
-	fixture.mu.Unlock()
-	if samplingUpdateCount == 0 {
-		t.Fatal("sampling started before warmup writes")
-	}
-	if samplingRequests != "POST,DELETE" {
-		t.Fatalf("sampling lifecycle = %s", samplingRequests)
-	}
-	if updates == 0 {
-		t.Fatal("read/write load did not modify permissions")
-	}
-	for _, name := range []string{"pure", "mixed", "recovery", "round-01"} {
-		_, err = os.Stat(filepath.Join(directory, name))
-		if !os.IsNotExist(err) {
-			t.Fatalf("unexpected report directory %s: %v", name, err)
-		}
+			err = os.WriteFile(toolPath, []byte(script), 0o700)
+			if err != nil {
+				t.Fatal(err)
+			}
+			attackLog := filepath.Join(directory, "attacks.txt")
+			t.Setenv("PERMISSION_ATTACK_LOG", attackLog)
+			t.Setenv("PATH", toolDirectory+string(os.PathListSeparator)+os.Getenv("PATH"))
+			logger := klog.NewStdLogger(io.Discard)
+			opt := defaultOptions()
+			opt.WriteRPS = 100
+			client := newAPIClient(server.URL, manifest.Admin.Token)
+			t.Cleanup(client.httpClient.CloseIdleConnections)
+			loader := &preparer{
+				manifest: manifest, manifestPath: manifestPath,
+				client: client, logger: logger, opt: opt,
+			}
+			config := performance.Config{
+				APIURL: server.URL, DiagnosticsURL: server.URL, Sampling: sampling,
+				RPS: 20, Duration: 50 * time.Millisecond,
+				OutputDir: directory,
+			}
+			err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
+				filepath.Join(directory, "hot-targets.jsonl"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			content, err := os.ReadFile(attackLog)
+			if err != nil || strings.Count(string(content), "attack") != 4 {
+				t.Fatalf("expected two read groups warming up and measuring once: %q, %v", content, err)
+			}
+			attacks := strings.Split(strings.TrimSpace(string(content)), "\n")
+			for _, attack := range attacks[2:] {
+				if attack != "attack 00" {
+					t.Fatalf("measured read missed minute boundary: %s", attack)
+				}
+			}
+			for _, group := range []string{"hot", "control"} {
+				_, err = os.Stat(filepath.Join(directory, group, "11-vegeta-report.txt"))
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			content, err = os.ReadFile(filepath.Join(directory, "writer-report.txt"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var requests int
+			_, err = fmt.Sscanf(string(content), "Requests %d", &requests)
+			if err != nil || requests == 0 {
+				t.Fatalf("administrator did not write during measurement: %s, %v", content, err)
+			}
+			fixture.mu.Lock()
+			updates := fixture.updates
+			samplingRequests := strings.Join(fixture.samplingRequests, ",")
+			samplingUpdateCount := fixture.samplingUpdateCount
+			fixture.mu.Unlock()
+			if sampling && samplingUpdateCount == 0 {
+				t.Fatal("sampling started before warmup writes")
+			}
+			wantRequests := ""
+			if sampling {
+				wantRequests = "POST,DELETE"
+			}
+			if samplingRequests != wantRequests {
+				t.Fatalf("sampling lifecycle = %s", samplingRequests)
+			}
+			if updates == 0 {
+				t.Fatal("read/write load did not modify permissions")
+			}
+			for _, name := range []string{"pure", "mixed", "recovery", "round-01"} {
+				_, err = os.Stat(filepath.Join(directory, name))
+				if !os.IsNotExist(err) {
+					t.Fatalf("unexpected report directory %s: %v", name, err)
+				}
+			}
+		})
 	}
 }
 
@@ -698,7 +706,7 @@ func TestSamplingClientCancellation(t *testing.T) {
 	}))
 	defer server.Close()
 	ctx, cancel := context.WithCancel(t.Context())
-	stop, duration, err := startSampling(ctx, performance.Config{DiagnosticsURL: server.URL + "/debug/pprof/heap", Duration: time.Second})
+	stop, duration, err := performance.StartSampling(ctx, performance.Config{Sampling: true, DiagnosticsURL: server.URL + "/debug/pprof/heap", Duration: time.Second})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -709,14 +717,14 @@ func TestSamplingClientCancellation(t *testing.T) {
 	if err = stop(); err != nil || !deleted.Load() {
 		t.Fatalf("cancel cleanup: %v", err)
 	}
-	if _, _, err = startSampling(t.Context(), performance.Config{}); err == nil {
+	if _, _, err = performance.StartSampling(t.Context(), performance.Config{Sampling: true}); err == nil {
 		t.Fatal("missing diagnostics accepted")
 	}
 	failure := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer failure.Close()
-	if _, _, err = startSampling(t.Context(), performance.Config{DiagnosticsURL: failure.URL, Duration: time.Second}); err == nil {
+	if _, _, err = performance.StartSampling(t.Context(), performance.Config{Sampling: true, DiagnosticsURL: failure.URL, Duration: time.Second}); err == nil {
 		t.Fatal("sampling failure ignored")
 	}
 }
@@ -779,7 +787,7 @@ func TestSamplingDuration(t *testing.T) {
 				}
 			}))
 			defer server.Close()
-			stop, duration, err := startSampling(t.Context(), performance.Config{DiagnosticsURL: server.URL, Duration: testCase.measured})
+			stop, duration, err := performance.StartSampling(t.Context(), performance.Config{Sampling: true, DiagnosticsURL: server.URL, Duration: testCase.measured})
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -311,6 +314,62 @@ func TestWaitUntilCancellation(t *testing.T) {
 		t.Fatal("cancelled wait did not stop")
 	}
 	if err := waitUntil(t.Context(), time.Now().Add(-time.Second)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestRunnerSamplingSwitch 验证公共负载在预热后按开关控制采样与报告。
+func TestRunnerSamplingSwitch(t *testing.T) {
+	for _, sampling := range []bool{false, true} {
+		t.Run(fmt.Sprintf("sampling=%t", sampling), func(t *testing.T) {
+			var requests []string
+			warmupDone := false
+			var mu sync.Mutex
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				defer mu.Unlock()
+				if !warmupDone {
+					t.Error("sampling before warmup")
+				}
+				requests = append(requests, r.Method)
+				if r.Method == http.MethodPost {
+					_, _ = io.WriteString(w, `{"id":1,"seconds":1}`)
+				} else {
+					w.WriteHeader(http.StatusNoContent)
+				}
+			}))
+			defer server.Close()
+			runner := NewRunner(klog.NewStdLogger(io.Discard))
+			runner.waitUntil = func(context.Context, time.Time) error { mu.Lock(); warmupDone = true; mu.Unlock(); return nil }
+			runner.execContext = fakeExecContext
+			runner.checkVegeta = func(string) error { return nil }
+			config := Config{APIURL: "http://localhost:8080", DiagnosticsURL: server.URL,
+				Sampling: sampling, RPS: 10, Duration: time.Second, OutputDir: t.TempDir()}
+			err := runner.Run(t.Context(), config, &fakePreparer{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := ""
+			if sampling {
+				want = "POST,DELETE"
+			}
+			mu.Lock()
+			got := strings.Join(requests, ",")
+			mu.Unlock()
+			if got != want {
+				t.Fatalf("sampling requests = %v", requests)
+			}
+			content, err := os.ReadFile(filepath.Join(config.OutputDir, "00-run.json"))
+			if err != nil || !strings.Contains(string(content), fmt.Sprintf(`"sampling": %t`, sampling)) {
+				t.Fatal("sampling setting missing from report")
+			}
+		})
+	}
+	stop, duration, err := StartSampling(t.Context(), Config{})
+	if err != nil || duration != 0 {
+		t.Fatal("disabled sampling needs diagnostics or duration")
+	}
+	if err = stop(); err != nil {
 		t.Fatal(err)
 	}
 }

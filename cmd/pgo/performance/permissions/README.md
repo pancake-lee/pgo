@@ -8,7 +8,7 @@
 
 两种查询实现都使用 gentool 生成的表、字段和查询接口，只读取动作与路径，重复动作按权限主键顺序覆盖。当前不会创建或删除索引，首次保留数据库真实状态。
 
-诊断端口需开启 `Diagnostics.Enabled`、`Diagnostics.Pprof`，并为 `BlockProfileRate`、`MutexProfileFraction` 配置正数，模板均为 1；端口保持受控可达。portal 中的 diagnostics 地址用于控制测试采样，Alloy 的配置需同步到部署环境。
+开启额外采样时，诊断端口需开启 `Diagnostics.Enabled`、`Diagnostics.Pprof`，并为 `BlockProfileRate`、`MutexProfileFraction` 配置正数，模板均为 1；端口保持受控可达。portal 中的 diagnostics 地址用于控制测试采样，Alloy 的配置需同步到部署环境。
 
 负载工具沿用现有 Vegeta v12.13.0。服务启动方式沿用现有部署；前台进程通过 Ctrl+C 停止，受控后台进程记录 PID 并使用 `kill <PID>` 停止。
 
@@ -63,7 +63,9 @@ auto 下每档结果放在 `rps-200/`、`rps-400/` 等子目录中，结构如�
   writer-report.txt
 ```
 
-测试在预热与分钟对齐完成后、正式负载开始前开启后端 block/mutex 采样，负载收尾或取消时关闭。采样时长取正式测试时长，由后端截断到 24 小时上限；超长测试继续执行，采样只覆盖正式负载前段。日志显示后端返回的实际采样时长，正式窗口按控制请求完成后的实际启动时间记录。开启失败会终止测试，关闭失败会报错，会话到期会自动关闭；`--prepare-only` 不开启采样。Alloy 持续抓取，不在客户端下载或上传 profile。
+公共参数 `--sampling` 默认关闭，菜单中的 `sampling` 默认 `false` 并记住上次值；CLI 用 `--sampling` 开启、`--sampling=false` 关闭。先用普通负载寻找异常，再保持 RPS、数据和测试时长相同，开启采样复测。开关控制 block/mutex 事件采样，CPU/heap 与 goroutine 的 Alloy 抓取沿用配置。
+
+开启时，测试在预热与分钟对齐完成后、正式负载开始前开启后端 block/mutex 采样，负载收尾或取消时关闭。采样时长取正式测试时长，由后端截断到 24 小时上限；超长测试继续执行，采样只覆盖正式负载前段。日志显示后端返回的实际采样时长，正式窗口按控制请求完成后的实际启动时间记录。开启失败会终止测试，关闭失败会报错，会话到期会自动关闭；`--prepare-only` 不开启采样。Alloy 持续抓取，不在客户端下载或上传 profile。
 
 控制台打印正式窗口的 UTC 起止时间。按这些时间在 Grafana 中看权限读取和权限修改的请求 P95、错误率、数据库操作耗时、连接池等待、进程 CPU 和分配；在 Pyroscope 看同实例的 CPU、分配、goroutine、block 与 mutex 画像。goroutine 为快照，block/mutex 为约 14 秒增量；采样关闭后仍正常抓取，没有新事件时不会重放累计历史。准备阶段可以直接观察创建接口的 P95，客户端不额外建立准备阶段报告。
 

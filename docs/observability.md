@@ -55,7 +55,7 @@
 
 代码来源：[pprof 路由](/root/code/pgo/pkg/papp/pprof.go:58) → [Alloy](../deploy/docker/config/config.alloy) → [Pyroscope 数据源](../deploy/docker/config/grafana/datasources/datasource.yml)。Alloy 每 15 秒发起采集，CPU profile 本身覆盖采样时段；heap profile 含存活与累计分配样本。直接打开 Pyroscope（`http://<部署主机>:24040`，见 [导航服务清单](../deploy/docker/portal/services.json)），按 `service_name="pgo-app"` 和与指标一致的时间范围查询 CPU、heap、goroutine、block、mutex 火焰图。Grafana 的 pgo-app dashboard 仅展示前五组指标。
 
-采样控制与抓取分开：权限压测在预热和分钟对齐完成后、正式负载开始前开启 block/mutex 采样，负载收尾后或取消时关闭。请求时长取正式测试时长（秒级向上取整），后端截断到 24 小时上限并返回实际秒数，日志显示实际采样时长；超长测试继续运行，只采样正式负载前段。采样控制请求有网络耗时，正式窗口按实际启动时间记录。配置 `Diagnostics.BlockProfileRate`、`MutexProfileFraction` 为正数，缺失时测试直接报错，准备数据模式不启用采样。
+采样控制与抓取分开：登录与权限共用 `sampling` 参数，CLI 默认关闭，菜单默认 `false` 并记住上次值。先按 RPS 找到异常，再开启额外采样复测；关闭时不请求采样控制接口。开启时，在预热和分钟对齐完成后、正式负载开始前开启 block/mutex 采样，负载收尾后或取消时关闭。请求时长取正式测试时长（秒级向上取整），后端截断到 24 小时上限并返回实际秒数，日志显示实际采样时长；超长测试继续运行，只采样正式负载前段。采样控制请求有网络耗时，正式窗口按实际启动时间记录。配置 `Diagnostics.BlockProfileRate`、`MutexProfileFraction` 为正数，缺失时测试直接报错，准备数据模式不启用采样。
 
 - **控制**：`POST /debug/pprof/sampling?seconds=<有效期>` 返回会话 `id` 和实际 `seconds`，`DELETE /debug/pprof/sampling?id=<id>` 关闭该会话；并行会话与手动采集互斥，过期或服务停止时自动关闭。
 - **抓取**：`GET /debug/pprof/goroutine` 是完整栈快照；`GET /debug/pprof/block?seconds=14` 和 `mutex?seconds=14` 使用 Go 标准区间差值。无 seconds 时默认 14 秒，最长 60 秒。关闭采样不会禁用抓取端点，不产生新样本时返回合法空增量；关停边界可能包含尚在完成的等待事件。

@@ -61,6 +61,7 @@ func NewEntrypoint(scenario Scenario) *Entrypoint {
 // NewCobraCommand 创建带公共负载参数、数据目录和清理子命令的场景入口。
 func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	outputDir := ""
+	sampling := false
 	rpsInput := defaultRPSInput
 	durationInput := defaultDurationInput
 	if entrypoint.scenario.DefaultRPS != "" {
@@ -82,6 +83,7 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 				rpsInput,
 				durationInput,
 				outputDir,
+				sampling,
 				time.Now(),
 			)
 		},
@@ -100,6 +102,8 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	)
 	command.Flags().StringVar(&outputDir, "output-dir", "",
 		"report directory and reusable test data directory")
+	command.Flags().BoolVar(&sampling, "sampling", false,
+		"enable additional runtime sampling during measured load")
 	command.AddCommand(entrypoint.CleanupEntrypoint().newCommand("cleanup"))
 	return command
 }
@@ -122,8 +126,13 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		"client.performance."+entrypoint.scenario.Name+".",
 		paramList,
 	)
+	sampling, err := strconv.ParseBool(paramMap["sampling"])
+	if err != nil {
+		pthird.Interact.Errorf("sampling must be true or false")
+		return
+	}
 	// 首次直接接受默认目录时也保存，清理入口才能定位同一批次。
-	err := pconfig.SetCacheValue(pconfig.GetDefaultCachePath(),
+	err = pconfig.SetCacheValue(pconfig.GetDefaultCachePath(),
 		"client.performance."+entrypoint.scenario.Name+".output-dir",
 		paramMap["output-dir"])
 	if err != nil {
@@ -138,6 +147,7 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		paramMap["rps"],
 		paramMap["duration"],
 		paramMap["output-dir"],
+		sampling,
 		now,
 	)
 	if err != nil {
@@ -149,6 +159,11 @@ func getParamList(outputDir string) []pclient.ParamItem {
 	return []pclient.ParamItem{
 		{Name: "portal-url", Usage: "portal URL", Default: defaultPortalURL},
 		{Name: "rps", Usage: "RPS or auto", Default: defaultRPSInput},
+		{
+			Name:    "sampling",
+			Usage:   "additional sampling (true/false)",
+			Default: "false",
+		},
 		{
 			Name:    "duration",
 			Usage:   "duration for each RPS level",
@@ -169,6 +184,7 @@ func (entrypoint *Entrypoint) run(
 	rpsInput string,
 	durationInput string,
 	outputDir string,
+	sampling bool,
 	now time.Time,
 ) error {
 	duration, err := parseDuration(durationInput)
@@ -192,6 +208,7 @@ func (entrypoint *Entrypoint) run(
 		return err
 	}
 
+	config.Sampling = sampling
 	runner := NewRunner(logger)
 	preparer := entrypoint.scenario.NewPreparer(config, logger)
 	if !automatic {

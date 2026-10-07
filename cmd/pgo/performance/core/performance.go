@@ -7,10 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +40,7 @@ const (
 type Config struct {
 	APIURL         string        `json:"apiURL"`
 	DiagnosticsURL string        `json:"diagnosticsURL,omitempty"`
+	Sampling       bool          `json:"sampling"`
 	RPS            int           `json:"rps"`
 	Duration       time.Duration `json:"duration"`
 	OutputDir      string        `json:"outputDir"`
@@ -223,7 +226,7 @@ func (runner *Runner) runLoad(
 	ctx context.Context,
 	config Config,
 	targetPath string,
-) error {
+) (runErr error) {
 	warmupDuration, start := WarmupWindow(time.Now(), defaultWarmup)
 	runner.info(
 		"warming up",
@@ -247,6 +250,20 @@ func (runner *Runner) runLoad(
 	if err := runner.WaitForMeasured(ctx, start); err != nil {
 		return err
 	}
+	stopSampling, duration, err := StartSampling(ctx, config)
+	if err != nil {
+		return err
+	}
+	if config.Sampling {
+		runner.info("runtime sampling enabled", "duration", duration)
+	}
+	defer func() {
+		err := stopSampling()
+		runErr = errors.Join(runErr, err)
+		if config.Sampling && err == nil {
+			runner.info("runtime sampling disabled")
+		}
+	}()
 	return runner.RunMeasured(ctx, config, targetPath)
 }
 
@@ -437,4 +454,69 @@ func writeJSON(path string, value any) error {
 		return err
 	}
 	return os.WriteFile(path, append(content, '\n'), 0o600)
+}
+
+// StartSampling 根据公共开关控制正式负载采样，取消后仍尝试关闭会话。
+func StartSampling(ctx context.Context, config Config,
+) (func() error, time.Duration, error) {
+	if !config.Sampling {
+		return func() error { return nil }, 0, nil
+	}
+	address, err := url.Parse(config.DiagnosticsURL)
+	if err != nil || address.Host == "" ||
+		(address.Scheme != "http" && address.Scheme != "https") {
+		return nil, 0, errors.New("valid diagnostics URL is required for runtime sampling")
+	}
+	if config.Duration <= 0 {
+		return nil, 0, errors.New("measured duration must be positive")
+	}
+	address.Path = "/debug/pprof/sampling"
+	address.RawQuery = ""
+	address.Fragment = ""
+	// 请求正式负载时长，后端截断到采样上限；秒级有效期向上取整。
+	seconds := int64((config.Duration-1)/time.Second) + 1
+	query := url.Values{"seconds": {strconv.FormatInt(seconds, 10)}}
+	address.RawQuery = query.Encode()
+	client := &http.Client{Timeout: 5 * time.Second}
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, address.String(), nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, 0, fmt.Errorf("enable runtime sampling: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 2048))
+		return nil, 0, fmt.Errorf("enable runtime sampling: %s: %s",
+			response.Status, strings.TrimSpace(string(body)))
+	}
+	var session struct {
+		ID      uint64 `json:"id"`
+		Seconds uint64 `json:"seconds"`
+	}
+	err = json.NewDecoder(response.Body).Decode(&session)
+	if err != nil || session.ID == 0 || session.Seconds == 0 {
+		return nil, 0, fmt.Errorf("invalid runtime sampling session: id=%d, error=%v", session.ID, err)
+	}
+	return func() error {
+		cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		address.RawQuery = url.Values{"id": {strconv.FormatUint(session.ID, 10)}}.Encode()
+		request, err := http.NewRequestWithContext(cleanupContext,
+			http.MethodDelete, address.String(), nil)
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			return fmt.Errorf("disable runtime sampling: %w", err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusNoContent {
+			return fmt.Errorf("disable runtime sampling: %s", response.Status)
+		}
+		return nil
+	}, time.Duration(session.Seconds) * time.Second, nil
 }

@@ -116,7 +116,7 @@ func TestSharedCommandParameters(t *testing.T) {
 	if command.Use != "sample <portal-url>" {
 		t.Fatalf("command use = %q", command.Use)
 	}
-	for _, name := range []string{"rps", "duration"} {
+	for _, name := range []string{"rps", "duration", "sampling"} {
 		if command.Flags().Lookup(name) == nil {
 			t.Errorf("missing flag %q", name)
 		}
@@ -127,14 +127,34 @@ func TestSharedCommandParameters(t *testing.T) {
 			command.Flags().Lookup("duration").DefValue,
 		)
 	}
+	if command.Flags().Lookup("sampling").DefValue != "false" {
+		t.Fatal("sampling defaults to enabled")
+	}
+	err := command.ParseFlags([]string{"--sampling"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	enabled, err := command.Flags().GetBool("sampling")
+	if err != nil || !enabled {
+		t.Fatal("sampling flag did not enable")
+	}
+	err = command.ParseFlags([]string{"--sampling=false"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	enabled, err = command.Flags().GetBool("sampling")
+	if err != nil || enabled {
+		t.Fatal("sampling flag did not disable")
+	}
 	now := time.Date(2026, 10, 1, 2, 3, 4, 5, time.UTC)
 	outputDir := getDefaultOutputDir("sample", now)
 	paramList := getParamList(outputDir)
-	if len(paramList) != 4 || paramList[0].Name != "portal-url" ||
-		paramList[1].Name != "rps" || paramList[2].Name != "duration" ||
-		paramList[3].Name != "output-dir" ||
-		paramList[3].Usage != "output directory" ||
-		paramList[3].Default != outputDir {
+	if len(paramList) != 5 || paramList[0].Name != "portal-url" ||
+		paramList[1].Name != "rps" || paramList[2].Name != "sampling" ||
+		paramList[2].Default != "false" || paramList[3].Name != "duration" ||
+		paramList[4].Name != "output-dir" ||
+		paramList[4].Usage != "output directory" ||
+		paramList[4].Default != outputDir {
 		t.Fatalf("interactive parameters = %+v", paramList)
 	}
 }
