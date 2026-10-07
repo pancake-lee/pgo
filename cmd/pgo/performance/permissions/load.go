@@ -374,14 +374,10 @@ func clearLoadReports(outputDir string) error {
 		name := entry.Name()
 		remove := name == "00-auto-run.json" || name == "writer-report.txt"
 		if entry.IsDir() {
-			// 同时清除当前读组报告与旧版目录。
-			remove = name == "hot" || name == "control" ||
-				name == "pure" || name == "mixed" || name == "recovery"
-			for _, prefix := range []string{"round-", "rps-"} {
-				if strings.HasPrefix(name, prefix) {
-					value, parseErr := strconv.Atoi(strings.TrimPrefix(name, prefix))
-					remove = parseErr == nil && value > 0
-				}
+			remove = name == "hot" || name == "control"
+			if strings.HasPrefix(name, "rps-") {
+				value, parseErr := strconv.Atoi(strings.TrimPrefix(name, "rps-"))
+				remove = parseErr == nil && value > 0
 			}
 		}
 		if remove {

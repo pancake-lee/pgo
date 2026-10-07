@@ -350,9 +350,12 @@ func prepareSmallPermissionBatch(t *testing.T, baseURL, directory string,
 		config: performance.Config{APIURL: baseURL, RPS: 20, OutputDir: directory},
 		logger: klog.NewStdLogger(io.Discard), opt: defaultOptions(),
 	}
-	_, closeClient, err := loader.Prepare(t.Context(), directory)
+	targetPath, closeClient, err := loader.Prepare(t.Context(), directory)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if targetPath != filepath.Join(directory, "data", "hot-targets.jsonl") {
+		t.Fatalf("unexpected preparation target path: %s", targetPath)
 	}
 	t.Cleanup(func() {
 		if closeClient != nil {
@@ -373,6 +376,10 @@ func TestPermissionDataReuseAndMissingRowsRebuild(t *testing.T) {
 	created := fixture.createdCount
 	fixture.mu.Unlock()
 	second := prepareSmallPermissionBatch(t, server.URL, directory)
+	second.config.RPS = 15
+	if _, _, err := second.Prepare(t.Context(), directory); err != nil {
+		t.Fatal(err)
+	}
 	fixture.mu.Lock()
 	if fixture.createdCount != created || second.manifest.Batch != batch {
 		t.Fatal("complete batch was not reused")
@@ -432,7 +439,7 @@ func TestPermissionScaleUpdateRetriesFailedCleanup(t *testing.T) {
 	if err == nil {
 		t.Fatal("cleanup failure must stop rebuilding")
 	}
-	retained, err := readManifest(filepath.Join(directory, "01-permissions.json"))
+	retained, err := readManifest(filepath.Join(directory, "data", "01-permissions.json"))
 	if err != nil || retained.Batch != batch || retained.Ready {
 		t.Fatalf("old cleanup state was not retained: %v", err)
 	}
@@ -465,7 +472,7 @@ func TestPermissionCheckFailureRetainsBatch(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected failed data check")
 	}
-	retained, err := readManifest(filepath.Join(directory, "01-permissions.json"))
+	retained, err := readManifest(filepath.Join(directory, "data", "01-permissions.json"))
 	if err != nil || retained.Batch != batch || !retained.Ready {
 		t.Fatal("read error replaced or cleaned the batch")
 	}
@@ -514,18 +521,15 @@ func TestPrepareClearsStaleReports(t *testing.T) {
 				"hot/11-vegeta-report.txt",
 				"control/11-vegeta-report.txt",
 				"writer-report.txt",
-				"pure/hot/11-vegeta-report.txt",
-				"mixed/writer-report.txt",
-				"recovery/control/11-vegeta-report.txt",
-				"round-01/recovery/hot/11-vegeta-report.txt",
-				"round-02/pure/control/11-vegeta-report.txt",
-				"rps-200/mixed/writer-report.txt",
-				"rps-400/recovery/hot/11-vegeta-report.txt",
+				"rps-200/writer-report.txt",
+				"rps-400/hot/11-vegeta-report.txt",
 				"00-auto-run.json",
 			}
 			preservedList := []string{
-				"01-permissions.json", "00-run.json", "hot-targets.jsonl",
-				"control-targets.jsonl", "grafana-rps20-1.png",
+				"data/01-permissions.json", "00-run.json", "data/hot-targets.jsonl",
+				"data/control-targets.jsonl", "grafana-rps20-1.png",
+				"round-01/hot/11-vegeta-report.txt", "round-02/writer-report.txt",
+				"round-01/00-run.json", "round-01/grafana.png",
 				"notes/readme.md", "rps-notes/readme.md",
 			}
 			for _, name := range append(oldReportList, preservedList...) {
@@ -584,7 +588,10 @@ func TestRunLoadReadWrite(t *testing.T) {
 			}
 			fixture, server := newFixtureAPI(t)
 			directory := t.TempDir()
-			manifestPath := filepath.Join(directory, "01-permissions.json")
+			manifestPath := filepath.Join(directory, "data", "01-permissions.json")
+			if err := os.MkdirAll(filepath.Dir(manifestPath), 0o700); err != nil {
+				t.Fatal(err)
+			}
 			manifest, err := prepareFixture(t.Context(), server.URL, manifestPath,
 				fixtureScale{2, 4, 3, 2, 2}, klog.NewStdLogger(io.Discard))
 			if err != nil {
@@ -627,7 +634,7 @@ esac
 				OutputDir: directory,
 			}
 			err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
-				filepath.Join(directory, "hot-targets.jsonl"))
+				filepath.Join(directory, "data", "hot-targets.jsonl"))
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -46,21 +46,27 @@ PERMISSION_OUTPUT=.local/performance/permissions/comparison
 
 同目录数据满足当前规模时会检查实际记录、刷新令牌并直接复用；规模变化、准备未完成、清理未完成或数据缺失时，先通过 HTTP 删除旧批次，再重建。清理失败保留原清单并停止，下一次运行可继续；请求或鉴权错误直接报错，不当作数据不足。默认保留测试数据，也可使用 `--keep-data=false` 在结束后清理。
 
-CLI 省略 `--output-dir` 时仍生成新目录；要自动复用需明确指定同一目录，菜单会记住目录。保留 `--manifest` 供已有调用指定清单，该方式独立清理应使用对应清单所在目录或原清单路径。
+CLI 省略 `--output-dir` 时仍生成新目录；要自动复用需明确指定同一目录，菜单会记住目录。保留 `--manifest` 供已有调用指定清单，该方式独立清理应使用原清单路径。
 
 ## 看哪些结果
 
 客户端只保存负载侧结果，包含运行参数、HTTP 目标、两个读组的 Vegeta 结果与报告，以及管理员请求报告。清单和目标文件含测试令牌，文件权限为 0600。
 
-正式测试开始准备数据前，清除同目录上次的纯读、混合、恢复报告、旧轮次目录和自动档位报告，保留准备清单、HTTP 目标及截图。新测试中途失败时，未执行窗口不会显示上次结果。不同 RPS 使用同一目录即可复用同一套准备数据。`--prepare-only` 保留已有负载报告。
+准备清单与两组 HTTP 目标固定保存到输出目录的 `data/`。正式测试开始准备数据前，只清除根目录上次的 `hot/`、`control/`、`writer-report.txt` 及自动档位报告，保留 `data/`、`round-xx/` 和用户截图。`00-run.json` 更新为本次运行参数。新测试中途失败时，未执行窗口不会显示上次结果。不同 RPS 使用同一目录即可复用同一套准备数据。`--prepare-only` 保留已有负载报告。
 
-auto 下每档结果放在 `rps-200/`、`rps-400/` 等子目录中，结构如下；清单及 HTTP 目标放在整轮根目录并由各档复用。
+auto 下每档结果放在 `rps-200/`、`rps-400/` 等子目录中，结构如下；清单及 HTTP 目标始终放在输出目录的 `data/` 并由各档复用。`round-xx/` 由用户确认结果后手动迁移，程序不创建、不清理；迁移结果时保留 `data/`。
 
 ```text
 本次输出目录/
+  data/
+    01-permissions.json
+    hot-targets.jsonl
+    control-targets.jsonl
+  00-run.json
   hot/11-vegeta-report.txt
   control/11-vegeta-report.txt
   writer-report.txt
+  round-01/                 # 手动备份结果，不包含 data/
 ```
 
 公共参数 `--sampling` 默认关闭，菜单中的 `sampling` 默认 `false` 并记住上次值；CLI 用 `--sampling` 开启、`--sampling=false` 关闭。先用普通负载寻找异常，再保持 RPS、数据和测试时长相同，开启采样复测。开关控制 block/mutex 事件采样，CPU/heap 与 goroutine 的 Alloy 抓取沿用配置。

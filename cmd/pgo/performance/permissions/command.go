@@ -93,7 +93,7 @@ type preparer struct {
 	client       *apiClient
 }
 
-// dataPath 定位同目录清单，同时兼容显式清单和旧清理命令参数。
+// dataPath 定位准备子目录清单，同时兼容显式清单和旧清理命令参数。
 func (preparer *preparer) dataPath(directory string) string {
 	if preparer.opt.ManifestPath != "" {
 		return preparer.opt.ManifestPath
@@ -101,7 +101,7 @@ func (preparer *preparer) dataPath(directory string) string {
 	if strings.HasSuffix(directory, ".json") {
 		return directory
 	}
-	return filepath.Join(directory, "01-permissions.json")
+	return filepath.Join(directory, "data", "01-permissions.json")
 }
 
 // CheckData 校验当前规模、清单完整性与服务记录，刷新令牌后复用。
@@ -155,6 +155,9 @@ func (preparer *preparer) CreateData(ctx context.Context, directory string,
 		preparer.client.httpClient.CloseIdleConnections()
 	}
 	preparer.manifestPath = preparer.dataPath(directory)
+	if err := os.MkdirAll(filepath.Dir(preparer.manifestPath), 0o700); err != nil {
+		return err
+	}
 	baseURL := preparer.config.APIURL
 	if !strings.Contains(baseURL, "://") {
 		baseURL = "http://" + baseURL
@@ -259,13 +262,17 @@ func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 			return "", cleanup, err
 		}
 	}
+	dataDir := filepath.Join(outputDir, "data")
+	if err := os.MkdirAll(dataDir, 0o700); err != nil {
+		return "", cleanup, err
+	}
 	err := performance.EnsureData(ctx, outputDir, preparer, preparer.logger)
 	if err != nil {
 		return "", cleanup, err
 	}
 	preparer.info("generating permission read targets")
 	for _, group := range []string{"hot", "control"} {
-		err = writeTargets(filepath.Join(outputDir, group+"-targets.jsonl"), preparer.manifest, group)
+		err = writeTargets(filepath.Join(dataDir, group+"-targets.jsonl"), preparer.manifest, group)
 		if err != nil {
 			return "", cleanup, err
 		}
@@ -273,7 +280,7 @@ func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 	_ = preparer.logger.Log(klog.LevelInfo, "msg", "HTTP preparation and verification completed",
 		"users", len(preparer.manifest.UserList), "permissions", len(preparer.manifest.RecordIDMap["user-role-permission-assoc"]),
 		"manifest", preparer.manifestPath)
-	return filepath.Join(outputDir, "hot-targets.jsonl"), cleanup, nil
+	return filepath.Join(dataDir, "hot-targets.jsonl"), cleanup, nil
 }
 
 // info 使用通用场景日志入口输出阶段提示，不包含请求令牌。
