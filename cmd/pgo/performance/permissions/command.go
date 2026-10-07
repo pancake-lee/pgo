@@ -93,6 +93,11 @@ type preparer struct {
 	client       *apiClient
 }
 
+// ResultDirectory 将当前负载结果保存到固定子目录。
+func (*preparer) ResultDirectory(directory string) string {
+	return filepath.Join(directory, "current")
+}
+
 // dataPath 定位准备子目录清单，同时兼容显式清单和旧清理命令参数。
 func (preparer *preparer) dataPath(directory string) string {
 	if preparer.opt.ManifestPath != "" {

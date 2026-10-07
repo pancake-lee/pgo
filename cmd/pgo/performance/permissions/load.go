@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -142,7 +141,7 @@ func writeTargets(path string, manifest *Manifest, group string) error {
 	return file.Close()
 }
 
-// runPair 同时运行两个读组，任一执行器失败时取消另一个。
+// runPair 同时运行两个读组，结果失败保留双方报告，执行器故障取消另一组。
 func runPair(ctx context.Context, run func(context.Context, string) error) error {
 	pairContext, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -155,7 +154,9 @@ func runPair(ctx context.Context, run func(context.Context, string) error) error
 			defer wg.Done()
 			err := run(pairContext, group)
 			if err != nil {
-				cancel()
+				if !errors.Is(err, performance.ErrLoadFailed) {
+					cancel()
+				}
 				mu.Lock()
 				pairErr = errors.Join(pairErr, err)
 				mu.Unlock()
@@ -364,28 +365,7 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 	return verifyFixture(ctx, preparer.client, preparer.manifest)
 }
 
-// clearLoadReports 清除上次负载报告，保留准备数据、目标文件和用户截图。
+// clearLoadReports 只清除当前负载结果，准备数据与手动备份保持完整。
 func clearLoadReports(outputDir string) error {
-	entryList, err := os.ReadDir(outputDir)
-	if err != nil {
-		return err
-	}
-	for _, entry := range entryList {
-		name := entry.Name()
-		remove := name == "00-auto-run.json" || name == "writer-report.txt"
-		if entry.IsDir() {
-			remove = name == "hot" || name == "control"
-			if strings.HasPrefix(name, "rps-") {
-				value, parseErr := strconv.Atoi(strings.TrimPrefix(name, "rps-"))
-				remove = parseErr == nil && value > 0
-			}
-		}
-		if remove {
-			err = os.RemoveAll(filepath.Join(outputDir, name))
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return os.RemoveAll(filepath.Join(outputDir, "current"))
 }

@@ -36,6 +36,9 @@ const (
 	vegetaReportFileName  = "11-vegeta-report.txt"
 )
 
+// ErrLoadFailed 表示报告已完成但存在非成功响应，区别于执行器故障。
+var ErrLoadFailed = errors.New("load stopped")
+
 // Config 保存所有性能场景共用的单档负载配置。
 type Config struct {
 	APIURL         string        `json:"apiURL"`
@@ -50,6 +53,19 @@ type Config struct {
 type Preparer interface {
 	Prepare(context.Context, string,
 	) (targetPath string, cleanup func() error, err error)
+}
+
+// ResultDirectory 允许场景将当前结果与准备数据分开保存。
+type ResultDirectory interface {
+	ResultDirectory(string) string
+}
+
+// resultConfig 定位本轮报告目录，准备数据仍使用用户输入的输出目录。
+func resultConfig(config Config, preparer Preparer) Config {
+	if layout, ok := preparer.(ResultDirectory); ok {
+		config.OutputDir = layout.ResultDirectory(config.OutputDir)
+	}
+	return config
 }
 
 // PreparedLoader 允许场景使用已准备的数据编排多个独立负载流。
@@ -79,7 +95,7 @@ func NewRunner(logger klog.Logger) *Runner {
 func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
 ) error {
 	return runner.runPrepared(ctx, config, preparer, func(targetPath string) error {
-		return runner.loadPrepared(ctx, config, preparer, targetPath)
+		return runner.loadPrepared(ctx, resultConfig(config, preparer), preparer, targetPath)
 	})
 }
 
@@ -88,7 +104,7 @@ func (runner *Runner) RunAutomatic(ctx context.Context, config Config,
 	preparer Preparer, rpsList []int,
 ) error {
 	return runner.runPrepared(ctx, config, preparer, func(targetPath string) error {
-		return RunAutomatic(ctx, runner, config, rpsList,
+		return RunAutomatic(ctx, runner, resultConfig(config, preparer), rpsList,
 			func(ctx context.Context, stageConfig Config) error {
 				return runner.loadPrepared(ctx, stageConfig, preparer, targetPath)
 			})
@@ -114,17 +130,19 @@ func (runner *Runner) runPrepared(ctx context.Context, config Config,
 		return err
 	}
 
-	runPath := filepath.Join(config.OutputDir, runFileName)
-	err = writeJSON(runPath, config)
-	if err != nil {
-		return err
-	}
-
 	targetPath, cleanup, err := preparer.Prepare(ctx, config.OutputDir)
 	if cleanup != nil {
 		defer func() {
 			runErr = errors.Join(runErr, cleanup())
 		}()
+	}
+	// 准备阶段清理旧结果后再记录本轮参数，失败时也保留输入。
+	reportConfig := resultConfig(config, preparer)
+	if reportErr := os.MkdirAll(reportConfig.OutputDir, 0o700); reportErr != nil {
+		return errors.Join(err, reportErr)
+	}
+	if reportErr := writeJSON(filepath.Join(reportConfig.OutputDir, runFileName), config); reportErr != nil {
+		return errors.Join(err, reportErr)
 	}
 	if err != nil {
 		return err
@@ -183,8 +201,8 @@ func (runner *Runner) RunMeasured(ctx context.Context, config Config,
 		return err
 	}
 	if result.Success < 1 {
-		return fmt.Errorf("load stopped: success ratio %.2f%%; see %s",
-			result.Success*100, config.OutputDir)
+		return fmt.Errorf("%w: success ratio %.2f%%; see %s",
+			ErrLoadFailed, result.Success*100, config.OutputDir)
 	}
 	return nil
 }

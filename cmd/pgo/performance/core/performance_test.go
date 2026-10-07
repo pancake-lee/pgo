@@ -209,7 +209,7 @@ func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	config := Config{APIURL: "http://localhost:8080", RPS: 10,
 		Duration: time.Second, OutputDir: t.TempDir()}
 	err := runner.RunAutomatic(t.Context(), config, loader, []int{10, 25, 50})
-	if err == nil || !strings.Contains(err.Error(), "success ratio 90.00%") {
+	if !errors.Is(err, ErrLoadFailed) || !strings.Contains(err.Error(), "success ratio 90.00%") {
 		t.Fatalf("automatic error = %v", err)
 	}
 	if loader.prepareCount != 1 || loader.cleanupCount != 1 {
@@ -371,5 +371,56 @@ func TestRunnerSamplingSwitch(t *testing.T) {
 	}
 	if err = stop(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// directoryLoader 验证准备目录与报告子目录分离。
+type directoryLoader struct {
+	fakePreparedLoader
+}
+
+// ResultDirectory 将测试报告限定在 current 子目录。
+func (*directoryLoader) ResultDirectory(directory string) string {
+	return filepath.Join(directory, "current")
+}
+
+// TestRunnerSeparatesResults 验证单档与自动档位共用根目录准备并分离报告。
+func TestRunnerSeparatesResults(t *testing.T) {
+	for _, automatic := range []bool{false, true} {
+		t.Run(fmt.Sprintf("automatic=%t", automatic), func(t *testing.T) {
+			runner := NewRunner(klog.NewStdLogger(io.Discard))
+			runner.checkVegeta = func(string) error { return nil }
+			runner.execContext = fakeExecContext
+			loader := &directoryLoader{}
+			config := Config{APIURL: "http://localhost:8080", RPS: 10,
+				Duration: time.Second, OutputDir: t.TempDir()}
+			var err error
+			reportDir := filepath.Join(config.OutputDir, "current")
+			if automatic {
+				err = runner.RunAutomatic(t.Context(), config, loader, []int{10, 20})
+			} else {
+				err = runner.Run(t.Context(), config, loader)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			paths := []string{filepath.Join(config.OutputDir, "targets.jsonl"), filepath.Join(reportDir, runFileName)}
+			if automatic {
+				paths = append(paths, filepath.Join(reportDir, autoPlanFileName), filepath.Join(reportDir, "rps-010", vegetaReportFileName), filepath.Join(reportDir, "rps-020", vegetaReportFileName))
+			} else {
+				paths = append(paths, filepath.Join(reportDir, vegetaReportFileName))
+			}
+			for _, path := range paths {
+				if _, err := os.Stat(path); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := os.Stat(filepath.Join(config.OutputDir, runFileName)); !os.IsNotExist(err) {
+				t.Fatal("root report remains")
+			}
+			if loader.prepareCount != 1 || loader.cleanupCount != 1 {
+				t.Fatal("unexpected preparation lifecycle")
+			}
+		})
 	}
 }

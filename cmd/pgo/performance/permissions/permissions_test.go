@@ -3,6 +3,7 @@ package permissions
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -518,12 +519,12 @@ func TestPrepareClearsStaleReports(t *testing.T) {
 		t.Run(fmt.Sprintf("prepare-only=%t", prepareOnly), func(t *testing.T) {
 			directory := t.TempDir()
 			oldReportList := []string{
-				"hot/11-vegeta-report.txt",
-				"control/11-vegeta-report.txt",
-				"writer-report.txt",
-				"rps-200/writer-report.txt",
-				"rps-400/hot/11-vegeta-report.txt",
-				"00-auto-run.json",
+				"current/hot/11-vegeta-report.txt",
+				"current/control/11-vegeta-report.txt",
+				"current/writer-report.txt",
+				"current/rps-200/writer-report.txt",
+				"current/rps-400/hot/11-vegeta-report.txt",
+				"current/00-auto-run.json", "current/00-run.json", "current/extra.png",
 			}
 			preservedList := []string{
 				"data/01-permissions.json", "00-run.json", "data/hot-targets.jsonl",
@@ -631,7 +632,7 @@ esac
 			config := performance.Config{
 				APIURL: server.URL, DiagnosticsURL: server.URL, Sampling: sampling,
 				RPS: 20, Duration: 50 * time.Millisecond,
-				OutputDir: directory,
+				OutputDir: filepath.Join(directory, "current"),
 			}
 			err = loader.RunLoad(t.Context(), performance.NewRunner(logger), config,
 				filepath.Join(directory, "data", "hot-targets.jsonl"))
@@ -649,12 +650,12 @@ esac
 				}
 			}
 			for _, group := range []string{"hot", "control"} {
-				_, err = os.Stat(filepath.Join(directory, group, "11-vegeta-report.txt"))
+				_, err = os.Stat(filepath.Join(directory, "current", group, "11-vegeta-report.txt"))
 				if err != nil {
 					t.Fatal(err)
 				}
 			}
-			content, err = os.ReadFile(filepath.Join(directory, "writer-report.txt"))
+			content, err = os.ReadFile(filepath.Join(directory, "current", "writer-report.txt"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -803,6 +804,85 @@ func TestSamplingDuration(t *testing.T) {
 			}
 			if err = stop(); err != nil {
 				t.Fatal(err)
+			}
+		})
+	}
+}
+
+// TestRunPairRetainsFailedReports 验证先完成的失败报告不会取消另一组报告进程。
+func TestRunPairRetainsFailedReports(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake Vegeta uses a POSIX shell")
+	}
+	for _, first := range []string{"hot", "control"} {
+		t.Run(first, func(t *testing.T) {
+			directory := t.TempDir()
+			toolDir := t.TempDir()
+			script := `#!/bin/sh
+case "$1" in
+attack) printf 'sample' ;;
+report)
+  case "$3" in
+    */` + first + `/*) ;;
+    *) sleep 0.1 ;;
+  esac
+  printf 'Requests [total, rate, throughput] 10, 10, 9\nSuccess [ratio] 90.00%%\n'
+  ;;
+*) exit 1 ;;
+esac
+`
+			if err := os.WriteFile(filepath.Join(toolDir, "vegeta"), []byte(script), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", toolDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+			runner := performance.NewRunner(klog.NewStdLogger(io.Discard))
+			err := runPair(t.Context(), func(ctx context.Context, group string) error {
+				config := performance.Config{APIURL: "http://localhost", RPS: 10,
+					Duration: time.Millisecond, OutputDir: filepath.Join(directory, group)}
+				return runner.RunMeasured(ctx, config, filepath.Join(directory, group+"-targets.jsonl"))
+			})
+			if !errors.Is(err, performance.ErrLoadFailed) || strings.Contains(err.Error(), "Vegeta report:") {
+				t.Fatalf("unexpected failure: %v", err)
+			}
+			if strings.Count(err.Error(), "success ratio 90.00%") != 2 {
+				t.Fatalf("missing group failure: %v", err)
+			}
+			for _, group := range []string{"hot", "control"} {
+				content, err := os.ReadFile(filepath.Join(directory, group, "11-vegeta-report.txt"))
+				if err != nil || !strings.Contains(string(content), "Success [ratio] 90.00%") {
+					t.Fatalf("incomplete %s report: %v", group, err)
+				}
+			}
+		})
+	}
+}
+
+// TestRunPairCancellation 验证执行器故障与用户取消仍能结束另一组负载。
+func TestRunPairCancellation(t *testing.T) {
+	for _, userCancel := range []bool{false, true} {
+		t.Run(fmt.Sprintf("user-cancel=%t", userCancel), func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+			defer cancel()
+			started := make(chan struct{})
+			fault := errors.New("attack failed")
+			err := runPair(ctx, func(ctx context.Context, group string) error {
+				if group == "control" {
+					close(started)
+					<-ctx.Done()
+					return ctx.Err()
+				}
+				<-started
+				if userCancel {
+					cancel()
+					return ctx.Err()
+				}
+				return fault
+			})
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("sibling not canceled: %v", err)
+			}
+			if !userCancel && !errors.Is(err, fault) {
+				t.Fatalf("fault lost: %v", err)
 			}
 		})
 	}
