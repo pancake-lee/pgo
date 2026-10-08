@@ -33,10 +33,49 @@
 | Done | 部署 | 58 | 首次部署后授予启动脚本执行权限 | |
 | Done | 性能测试 | 59 | 权限三轮压测瓶颈定位记录 | |
 | Done | 性能测试 | 60 | 权限失败负载保留两组报告 | |
+| Done | 可观测性 | 61 | 修正日志采集时间的时区 | |
+| Done | 可观测性 | 62 | 保留采集日志的 JSON 字段 | |
+| 待规划 | 可观测性 | 63 | GORM 日志缺失请求 tid | |
 
 ---
 
 ## 详细说明
+
+### 63. GORM 日志缺失请求 tid
+
+- **状态**：待规划
+- **背景**：同一请求的 HTTP 日志包含 tid，GORM 慢 SQL 日志的 tid 为空；用户提供的生产原始日志中该字段已为空，问题发生在采集之前。
+- **分析**：GetUserPermissions 创建 AppCtx，DAO 使用 WithContext(ctx)，请求 context 已传到 GORM。当前 GORM 默认 logger 的 Trace 接收 ctx，但调用 Writer.Printf 时不传 ctx；项目 Writer.Printf 再调用无请求 context 的全局 plogger.Infof，导致动态 tid 读取不到请求标识。该 Writer 也被 SQLite 与只读数据库初始化复用。
+- **方案**：待规划，修复应从接收 ctx 的 GORM logger 接口接入请求日志上下文，避免把请求 ctx 写入共享 logger。
+- **验收**：同一请求的慢 SQL 日志与 HTTP 日志 tid 一致，并发请求不串号；无请求上下文的数据库操作不伪造 tid。
+
+### 62. 保留采集日志的 JSON 字段
+
+- **状态**：Done
+- **用户验收（2026-10-08）**：用户确认任务 62 验收通过，关单。
+- **背景**：Grafana 只显示应用日志的 M 内容，L、caller、tid、sid 等字段不可见。
+- **分析**：Alloy 的 stage.json 只提取中间处理值，stage.output 将原 JSON 替换成 M；当前索引标签仅包含文件与应用标签，提取的 level 未被保存，sid 也未被提取。
+- **方案**：用户选择 A，移除 Alloy 将正文替换为 M 的输出阶段，完整保留原始 JSON；继续从 T 解析北京时间。按用户要求将 L 原值 D/I/W/E/F 直接保存为 level 索引标签，不转换级别值；其他字段在查询时解析。
+- **任务**：
+  - [x] 移除正文替换阶段，检查字段保留与时间解析配置。
+  - [x] 将日志级别原值加入 level 索引标签，保留完整原文。
+  - [x] （用户）同步 config.alloy 到生产部署目录，在 Compose 文件所在目录执行 `docker compose restart alloy`；选择重启后的时间范围，展开日志确认 level 索引标签为原始字母值，并验证下方筛选查询，回复「验收通过」或错误信息。
+- **查询**：`{app="userService", level="I"} | json message="M", caller="caller", trace_id="tid", span_id="sid" | line_format "{{.message}}"`。level 是索引标签，其他为查询解析字段；完整原文可用 `{app="userService"}` 查看。
+- **验收**：新采集日志完整保留 L、T、M、tid、sid、caller，level 索引标签值与 L 一致，支持按原值筛选，时间仍按北京时间解析；历史已丢弃字段不在此次修复范围内。Grafana 内置 Log levels 对这些字母值的识别以生产界面为准。
+- **自动验证**：静态核对 level 直接提取 L 并通过 labels 保存，未包含级别转换、正文改写或丢弃阶段；时间解析保留 Asia/Shanghai，git diff --check 通过。本机未安装 Alloy，未运行原生配置校验或生产服务；生产字段与筛选可见性为最后验收环节。
+
+### 61. 修正日志采集时间的时区
+
+- **状态**：Done
+- **用户验收（2026-10-08）**：用户确认任务 61 验收通过，关单。
+- **背景**：Loki 在 UTC 02:06:18 拒绝时间戳为 UTC 10:06:17 的 userService 日志。应用使用北京时间，日志时间格式未包含时区；Alloy 时间解析未指定时区，存在约八小时偏移。
+- **分析**：日志编码器输出本地时间，部署配置使用 Asia/Shanghai。用户选择方案 A，所有被采集日志按北京时间解释。
+- **方案**：在 Alloy 时间解析阶段明确使用 Asia/Shanghai，保留现有日志格式，将应用北京时间转换为正确的 UTC 时间戳后写入 Loki。
+- **任务**：
+  - [x] 修正采集时区并自动验证时间换算。
+  - [x] （用户）同步 config.alloy 到生产部署目录，在 docker-compose.yaml 所在目录执行 `docker compose restart alloy`，确认新日志可在 Grafana 查询且不再出现 timestamp too new；回复「验收通过」或错误日志。
+- **验收**：北京时间 2026-10-08 10:06:17 应解析为 UTC 2026-10-08 02:06:17；生产新日志不再因八小时时区偏移触发 timestamp too new。
+- **自动验证**：配置字段检查和 Python 标准库时区换算通过，毫秒精度保留；git diff --check 通过。本机未安装 Alloy，未执行 Alloy 原生配置校验或生产重启，生产验收为最后一环。
 
 ### 60. 权限失败负载保留两组报告
 

@@ -22,20 +22,10 @@ loki.process "pgo_logs" {
 		source     = "filename"
 	}
 
-	stage.labels {
-		values = {
-			app  = "",
-			date = "",
-		}
-	}
-
 	stage.json {
 		expressions = {
-			caller    = "caller",
 			level     = "L",
-			message   = "M",
 			timestamp = "T",
-			trace_id  = "tid",
 		}
 	}
 
@@ -46,8 +36,12 @@ loki.process "pgo_logs" {
 		action_on_failure = "skip"
 	}
 
-	stage.output {
-		source = "message"
+	stage.labels {
+		values = {
+			app  = "",
+			date = "",
+			detected_level = "level",
+		}
 	}
 
 	forward_to = [loki.write.local.receiver]
