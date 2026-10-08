@@ -227,9 +227,12 @@ func TestHTTPFixtureWriterAndCleanup(t *testing.T) {
 	fixture.mu.Lock()
 	fixture.stop = func() { close(stop) }
 	fixture.mu.Unlock()
-	resultList, err := runWriter(t.Context(), stop, client, manifest, 1000)
+	resultList, err := runWriter(t.Context(), stop, client, manifest, 0.8)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if len(resultList) == 2 && resultList[1].Started.Sub(resultList[0].Started) < 1250*time.Millisecond {
+		t.Fatal("fractional writer rate exceeded 0.8 RPS")
 	}
 	fixture.mu.Lock()
 	updates := fixture.updates
@@ -604,6 +607,7 @@ func TestRunLoadReadWrite(t *testing.T) {
 case "$1" in
 attack)
   printf 'attack %s\n' "$(date +%S)" >> "$PERMISSION_ATTACK_LOG"
+  printf '%s\n' "$@" >> "$PERMISSION_RATE_LOG"
   sleep 0.02
   printf 'sample'
   ;;
@@ -619,6 +623,8 @@ esac
 			}
 			attackLog := filepath.Join(directory, "attacks.txt")
 			t.Setenv("PERMISSION_ATTACK_LOG", attackLog)
+			rateLog := filepath.Join(directory, "rates.txt")
+			t.Setenv("PERMISSION_RATE_LOG", rateLog)
 			t.Setenv("PATH", toolDirectory+string(os.PathListSeparator)+os.Getenv("PATH"))
 			logger := klog.NewStdLogger(io.Discard)
 			opt := defaultOptions()
@@ -642,6 +648,11 @@ esac
 			content, err := os.ReadFile(attackLog)
 			if err != nil || strings.Count(string(content), "attack") != 4 {
 				t.Fatalf("expected two read groups warming up and measuring once: %q, %v", content, err)
+			}
+			rateContent, rateErr := os.ReadFile(rateLog)
+			if rateErr != nil || strings.Count(string(rateContent), "-rate=10/1.25s") != 2 ||
+				strings.Count(string(rateContent), "-rate=10/1s") != 2 {
+				t.Fatalf("unexpected warmup/measured rates: %s, %v", rateContent, rateErr)
 			}
 			attacks := strings.Split(strings.TrimSpace(string(content)), "\n")
 			for _, attack := range attacks[2:] {

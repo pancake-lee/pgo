@@ -113,5 +113,6 @@ CREATE TABLE user_role_permission_assoc (
   
   role_id int NOT NULL,
   action varchar(32) NOT NULL,
-  path_pattern varchar(767) NOT NULL -- 这是mysql建索引时的限制，pg应该不是767，但数据不超就不纠结
+  path_pattern varchar(767) NOT NULL, -- 这是mysql建索引时的限制，pg应该不是767，但数据不超就不纠结
+  KEY idx_role (role_id)
 ) AUTO_INCREMENT=10;

@@ -424,3 +424,33 @@ func TestRunnerSeparatesResults(t *testing.T) {
 		})
 	}
 }
+
+// TestWarmupAndMeasuredRates 验证低速率预热保留 80% 且正式负载保持原速率。
+func TestWarmupAndMeasuredRates(t *testing.T) {
+	for _, rps := range []int{1, 3, 10} {
+		t.Run(fmt.Sprint(rps), func(t *testing.T) {
+			runner := NewRunner(klog.NewStdLogger(io.Discard))
+			runner.waitUntil = func(context.Context, time.Time) error { return nil }
+			var rateList []string
+			runner.execContext = func(ctx context.Context, writer io.Writer, command string, args ...string) (string, error) {
+				if args[0] == "attack" {
+					for _, arg := range args {
+						if strings.HasPrefix(arg, "-rate=") {
+							rateList = append(rateList, arg)
+						}
+					}
+				}
+				return fakeExecContext(ctx, writer, command, args...)
+			}
+			config := Config{RPS: rps, Duration: time.Second, OutputDir: t.TempDir()}
+			err := runner.runLoad(t.Context(), config, "targets.jsonl")
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := fmt.Sprintf("-rate=%d/1.25s,-rate=%d/1s", rps, rps)
+			if got := strings.Join(rateList, ","); got != want {
+				t.Fatalf("rates = %s, want %s", got, want)
+			}
+		})
+	}
+}

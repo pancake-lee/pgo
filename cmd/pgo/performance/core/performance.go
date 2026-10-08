@@ -20,6 +20,9 @@ import (
 	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
+// WarmupLoadRatio 控制预热速率为正式负载的 80%。
+const WarmupLoadRatio = 0.8
+
 // warmupDrain 留出整分钟前五秒供预热请求收尾。
 const warmupDrain = 5 * time.Second
 
@@ -173,7 +176,8 @@ func (runner *Runner) loadPrepared(ctx context.Context, config Config,
 func (runner *Runner) RunWarmup(ctx context.Context, config Config,
 	targetPath string, duration time.Duration,
 ) error {
-	return runner.runAttack(ctx, config, targetPath, duration, io.Discard)
+	return runner.runAttack(ctx, config, targetPath, duration,
+		time.Duration(float64(time.Second)/WarmupLoadRatio), io.Discard)
 }
 
 // RunMeasured 保存一个已准备负载流的结果，保持通用报告格式。
@@ -253,14 +257,13 @@ func (runner *Runner) runLoad(
 		"duration",
 		warmupDuration,
 		"rps",
-		config.RPS,
+		float64(config.RPS)*WarmupLoadRatio,
 	)
-	warmupErr := runner.runAttack(
+	warmupErr := runner.RunWarmup(
 		ctx,
 		config,
 		targetPath,
 		warmupDuration,
-		io.Discard,
 	)
 	if warmupErr != nil {
 		return fmt.Errorf("Vegeta warmup: %w", warmupErr)
@@ -315,6 +318,7 @@ func (runner *Runner) runMeasured(ctx context.Context, config Config,
 		config,
 		targetPath,
 		config.Duration,
+		time.Second,
 		resultFile,
 	)
 	runner.info("measured load completed",
@@ -374,13 +378,14 @@ func (runner *Runner) runAttack(
 	config Config,
 	targetPath string,
 	duration time.Duration,
+	ratePeriod time.Duration,
 	resultWriter io.Writer,
 ) error {
 	argumentList := []string{
 		"attack",
 		"-format=json",
 		"-targets=" + targetPath,
-		fmt.Sprintf("-rate=%d/s", config.RPS),
+		fmt.Sprintf("-rate=%d/%s", config.RPS, ratePeriod),
 		"-duration=" + duration.String(),
 		"-timeout=" + defaultTimeout.String(),
 	}

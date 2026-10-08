@@ -176,10 +176,10 @@ type writeResult struct {
 
 // runWriter 按单条请求速率修改共享角色，停止时完成当前动作的角色轮次。
 func runWriter(ctx context.Context, stop <-chan struct{}, client *apiClient,
-	manifest *Manifest, rps int,
+	manifest *Manifest, rps float64,
 ) ([]writeResult, error) {
 	var resultList []writeResult
-	interval := time.Second / time.Duration(rps)
+	interval := time.Duration(float64(time.Second) / rps)
 	for cycle := 0; ; cycle++ {
 		select {
 		case <-stop:
@@ -268,6 +268,7 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 		stream.OutputDir = filepath.Join(config.OutputDir, group)
 		return stream
 	}
+	warmupWriteRPS := float64(preparer.opt.WriteRPS) * performance.WarmupLoadRatio
 	warmupStarted := time.Now()
 	warmupDuration, plannedStart := performance.WarmupWindow(warmupStarted,
 		30*time.Second)
@@ -280,12 +281,13 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 	go func() {
 		defer close(warmupWriterDone)
 		_, writerErr = runWriter(ctx, stopWarmupWriter, preparer.client,
-			preparer.manifest, preparer.opt.WriteRPS)
+			preparer.manifest, warmupWriteRPS)
 	}()
 	preparer.info("warming up permission reads and writes",
 		"duration", warmupDuration,
 		"plannedStartUTC", plannedStart.UTC().Format(time.RFC3339),
-		"readRPS", config.RPS, "writeRPS", preparer.opt.WriteRPS)
+		"readRPS", float64(config.RPS)*performance.WarmupLoadRatio,
+		"writeRPS", warmupWriteRPS)
 	err = runPair(ctx, func(pairContext context.Context, group string) error {
 		return runner.RunWarmup(pairContext, groupConfig(group),
 			filepath.Join(filepath.Dir(targetPath), group+"-targets.jsonl"),
@@ -335,7 +337,7 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 		go func() {
 			defer close(writerDone)
 			resultList, writerErr = runWriter(ctx, stopWriter, preparer.client,
-				preparer.manifest, preparer.opt.WriteRPS)
+				preparer.manifest, float64(preparer.opt.WriteRPS))
 		}()
 		err = runPair(ctx, func(pairContext context.Context, group string) error {
 			return runner.RunMeasured(pairContext, groupConfig(group),
