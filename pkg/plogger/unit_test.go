@@ -2,11 +2,83 @@ package plogger
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
 	"testing"
 	"time"
 
+	kLog "github.com/go-kratos/kratos/v2/log"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
+
+func TestPLoggerCallerAndConsoleOrder(t *testing.T) {
+	originalJSON := isJsonLog
+	originalPrefixKeys := globalPrefixKeys
+	originalSortedKeys := globalSortedPrefixKey
+	t.Cleanup(func() {
+		isJsonLog = originalJSON
+		globalPrefixKeys = originalPrefixKeys
+		globalSortedPrefixKey = originalSortedKeys
+	})
+	globalPrefixKeys = make(map[string]bool)
+	globalSortedPrefixKey = nil
+	SetPrefixKeys("tid", "sid")
+
+	for _, jsonMode := range []bool{false, true} {
+		for _, explicit := range []string{"absent", "custom.go:42", ""} {
+			t.Run(fmt.Sprintf("json=%t/caller=%s", jsonMode, explicit),
+				func(t *testing.T) {
+					isJsonLog = jsonMode
+					core, logs := observer.New(zap.DebugLevel)
+					logger := FromZap(zap.New(core))
+					kv := []any{
+						"msg", "hello", "z", "last", "a", "first",
+						"tid", "trace", "sid", "span", "empty", "",
+					}
+					if explicit != "absent" {
+						kv = append(kv, "caller", explicit)
+					}
+					for range 20 {
+						_, file, line, _ := runtime.Caller(0)
+						err := logger.Log(kLog.LevelInfo, kv...)
+						if err != nil {
+							t.Fatal(err)
+						}
+						caller := explicit
+						if explicit == "absent" {
+							caller = fmt.Sprintf("%s:%d", file, line+1)
+						}
+						entry := logs.All()[logs.Len()-1]
+						if jsonMode {
+							if entry.ContextMap()["caller"] != caller {
+								t.Fatalf("wrong caller: %v", entry.ContextMap())
+							}
+							if entry.Message != "hello" {
+								t.Fatalf("wrong message: %q", entry.Message)
+							}
+						} else {
+							want := "[sid:span] [tid:trace] hello" +
+								" [a:first] [z:last] [" + caller + "]"
+							if entry.Message != want {
+								t.Fatalf("got %q, want %q", entry.Message, want)
+							}
+						}
+					}
+					for _, kv := range [][]any{nil, {"msg"}} {
+						err := logger.Log(kLog.LevelInfo, kv...)
+						if err != nil {
+							t.Fatal(err)
+						}
+						entry := logs.All()[logs.Len()-1]
+						if entry.Level != zap.WarnLevel {
+							t.Fatalf("invalid kv level: %v", entry.Level)
+						}
+					}
+				})
+		}
+	}
+}
 
 func TestZapLogger(t *testing.T) {
 	logger, _ := zap.NewDevelopment()

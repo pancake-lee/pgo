@@ -34,8 +34,7 @@ func initSqliteReadOnly() error {
 	dsn := "file:" + gSavedFilePath + "?mode=ro"
 	var err error
 	gReadOnlyDB, err = gorm.Open(glebarez.Open(dsn), &gorm.Config{
-		Logger: dbLogger.New(
-			Writer{},
+		Logger: newGormLogger(
 			dbLogger.Config{
 				SlowThreshold:             200 * time.Millisecond,
 				LogLevel:                  dbLogger.Warn,
@@ -74,8 +73,7 @@ func initMysqlReadOnly() error {
 			DisableDatetimePrecision: true,
 		}),
 		&gorm.Config{
-			Logger: dbLogger.New(
-				Writer{},
+			Logger: newGormLogger(
 				dbLogger.Config{
 					SlowThreshold:             200 * time.Millisecond,
 					LogLevel:                  dbLogger.Warn,

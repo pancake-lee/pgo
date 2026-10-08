@@ -59,8 +59,7 @@ func InitSqlite(dbPath string) (err error) {
 	}
 
 	gDB, err = gorm.Open(glebarez.Open(absPath), &gorm.Config{
-		Logger: dbLogger.New(
-			Writer{},
+		Logger: newGormLogger(
 			dbLogger.Config{
 				SlowThreshold:             200 * time.Millisecond, // Slow SQL threshold
 				LogLevel:                  dbLogger.Warn,          // Log level

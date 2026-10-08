@@ -78,8 +78,7 @@ func InitMysqlByDsn(dsn string) (err error) {
 			DisableDatetimePrecision: true, // false 时 AutoMigrate 会失败
 		}),
 		&gorm.Config{
-			Logger: dbLogger.New(
-				Writer{},
+			Logger: newGormLogger(
 				dbLogger.Config{
 					SlowThreshold:             200 * time.Millisecond, // Slow SQL threshold
 					LogLevel:                  dbLogger.Warn,          // Log level LogLevel 值为info打印sql

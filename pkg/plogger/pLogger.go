@@ -2,6 +2,7 @@ package plogger
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -61,16 +62,25 @@ func (l *pLogger) logJson(level kLog.Level, keyVals ...any) error {
 
 	var msg string
 	var fields []zap.Field
+	var hasCaller bool
 
 	for i := 0; i < len(keyVals); i += 2 {
 		k := fmt.Sprint(keyVals[i])
 		v := keyVals[i+1]
+		if !hasCaller && k == "caller" {
+			hasCaller = true
+		}
 
 		if k == "msg" {
 			msg = fmt.Sprint(v)
 			continue
 		}
 		fields = append(fields, zap.Any(k, v))
+	}
+	if !hasCaller {
+		_, file, line, _ := runtime.Caller(2)
+		caller := fmt.Sprintf("%s:%d", file, line)
+		fields = append(fields, zap.String("caller", caller))
 	}
 
 	switch level {
@@ -104,6 +114,7 @@ func (l *pLogger) logConsole(level kLog.Level, keyVals ...any) error {
 	prefixData := make(map[string]string)
 	otherData := make(map[string]string)
 	var caller string
+	var hasCaller bool
 	var msg string
 	for i := 0; i < len(keyVals); i += 2 {
 		k := fmt.Sprint(putil.AnyToStr(keyVals[i]))
@@ -111,6 +122,7 @@ func (l *pLogger) logConsole(level kLog.Level, keyVals ...any) error {
 		switch k {
 		case "caller":
 			caller = v
+			hasCaller = true
 		case "msg":
 			msg = v
 		default:
@@ -120,6 +132,10 @@ func (l *pLogger) logConsole(level kLog.Level, keyVals ...any) error {
 				otherData[k] = v
 			}
 		}
+	}
+	if !hasCaller {
+		_, file, line, _ := runtime.Caller(2)
+		caller = fmt.Sprintf("%s:%d", file, line)
 	}
 
 	if len(prefixData) > 0 {
@@ -139,7 +155,13 @@ func (l *pLogger) logConsole(level kLog.Level, keyVals ...any) error {
 	sb.WriteString(msg)
 
 	if len(otherData) > 0 {
-		for k, v := range otherData {
+		keyList := make([]string, 0, len(otherData))
+		for k := range otherData {
+			keyList = append(keyList, k)
+		}
+		sort.Strings(keyList)
+		for _, k := range keyList {
+			v := otherData[k]
 			if v == "" {
 				continue
 			}
