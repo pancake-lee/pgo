@@ -9,7 +9,7 @@ import (
 )
 
 // usePermissionJoin 选择权限查询实现，true 使用 JOIN，false 使用批量查询。
-const usePermissionJoin = true
+const usePermissionJoin = false
 
 // GetUserPermissions 读取项目权限，支持 JOIN 与批量查询的同负载对照。
 func (s *UserServer) GetUserPermissions(_ctx context.Context, req *api.GetUserPermissionsRequest) (*api.GetUserPermissionsResponse, error) {

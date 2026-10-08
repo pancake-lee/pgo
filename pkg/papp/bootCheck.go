@@ -11,7 +11,6 @@ import (
 	"github.com/pancake-lee/pgo/pkg/plogger"
 	"github.com/pancake-lee/pgo/pkg/pmq"
 	"github.com/pancake-lee/pgo/pkg/predis"
-	"github.com/pancake-lee/pgo/pkg/putil"
 )
 
 func CheckRabbitMQ() error {
@@ -121,7 +120,7 @@ func CheckMysql(models []any) error {
 		return err
 	}
 
-	if err := initMysqlGorm(conf, portStr); err != nil {
+	if err := initMysqlGorm(conf); err != nil {
 		return err
 	}
 
@@ -172,15 +171,11 @@ func ensureDatabaseExists(rawDB *pdb.RawSql, conf pdb.MysqlConfig) error {
 	return nil
 }
 
-func initMysqlGorm(conf pdb.MysqlConfig, portStr string) error {
-	parts := strings.Split(conf.Mysql.Addr, ":")
-	host := parts[0]
-	port, err := putil.StrToInt32(portStr)
+// initMysqlGorm 将启动检查读取的 MySQL 配置完整传给数据库初始化。
+func initMysqlGorm(conf pdb.MysqlConfig) error {
+	err := pdb.InitMysqlWithConfig(conf.Mysql)
 	if err != nil {
-		return plogger.LogErr(fmt.Errorf("invalid mysql port: %v", err))
-	}
-	if err := pdb.InitMysql(host, conf.Mysql.User, conf.Mysql.Password, conf.Mysql.DbName, port); err != nil {
-		return plogger.LogErr(fmt.Errorf("pdb.InitMysql failed: %v", err))
+		return plogger.LogErr(fmt.Errorf("pdb.InitMysqlWithConfig failed: %v", err))
 	}
 	return nil
 }

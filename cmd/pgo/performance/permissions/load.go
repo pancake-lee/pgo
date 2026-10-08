@@ -19,8 +19,16 @@ import (
 
 // validateFixture 确认清单包含完整角色、权限与读组，避免使用部分批次。
 func validateFixture(manifest *Manifest) error {
+	if !manifest.Ready {
+		return errors.New("permission fixture is not ready")
+	}
+	return validateFixtureContents(manifest)
+}
+
+// validateFixtureContents 校验批次结构，允许完整批次等待写入恢复。
+func validateFixtureContents(manifest *Manifest) error {
 	scale := manifest.Scale
-	if !manifest.Ready || scale.Projects < 1 || scale.Actions < 1 ||
+	if scale.Projects < 1 || scale.Actions < 1 ||
 		scale.RolesPerGroup < 1 || scale.UsersPerGroup < 1 ||
 		scale.Roles < 2*scale.RolesPerGroup ||
 		len(manifest.ProjectList) != scale.Projects ||
@@ -51,6 +59,15 @@ func validateFixture(manifest *Manifest) error {
 		if project.ID <= 0 || len(project.RoleIDList) != scale.Roles ||
 			len(project.PermissionIDList) != scale.Roles || len(project.VersionList) != scale.Actions {
 			return errors.New("permission fixture project is incomplete")
+		}
+		if project.PendingAction != nil &&
+			(*project.PendingAction < 0 || *project.PendingAction >= scale.Actions) {
+			return errors.New("invalid pending permission action")
+		}
+		for _, version := range project.VersionList {
+			if version != 0 && version != 1 {
+				return errors.New("invalid permission version")
+			}
 		}
 		for _, idList := range project.PermissionIDList {
 			if len(idList) != scale.Actions {
@@ -192,6 +209,7 @@ func runWriter(ctx context.Context, stop <-chan struct{}, client *apiClient,
 		action := (cycle / manifest.Scale.Projects) % manifest.Scale.Actions
 		project := &manifest.ProjectList[projectIndex]
 		version := 1 - project.VersionList[action]
+		project.PendingAction = &action
 		for role := 0; role < manifest.Scale.RolesPerGroup; role++ {
 			started := time.Now()
 			err := client.updatePermission(ctx, project.PermissionIDList[role][action],
@@ -212,6 +230,7 @@ func runWriter(ctx context.Context, stop <-chan struct{}, client *apiClient,
 			}
 		}
 		project.VersionList[action] = version
+		project.PendingAction = nil
 	}
 }
 
@@ -370,4 +389,54 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 // clearLoadReports 只清除当前负载结果，准备数据与手动备份保持完整。
 func clearLoadReports(outputDir string) error {
 	return os.RemoveAll(filepath.Join(outputDir, "current"))
+}
+
+// recoverWrites 在准备阶段恢复未完成轮次，兼容旧版未保存轮次的完整清单。
+func (preparer *preparer) recoverWrites(ctx context.Context) error {
+	manifest := preparer.manifest
+	pending := false
+	for _, project := range manifest.ProjectList {
+		pending = pending || project.PendingAction != nil
+	}
+	if manifest.Ready && !pending {
+		return nil
+	}
+	preparer.info("recovering permission writes", "legacy", !pending)
+	for projectIndex, project := range manifest.ProjectList {
+		for action, version := range project.VersionList {
+			if pending && (project.PendingAction == nil || *project.PendingAction != action) {
+				continue
+			}
+			for role := 0; role < manifest.Scale.RolesPerGroup; role++ {
+				err := preparer.client.updatePermission(ctx,
+					project.PermissionIDList[role][action],
+					permissionPath(projectIndex, "hot", action, version))
+				if err != nil {
+					return fmt.Errorf("recover permission writes: %w", err)
+				}
+			}
+		}
+	}
+	err := verifyFixture(ctx, preparer.client, manifest)
+	if err != nil {
+		return fmt.Errorf("verify recovered permission writes: %w", err)
+	}
+	// 验证全部通过后才落盘就绪状态，恢复失败可在下一轮重试。
+	ready := manifest.Ready
+	pendingActionList := make([]*int, len(manifest.ProjectList))
+	for index := range manifest.ProjectList {
+		pendingActionList[index] = manifest.ProjectList[index].PendingAction
+		manifest.ProjectList[index].PendingAction = nil
+	}
+	manifest.Ready = true
+	err = saveManifest(preparer.manifestPath, manifest)
+	if err != nil {
+		manifest.Ready = ready
+		for index := range manifest.ProjectList {
+			manifest.ProjectList[index].PendingAction = pendingActionList[index]
+		}
+		return err
+	}
+	preparer.info("permission writes recovered; reusing test data")
+	return nil
 }

@@ -36,11 +36,15 @@ var gSavedDSN string      // MySQL / PostgreSQL 的 DSN
 var gSavedFilePath string // SQLite 的文件路径
 var gConf *SqlConfig
 
+// SqlConfig 保存数据库连接信息与可选的 MySQL 连接池参数。
 type SqlConfig struct {
 	Addr     string
 	User     string
 	Password string
 	DbName   string
+
+	MaxOpenConns *int // MySQL 省略时默认 64，必须大于 0。
+	MaxIdleConns *int // MySQL 省略时默认 8，可设为 0。
 
 	Host string // 从addr解析
 	Port int32  // 从addr解析

@@ -65,7 +65,12 @@ func initMysqlReadOnly() error {
 		return fmt.Errorf("create mysql connector: %w", err)
 	}
 
+	poolConfig, err := resolveMysqlPoolConfig(*gConf)
+	if err != nil {
+		return err
+	}
 	roSqlDB := sql.OpenDB(&roMySQLConnector{Connector: connector})
+	setMysqlPool(roSqlDB, poolConfig)
 
 	gReadOnlyDB, err = gorm.Open(
 		gormMysql.New(gormMysql.Config{

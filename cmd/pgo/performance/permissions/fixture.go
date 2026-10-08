@@ -39,6 +39,7 @@ type Project struct {
 	RoleIDList       []int32
 	PermissionIDList [][]int32
 	VersionList      []int
+	PendingAction    *int `json:",omitempty"` // 未完成轮次，恢复至 VersionList。
 }
 
 // Manifest 保存 HTTP 创建成功的批次主键，支持保留数据与中断后清理。

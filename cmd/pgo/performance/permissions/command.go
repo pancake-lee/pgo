@@ -129,7 +129,7 @@ func (preparer *preparer) CheckData(ctx context.Context, directory string,
 		baseURL = "http://" + baseURL
 	}
 	if strings.TrimRight(baseURL, "/") != strings.TrimRight(manifest.BaseURL, "/") ||
-		manifest.Scale != defaultScale || validateFixture(manifest) != nil {
+		manifest.Scale != defaultScale || validateFixtureContents(manifest) != nil {
 		return performance.DataNeedsRebuild, nil
 	}
 	err = preparer.refreshTokens(ctx)
@@ -143,6 +143,10 @@ func (preparer *preparer) CheckData(ctx context.Context, directory string,
 	if errors.Is(err, performance.ErrDataMismatch) {
 		return performance.DataNeedsRebuild, nil
 	}
+	if err != nil {
+		return performance.DataMissing, err
+	}
+	err = preparer.recoverWrites(ctx)
 	if err != nil {
 		return performance.DataMissing, err
 	}
@@ -261,12 +265,6 @@ func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 		defer cancel()
 		return preparer.CleanupData(cleanupContext, outputDir)
 	}
-	if !preparer.opt.PrepareOnly {
-		err := clearLoadReports(outputDir)
-		if err != nil {
-			return "", cleanup, err
-		}
-	}
 	dataDir := filepath.Join(outputDir, "data")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return "", cleanup, err
@@ -274,6 +272,12 @@ func (preparer *preparer) Prepare(ctx context.Context, outputDir string,
 	err := performance.EnsureData(ctx, outputDir, preparer, preparer.logger)
 	if err != nil {
 		return "", cleanup, err
+	}
+	if !preparer.opt.PrepareOnly {
+		err := clearLoadReports(outputDir)
+		if err != nil {
+			return "", cleanup, err
+		}
 	}
 	preparer.info("generating permission read targets")
 	for _, group := range []string{"hot", "control"} {

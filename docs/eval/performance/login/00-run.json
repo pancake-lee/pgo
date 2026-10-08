@@ -1,8 +1,8 @@
 {
   "apiURL": "http://192.168.3.18:20000/",
   "diagnosticsURL": "http://192.168.3.18:20002/debug/pprof/heap",
-  "sampling": true,
-  "rps": 125,
+  "sampling": false,
+  "rps": 20,
   "duration": 60000000000,
-  "outputDir": "docs/eval/performance/permissions/current/hot"
+  "outputDir": "docs/eval/performance/login"
 }

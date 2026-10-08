@@ -28,17 +28,19 @@ import (
 
 // fixtureAPI 模拟现有 HTTP 契约与关系，验证批次、权限和清理行为。
 type fixtureAPI struct {
-	mu                  sync.Mutex
-	nextID              int32
-	recordMap           map[string]map[int32]map[string]any
-	updates             int
-	samplingRequests    []string
-	samplingUpdateCount int
-	stop                func()
-	failedCreates       bool
-	failedDeletes       bool
-	failedReads         bool
-	createdCount        int
+	mu                    sync.Mutex
+	nextID                int32
+	recordMap             map[string]map[int32]map[string]any
+	updates               int
+	samplingRequests      []string
+	samplingUpdateCount   int
+	stop                  func()
+	failedCreates         bool
+	failedDeletes         bool
+	failedReads           bool
+	failedPermissionReads bool
+	failedUpdateAt        int
+	createdCount          int
 }
 
 // newFixtureAPI 创建不依赖真实服务或数据库的 HTTP 回归环境。
@@ -106,6 +108,10 @@ func (fixture *fixtureAPI) serveHTTP(writer http.ResponseWriter, request *http.R
 		return
 	}
 	if kind == "user/permissions" {
+		if fixture.failedPermissionReads {
+			writer.WriteHeader(503)
+			return
+		}
 		userID, _ := strconv.Atoi(request.URL.Query().Get("userID"))
 		projectID, _ := strconv.Atoi(request.URL.Query().Get("projectID"))
 		if request.Header.Get("Authorization") != fmt.Sprintf("Bearer token-%d", userID) {
@@ -174,6 +180,10 @@ func (fixture *fixtureAPI) serveHTTP(writer http.ResponseWriter, request *http.R
 		record := fixture.recordMap[kind][message.UserRolePermissionAssoc.ID]
 		record["pathPattern"] = message.UserRolePermissionAssoc.PathPattern
 		fixture.updates++
+		if fixture.updates == fixture.failedUpdateAt {
+			writer.WriteHeader(500)
+			return
+		}
 		if fixture.stop != nil && fixture.updates == 1 {
 			fixture.stop()
 		}
@@ -516,8 +526,8 @@ func TestPermissionCleanupRecoversAdministrator(t *testing.T) {
 	}
 }
 
-// TestPrepareClearsStaleReports 验证新测试准备失败时也不会残留旧窗口报告。
-func TestPrepareClearsStaleReports(t *testing.T) {
+// TestPrepareFailurePreservesReports 验证准备失败时保留上一窗口报告。
+func TestPrepareFailurePreservesReports(t *testing.T) {
 	for _, prepareOnly := range []bool{false, true} {
 		t.Run(fmt.Sprintf("prepare-only=%t", prepareOnly), func(t *testing.T) {
 			directory := t.TempDir()
@@ -566,11 +576,8 @@ func TestPrepareClearsStaleReports(t *testing.T) {
 			}
 			for _, name := range oldReportList {
 				_, err = os.Stat(filepath.Join(directory, name))
-				if prepareOnly && err != nil {
-					t.Fatalf("preparation removed %s: %v", name, err)
-				}
-				if !prepareOnly && !os.IsNotExist(err) {
-					t.Fatalf("stale report remains: %s (%v)", name, err)
+				if err != nil {
+					t.Fatalf("failed preparation removed %s: %v", name, err)
 				}
 			}
 			for _, name := range preservedList {
@@ -894,6 +901,139 @@ func TestRunPairCancellation(t *testing.T) {
 			}
 			if !userCancel && !errors.Is(err, fault) {
 				t.Fatalf("fault lost: %v", err)
+			}
+		})
+	}
+}
+
+// TestPermissionFailedWritesRecoverNextPreparation 验证部分写入失败后复用同批次。
+func TestPermissionFailedWritesRecoverNextPreparation(t *testing.T) {
+	for _, legacy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("legacy=%t", legacy), func(t *testing.T) {
+			useSmallScale(t)
+			defaultScale.RolesPerGroup = 2
+			fixture, server := newFixtureAPI(t)
+			directory := t.TempDir()
+			loader := prepareSmallPermissionBatch(t, server.URL, directory)
+			batch := loader.manifest.Batch
+			fixture.mu.Lock()
+			created := fixture.createdCount
+			fixture.failedUpdateAt = 2
+			fixture.mu.Unlock()
+			_, err := runWriter(t.Context(), make(chan struct{}), loader.client,
+				loader.manifest, 1000)
+			if err == nil {
+				t.Fatal("expected writer error")
+			}
+			project := &loader.manifest.ProjectList[0]
+			if project.PendingAction == nil || project.VersionList[0] != 0 {
+				t.Fatal("failed round was not retained")
+			}
+			loader.manifest.Ready = false
+			if legacy {
+				project.PendingAction = nil
+			}
+			err = saveManifest(loader.manifestPath, loader.manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			current := filepath.Join(directory, "current")
+			err = os.MkdirAll(current, 0700)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = os.WriteFile(filepath.Join(current, "failed-report.txt"), []byte("failed"), 0600)
+			if err != nil {
+				t.Fatal(err)
+			}
+			archive := filepath.Join(directory, "round-99")
+			err = os.Rename(current, archive)
+			if err != nil {
+				t.Fatal(err)
+			}
+			reused := prepareSmallPermissionBatch(t, server.URL, directory)
+			if reused.manifest.Batch != batch || !reused.manifest.Ready ||
+				reused.manifest.ProjectList[0].PendingAction != nil {
+				t.Fatal("batch was not recovered and reused")
+			}
+			fixture.mu.Lock()
+			afterCreated, updates := fixture.createdCount, fixture.updates
+			fixture.mu.Unlock()
+			wantUpdates := 4
+			if legacy {
+				wantUpdates = 6
+			}
+			if afterCreated != created || updates != wantUpdates {
+				t.Fatalf("created %d/%d, updates %d/%d", afterCreated, created, updates, wantUpdates)
+			}
+			content, err := os.ReadFile(filepath.Join(archive, "failed-report.txt"))
+			if err != nil || string(content) != "failed" {
+				t.Fatal("archived report changed")
+			}
+		})
+	}
+}
+
+// TestPermissionRecoveryFailureRetainsBatch 验证恢复或验证失败后保留状态并可重试。
+func TestPermissionRecoveryFailureRetainsBatch(t *testing.T) {
+	for _, failVerification := range []bool{false, true} {
+		t.Run(fmt.Sprintf("verification=%t", failVerification), func(t *testing.T) {
+			useSmallScale(t)
+			fixture, server := newFixtureAPI(t)
+			directory := t.TempDir()
+			loader := prepareSmallPermissionBatch(t, server.URL, directory)
+			batch := loader.manifest.Batch
+			action := 0
+			loader.manifest.Ready = false
+			loader.manifest.ProjectList[0].PendingAction = &action
+			err := saveManifest(loader.manifestPath, loader.manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			report := filepath.Join(directory, "current", "failed-report.txt")
+			err = os.MkdirAll(filepath.Dir(report), 0700)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = os.WriteFile(report, []byte("failed"), 0600)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fixture.mu.Lock()
+			created := fixture.createdCount
+			fixture.failedPermissionReads = failVerification
+			if !failVerification {
+				fixture.failedUpdateAt = 1
+			}
+			fixture.mu.Unlock()
+			_, _, err = loader.Prepare(t.Context(), directory)
+			if err == nil {
+				t.Fatal("expected recovery failure")
+			}
+			retained, err := readManifest(loader.manifestPath)
+			if err != nil || retained.Batch != batch || retained.Ready ||
+				retained.ProjectList[0].PendingAction == nil {
+				t.Fatal("recovery failure lost pending state")
+			}
+			content, err := os.ReadFile(report)
+			if err != nil || string(content) != "failed" {
+				t.Fatal("prior report removed")
+			}
+			fixture.mu.Lock()
+			afterCreated := fixture.createdCount
+			fixture.failedPermissionReads = false
+			fixture.failedUpdateAt = 0
+			fixture.mu.Unlock()
+			if afterCreated != created {
+				t.Fatal("recovery failure rebuilt batch")
+			}
+			reused := prepareSmallPermissionBatch(t, server.URL, directory)
+			if reused.manifest.Batch != batch || !reused.manifest.Ready {
+				t.Fatal("retry did not reuse recovered batch")
+			}
+			_, err = os.Stat(report)
+			if !os.IsNotExist(err) {
+				t.Fatal("successful preparation retained stale current report")
 			}
 		})
 	}
