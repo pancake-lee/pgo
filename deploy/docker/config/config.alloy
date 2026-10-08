@@ -42,6 +42,7 @@ loki.process "pgo_logs" {
 	stage.timestamp {
 		source            = "timestamp"
 		format            = "060102 15:04:05.999"
+		location          = "Asia/Shanghai"
 		action_on_failure = "skip"
 	}
 
