@@ -45,10 +45,50 @@
 | Done | 性能测试 | 70 | 记录最终权限查询方案对照 | |
 | Done | 性能测试 | 71 | auto 从指定负载搜索失败边界 | |
 | Done | 性能测试 | 73 | round-05 平台数据与硬件瓶颈分析 | |
+| Done | 数据库 | 74 | 复用 GORM Gen Query 消除重复构造 | |
+| Done | 文档 | 75 | 汇总 Query 优化理解与自动压测对照 | |
 
 ---
 
 ## 详细说明
+
+### 75. 汇总 Query 优化理解与自动压测对照
+
+- **状态**：Done，截图、自动搜索对照与用户个人理解已整理。
+- **背景**：用户补充 round-05 定位截图，明确 round-06 是优化前同参数 auto 对照组、round-07 是优化后 auto 结果，要求保留本人对 Query、连接池与事务的理解和描述风格；后续明确不保留提问原文或问答过程。
+- **方案**：在权限压测 README 中保留历史实验，增加用户表达、对象与连接池/事务关系、官方 Query 复用方案、截图读法及 06/07 边界和同档对照；同步 round-05 截图入口、任务 74 实测证据和专题中枢的当前结论。不新增独立计划或设计文档。
+- **任务**：
+  - [x] 核对五张截图、两轮配置和全部档位的读写报告。
+  - [x] 保留用户用词与描述风格，直接陈述代码问题、普通 Query 复用和事务副本优化。
+  - [x] 记录成功边界、同负载对照与 JOIN 比较边界，更新关联入口并检查链接和数字。
+- **验收**：06 不写成新查询方案，07 的 250 RPS 成功不写成与 JOIN 延迟相同；直接陈述代码问题与方案，保留用户描述风格，不贴提问原文或问答过程；区分 Query 副本与事务 DB，截图与 API 窗口、调用位置与函数累计占比分开说明。
+
+
+- **自动验证**：逐张查看 05/07 的五张截图；06 的 6 档、07 的 8 档共 28 份读报告和 14 份写报告核对通过，读取状态码合计与请求数一致，auto 成功/失败边界与报告一致；根配置及 180/190/210/250 同档配置（除输出路径）一致。两轮最高成功档位为 210/250，最低失败档位为 220/260；250 档失败数 454/0 与 P95、写入数和吞吐逐项核对。新文案本地链接/锚点与表格行宽检查通过，本轮文档差异检查通过。仅编辑文档，未修改测试产物或重跑负载。
+
+### 74. 复用 GORM Gen Query 消除重复构造
+
+- **状态**：Done，普通 Query 复用与用户追加的事务 Query 重新绑定优化均已完成。
+- **背景**：round-05 显示 GetQuery → query.Use 占约 6.9% 应用 CPU、34.5% 分配量；每个 DAO 调用都会构造全部 13 个表的查询对象。用户要求查找开源示例并说明优化做法。
+- **分析**：GORM Gen 官方 [DAO 示例](https://gorm.io/gen/dao.html)同时展示启动时 SetDefault 与保存 Use 返回值两种方式；[Coze Studio 初始化](https://github.com/coze-dev/coze-studio/blob/main/backend/bizpkg/config/modelmgr/modelmgr.go)调用 SetDefault，查询时使用 [ModelInstance.WithContext](https://github.com/coze-dev/coze-studio/blob/main/backend/bizpkg/config/modelmgr/model_get.go)。[Ent CRUD](https://entgo.io/docs/crud/)复用 Client 并创建具体操作 builder；[sqlc 事务示例](https://docs.sqlc.dev/en/v1.31.1/howto/transactions.html)接收 Queries 实例并用 WithTx 绑定事务。共同方向是复用数据库访问入口，请求条件与 context 每次构建，事务单独绑定；这些例子不足以统计整个生态的采用比例。
+- **方案**：用户选择 A。启用已有 GORM Gen WithDefaultQuery，在数据库初始化成功、接受请求之前调用 SetDefault；GetQuery 保留现有接口并返回 query.Q。同步共用数据库层的服务入口和测试初始化。现有 make gorm 会删除重建 ORM 数据库，本轮使用现有模型调用官方生成器重生成 Query，不改数据库结构。
+- **边界**：项目固定版本 gorm.io/gen v0.3.26 的本地模板已经支持 WithDefaultQuery/SetDefault，不需要升级。只复用基础 Query，不缓存带请求 context、Where 或事务的查询链。GetQueryTx 使用官方 ReplaceDB 基于默认 Query 创建事务绑定副本，复用字段定义，保留实际事务连接；不改变事务 API 或新增事务 Query 缓存。服务启动与测试数据库替换时显式更新 Query，不用无法重新初始化的包级 sync.Once 掩盖生命周期问题。
+- **任务**：
+  - [x] 核对官方库、开源应用示例及本项目生成器、启动和事务路径。
+  - [x] 用户选择 A，确认在数据库初始化后绑定默认 Query。
+  - [x] 实现 Query 复用，同步生成器及官方生成产物、五个服务启动入口与测试初始化。
+  - [x] 验证并发请求条件/context 隔离、事务绑定与数据库替换；用本地基准对比构造分配量，线上 profile/延迟复测作为后续独立实验。
+- **追加任务**：
+  - [x] GetQueryTx 改用 ReplaceDB，保留事务注册表的绑定与回退语义。
+  - [x] 验证事务 Query 的 SQL、context 与连接隔离，比较重建与重新绑定的分配量。
+
+- **验收**：稳态 GetQuery 不再调用 Use 重建所有表对象；原 DAO 调用兼容，事务不脱离事务连接，并发请求不共享查询条件；通过本地分配验证，实际 RPS/延迟收益由同负载对照确定，不将 34.5% 分配占比直接写成响应耗时收益。
+
+- **自动验证**：默认 Query、权限 DAO 与 genGORM 竞态回归通过，覆盖 32 个并发请求的条件/context 隔离、取消隔离、数据库重新绑定、事务连接绑定与事务结束后的默认库回退；GetQuery 分配断言为 0。genCURD 回归、受影响包 go vet、make build 全项目构建及 integration 标签编译检查通过，未执行真实数据库集成测试。基准 Reused 为 3.770ns/op、0 B/op、0 allocs/op；原先 Rebuilt 为 196864ns/op、38114 B/op、215 allocs/op，本地微基准不代表端到端延迟改善比例。Query 文件由已有 13 个模型调用官方 Gen v0.3.26 生成，仅默认 Q/SetDefault 相关增量保留；未运行有删库步骤的 make gorm，未改数据库结构或手写生成代码。新启动的生成、编译、测试和静态检查进程均已退出，临时生成器已清理。
+
+- **追加验证**：GetQueryTx 使用默认 Q 的 ReplaceDB 创建事务副本，未新增事务缓存或改变 Begin/提交/回滚逻辑。数据库层与权限 DAO 竞态回归通过，包括两个独立活动事务中的 32 个并发真实 Gen 查询链，验证 SQL 表名、参数、context 和事务连接隔离；原有默认库隔离及事务结束回退验证继续通过。事务基准 Rebound 为 53528ns/op、15200 B/op、27 allocs/op；Rebuilt 为 192300ns/op、38112 B/op、215 allocs/op。受影响包 go vet、make build 全项目构建及差异检查通过，本轮进程均已退出。
+
+- **用户实测**：2026-10-09 用户完成优化前 round-06 与优化后 round-07 同参数 auto 对照，确认成功档位达到 JOIN 已测的 250 RPS、GetQuery 热点大幅减少到可以忽略；整理与量化证据见[任务 75](#75-汇总-query-优化理解与自动压测对照)，普通 Query 收益不单独归因于事务 Query 优化。
 
 ### 73. round-05 平台数据与硬件瓶颈分析
 

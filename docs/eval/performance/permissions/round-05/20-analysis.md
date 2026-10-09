@@ -6,8 +6,11 @@
 
 **结论：没有观察到主机全部 CPU、单个逻辑核、内存容量、磁盘或物理网卡持续满载。已经观察到 CPU 调度等待与数据库连接池等待；应用查询对象构造、结果扫描和内存分配存在明确成本。这些证据支持数据库访问链路与共享 CPU 竞争共同放大尾延迟，尚不能把它归结为某个硬件的硬上限。**
 
+后续 [任务 74](../../../../backlog.md#74-复用-gorm-gen-query-消除重复构造) 已实现默认 Query 复用，本地 GetQuery 分配降为零；用户已完成 round-06/07 auto 对照，实测和本人理解见[综合复盘](../README.md)。本文 profile 与压测数字仍描述修复前的 round-05，不能当作修复后的实测收益。
+
 ## 数据与时间口径
 
+- 用户后补的[分配火焰图](p-alloc-space-1.png)、[分配函数表](p-alloc-space-2.png)、[CPU 火焰图](p-cpu.png)选中 11:46–11:48，比本报告正式分钟宽。函数表 Use Total 为 1.19 GiB；CPU 提示框 650ms/2.01% 对应一个 GetQuery 调用位置，不能替代本文三个分支合计的函数占比。
 - [Grafana 原始数据](21-grafana-data.json)：线上 Host Monitor、PGO Application、Docker Monitor 的面板定义；相关 Host/Application 面板查询结果，以及逐核 CPU、容器 CPU、原始计数器、cAdvisor 宿主机网络等补充查询。
 - [Pyroscope 原始数据](22-pyroscope-data.json)：CPU、分配、存活内存、goroutine、block、mutex 的公共 API pprof JSON 响应，包含函数与样本栈；CPU/分配/block/mutex 的 1 秒查询步长时间序列。
 - Grafana 查询范围为上述一分钟，步长 15 秒。Host 面板的 `$__rate_interval` 固定为 1 分钟；应用面板沿用线上定义的 `irate(...[1m])`。原始 counter 补查 90 秒，仅用于核对边界和相邻样本，不能当作正式负载延长。
