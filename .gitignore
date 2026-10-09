@@ -45,3 +45,4 @@ bin/
 # test/gitignore/a/**/d.txt
 # test/gitignore/a/**/*/d.txt
 
+docs/eval/performance/permissions/current

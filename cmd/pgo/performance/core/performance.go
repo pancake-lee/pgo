@@ -104,10 +104,10 @@ func (runner *Runner) Run(ctx context.Context, config Config, preparer Preparer,
 
 // RunAutomatic 准备一次数据，所有档位复用目标，整轮结束后统一清理。
 func (runner *Runner) RunAutomatic(ctx context.Context, config Config,
-	preparer Preparer, rpsList []int,
+	preparer Preparer,
 ) error {
 	return runner.runPrepared(ctx, config, preparer, func(targetPath string) error {
-		return RunAutomatic(ctx, runner, resultConfig(config, preparer), rpsList,
+		return RunAutomatic(ctx, runner, resultConfig(config, preparer),
 			func(ctx context.Context, stageConfig Config) error {
 				return runner.loadPrepared(ctx, stageConfig, preparer, targetPath)
 			})
@@ -204,7 +204,7 @@ func (runner *Runner) RunMeasured(ctx context.Context, config Config,
 	if err != nil {
 		return err
 	}
-	if result.Success < 1 {
+	if result.Success < 1 || result.HasErrors {
 		return fmt.Errorf("%w: success ratio %.2f%%; see %s",
 			ErrLoadFailed, result.Success*100, config.OutputDir)
 	}

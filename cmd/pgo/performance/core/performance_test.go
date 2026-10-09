@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -157,7 +158,7 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 			return fmt.Errorf("duration = %s", stageConfig.Duration)
 		}
 		visitedList = append(visitedList, stageConfig.RPS)
-		if stageConfig.RPS == 25 {
+		if stageConfig.RPS == 20 {
 			return errors.New("injected failure")
 		}
 		err := os.MkdirAll(stageConfig.OutputDir, 0o700)
@@ -170,19 +171,18 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 		reportPath := filepath.Join(stageConfig.OutputDir, vegetaReportFileName)
 		return os.WriteFile(reportPath, []byte(report), 0o600)
 	}
-	rpsList := []int{10, 25, 50}
-	err := RunAutomatic(t.Context(), runner, config, rpsList, runStage)
-	if err == nil || !strings.Contains(err.Error(), "25 RPS") {
+	err := RunAutomatic(t.Context(), runner, config, runStage)
+	if err == nil || !strings.Contains(err.Error(), "20 RPS") {
 		t.Fatalf("automatic error = %v", err)
 	}
-	if fmt.Sprint(visitedList) != "[10 25]" {
+	if fmt.Sprint(visitedList) != "[10 20]" {
 		t.Fatalf("visited stages = %v", visitedList)
 	}
 	plan, err := os.ReadFile(filepath.Join(config.OutputDir, autoPlanFileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(plan), "25") {
+	if !strings.Contains(string(plan), "20") {
 		t.Fatal("missing ladder input")
 	}
 	for _, name := range []string{"40-auto-results.json", "41-auto-summary.md"} {
@@ -192,14 +192,14 @@ func TestRunAutomaticReusesStageCallbackAndStopsOnFailure(t *testing.T) {
 	}
 }
 
-// TestRunAutomaticStopsAfterUnsuccessfulResponses 验证单档错误停止后续阶梯。
+// TestRunAutomaticStopsAfterUnsuccessfulResponses 验证最小增量失败即停止。
 func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	runner := NewRunner(klog.NewStdLogger(io.Discard))
 	runner.checkVegeta = func(string) error { return nil }
 	runner.execContext = func(ctx context.Context, writer io.Writer, path string,
 		args ...string,
 	) (string, error) {
-		if args[0] == "report" && strings.Contains(args[len(args)-1], "rps-025") {
+		if args[0] == "report" && strings.Contains(args[len(args)-1], "rps-020") {
 			_, err := io.WriteString(writer, "Requests [total, rate, throughput] 1, 1.00, 1.00\nSuccess [ratio] 90.00%\n")
 			return "", err
 		}
@@ -208,7 +208,7 @@ func TestRunAutomaticStopsAfterUnsuccessfulResponses(t *testing.T) {
 	loader := &fakePreparedLoader{}
 	config := Config{APIURL: "http://localhost:8080", RPS: 10,
 		Duration: time.Second, OutputDir: t.TempDir()}
-	err := runner.RunAutomatic(t.Context(), config, loader, []int{10, 25, 50})
+	err := runner.RunAutomatic(t.Context(), config, loader)
 	if !errors.Is(err, ErrLoadFailed) || !strings.Contains(err.Error(), "success ratio 90.00%") {
 		t.Fatalf("automatic error = %v", err)
 	}
@@ -235,19 +235,24 @@ func TestAutomaticPreparedLoaderReusesData(t *testing.T) {
 				}
 			}
 		}
+		if args[0] == "report" && strings.Contains(args[len(args)-1], "rps-080") {
+			_, err := io.WriteString(writer,
+				"Requests [total, rate, throughput] 1, 1, 1\nSuccess [ratio] 90.00%\n")
+			return "", err
+		}
 		return fakeExecContext(ctx, writer, path, args...)
 	}
 	loader := &fakePreparedLoader{}
 	config := Config{APIURL: "http://localhost:8080", RPS: 10,
 		Duration: time.Second, OutputDir: t.TempDir()}
-	err := runner.RunAutomatic(t.Context(), config, loader, []int{10, 25, 50})
-	if err != nil {
+	err := runner.RunAutomatic(t.Context(), config, loader)
+	if !errors.Is(err, ErrLoadFailed) {
 		t.Fatal(err)
 	}
 	if loader.prepareCount != 1 || loader.cleanupCount != 1 || len(targetMap) != 1 {
 		t.Fatal("automatic stages did not reuse one prepared batch")
 	}
-	for _, rps := range []int{10, 25, 50} {
+	for _, rps := range []int{10, 20, 40, 80, 60, 70} {
 		path := filepath.Join(config.OutputDir, fmt.Sprintf("rps-%03d", rps), vegetaReportFileName)
 		if _, err = os.Stat(path); err != nil {
 			t.Fatal(err)
@@ -390,18 +395,27 @@ func TestRunnerSeparatesResults(t *testing.T) {
 		t.Run(fmt.Sprintf("automatic=%t", automatic), func(t *testing.T) {
 			runner := NewRunner(klog.NewStdLogger(io.Discard))
 			runner.checkVegeta = func(string) error { return nil }
-			runner.execContext = fakeExecContext
+			runner.execContext = func(ctx context.Context, writer io.Writer, path string,
+				args ...string,
+			) (string, error) {
+				if args[0] == "report" && strings.Contains(args[len(args)-1], "rps-020") {
+					_, err := io.WriteString(writer,
+						"Requests [total, rate, throughput] 1, 1, 1\nSuccess [ratio] 90.00%\n")
+					return "", err
+				}
+				return fakeExecContext(ctx, writer, path, args...)
+			}
 			loader := &directoryLoader{}
 			config := Config{APIURL: "http://localhost:8080", RPS: 10,
 				Duration: time.Second, OutputDir: t.TempDir()}
 			var err error
 			reportDir := filepath.Join(config.OutputDir, "current")
 			if automatic {
-				err = runner.RunAutomatic(t.Context(), config, loader, []int{10, 20})
+				err = runner.RunAutomatic(t.Context(), config, loader)
 			} else {
 				err = runner.Run(t.Context(), config, loader)
 			}
-			if err != nil {
+			if err != nil && !(automatic && errors.Is(err, ErrLoadFailed)) {
 				t.Fatal(err)
 			}
 			paths := []string{filepath.Join(config.OutputDir, "targets.jsonl"), filepath.Join(reportDir, runFileName)}
@@ -452,5 +466,115 @@ func TestWarmupAndMeasuredRates(t *testing.T) {
 				t.Fatalf("rates = %s, want %s", got, want)
 			}
 		})
+	}
+}
+
+// TestAutomaticSearchBoundary 验证扩展、折半与停止语义。
+func TestAutomaticSearchBoundary(t *testing.T) {
+	cases := []struct {
+		name      string
+		start     int
+		threshold int
+		want      string
+		success   int
+		failure   int
+	}{
+		{"initial failure", 200, 200, "[200]", 0, 200},
+		{"first increment failure", 200, 210, "[200 210]", 200, 210},
+		{"rollback success", 200, 260, "[200 210 230 270 250 260]", 250, 260},
+		{"rollback failure", 200, 240, "[200 210 230 270 250 240]", 230, 240},
+		{"larger interval", 200, 310, "[200 210 230 270 350 310 290 300]", 300, 310},
+		{"unaligned start", 205, 255, "[205 215 235 275 255 245]", 245, 255},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := Config{RPS: tc.start, OutputDir: t.TempDir()}
+			runner := NewRunner(klog.NewStdLogger(io.Discard))
+			var visited []int
+			err := RunAutomatic(t.Context(), runner, config,
+				func(_ context.Context, stage Config) error {
+					visited = append(visited, stage.RPS)
+					if stage.RPS >= tc.threshold {
+						return fmt.Errorf("response failed: %w", ErrLoadFailed)
+					}
+					return nil
+				})
+			if !errors.Is(err, ErrLoadFailed) || fmt.Sprint(visited) != tc.want {
+				t.Fatalf("stages=%v error=%v", visited, err)
+			}
+			var plan struct {
+				RPSList    []int
+				SuccessRPS int
+				FailureRPS int
+			}
+			content, readErr := os.ReadFile(filepath.Join(config.OutputDir, autoPlanFileName))
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			if json.Unmarshal(content, &plan) != nil ||
+				plan.SuccessRPS != tc.success || plan.FailureRPS != tc.failure ||
+				fmt.Sprint(plan.RPSList) != tc.want {
+				t.Fatalf("plan=%s", content)
+			}
+		})
+	}
+}
+
+// TestAutomaticAbortsOperationalErrors 验证取消、复合故障与溢出不会搜索边界。
+func TestAutomaticAbortsOperationalErrors(t *testing.T) {
+	for _, failure := range []error{
+		errors.New("executor failure"),
+		errors.Join(ErrLoadFailed, errors.New("saving report failed")),
+		context.Canceled,
+	} {
+		config := Config{RPS: 200, OutputDir: t.TempDir()}
+		calls := 0
+		err := RunAutomatic(t.Context(), NewRunner(klog.NewStdLogger(io.Discard)),
+			config, func(context.Context, Config) error {
+				calls++
+				return failure
+			})
+		if !errors.Is(err, failure) || calls != 1 {
+			t.Fatalf("error=%v calls=%d", err, calls)
+		}
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	calls := 0
+	err := RunAutomatic(ctx, NewRunner(klog.NewStdLogger(io.Discard)),
+		Config{RPS: 200, OutputDir: t.TempDir()},
+		func(context.Context, Config) error {
+			calls++
+			cancel()
+			return ErrLoadFailed
+		})
+	if !errors.Is(err, context.Canceled) || calls != 1 {
+		t.Fatalf("cancel error=%v calls=%d", err, calls)
+	}
+	err = RunAutomatic(t.Context(), NewRunner(klog.NewStdLogger(io.Discard)),
+		Config{RPS: int(^uint(0) >> 1), OutputDir: t.TempDir()},
+		func(context.Context, Config) error { return nil })
+	if err == nil || !strings.Contains(err.Error(), "overflow") {
+		t.Fatalf("overflow error=%v", err)
+	}
+}
+
+// TestMeasuredDetectsRoundedFailure 防止少量错误被百分比舍入隐藏。
+func TestMeasuredDetectsRoundedFailure(t *testing.T) {
+	runner := NewRunner(klog.NewStdLogger(io.Discard))
+	runner.execContext = func(ctx context.Context, writer io.Writer, path string,
+		args ...string,
+	) (string, error) {
+		if args[0] == "report" {
+			_, err := io.WriteString(writer,
+				"Requests [total, rate, throughput] 100000, 1000, 1000\n"+
+					"Success [ratio] 100.00%\nError Set:\n500 Internal Server Error\n")
+			return "", err
+		}
+		return fakeExecContext(ctx, writer, path, args...)
+	}
+	err := runner.RunMeasured(t.Context(),
+		Config{RPS: 200, Duration: time.Second, OutputDir: t.TempDir()}, "targets")
+	if !errors.Is(err, ErrLoadFailed) {
+		t.Fatalf("rounded failure error=%v", err)
 	}
 }

@@ -116,7 +116,7 @@ func TestSharedCommandParameters(t *testing.T) {
 	if command.Use != "sample <portal-url>" {
 		t.Fatalf("command use = %q", command.Use)
 	}
-	for _, name := range []string{"rps", "duration", "sampling"} {
+	for _, name := range []string{"rps", "auto", "duration", "sampling"} {
 		if command.Flags().Lookup(name) == nil {
 			t.Errorf("missing flag %q", name)
 		}
@@ -149,13 +149,26 @@ func TestSharedCommandParameters(t *testing.T) {
 	now := time.Date(2026, 10, 1, 2, 3, 4, 5, time.UTC)
 	outputDir := getDefaultOutputDir("sample", now)
 	paramList := getParamList(outputDir)
-	if len(paramList) != 5 || paramList[0].Name != "portal-url" ||
-		paramList[1].Name != "rps" || paramList[2].Name != "sampling" ||
-		paramList[2].Default != "false" || paramList[3].Name != "duration" ||
-		paramList[4].Name != "output-dir" ||
-		paramList[4].Usage != "output directory" ||
-		paramList[4].Default != outputDir {
+	wantNames := []string{"portal-url", "rps", "auto", "sampling", "duration", "output-dir"}
+	if len(paramList) != len(wantNames) {
 		t.Fatalf("interactive parameters = %+v", paramList)
+	}
+	for index, name := range wantNames {
+		if paramList[index].Name != name {
+			t.Fatalf("parameter %d = %+v", index, paramList[index])
+		}
+	}
+	if paramList[2].Default != "false" || paramList[5].Default != outputDir ||
+		command.Flag("auto").DefValue != "false" || command.Flag("rps").DefValue != "20" {
+		t.Fatalf("unexpected defaults: %+v", paramList)
+	}
+	err = command.ParseFlags([]string{"--rps", "200", "--auto=true"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	automatic, err := command.Flags().GetBool("auto")
+	if err != nil || !automatic {
+		t.Fatal("auto flag did not enable independently")
 	}
 }
 
@@ -202,5 +215,20 @@ func TestBuildLoadConfigUsesExactOutputDirectory(t *testing.T) {
 				t.Fatalf("output = %q, want %q", config.OutputDir, test.want)
 			}
 		})
+	}
+}
+
+func TestParseRPS(t *testing.T) {
+	for _, input := range []string{"200", " 205 "} {
+		value, err := parseRPS(input)
+		if err != nil || value <= 0 {
+			t.Fatalf("input=%q value=%d error=%v", input, value, err)
+		}
+	}
+	for _, input := range []string{"auto", "", "0", "-10", "1.5", "true"} {
+		_, err := parseRPS(input)
+		if err == nil {
+			t.Fatalf("accepted invalid RPS %q", input)
+		}
 	}
 }

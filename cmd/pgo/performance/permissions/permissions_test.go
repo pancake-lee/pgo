@@ -1038,3 +1038,50 @@ func TestPermissionRecoveryFailureRetainsBatch(t *testing.T) {
 		})
 	}
 }
+
+// TestPermissionAutoParameters 验证 auto 开关与仅准备参数互斥。
+func TestPermissionAutoParameters(t *testing.T) {
+	command := Entrypoint.NewCobraCommand()
+	err := command.ParseFlags([]string{"--rps", "200", "--auto=true"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = command.ValidateFlagGroups()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = command.ParseFlags([]string{"--prepare-only"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if command.ValidateFlagGroups() == nil {
+		t.Fatal("auto and prepare-only must be exclusive")
+	}
+}
+
+// TestPermissionAutoRecoversPendingWrites 验证下一档先恢复部分写入。
+func TestPermissionAutoRecoversPendingWrites(t *testing.T) {
+	useSmallScale(t)
+	defaultScale.RolesPerGroup = 2
+	fixture, server := newFixtureAPI(t)
+	directory := t.TempDir()
+	loader := prepareSmallPermissionBatch(t, server.URL, directory)
+	fixture.mu.Lock()
+	fixture.failedUpdateAt = 2
+	fixture.mu.Unlock()
+	_, err := runWriter(t.Context(), make(chan struct{}), loader.client,
+		loader.manifest, 1000)
+	if err == nil {
+		t.Fatal("expected partial write failure")
+	}
+	loader.manifest.Ready = false
+	err = loader.recoverWrites(t.Context())
+	if err != nil || !loader.manifest.Ready ||
+		loader.manifest.ProjectList[0].PendingAction != nil {
+		t.Fatalf("recovery before next stage failed: %v", err)
+	}
+	err = verifyFixture(t.Context(), loader.client, loader.manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -57,6 +57,7 @@ func (*entrypoint) NewCobraCommand() *cobra.Command {
 	command.Flags().BoolVar(&opt.KeepData, "keep-data", true, "keep the batch for later comparisons; clean up explicitly")
 	command.Flags().IntVar(&opt.WriteRPS, "write-rps", 1, "administrator updates per second")
 
+	command.MarkFlagsMutuallyExclusive("auto", "prepare-only")
 	return command
 }
 

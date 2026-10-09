@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -22,13 +21,11 @@ import (
 const (
 	defaultPortalURL     = "http://127.0.0.1:20080"
 	defaultOutputRoot    = ".local/performance"
-	defaultRPSInput      = "auto"
+	defaultRPSInput      = "20"
 	defaultDurationInput = "60s"
 	defaultDuration      = 60 * time.Second
 	discoveryTimeout     = 5 * time.Second
 )
-
-var autoRPSList = []int{20, 50, 75, 100, 200, 400, 600, 800, 1000}
 
 // Scenario defines the behavior supplied by one performance scenario.
 type Scenario struct {
@@ -62,6 +59,7 @@ func NewEntrypoint(scenario Scenario) *Entrypoint {
 func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 	outputDir := ""
 	sampling := false
+	automatic := false
 	rpsInput := defaultRPSInput
 	durationInput := defaultDurationInput
 	if entrypoint.scenario.DefaultRPS != "" {
@@ -84,6 +82,7 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 				durationInput,
 				outputDir,
 				sampling,
+				automatic,
 				time.Now(),
 			)
 		},
@@ -92,8 +91,10 @@ func (entrypoint *Entrypoint) NewCobraCommand() *cobra.Command {
 		&rpsInput,
 		"rps",
 		rpsInput,
-		"run one positive RPS level instead of the automatic ladder",
+		"positive RPS for the first load test",
 	)
+	command.Flags().BoolVar(&automatic, "auto", false,
+		"search the failure boundary from the input RPS with 10 RPS precision")
 	command.Flags().StringVar(
 		&durationInput,
 		"duration",
@@ -131,6 +132,11 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		pthird.Interact.Errorf("sampling must be true or false")
 		return
 	}
+	automatic, err := strconv.ParseBool(paramMap["auto"])
+	if err != nil {
+		pthird.Interact.Errorf("auto must be true or false")
+		return
+	}
 	// 首次直接接受默认目录时也保存，清理入口才能定位同一批次。
 	err = pconfig.SetCacheValue(pconfig.GetDefaultCachePath(),
 		"client.performance."+entrypoint.scenario.Name+".output-dir",
@@ -148,6 +154,7 @@ func (entrypoint *Entrypoint) RunInteractive() {
 		paramMap["duration"],
 		paramMap["output-dir"],
 		sampling,
+		automatic,
 		now,
 	)
 	if err != nil {
@@ -158,7 +165,8 @@ func (entrypoint *Entrypoint) RunInteractive() {
 func getParamList(outputDir string) []pclient.ParamItem {
 	return []pclient.ParamItem{
 		{Name: "portal-url", Usage: "portal URL", Default: defaultPortalURL},
-		{Name: "rps", Usage: "RPS or auto", Default: defaultRPSInput},
+		{Name: "rps", Usage: "starting RPS", Default: defaultRPSInput},
+		{Name: "auto", Usage: "automatic search (true/false)", Default: "false"},
 		{
 			Name:    "sampling",
 			Usage:   "additional sampling (true/false)",
@@ -185,13 +193,14 @@ func (entrypoint *Entrypoint) run(
 	durationInput string,
 	outputDir string,
 	sampling bool,
+	automatic bool,
 	now time.Time,
 ) error {
 	duration, err := parseDuration(durationInput)
 	if err != nil {
 		return err
 	}
-	rpsList, automatic, err := resolveRPSList(rpsInput)
+	rps, err := parseRPS(rpsInput)
 	if err != nil {
 		return err
 	}
@@ -199,7 +208,7 @@ func (entrypoint *Entrypoint) run(
 		ctx,
 		portalURL,
 		entrypoint.scenario.Name,
-		rpsList[0],
+		rps,
 		duration,
 		outputDir,
 		now,
@@ -214,7 +223,7 @@ func (entrypoint *Entrypoint) run(
 	if !automatic {
 		return runner.Run(ctx, config, preparer)
 	}
-	return runner.RunAutomatic(ctx, config, preparer, rpsList)
+	return runner.RunAutomatic(ctx, config, preparer)
 }
 
 func buildLoadConfig(
@@ -260,22 +269,13 @@ func getDefaultOutputDir(scenarioName string, now time.Time) string {
 	return filepath.Join(defaultOutputRoot, scenarioName, timestamp)
 }
 
-func resolveRPSList(input string) ([]int, bool, error) {
-	input = strings.TrimSpace(strings.ToLower(input))
-	if input == "auto" {
-		if len(autoRPSList) == 0 {
-			return nil, false, errors.New("automatic RPS list is empty")
-		}
-		return append([]int(nil), autoRPSList...), true, nil
-	}
+func parseRPS(input string) (int, error) {
+	input = strings.TrimSpace(input)
 	rps, err := strconv.Atoi(input)
 	if err != nil || rps <= 0 {
-		return nil, false, fmt.Errorf(
-			"rps must be a positive integer or auto, got %q",
-			input,
-		)
+		return 0, fmt.Errorf("rps must be a positive integer, got %q", input)
 	}
-	return []int{rps}, false, nil
+	return rps, nil
 }
 
 func parseDuration(input string) (time.Duration, error) {

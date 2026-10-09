@@ -278,6 +278,10 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 	if err != nil {
 		return err
 	}
+	err = preparer.recoverWrites(ctx)
+	if err != nil {
+		return err
+	}
 	groupConfig := func(group string) performance.Config {
 		stream := config
 		stream.RPS = config.RPS / 2
@@ -319,6 +323,10 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 	}
 	<-warmupWriterDone
 	warmupTimer.Stop()
+	if writerErr != nil {
+		writerErr = fmt.Errorf("%w: administrator write: %v",
+			performance.ErrLoadFailed, writerErr)
+	}
 	err = errors.Join(err, writerErr)
 	var resultList []writeResult
 	if err == nil {
@@ -369,6 +377,8 @@ func (preparer *preparer) RunLoad(ctx context.Context, runner *performance.Runne
 	err = errors.Join(err, closeSampling())
 	if writerErr != nil {
 		preparer.manifest.Ready = false
+		writerErr = fmt.Errorf("%w: administrator write: %v",
+			performance.ErrLoadFailed, writerErr)
 	}
 	var reportErr error
 	if end.After(begin) {
