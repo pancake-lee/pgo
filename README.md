@@ -94,6 +94,5 @@ service Task {
 - [`docs/observability.md`](./docs/observability.md)：Grafana、Pyroscope、pprof 数据与代码来源速查
 - [`docs/backlog.md`](./docs/backlog.md)：活跃需求池与任务交接
 - [`docs/note.md`](./docs/note.md)：长期技术备忘与否决记录
-- [`docs/eval/user-login-baseline.md`](./docs/eval/user-login-baseline.md)：多用户注册与登录性能评估
 - [`docs/design/`](./docs/design/)：当前专题设计
 - [`docs/archive/`](./docs/archive/)：已完成版本与历史归档

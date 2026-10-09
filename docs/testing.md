@@ -8,7 +8,6 @@
 - 编写集成测试验证 Service 层逻辑
 - 使用 `defer` + 清理函数移除测试数据
 - **禁止**在测试中修改表结构，差异应正常报错以提醒升级注意
-- 多用户注册与登录使用真实 HTTP 场景工具和固定 Vegeta 负载，实验方法见[多用户注册与登录基线](eval/performance/user-login-baseline.md)
 
 ## 待完善
 
