@@ -1,0 +1,16 @@
+{
+  "startRPS": 180,
+  "precision": 10,
+  "rpsList": [
+    180,
+    190,
+    210,
+    250,
+    330,
+    290,
+    270,
+    260
+  ],
+  "successRPS": 250,
+  "failureRPS": 260
+}

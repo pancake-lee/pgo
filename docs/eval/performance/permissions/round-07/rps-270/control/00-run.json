@@ -1,0 +1,8 @@
+{
+  "apiURL": "http://192.168.3.18:20000/",
+  "diagnosticsURL": "http://192.168.3.18:20002/debug/pprof/heap",
+  "sampling": true,
+  "rps": 135,
+  "duration": 60000000000,
+  "outputDir": "docs/eval/performance/permissions/current/rps-270/control"
+}

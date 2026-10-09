@@ -1,0 +1,6 @@
+Requests 283
+Throughput 4.70/s
+Success 100.00%
+P50 6.275539ms
+P95 295.078066ms
+P99 452.826045ms
