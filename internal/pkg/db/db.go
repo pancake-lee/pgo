@@ -5,13 +5,17 @@ import (
 	"github.com/pancake-lee/pgo/pkg/pdb"
 )
 
-// 可以考虑生成gorm时加入gen.WithDefaultQuery，生成SetDefault就不用每次都Use
-func GetQuery() *query.Query {
-	return query.Use(pdb.GetGormDB())
+// InitQuery 在数据库初始化完成后绑定默认查询，须在处理请求之前调用。
+func InitQuery() {
+	query.SetDefault(pdb.GetGormDB())
 }
 
-// GetQueryTx returns the query bound to transactionID's active transaction.
-// Existing callers keep using GetQuery; transaction-aware workflows opt in.
+// GetQuery 返回已初始化的默认查询，各请求通过 WithContext 创建查询链。
+func GetQuery() *query.Query {
+	return query.Q
+}
+
+// GetQueryTx 复用默认字段定义创建查询副本，绑定指定事务或回退到默认库。
 func GetQueryTx(transactionID int32) *query.Query {
-	return query.Use(pdb.GetGormDB(transactionID))
+	return query.Q.ReplaceDB(pdb.GetGormDB(transactionID))
 }

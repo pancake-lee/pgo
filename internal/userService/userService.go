@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/userService/conf"
 	"github.com/pancake-lee/pgo/internal/userService/service"
 	"github.com/pancake-lee/pgo/pkg/papitable"
@@ -22,6 +23,7 @@ func main() {
 	pconfig.MustInitConfig(*c)
 	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
+	db.InitQuery()
 
 	err := pconfig.Scan(&conf.UserSvcConf)
 	if err != nil {

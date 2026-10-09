@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"gorm.io/gorm"
@@ -25,6 +26,7 @@ func TestPermissionQueriesUseGeneratedFields(t *testing.T) {
 	t.Cleanup(func() { _ = sqlDB.Close() })
 	// DryRun 不创建表、不执行 SQL，仅检验生成接口产生的真实语句。
 	database.Config.DryRun = true
+	db.InitQuery()
 	var sqlList []string
 	var varList [][]any
 	err = database.Callback().Query().After("*").Register("test:capture", func(statement *gorm.DB) {

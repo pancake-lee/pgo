@@ -15,6 +15,40 @@ import (
 	"gorm.io/plugin/dbresolver"
 )
 
+var (
+	Q                       = new(Query)
+	AbandonCode             *abandonCode
+	CourseSwapRequest       *courseSwapRequest
+	Project                 *project
+	SheetCeshibiao          *sheetCeshibiao
+	Task                    *task
+	User                    *user
+	UserDept                *userDept
+	UserDeptAssoc           *userDeptAssoc
+	UserJob                 *userJob
+	UserProjectAssoc        *userProjectAssoc
+	UserRole                *userRole
+	UserRoleAssoc           *userRoleAssoc
+	UserRolePermissionAssoc *userRolePermissionAssoc
+)
+
+func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
+	*Q = *Use(db, opts...)
+	AbandonCode = &Q.AbandonCode
+	CourseSwapRequest = &Q.CourseSwapRequest
+	Project = &Q.Project
+	SheetCeshibiao = &Q.SheetCeshibiao
+	Task = &Q.Task
+	User = &Q.User
+	UserDept = &Q.UserDept
+	UserDeptAssoc = &Q.UserDeptAssoc
+	UserJob = &Q.UserJob
+	UserProjectAssoc = &Q.UserProjectAssoc
+	UserRole = &Q.UserRole
+	UserRoleAssoc = &Q.UserRoleAssoc
+	UserRolePermissionAssoc = &Q.UserRolePermissionAssoc
+}
+
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                      db,

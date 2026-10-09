@@ -114,6 +114,7 @@ func Run(values pclient.ParamMap) error {
 		OutPath:      options.OutPath,
 		OutFile:      options.OutFile,
 		ModelPkgPath: options.ModelPkgName,
+		Mode:         gen.WithDefaultQuery,
 	})
 	g.WithImportPkgPath("github.com/shopspring/decimal")
 	g.UseDB(pdb.GetGormDB())

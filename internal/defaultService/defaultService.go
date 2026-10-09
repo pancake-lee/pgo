@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/pancake-lee/pgo/internal/defaultService/service"
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
@@ -19,6 +20,7 @@ func main() {
 	pconfig.MustInitConfig(*c)
 	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
+	db.InitQuery()
 
 	var s service.DefaultCURDServer
 

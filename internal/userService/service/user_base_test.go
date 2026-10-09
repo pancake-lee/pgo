@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pancake-lee/pgo/internal/pkg/api"
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
 	"github.com/pancake-lee/pgo/pkg/pdb"
 	"github.com/pancake-lee/pgo/pkg/putil"
@@ -79,6 +80,7 @@ func initUserServiceIntegration(t *testing.T) {
 	if err := pdb.InitMysqlByConfig(); err != nil {
 		t.Fatalf("integration test requires configured MySQL: %v", err)
 	}
+	db.InitQuery()
 }
 
 func testAddUser(t *testing.T, userName string) int32 {

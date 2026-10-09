@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/pancake-lee/pgo/internal/pkg/db"
 	"github.com/pancake-lee/pgo/internal/taskService/service"
 	"github.com/pancake-lee/pgo/pkg/papp"
 	"github.com/pancake-lee/pgo/pkg/pconfig"
@@ -19,6 +20,7 @@ func main() {
 	pconfig.MustInitConfig(*c)
 	plogger.InitFromConfig(*l)
 	pdb.MustInitMysqlByConfig()
+	db.InitQuery()
 
 	var taskCURDServer service.TaskCURDServer
 
