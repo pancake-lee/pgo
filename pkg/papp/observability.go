@@ -77,9 +77,9 @@ func checkRabbitMQ(context.Context) error {
 	return pmq.Ping()
 }
 
-// healthHandler 检查已启用依赖并更新健康指标及 HTTP 响应状态。
-func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
-	ctx, cancel := context.WithTimeout(request.Context(), 2*time.Second)
+// checkDependencies 检查已启用依赖并写入共用健康指标。
+func checkDependencies(ctx context.Context) (map[string]string, bool) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	healthCheckRegistry.RLock()
@@ -105,6 +105,12 @@ func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
 		resultMap[name] = "ok"
 		dependencyUp.WithLabelValues(name).Set(1)
 	}
+	return resultMap, healthy
+}
+
+// healthHandler 执行实时依赖检查并更新健康指标及 HTTP 响应状态。
+func healthHandler(writer stdhttp.ResponseWriter, request *stdhttp.Request) {
+	resultMap, healthy := checkDependencies(request.Context())
 
 	status := stdhttp.StatusOK
 	state := "ok"
@@ -216,12 +222,14 @@ func init() {
 
 // diagnosticsServer 管理独立诊断 HTTP 服务及运行时采样控制器的生命周期。
 type diagnosticsServer struct {
-	address  string
-	handler  stdhttp.Handler
-	server   *stdhttp.Server
-	listener net.Listener
-	mu       sync.Mutex
-	profiles *runtimeProfileController
+	address      string
+	handler      stdhttp.Handler
+	server       *stdhttp.Server
+	listener     net.Listener
+	mu           sync.Mutex
+	profiles     *runtimeProfileController
+	healthCancel context.CancelFunc
+	healthDone   chan struct{}
 }
 
 // newDiagnosticsServer 创建指标与健康路由并按配置接入 pprof 诊断路由。
@@ -253,6 +261,10 @@ func (s *diagnosticsServer) Start(context.Context) error {
 	}
 	s.listener = listener
 	s.server = &stdhttp.Server{Handler: s.handler, ReadHeaderTimeout: 5 * time.Second}
+	healthCtx, cancel := context.WithCancel(context.Background())
+	s.healthCancel = cancel
+	s.healthDone = make(chan struct{})
+	go s.refreshDependencies(healthCtx, 15*time.Second)
 	go func() {
 		if err := s.server.Serve(listener); err != nil && !errors.Is(err, stdhttp.ErrServerClosed) {
 			panic(fmt.Errorf("diagnostics server: %w", err))
@@ -261,14 +273,43 @@ func (s *diagnosticsServer) Start(context.Context) error {
 	return nil
 }
 
-// Stop 取消运行时采集并在指定上下文内停止诊断服务。
+// refreshDependencies 在独立任务中立即检查并定时刷新健康指标。
+func (s *diagnosticsServer) refreshDependencies(
+	ctx context.Context, interval time.Duration,
+) {
+	defer close(s.healthDone)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		checkDependencies(ctx)
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+	}
+}
+
+// Stop 取消定时检查和运行时采集并在指定上下文内停止诊断服务。
 func (s *diagnosticsServer) Stop(ctx context.Context) error {
 	s.profiles.stop()
 	s.mu.Lock()
 	server := s.server
+	cancel := s.healthCancel
+	done := s.healthDone
 	s.mu.Unlock()
 	if server == nil {
 		return nil
 	}
-	return server.Shutdown(ctx)
+	cancel()
+	err := server.Shutdown(ctx)
+	select {
+	case <-done:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

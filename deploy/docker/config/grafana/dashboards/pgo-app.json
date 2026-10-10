@@ -71,33 +71,40 @@
             ]
           },
           "unit": "none",
-          "noValue": "No data"
+          "noValue": "No data",
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 85,
+            "spanNulls": false,
+            "insertNulls": false,
+            "axisPlacement": "auto"
+          }
         },
         "overrides": []
       },
       "gridPos": {
         "x": 0,
         "y": 1,
-        "w": 12,
+        "w": 24,
         "h": 5
       },
       "id": 5,
       "maxDataPoints": 2000,
       "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
+        "mergeValues": true,
+        "showValue": "never",
+        "alignValue": "left",
+        "rowHeight": 0.7,
+        "perPage": 0,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
         },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "pluginVersion": "12.3.11",
       "targets": [
@@ -109,87 +116,11 @@
           "editorMode": "code",
           "expr": "up{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
           "interval": "15s",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{instance}} / metrics scrape",
           "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ],
-      "title": "Metrics scrape status",
-      "type": "stat",
-      "description": "仅显示所选实例当前指标，缺失序列显示 No data，不视为健康。 1 表示 Prometheus 抓取成功，不能代替业务健康。",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      }
-    },
-    {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "Unavailable",
-                  "color": "red",
-                  "index": 0
-                },
-                "1": {
-                  "text": "Available",
-                  "color": "green",
-                  "index": 1
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none",
-          "noValue": "No data"
+          "range": true,
+          "instant": false
         },
-        "overrides": []
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 1,
-        "w": 12,
-        "h": 5
-      },
-      "id": 6,
-      "maxDataPoints": 2000,
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "pluginVersion": "12.3.11",
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
@@ -199,14 +130,14 @@
           "expr": "pgo_dependency_up{job=\"pgo-app\",instance=~\"${instance:regex}\"}",
           "interval": "15s",
           "legendFormat": "{{instance}} / {{dependency}}",
-          "refId": "A",
-          "range": false,
-          "instant": true
+          "refId": "B",
+          "range": true,
+          "instant": false
         }
       ],
-      "title": "Dependency status",
-      "type": "stat",
-      "description": "仅显示所选实例当前指标，缺失序列显示 No data，不视为健康。 仅访问 /healthz 或 /readyz 时刷新，数值可能是上次检查结果。",
+      "title": "Service status history",
+      "type": "state-timeline",
+      "description": "所选实例的指标抓取及依赖历史状态，每个组件一行：绿色为 Available，红色为 Unavailable，缺失数据留空且不连接。抓取状态不代表业务健康；依赖状态来自启动后及每 15 秒异步检查，健康接口也更新同一指标。短于检查或查询采样间隔的掉线可能未记录。全部状态同页展示，悬停查看状态与持续时间。",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"

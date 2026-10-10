@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -134,6 +136,8 @@ func TestDiagnosticsPprofSwitch(t *testing.T) {
 }
 
 func TestDiagnosticsMetrics(t *testing.T) {
+	requestTotal.WithLabelValues("test-metrics", "ok").Inc()
+	defer requestTotal.DeleteLabelValues("test-metrics", "ok")
 	server, err := newDiagnosticsServer(diagnosticsConfig{Addr: "127.0.0.1:0"})
 	if err != nil {
 		t.Fatal(err)
@@ -462,5 +466,175 @@ func TestSamplingExpiryAndLimits(t *testing.T) {
 	controller.stop()
 	if controller.samplingID != 0 || runtime.SetMutexProfileFraction(-1) != 0 {
 		t.Fatal("shutdown did not stop sampling")
+	}
+}
+
+// setTestHealthChecks 隔离依赖检查，清理后恢复原注册表和指标。
+func setTestHealthChecks(t *testing.T, checkMap map[string]healthCheck) {
+	t.Helper()
+	healthCheckRegistry.Lock()
+	original := healthCheckRegistry.checkMap
+	healthCheckRegistry.checkMap = checkMap
+	healthCheckRegistry.Unlock()
+	t.Cleanup(func() {
+		healthCheckRegistry.Lock()
+		healthCheckRegistry.checkMap = original
+		healthCheckRegistry.Unlock()
+		for name := range checkMap {
+			dependencyUp.DeleteLabelValues(name)
+		}
+	})
+}
+
+// TestDependencyRefresh 验证周期更新与健康接口共用指标存储。
+func TestDependencyRefresh(t *testing.T) {
+	var fail atomic.Bool
+	setTestHealthChecks(t, map[string]healthCheck{
+		"test-refresh": {
+			enabled: func() bool { return true },
+			check: func(context.Context) error {
+				if fail.Load() {
+					return errors.New("dependency unavailable")
+				}
+				return nil
+			},
+		},
+		"test-disabled": {
+			enabled: func() bool { return false },
+			check: func(context.Context) error {
+				t.Error("disabled dependency was checked")
+				return nil
+			},
+		},
+	})
+	server, err := newDiagnosticsServer(diagnosticsConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	readMetrics := func() string {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+		server.handler.ServeHTTP(response, request)
+		return response.Body.String()
+	}
+	if strings.Contains(readMetrics(), `dependency="test-refresh"`) {
+		t.Fatal("unchecked dependency should have no status")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	server.healthDone = make(chan struct{})
+	go server.refreshDependencies(ctx, 10*time.Millisecond)
+	defer func() {
+		cancel()
+		<-server.healthDone
+	}()
+	waitValue := func(value string) {
+		t.Helper()
+		deadline := time.Now().Add(time.Second)
+		for time.Now().Before(deadline) {
+			body := readMetrics()
+			if strings.Contains(body, `dependency="test-disabled"`) {
+				t.Fatal("disabled dependency should have no status")
+			}
+			if strings.Contains(body,
+				`pgo_dependency_up{dependency="test-refresh"} `+value) {
+				return
+			}
+			time.Sleep(time.Millisecond)
+		}
+		t.Fatalf("dependency status did not become %s", value)
+	}
+	waitValue("1")
+	fail.Store(true)
+	waitValue("0")
+	cancel()
+	<-server.healthDone
+	for _, path := range []string{"/healthz", "/readyz"} {
+		for _, unavailable := range []bool{false, true} {
+			fail.Store(unavailable)
+			response := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, path, nil)
+			server.handler.ServeHTTP(response, request)
+			wantStatus, value := http.StatusOK, "1"
+			if unavailable {
+				wantStatus, value = http.StatusServiceUnavailable, "0"
+			}
+			if response.Code != wantStatus {
+				t.Fatalf("%s: status = %d", path, response.Code)
+			}
+			var body struct {
+				Dependencies map[string]string `json:"dependencies"`
+			}
+			err := json.Unmarshal(response.Body.Bytes(), &body)
+			if err != nil || body.Dependencies["test-refresh"] == "" {
+				t.Fatalf("invalid health response: %s", response.Body)
+			}
+			waitValue(value)
+		}
+	}
+}
+
+// TestDiagnosticsHealthLifecycle 验证慢检查不阻塞指标且停止会取消检查。
+func TestDiagnosticsHealthLifecycle(t *testing.T) {
+	started := make(chan struct{})
+	var calls atomic.Int32
+	setTestHealthChecks(t, map[string]healthCheck{
+		"test-slow": {
+			enabled: func() bool { return true },
+			check: func(ctx context.Context) error {
+				calls.Add(1)
+				close(started)
+				<-ctx.Done()
+				return ctx.Err()
+			},
+		},
+	})
+	server, err := newDiagnosticsServer(diagnosticsConfig{
+		Addr: "127.0.0.1:0",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = server.Start(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		err := server.Stop(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("initial asynchronous check did not start")
+	}
+	metricsDone := make(chan int, 1)
+	go func() {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+		server.handler.ServeHTTP(response, request)
+		metricsDone <- response.Code
+	}()
+	select {
+	case code := <-metricsDone:
+		if code != http.StatusOK || calls.Load() != 1 {
+			t.Fatal("metrics endpoint should only read cached values")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("metrics endpoint blocked on dependency check")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err = server.Stop(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-server.healthDone:
+	default:
+		t.Fatal("periodic check still running after stop")
 	}
 }

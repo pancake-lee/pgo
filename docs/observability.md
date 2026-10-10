@@ -7,9 +7,11 @@
 
 | 层级分类 | 面板设计 | 包含指标 | 面向场景 |
 | --- | --- | --- | --- |
-| 服务健康 | Metrics scrape status / Dependency status | `up`、`pgo_dependency_up{dependency}` | 错误率升高时先看依赖是否可达；`up=0` 先查抓取，`dependency_up=0` 先核对依赖，再继续查应用。 |
+| 服务健康 | Service status history | `up`、`pgo_dependency_up{dependency}` | 错误率升高时先看依赖是否可达；`up=0` 先查抓取，`dependency_up=0` 先核对依赖，再继续查应用。 |
 
-代码来源：[papp 健康指标](/root/code/pgo/pkg/papp/observability.go:28)、[健康检查](/root/code/pgo/pkg/papp/observability.go:81)；`up` 由 [Prometheus 抓取配置](../deploy/docker/config/prometheus.yml) 的抓取结果生成，应用不主动上报。依赖状态只在访问 `/healthz` 或 `/readyz` 时更新，`/metrics` 不执行健康检查；未初始化或尚未检查的依赖可能无数据，不能按健康处理。
+代码来源：[papp 健康指标](/root/code/pgo/pkg/papp/observability.go:28)、[健康检查](/root/code/pgo/pkg/papp/observability.go:81)；`up` 由 [Prometheus 抓取配置](../deploy/docker/config/prometheus.yml) 的抓取结果生成，应用不主动上报。诊断服务启动后立即异步检查依赖，之后每 15 秒刷新；访问 `/healthz` 或 `/readyz` 仍执行实时检查，两种方式更新同一份依赖状态指标，`/metrics` 仅读取最近结果，不执行检查。检查沿用两秒超时，停止服务时取消定时任务；自定义检查应响应上下文取消。未初始化或首次检查尚未完成的依赖可能无数据，不能按健康处理。
+
+状态历史合并到一个紧凑时间线面板，每个实例的指标抓取与各依赖分别占一行，关闭分页，全部状态同页展示。绿色表示可用，红色表示不可用，空白表示缺失数据，悬停可查看状态及持续时间。使用历史范围查询，连续相同状态合并，缺失值不连接；短于检查或查询采样间隔的掉线可能未记录。
 
 ## 二、请求 RED
 
