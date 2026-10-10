@@ -1,6 +1,6 @@
 # 权限压测复盘：索引与 Query 对象复用
 
-> 专题入口：[性能测试闭环中枢](../../../design/2026-09-30-01-login-performance-hub.md)。整理记录见[任务 75](../../../backlog.md#75-汇总-query-优化理解与自动压测对照)。
+> 专题入口：[性能测试闭环中枢](../../../design/2026-09-30-01-login-performance-hub.md)。整理记录见[任务 75](../../../archive/v0.0.12.md#75-汇总-query-优化理解与自动压测对照)。
 
 这次压测主要做了两次改动：
 
@@ -69,7 +69,7 @@ GetQuery 重复构造 Query 带来了明显的 CPU 与内存分配成本，其�
 
 这与开源示例的方向一致：GORM Gen [官方 DAO 示例](https://gorm.io/gen/dao.html)展示启动时绑定默认 Query；[Coze Studio](https://github.com/coze-dev/coze-studio/blob/main/backend/bizpkg/config/modelmgr/modelmgr.go)也在模块初始化时调用 SetDefault。对于我当前只有一个默认数据库的项目，这条路径比较直接。
 
-本地基准中，普通 `GetQuery()` 从每次约 38 KB、215 次分配降到零分配；事务 Query 降到约 15 KB、27 次分配。并发请求隔离与事务绑定通过竞态回归，完整验证记录见[任务 74](../../../backlog.md#74-复用-gorm-gen-query-消除重复构造)。
+本地基准中，普通 `GetQuery()` 从每次约 38 KB、215 次分配降到零分配；事务 Query 降到约 15 KB、27 次分配。并发请求隔离与事务绑定通过竞态回归，完整验证记录见[任务 74](../../../archive/v0.0.12.md#74-复用-gorm-gen-query-消除重复构造)。
 
 round-06/07 使用相同 auto 参数，优化后最高已测零错误档位提高约 19%，同档读写延迟也明显下降。具体搜索边界见 [06 搜索记录](round-06/00-auto-run.json)和 [07 搜索记录](round-07/00-auto-run.json)。这些是本次短窗口的实测结果，未测定长期稳定容量。
 

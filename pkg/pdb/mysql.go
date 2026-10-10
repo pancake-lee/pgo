@@ -18,8 +18,8 @@ import (
 // defaultMysqlMaxOpenConns 限制每个 MySQL 连接池的最大连接数。
 const defaultMysqlMaxOpenConns = 64
 
-// defaultMysqlMaxIdleConns 指定每个 MySQL 连接池保留的空闲连接数。
-const defaultMysqlMaxIdleConns = 8
+// defaultMysqlMaxIdleConns 指定每个 MySQL 连接池保留的空闲连接数。一般和Open一致，至少是一半。
+const defaultMysqlMaxIdleConns = 64
 
 const DefaultConfigGroup = "Mysql"
 

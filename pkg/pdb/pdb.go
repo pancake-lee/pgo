@@ -44,7 +44,7 @@ type SqlConfig struct {
 	DbName   string
 
 	MaxOpenConns *int // MySQL 省略时默认 64，必须大于 0。
-	MaxIdleConns *int // MySQL 省略时默认 8，可设为 0。
+	MaxIdleConns *int // MySQL 省略时默认 64，可设为 0。
 
 	Host string // 从addr解析
 	Port int32  // 从addr解析
